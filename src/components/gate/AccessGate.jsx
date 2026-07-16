@@ -16,18 +16,18 @@ const AccessGate = ({ onUnlock }) => {
     };
 
     return (
-        <div className="min-h-screen bg-fw-dark flex items-center justify-center px-4">
+        <div className="min-h-screen bg-[#faf9f8] text-stone-900 flex items-center justify-center px-4">
             <div className="w-full max-w-sm">
                 <div className="flex items-center justify-center gap-0.5 mb-8">
-                    <div className="w-9 h-9 border-4 border-double border-fw-text rounded-[1px] flex items-center justify-center">
-                        <span className="text-2xl font-serif font-bold text-fw-text leading-none pb-1">Fr</span>
+                    <div className="w-9 h-9 border-4 border-double border-stone-900 rounded-[1px] flex items-center justify-center">
+                        <span className="text-2xl font-serif font-bold text-stone-900 leading-none pb-1">Fr</span>
                     </div>
-                    <span className="text-2xl font-serif font-bold tracking-tight text-fw-text leading-none">ameWorthy</span>
+                    <span className="text-2xl font-serif font-bold tracking-tight text-stone-900 leading-none">ameWorthy</span>
                 </div>
 
-                <div className="bg-fw-card border border-white/[0.07] rounded-xl p-6 sm:p-8">
-                    <h1 className="text-lg font-serif font-bold text-fw-text text-center mb-1.5">Private Preview</h1>
-                    <p className="text-sm text-fw-muted text-center mb-6 leading-relaxed">
+                <div className="bg-white border border-stone-200 rounded-xl shadow-sm p-6 sm:p-8">
+                    <h1 className="text-lg font-bold text-stone-900 text-center mb-1.5">Private Preview</h1>
+                    <p className="text-sm text-stone-500 text-center mb-6 leading-relaxed">
                         FrameWorthy is currently in private testing. Enter the access code you were given to continue.
                     </p>
 
@@ -38,24 +38,24 @@ const AccessGate = ({ onUnlock }) => {
                             onChange={(e) => { setCode(e.target.value); setError(false); }}
                             placeholder="Access code"
                             autoFocus
-                            className={`w-full bg-fw-surface border rounded-lg px-4 py-3 text-base text-fw-text placeholder:text-fw-dim focus:outline-none focus:ring-1 transition ${
-                                error ? 'border-red-500/60 focus:ring-red-500/60' : 'border-white/10 focus:ring-fw-gold/60 focus:border-fw-gold/60'
+                            className={`w-full bg-stone-50 border rounded-lg px-4 py-3 text-base text-stone-900 placeholder:text-stone-400 focus:outline-none focus:ring-1 transition ${
+                                error ? 'border-red-400 focus:ring-red-400' : 'border-stone-200 focus:ring-stone-900/30 focus:border-stone-900/40'
                             }`}
                         />
                         {error && (
-                            <p className="text-xs text-red-400 mt-2">That code isn't right. Double-check and try again.</p>
+                            <p className="text-xs text-red-500 mt-2">That code isn't right. Double-check and try again.</p>
                         )}
 
                         <button
                             type="submit"
-                            className="w-full mt-4 bg-fw-gold text-fw-dark font-semibold rounded-lg py-3 hover:brightness-110 active:brightness-95 transition"
+                            className="w-full mt-4 bg-stone-900 text-white font-semibold rounded-lg py-3 hover:bg-stone-800 active:bg-stone-950 transition"
                         >
                             Continue
                         </button>
                     </form>
                 </div>
 
-                <p className="text-xs text-fw-dim text-center mt-6">
+                <p className="text-xs text-stone-400 text-center mt-6">
                     Don't have a code? This site isn't open to the public yet.
                 </p>
             </div>
