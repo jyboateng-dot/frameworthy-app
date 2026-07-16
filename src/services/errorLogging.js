@@ -26,6 +26,7 @@ export async function logClientError({ message, stack, type, componentStack }) {
             userAgent: navigator.userAgent,
             platform: Capacitor.getPlatform(), // 'web' | 'ios' | 'android'
             userId: auth.currentUser?.uid || 'guest',
+            testerName: localStorage.getItem('fw_tester_name') || null,
             createdAt: serverTimestamp(),
         });
     } catch {

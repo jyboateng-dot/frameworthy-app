@@ -165,3 +165,42 @@ exports.sendPasswordResetLink = onCall({ secrets: [emailjsPrivateKey], region: '
 
     return { success: true };
 });
+
+// One-time-use PINs gating access to the private tester build. Docs live in
+// `testerPins/{pin}` and are only ever touched here via the Admin SDK —
+// Firestore's default-deny covers the collection for every client, so the
+// actual PIN values and who-redeemed-what can't be read or tampered with
+// from the browser. The initial batch of 5 was generated with a one-off
+// seedTesterPins function that has since been removed — see git history
+// if more PINs ever need generating the same way.
+
+// Validates a tester's one-time PIN and records who redeemed it. A Firestore
+// transaction makes the used-check-and-claim atomic, so two people racing to
+// redeem the same PIN can't both succeed.
+exports.redeemTesterPin = onCall({ region: 'us-central1', timeoutSeconds: 30 }, async (request) => {
+    const { pin, name } = request.data || {};
+    if (!pin || typeof pin !== 'string' || !name || typeof name !== 'string' || !name.trim()) {
+        throw new HttpsError('invalid-argument', 'name and pin are required');
+    }
+
+    const trimmedName = name.trim().slice(0, 80);
+    const normalizedPin = pin.trim().toUpperCase();
+    const db = admin.firestore();
+    const pinRef = db.collection('testerPins').doc(normalizedPin);
+
+    return db.runTransaction(async (tx) => {
+        const snap = await tx.get(pinRef);
+        if (!snap.exists) {
+            return { success: false, reason: 'invalid' };
+        }
+        if (snap.data().used) {
+            return { success: false, reason: 'used' };
+        }
+        tx.update(pinRef, {
+            used: true,
+            usedByName: trimmedName,
+            usedAt: admin.firestore.FieldValue.serverTimestamp(),
+        });
+        return { success: true };
+    });
+});
