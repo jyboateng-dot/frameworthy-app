@@ -1047,10 +1047,16 @@ const CustomizeFramePage = ({
                                 return overflowLeft > 0 ? (overflowLeft * 2) + 40 : 0;
                             })();
 
-                            // Dynamic Dimension Label Sizing
+                            // Dynamic Dimension Label Sizing — scales continuously with the
+                            // frame's actual on-screen pixel width (small physical sizes and/or
+                            // narrow browser windows both shrink zoneSize.width), so the label
+                            // never looks oversized or cramped next to a tiny frame. Tailwind
+                            // can't JIT a runtime-computed arbitrary value, so this drives an
+                            // inline font-size rather than a text-[Npx] class.
+                            const baseFrameWidthPx = (frameWidthPct / 100) * zoneSize.width;
                             const dimTopClass = isHovered ? '-top-6' : '-top-4';
                             const dimRightClass = isHovered ? '-right-6' : '-right-4';
-                            const dimTextClass = isHovered ? 'text-sm' : 'text-[10px]';
+                            const dimFontSizePx = isHovered ? 14 : Math.max(8, Math.min(10, baseFrameWidthPx / 12));
 
                             return (
                                 <div
@@ -1115,12 +1121,12 @@ const CustomizeFramePage = ({
                                     {/* Dimension Overlays */}
                                     {showDimensions && (
                                         <>
-                                            <div className={`absolute ${dimTopClass} left-0 w-full flex items-center justify-center text-stone-800 font-mono ${dimTextClass} border-t border-stone-800 pt-1 mix-blend-color-burn opacity-80 whitespace-nowrap overflow-visible pointer-events-none`}>
+                                            <div style={{ fontSize: `${dimFontSizePx}px` }} className={`absolute ${dimTopClass} left-0 w-full flex items-center justify-center text-stone-800 font-mono border-t border-stone-800 pt-1 mix-blend-color-burn opacity-80 whitespace-nowrap overflow-visible pointer-events-none`}>
                                                 <div className="absolute left-0 top-0 h-1.5 sm:h-2 w-px bg-stone-800" />
                                                 <div className="absolute right-0 top-0 h-1.5 sm:h-2 w-px bg-stone-800" />
                                                 {unit === 'in' ? wInch.toFixed(1) : innerWidthCm.toFixed(1)} {unit === 'in' ? 'in' : 'cm'}
                                             </div>
-                                            <div className={`absolute ${dimRightClass} top-0 h-full flex flex-col items-center justify-center text-stone-800 font-mono ${dimTextClass} border-r border-stone-800 pr-1 mix-blend-color-burn opacity-80 whitespace-nowrap overflow-visible pointer-events-none`}>
+                                            <div style={{ fontSize: `${dimFontSizePx}px` }} className={`absolute ${dimRightClass} top-0 h-full flex flex-col items-center justify-center text-stone-800 font-mono border-r border-stone-800 pr-1 mix-blend-color-burn opacity-80 whitespace-nowrap overflow-visible pointer-events-none`}>
                                                 <div className="absolute right-0 top-0 w-1.5 sm:w-2 h-px bg-stone-800" />
                                                 <div className="absolute right-0 bottom-0 w-1.5 sm:w-2 h-px bg-stone-800" />
                                                 <span style={{ writingMode: 'vertical-rl' }}>{unit === 'in' ? hInch.toFixed(1) : innerHeightCm.toFixed(1)} {unit === 'in' ? 'in' : 'cm'}</span>
