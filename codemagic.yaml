@@ -15,7 +15,7 @@ workflows:
           include: true
     scripts:
       - name: Install npm dependencies
-        script: npm ci
+        script: npm install --legacy-peer-deps
       - name: Sync Capacitor Android project
         script: npx cap sync android
       - name: Build Android debug APK
