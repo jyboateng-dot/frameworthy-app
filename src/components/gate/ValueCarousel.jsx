@@ -1,11 +1,82 @@
 import React, { useState } from 'react';
 import { ArrowRight, ArrowLeft } from 'lucide-react';
-import { CAROUSEL_SLIDES } from '../../data/landingCarouselSlides';
+
+// Slides 1-5: mandatory intro covering the need, value proposition, and
+// what to expect as a tester. Slides 6-10: real slides reused from the
+// landing page's own hero carousel (positions 1, 3, 4, 6, and 10 of
+// CAROUSEL_SLIDES in landingCarouselSlides.js).
+const SLIDES = [
+    {
+        image: '/hero_slide_1.png',
+        eyebrow: "You're invited",
+        title: 'Welcome to FrameWorthy',
+        body: "You're one of a small group testing FrameWorthy before it opens to the public. Thanks for being here.",
+    },
+    {
+        image: '/hero_slide_3.png',
+        eyebrow: 'The problem',
+        title: "Framing shouldn't be this hard",
+        body: "Getting something properly framed usually means guessing sizes, visiting a shop in person, and hoping it looks right once it's on your wall.",
+    },
+    {
+        image: '/hero_slide_5.png',
+        eyebrow: 'The idea',
+        title: 'See it before you buy it',
+        body: 'Upload any photo, or pick from our curated collections, and preview it framed, matted, and hanging on a wall of your choice — before you order anything.',
+    },
+    {
+        image: '/hero_slide_7.jpg',
+        eyebrow: 'What you get',
+        title: 'Everything in one place',
+        features: [
+            'Museum-quality art & iconic prints',
+            'Premium frame styles & custom sizing',
+            'Realistic room visualizer',
+            'Secure checkout — card & Mobile Money',
+        ],
+    },
+    {
+        image: '/hero_slide_8.jpg',
+        eyebrow: "You're one of the first",
+        title: 'Explore freely, break things, tell us',
+        body: 'Try placing a test order, poke around every corner, and let us know what confuses you or what you love. Your feedback shapes what ships next.',
+    },
+    {
+        image: '/hero_hanging_frame.png',
+        eyebrow: 'Feature spotlight',
+        title: 'Welcome to FrameWorthy',
+        body: 'Transform your cherished memories and favorite artworks into stunning, gallery-quality centerpieces that elevate any space.',
+    },
+    {
+        image: '/hallway_banner.png',
+        eyebrow: 'Feature spotlight',
+        title: 'Curate Your Hallways',
+        body: "Turn your empty corridors into a beautiful walking gallery of your life's greatest moments and art.",
+    },
+    {
+        image: 'https://wallpapers.com/images/hd/aesthetic-album-cover-f71lwawxcvz9s7pa.jpg',
+        eyebrow: 'Feature spotlight',
+        title: 'Frame Your Favorite Album Covers',
+        body: 'Search for your favorite artist and easily frame their iconic album covers.',
+    },
+    {
+        image: '/living_room_banner.png',
+        eyebrow: 'Feature spotlight',
+        title: 'Elevate Your Living Space',
+        body: 'Create a stunning focal point in your living room with our premium, handcrafted frames.',
+    },
+    {
+        image: '/landing_carousel/slide-7.jpg',
+        eyebrow: 'Feature spotlight',
+        title: 'Delivered to Your Door',
+        body: 'We handcraft your custom frame and deliver it securely to your doorstep.',
+    },
+];
 
 const ValueCarousel = ({ onDone }) => {
     const [index, setIndex] = useState(0);
-    const slide = CAROUSEL_SLIDES[index];
-    const isLast = index === CAROUSEL_SLIDES.length - 1;
+    const slide = SLIDES[index];
+    const isLast = index === SLIDES.length - 1;
 
     const goNext = () => {
         if (isLast) onDone();
@@ -14,28 +85,49 @@ const ValueCarousel = ({ onDone }) => {
     const goBack = () => setIndex((i) => Math.max(0, i - 1));
 
     return (
-        <div className="fixed inset-0 z-[200] bg-[#faf9f8] text-stone-900 overflow-hidden">
-            <div className="h-full w-full max-w-7xl mx-auto px-6 lg:px-12 grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-10 items-center">
+        <div className="fixed inset-0 z-[200] bg-[#faf9f8] overflow-hidden">
+            <div
+                className="absolute inset-0 bg-cover bg-center"
+                style={{ backgroundImage: `url(${slide.image})` }}
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#faf9f8] via-[#faf9f8]/80 to-[#faf9f8]/10" />
 
-                {/* Left: Typography */}
-                <div className="lg:col-span-5 order-2 lg:order-1 py-6 lg:py-0">
-                    <div className="text-stone-400 font-bold tracking-widest text-xs uppercase mb-6 flex items-center gap-4">
-                        <span className="w-8 h-[1px] bg-stone-300" />
-                        0{index + 1} &mdash; 0{CAROUSEL_SLIDES.length}
-                    </div>
+            <div className="relative h-full flex flex-col">
+                <div className="flex items-center justify-center gap-1.5 pt-[calc(1.5rem+env(safe-area-inset-top,0px))]">
+                    {SLIDES.map((_, i) => (
+                        <div
+                            key={i}
+                            className={`h-1 rounded-full transition-all ${i === index ? 'w-6 bg-stone-900' : 'w-1.5 bg-stone-900/20'}`}
+                        />
+                    ))}
+                </div>
 
-                    <h1 className="text-3xl sm:text-4xl lg:text-6xl font-bold tracking-tighter leading-[1.05] mb-6 text-stone-900">
-                        {slide.title}
-                    </h1>
-                    <p className="text-base lg:text-xl text-stone-600 max-w-lg leading-relaxed">
-                        {slide.text}
-                    </p>
+                <div className="flex-1" />
+
+                <div className="px-6 sm:px-10 pb-[calc(2rem+env(safe-area-inset-bottom,0px))] max-w-2xl">
+                    <p className="text-xs font-semibold tracking-[0.2em] uppercase text-amber-700 mb-3">{slide.eyebrow}</p>
+                    <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-stone-900 mb-4 leading-tight">{slide.title}</h2>
+
+                    {slide.body && (
+                        <p className="text-base text-stone-600 leading-relaxed">{slide.body}</p>
+                    )}
+
+                    {slide.features && (
+                        <ul className="space-y-2">
+                            {slide.features.map((f) => (
+                                <li key={f} className="flex items-start gap-2 text-base text-stone-600">
+                                    <span className="text-amber-700 mt-1.5 text-[10px]">&#9670;</span>
+                                    <span>{f}</span>
+                                </li>
+                            ))}
+                        </ul>
+                    )}
 
                     <div className="flex items-center gap-3 mt-8">
                         {index > 0 && (
                             <button
                                 onClick={goBack}
-                                className="w-12 h-12 shrink-0 rounded-full border border-stone-300 flex items-center justify-center text-stone-700 hover:bg-stone-100 transition"
+                                className="w-11 h-11 flex items-center justify-center rounded-full border border-stone-300 text-stone-700 hover:bg-stone-900/5 transition"
                                 aria-label="Previous"
                             >
                                 <ArrowLeft size={18} />
@@ -43,22 +135,13 @@ const ValueCarousel = ({ onDone }) => {
                         )}
                         <button
                             onClick={goNext}
-                            className="group flex items-center gap-3 bg-stone-900 text-white font-bold tracking-wide uppercase text-sm px-6 py-3.5 rounded-full hover:bg-stone-800 transition"
+                            className="flex items-center gap-2 bg-stone-900 text-white font-semibold rounded-full pl-6 pr-5 py-3 hover:bg-stone-800 active:bg-stone-950 transition"
                         >
                             {isLast ? 'Enter FrameWorthy' : 'Next'}
-                            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                            <ArrowRight size={18} />
                         </button>
                     </div>
                 </div>
-
-                {/* Right: Image */}
-                <div className="lg:col-span-7 order-1 lg:order-2 relative h-[34vh] lg:h-[70vh] w-full">
-                    <div className="absolute top-6 -right-6 w-full h-full bg-stone-200/50 hidden lg:block" />
-                    <div className="relative w-full h-full overflow-hidden shadow-2xl bg-stone-100">
-                        <img src={slide.img} alt={slide.title} className="w-full h-full object-cover" />
-                    </div>
-                </div>
-
             </div>
         </div>
     );
