@@ -28,6 +28,7 @@ import { WishlistProvider } from './context/WishlistContext';
 import { FRAME_STYLES, FRAME_SIZES, WALL_TEXTURES, MAT_COLORS } from './data/constants';
 import { Capacitor } from '@capacitor/core';
 import { App as CapacitorApp } from '@capacitor/app';
+import TesterGate from './components/gate/TesterGate';
 
 // --- MAIN LAYOUT COMPONENT ---
 // This component has access to Router hooks (useNavigate, etc.)
@@ -288,17 +289,19 @@ import { UnitProvider } from './context/UnitContext';
 
 const App = () => {
   return (
-    <AuthProvider>
-      <WishlistProvider>
-        <CartProvider>
-          <UnitProvider>
-            <Router>
-              <AppLayout />
-            </Router>
-          </UnitProvider>
-        </CartProvider>
-      </WishlistProvider>
-    </AuthProvider>
+    <TesterGate>
+      <AuthProvider>
+        <WishlistProvider>
+          <CartProvider>
+            <UnitProvider>
+              <Router>
+                <AppLayout />
+              </Router>
+            </UnitProvider>
+          </CartProvider>
+        </WishlistProvider>
+      </AuthProvider>
+    </TesterGate>
   );
 };
 
