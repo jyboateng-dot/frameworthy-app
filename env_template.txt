@@ -13,3 +13,8 @@ VITE_PAYSTACK_PUBLIC_KEY=replace-with-your-paystack-public-key
 VITE_EMAILJS_SERVICE_ID=replace-with-your-emailjs-service-id
 VITE_EMAILJS_TEMPLATE_ID=replace-with-your-emailjs-template-id
 VITE_EMAILJS_PUBLIC_KEY=replace-with-your-emailjs-public-key
+
+# Firebase App Check — the public reCAPTCHA v3 site key from
+# Firebase Console > App Check. Leave blank/unset to disable App Check
+# entirely (the app runs normally). See SECURITY_APPCHECK.md.
+VITE_APPCHECK_RECAPTCHA_SITE_KEY=replace-with-your-recaptcha-v3-site-key
