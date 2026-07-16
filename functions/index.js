@@ -13,7 +13,7 @@ const paystackSecretKey = defineSecret('PAYSTACK_SECRET_KEY');
 // may be used) before marking an order as paid. The client-side payment
 // callback alone can't be trusted — anyone could fake a "success" event
 // without actually paying, so this function is the real source of truth.
-exports.verifyPaystackPayment = onCall({ secrets: [paystackSecretKey], region: 'us-central1', timeoutSeconds: 30 }, async (request) => {
+exports.verifyPaystackPayment = onCall({ secrets: [paystackSecretKey], region: 'us-central1', timeoutSeconds: 30, maxInstances: 10 }, async (request) => {
     const { reference, orderId } = request.data || {};
     if (!reference || !orderId) {
         throw new HttpsError('invalid-argument', 'reference and orderId are required');
@@ -125,10 +125,47 @@ const EMAILJS_PUBLIC_KEY = 'O8XgNWf6VmV-veLaX';
 // domain reputation, which routinely lands in spam — routing through the
 // same EmailJS/Gmail pipeline already used for order confirmations fixes
 // that, since it's a real, already-warmed-up sending identity.
-exports.sendPasswordResetLink = onCall({ secrets: [emailjsPrivateKey], region: 'us-central1', timeoutSeconds: 30 }, async (request) => {
+exports.sendPasswordResetLink = onCall({ secrets: [emailjsPrivateKey], region: 'us-central1', timeoutSeconds: 30, maxInstances: 5 }, async (request) => {
     const { email } = request.data || {};
     if (!email || typeof email !== 'string') {
         throw new HttpsError('invalid-argument', 'email is required');
+    }
+
+    // Abuse guard: without this, anyone can script this endpoint to email-bomb
+    // a victim's inbox — every call sends a real message through our connected
+    // Gmail/EmailJS identity, which floods the target AND torches that
+    // identity's sending reputation (spam complaints -> future order emails
+    // land in spam). Throttle to one reset email per address per 60s using a
+    // short-lived Firestore marker keyed by the lowercased email. We always
+    // return { success: true } regardless (see below), so a throttled caller
+    // learns nothing about whether the address exists — the no-enumeration
+    // guarantee is preserved.
+    const normalizedEmail = email.trim().toLowerCase();
+    const db = admin.firestore();
+    const throttleRef = db.collection('passwordResetThrottle').doc(encodeURIComponent(normalizedEmail));
+    const COOLDOWN_MS = 60_000;
+    try {
+        const allowed = await db.runTransaction(async (tx) => {
+            const snap = await tx.get(throttleRef);
+            const now = Date.now();
+            if (snap.exists) {
+                const last = snap.data().lastSentMs || 0;
+                if (now - last < COOLDOWN_MS) {
+                    return false;
+                }
+            }
+            tx.set(throttleRef, { lastSentMs: now });
+            return true;
+        });
+        if (!allowed) {
+            logger.info('Password reset throttled', { email: normalizedEmail });
+            return { success: true };
+        }
+    } catch (err) {
+        // Fail closed on throttle-store errors so this can't be bypassed by
+        // forcing the transaction to error — but still don't leak anything.
+        logger.error('Password reset throttle check failed', err);
+        return { success: true };
     }
 
     let resetLink;
@@ -177,7 +214,7 @@ exports.sendPasswordResetLink = onCall({ secrets: [emailjsPrivateKey], region: '
 // Validates a tester's one-time PIN and records who redeemed it. A Firestore
 // transaction makes the used-check-and-claim atomic, so two people racing to
 // redeem the same PIN can't both succeed.
-exports.redeemTesterPin = onCall({ region: 'us-central1', timeoutSeconds: 30 }, async (request) => {
+exports.redeemTesterPin = onCall({ region: 'us-central1', timeoutSeconds: 30, maxInstances: 5 }, async (request) => {
     const { pin, name } = request.data || {};
     if (!pin || typeof pin !== 'string' || !name || typeof name !== 'string' || !name.trim()) {
         throw new HttpsError('invalid-argument', 'name and pin are required');
