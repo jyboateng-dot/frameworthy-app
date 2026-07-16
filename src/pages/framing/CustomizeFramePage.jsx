@@ -1340,7 +1340,7 @@ const CustomizeFramePage = ({
 
                         {/* Sofa Dimension Overlay */}
                         {showDimensions && (
-                            <div className="relative w-[87.5%] -mt-1 flex items-center justify-center text-stone-800 font-mono text-[10px] border-b border-stone-800 pb-0.5 mix-blend-color-burn opacity-80">
+                            <div className="relative w-[87.5%] -mt-1 flex items-center justify-center text-stone-800 font-mono text-[8px] sm:text-[10px] whitespace-nowrap border-b border-stone-800 pb-0.5 mix-blend-color-burn opacity-80">
                                 <div className="absolute left-0 bottom-0 h-1.5 sm:h-2 w-px bg-stone-800" />
                                 <div className="absolute right-0 bottom-0 h-1.5 sm:h-2 w-px bg-stone-800" />
                                 Standard 2-Seater Sofa - {unit === 'in' ? (160 / 2.54).toFixed(1) : '160.0'} {unit === 'in' ? 'in' : 'cm'}
