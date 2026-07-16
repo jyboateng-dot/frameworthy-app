@@ -390,10 +390,10 @@ const CustomizeFramePage = ({
     useEffect(() => {
         if (!selectedSize || !selectedFrame) return;
         let base = Math.round(selectedSize.price * (selectedFrame.priceMod || 1));
-        if (matWidth !== 'none') base += (matColor.price || 15);
-        if (glassType === 'non-glare') base += 20;
-        if (glassType === 'museum') base += 40;
-        if (hardwareType === 'french-cleat') base += 10;
+        if (matWidth !== 'none') base += (matColor.price || 75);
+        if (glassType === 'non-glare') base += 100;
+        if (glassType === 'museum') base += 200;
+        if (hardwareType === 'french-cleat') base += 50;
         setTotalPrice(base);
     }, [selectedSize, selectedFrame, matWidth, matColor, glassType, hardwareType, setTotalPrice]);
 
@@ -740,10 +740,10 @@ const CustomizeFramePage = ({
     };
 
     const buildCartItem = (visualizerImage) => {
-        const calculatedTotal = (selectedSize?.price || 0) +
-            (selectedFrame?.id !== 'frame-canvas' && matWidth !== 'none' ? (matColor.price || 15) : 0) +
-            (selectedFrame?.id !== 'frame-canvas' ? (glassType === 'non-glare' ? 20 : glassType === 'museum' ? 40 : 0) : 0) +
-            (hardwareType === 'french-cleat' ? 10 : 0);
+        const calculatedTotal = Math.round((selectedSize?.price || 0) * (selectedFrame?.priceMod || 1)) +
+            (selectedFrame?.id !== 'frame-canvas' && matWidth !== 'none' ? (matColor.price || 75) : 0) +
+            (selectedFrame?.id !== 'frame-canvas' ? (glassType === 'non-glare' ? 100 : glassType === 'museum' ? 200 : 0) : 0) +
+            (hardwareType === 'french-cleat' ? 50 : 0);
 
         return {
             productMode: 'frame',
@@ -1572,8 +1572,8 @@ const CustomizeFramePage = ({
                                 <div className="space-y-2">
                                     {[
                                         { id: 'standard', name: 'Standard Acrylic', desc: 'Clear, lightweight protection.', price: 0 },
-                                        { id: 'non-glare', name: 'Non-Glare Acrylic', desc: 'Reduces reflections in bright rooms.', price: 20 },
-                                        { id: 'museum', name: 'Museum Glass', desc: '99% UV protection, zero reflection.', price: 40 },
+                                        { id: 'non-glare', name: 'Non-Glare Acrylic', desc: 'Reduces reflections in bright rooms.', price: 100 },
+                                        { id: 'museum', name: 'Museum Glass', desc: '99% UV protection, zero reflection.', price: 200 },
                                     ].map(glass => (
                                         <button
                                             key={glass.id}
@@ -1585,7 +1585,7 @@ const CustomizeFramePage = ({
                                                 <p className="text-[10px] text-stone-500 mt-0.5">{glass.desc}</p>
                                             </div>
                                             <span className="text-xs font-mono text-stone-500">
-                                                {glass.price === 0 ? 'Included' : `+$${glass.price}`}
+                                                {glass.price === 0 ? 'Included' : `+GHS ${glass.price}`}
                                             </span>
                                         </button>
                                     ))}
@@ -1607,7 +1607,7 @@ const CustomizeFramePage = ({
                             {[
                                 { id: 'wire', name: 'Wire Hanging', desc: 'Standard D-rings and picture wire.', price: 0 },
                                 { id: 'sawtooth', name: 'Sawtooth Hanger', desc: 'Simple mount for a single nail.', price: 0 },
-                                { id: 'french-cleat', name: 'French Cleat', desc: 'Heavy-duty interlocking wall bracket.', price: 10 },
+                                { id: 'french-cleat', name: 'French Cleat', desc: 'Heavy-duty interlocking wall bracket.', price: 50 },
                                 ...(selectedSize?.id === '5x7' || selectedSize?.id === '8x10' ? [{ id: 'easel', name: 'Tabletop Easel', desc: 'Fold-out stand for desks & mantels.', price: 0 }] : [])
                             ].map(hw => (
                                 <button
@@ -1620,7 +1620,7 @@ const CustomizeFramePage = ({
                                         <p className="text-[10px] text-stone-500 mt-0.5">{hw.desc}</p>
                                     </div>
                                     <span className="text-xs font-mono text-stone-500">
-                                        {hw.price === 0 ? 'Included' : `+$${hw.price}`}
+                                        {hw.price === 0 ? 'Included' : `+GHS ${hw.price}`}
                                     </span>
                                 </button>
                             ))}
@@ -1632,10 +1632,10 @@ const CustomizeFramePage = ({
                 <div className={`bottom-0 z-20 backdrop-blur-md border-t border-stone-200 shadow-[0_-10px_40px_rgba(0,0,0,0.03)] flex ${isSideBySide ? 'flex-col gap-0 items-start py-1.5 px-3' : 'items-center justify-between gap-4 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom,0px))] px-5'} ${isSideBySide ? 'relative bg-white/85' : 'sticky bg-white/95'}`}>
                     <div className="flex flex-col">
                         <span className="text-lg font-bold text-stone-900 tracking-tight">GHS {
-                            (selectedSize?.price || 0) + 
-                            (selectedFrame?.id !== 'frame-canvas' && matWidth !== 'none' ? (matColor.price || 15) : 0) + 
-                            (selectedFrame?.id !== 'frame-canvas' ? (glassType === 'non-glare' ? 20 : glassType === 'museum' ? 40 : 0) : 0) +
-                            (hardwareType === 'french-cleat' ? 10 : 0)
+                            Math.round((selectedSize?.price || 0) * (selectedFrame?.priceMod || 1)) +
+                            (selectedFrame?.id !== 'frame-canvas' && matWidth !== 'none' ? (matColor.price || 75) : 0) +
+                            (selectedFrame?.id !== 'frame-canvas' ? (glassType === 'non-glare' ? 100 : glassType === 'museum' ? 200 : 0) : 0) +
+                            (hardwareType === 'french-cleat' ? 50 : 0)
                         }</span>
                         <span className="text-[8px] text-stone-500 whitespace-nowrap">
                             {isCloudUploadPending ? 'Finishing image upload…' : 'Delivery fee paid to the courier on delivery'}
