@@ -1,0 +1,10 @@
+{
+  "appId": "com.frameworthyco.app",
+  "appName": "FrameWorthy",
+  "webDir": "mobile-shell",
+  "server": {
+    "url": "https://frameworthyco-9c78c.web.app",
+    "androidScheme": "https",
+    "cleartext": false
+  }
+}

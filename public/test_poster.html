@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Test Poster</title>
+</head>
+<body>
+    <div id="result">Running...</div>
+    <img id="imgOut" style="max-width: 500px;" />
+    
+    <script type="module">
+        import { renderAlbumPoster, fetchAlbumMetadata } from '/src/utils/generateAlbumPoster.js';
+
+        async function test() {
+            try {
+                const album = {
+                    id: "1440939231",
+                    title: "When We All Fall Asleep, Where Do We Go?",
+                    artist: "Billie Eilish",
+                    image: "https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/a4/09/b3/a409b3b0-ce36-39ce-58fa-c146eef24f11/190228678280.jpg/600x600bb.jpg"
+                };
+
+                document.getElementById('result').innerText = "Fetching metadata...";
+                const albumData = await fetchAlbumMetadata(album);
+                
+                document.getElementById('result').innerText = "Rendering poster...";
+                const dataUrl = await renderAlbumPoster(albumData, "24x36", 100);
+                
+                document.getElementById('imgOut').src = dataUrl;
+                document.getElementById('result').innerText = "Done!";
+            } catch (err) {
+                let errStr = '';
+                if (err instanceof Error) {
+                    errStr = err.message + '\n' + err.stack;
+                } else if (err instanceof Event) {
+                    errStr = 'DOM Event: ' + err.type;
+                } else {
+                    errStr = JSON.stringify(err) + ' - ' + String(err);
+                }
+                document.getElementById('result').innerText = "Error: " + errStr;
+            }
+        }
+
+        test();
+    </script>
+</body>
+</html>

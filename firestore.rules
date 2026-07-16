@@ -1,0 +1,64 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Single hardcoded admin, matching AdminDashboard.jsx's own check —
+    // keep these two in sync if the admin email ever changes.
+    function isAdmin() {
+      return request.auth != null && request.auth.token.email == 'admin@frameworthyco.com';
+    }
+
+    match /orders/{orderId} {
+      // Guest checkout has no auth context (see CheckoutPage.jsx's
+      // `userId: user ? user.uid : 'guest'`), so a created order can't be
+      // tied to a verified identity in that case — this mirrors the app's
+      // existing guest-checkout support rather than blocking it. Signed-in
+      // users must create orders under their own uid, not someone else's.
+      //
+      // paymentStatus must start 'pending' — only the verifyPaystackPayment
+      // Cloud Function (using the Admin SDK, which bypasses these rules
+      // entirely) may flip it to 'paid', after checking with Paystack
+      // server-side. Without this, a client could just create an order
+      // with paymentStatus: 'paid' baked in and skip payment entirely.
+      allow create: if request.resource.data.paymentStatus == 'pending'
+                    && ((request.resource.data.userId == 'guest' && request.auth == null)
+                        || (request.auth != null && request.resource.data.userId == request.auth.uid));
+
+      // A signed-in user can read their own orders; the admin can read and
+      // update every order. Guest orders aren't individually re-readable
+      // (no identity to check against) — the app already shows a guest's
+      // order details from local state right after checkout, not by
+      // re-querying Firestore.
+      allow read: if isAdmin() || (request.auth != null && resource.data.userId == request.auth.uid);
+      allow update: if isAdmin();
+      allow delete: if false;
+    }
+
+    match /clientErrors/{errorId} {
+      // Written by src/services/errorLogging.js from any client, signed in
+      // or not — an error can happen before/without auth, so this can't
+      // require request.auth. Size caps mirror the client-side truncation
+      // in errorLogging.js and exist so a malicious client can't write
+      // arbitrarily large documents. Only the admin reads these back (via
+      // the Firebase console or a future debug view) — no client needs to
+      // read its own error reports.
+      allow create: if request.resource.data.message is string && request.resource.data.message.size() <= 1000
+                    && (!('stack' in request.resource.data) || request.resource.data.stack == null || (request.resource.data.stack is string && request.resource.data.stack.size() <= 4000))
+                    && (!('componentStack' in request.resource.data) || request.resource.data.componentStack == null || (request.resource.data.componentStack is string && request.resource.data.componentStack.size() <= 4000))
+                    && request.resource.data.url is string && request.resource.data.url.size() <= 500
+                    && request.resource.data.platform is string;
+      allow read: if isAdmin();
+      allow update: if false;
+      allow delete: if false;
+    }
+
+    // `paystackReferences/{reference}` is written only by verifyPaystackPayment
+    // via the Admin SDK (which bypasses these rules entirely) to atomically
+    // claim a payment reference against exactly one order, preventing the
+    // same reference from being replayed to mark other orders paid. No
+    // client ever needs to read or write it directly, so it stays covered
+    // by the default-deny below along with everything else not in active
+    // use (the `projects` write path in db.js has no caller anywhere in the app).
+  }
+}

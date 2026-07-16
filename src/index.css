@@ -1,0 +1,61 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    @apply bg-cream text-charcoal antialiased;
+    overscroll-behavior-y: none;
+  }
+}
+
+@layer utilities {
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
+
+/* ── Frame Card Grid Animations ────────────────────── */
+
+@keyframes frameCardIn {
+  from {
+    opacity: 0;
+    transform: translateY(28px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.frame-grid-hidden .frame-card {
+  opacity: 0;
+  transform: translateY(28px) scale(0.97);
+}
+
+.frame-grid-visible .frame-card {
+  animation: frameCardIn 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Staggered delays for each card */
+.frame-grid-visible .frame-card:nth-child(1)  { animation-delay: 0.05s; }
+.frame-grid-visible .frame-card:nth-child(2)  { animation-delay: 0.12s; }
+.frame-grid-visible .frame-card:nth-child(3)  { animation-delay: 0.19s; }
+.frame-grid-visible .frame-card:nth-child(4)  { animation-delay: 0.26s; }
+.frame-grid-visible .frame-card:nth-child(5)  { animation-delay: 0.33s; }
+.frame-grid-visible .frame-card:nth-child(6)  { animation-delay: 0.40s; }
+.frame-grid-visible .frame-card:nth-child(7)  { animation-delay: 0.47s; }
+.frame-grid-visible .frame-card:nth-child(8)  { animation-delay: 0.54s; }
+.frame-grid-visible .frame-card:nth-child(9)  { animation-delay: 0.61s; }
+.frame-grid-visible .frame-card:nth-child(10) { animation-delay: 0.68s; }
+.frame-grid-visible .frame-card:nth-child(11) { animation-delay: 0.75s; }
+.frame-grid-visible .frame-card:nth-child(12) { animation-delay: 0.82s; }
+.frame-grid-visible .frame-card:nth-child(13) { animation-delay: 0.89s; }
+.frame-grid-visible .frame-card:nth-child(14) { animation-delay: 0.96s; }

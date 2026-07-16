@@ -1,0 +1,15 @@
+VITE_FIREBASE_API_KEY=replace-with-your-api-key
+VITE_FIREBASE_AUTH_DOMAIN=replace-with-your-project-id.firebaseapp.com
+VITE_FIREBASE_PROJECT_ID=replace-with-your-project-id
+VITE_FIREBASE_STORAGE_BUCKET=replace-with-your-project-id.appspot.com
+VITE_FIREBASE_MESSAGING_SENDER_ID=replace-with-your-sender-id
+VITE_FIREBASE_APP_ID=replace-with-your-app-id
+
+VITE_CLOUDINARY_CLOUD_NAME=replace-with-your-cloud-name
+VITE_CLOUDINARY_UPLOAD_PRESET=replace-with-your-unsigned-upload-preset
+
+VITE_PAYSTACK_PUBLIC_KEY=replace-with-your-paystack-public-key
+
+VITE_EMAILJS_SERVICE_ID=replace-with-your-emailjs-service-id
+VITE_EMAILJS_TEMPLATE_ID=replace-with-your-emailjs-template-id
+VITE_EMAILJS_PUBLIC_KEY=replace-with-your-emailjs-public-key
