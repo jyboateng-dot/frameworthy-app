@@ -12,6 +12,12 @@ dist
 dist-ssr
 *.local
 
+# Environment / secrets — never commit real keys. env_template.txt is the
+# safe, committed placeholder; actual values live in .env* (ignored here).
+.env
+.env.*
+!.env.example
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
