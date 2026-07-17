@@ -1,0 +1,6 @@
+<svg width="64" height="64" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+  <rect width="64" height="64" rx="4" fill="#0a0a0a"/>
+  <rect x="8" y="8" width="48" height="48" fill="none" stroke="#e8e2d9" stroke-width="2"/>
+  <rect x="13" y="13" width="38" height="38" fill="none" stroke="#e8e2d9" stroke-width="2"/>
+  <text x="32" y="45" font-family="Georgia, 'Playfair Display', serif" font-weight="700" font-size="30" fill="#e8e2d9" text-anchor="middle">Fr</text>
+</svg>
