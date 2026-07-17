@@ -277,7 +277,7 @@ export default function LandingPage({ onStartFraming, navigate, setSelectedFrame
                         
                         {/* Col 1 */}
                         <div>
-                            <h6 className="text-white font-bold uppercase tracking-widest text-xs mb-6">Frameworthy&amp;co Ltd</h6>
+                            <h6 className="text-white font-bold uppercase tracking-widest text-xs mb-6">Frameworthy&amp;co</h6>
                             <p className="leading-loose">
                                 No. 17A, Cashew Street<br />
                                 Adjiringanor, Accra, Ghana<br />
@@ -331,7 +331,7 @@ export default function LandingPage({ onStartFraming, navigate, setSelectedFrame
 
                     {/* Copyright Row */}
                     <div className="pt-8 border-t border-stone-800 text-center text-xs text-stone-500 tracking-wider">
-                        copyright © {new Date().getFullYear()} Frameworthy&amp;co Ltd | <button onClick={() => navigate && navigate('/privacy')} className="hover:text-stone-300">privacy &amp; cookies</button> | powered by FrameWorthy
+                        copyright © {new Date().getFullYear()} Frameworthy&amp;co | <button onClick={() => navigate && navigate('/privacy')} className="hover:text-stone-300">privacy &amp; cookies</button> | powered by FrameWorthy
                     </div>
 
                 </div>

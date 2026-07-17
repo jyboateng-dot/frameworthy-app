@@ -5,7 +5,7 @@ const PrivacyPage = ({ navigate }) => (
     <LegalPageLayout navigate={navigate} title="Privacy Policy" effectiveDate="15 July 2026">
         <LegalSection title="1. Introduction">
             <p>
-                This Privacy Policy explains what information Frameworthy&amp;co Ltd ("FrameWorthy",
+                This Privacy Policy explains what information Frameworthy&amp;co ("FrameWorthy",
                 "we", "us") collects when you use this site, and how we use, store, and protect it.
             </p>
         </LegalSection>
