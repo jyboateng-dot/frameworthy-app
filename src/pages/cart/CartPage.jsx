@@ -7,6 +7,7 @@ import { MapPin, Heart, Trash2, ChevronRight, Minus, Plus, ShoppingBag } from 'l
 import { generateItemDescription, formatDimensionWithOrientation } from '../../utils/itemFormatters';
 
 import AuthModal from '../../components/AuthModal';
+import Price from '../../components/common/Price';
 
 const CartPage = () => {
     const { cartItems, updateQuantity, toggleItemSelection, toggleAllSelection, removeFromCart } = useCart();
@@ -76,7 +77,7 @@ const CartPage = () => {
 
             {/* Global Delivery Notice */}
             <div className="px-4 py-3 bg-white flex items-center gap-3 border-b border-stone-100">
-                <span className="text-stone-900 text-xs">Delivery fee paid to the courier on delivery</span>
+                <span className="text-stone-900 text-xs">Delivery paid upon delivery</span>
             </div>
 
             {/* Store Group */}
@@ -122,7 +123,7 @@ const CartPage = () => {
                                     <div className="mt-1 flex items-end justify-between">
                                         <div>
                                             <div className="flex items-baseline gap-1.5">
-                                                <span className="font-bold text-stone-900 text-sm">GHS {(item.totalPrice || 0).toFixed(2)}</span>
+                                                <Price amount={item.totalPrice || 0} className="font-bold text-stone-900 text-sm" />
                                             </div>
 
                                         </div>
@@ -162,10 +163,7 @@ const CartPage = () => {
 
                 <div className="flex items-center gap-3">
                     <div className="flex flex-col items-end">
-                        <div className="flex items-baseline gap-1">
-                            <span className="text-xs font-bold text-stone-800">GHS</span>
-                            <span className="text-lg font-bold text-stone-900 leading-none">{totalSelectedPrice.toFixed(2)}</span>
-                        </div>
+                        <Price amount={totalSelectedPrice} className="text-lg font-bold text-stone-900" />
 
                     </div>
                     

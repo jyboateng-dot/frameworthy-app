@@ -10,6 +10,7 @@ import { functions } from '../../services/firebase';
 import { MapPin, CreditCard, Ticket, ShieldCheck, Loader, X } from 'lucide-react';
 import { generateItemDescription, formatDimensionWithOrientation } from '../../utils/itemFormatters';
 import { PROMO_CODES } from '../../data/promoCodes';
+import Price from '../../components/common/Price';
 
 const PAYSTACK_PUBLIC_KEY = import.meta.env.VITE_PAYSTACK_PUBLIC_KEY;
 const EMAILJS_SERVICE_ID = import.meta.env.VITE_EMAILJS_SERVICE_ID;
@@ -432,7 +433,7 @@ const CheckoutPage = () => {
                                             </span>
                                         </h3>
                                         <div className="mt-2 flex items-center justify-between">
-                                            <span className="font-bold text-sm text-stone-900">GHS {item.totalPrice.toFixed(2)}</span>
+                                            <Price amount={item.totalPrice} className="font-bold text-sm text-stone-900" />
                                             <span className="text-sm text-stone-500">x{item.quantity || 1}</span>
                                         </div>
                                     </div>
@@ -488,19 +489,19 @@ const CheckoutPage = () => {
                 <div className="bg-white rounded-xl shadow-sm p-4 space-y-2 text-sm">
                     <div className="flex justify-between text-stone-600">
                         <span>Subtotal</span>
-                        <span>GHS {subtotal.toFixed(2)}</span>
+                        <Price amount={subtotal} />
                     </div>
                     {appliedPromo && (
                         <div className="flex justify-between text-stone-600">
                             <span>Promo ({appliedPromo.code})</span>
-                            <span className="text-[#c9a84c]">- GHS {promoDiscount.toFixed(2)}</span>
+                            <Price amount={promoDiscount} prefix="- " className="text-[#c9a84c]" />
                         </div>
                     )}
                     <div className="flex justify-between font-bold text-stone-900 pt-2 border-t border-stone-100 mt-2">
                         <span>Total</span>
-                        <span>GHS {finalTotal.toFixed(2)}</span>
+                        <Price amount={finalTotal} />
                     </div>
-                    <p className="text-xs text-stone-400 pt-1">Delivery fee not included — paid to the courier on delivery.</p>
+                    <p className="text-xs text-stone-400 pt-1">Delivery paid upon delivery.</p>
                 </div>
 
                 {error && <div className="bg-red-50 text-red-500 p-3 rounded-xl text-sm text-center font-bold">{error}</div>}
@@ -516,8 +517,8 @@ const CheckoutPage = () => {
                             Secured by Paystack
                         </div>
                         <div className="flex items-baseline gap-1">
-                            <span className="text-xs font-bold text-stone-800">Total: GHS</span>
-                            <span className="text-xl font-bold text-[#c9a84c] leading-none">{finalTotal.toFixed(2)}</span>
+                            <span className="text-xs font-bold text-stone-800">Total:</span>
+                            <Price amount={finalTotal} className="text-xl font-bold text-[#c9a84c]" />
                         </div>
                     </div>
                     

@@ -4,6 +4,7 @@ import { getUserOrders } from '../services/db';
 import { Package, Loader, ArrowLeft, Image as ImageIcon } from 'lucide-react';
 import { generateItemDescription, formatDimensionWithOrientation } from '../utils/itemFormatters';
 import { useNavigate } from 'react-router-dom';
+import Price from '../components/common/Price';
 
 const OrdersPage = () => {
     const { user, isLoading: authLoading } = useAuth();
@@ -109,7 +110,7 @@ const OrdersPage = () => {
                                             Total
                                         </p>
                                         <p className="text-stone-800 font-medium">
-                                            GHS {(order.totalPrice ?? order.items?.reduce((sum, i) => sum + (i.price || 0) * (i.quantity || 1), 0) ?? 0).toFixed(2)}
+                                            <Price amount={order.totalPrice ?? order.items?.reduce((sum, i) => sum + (i.price || 0) * (i.quantity || 1), 0) ?? 0} />
                                         </p>
                                     </div>
                                     <div className="text-right">
@@ -163,7 +164,7 @@ const OrdersPage = () => {
                                                 </div>
                                                 <div className="mt-1 flex items-end justify-between">
                                                     <p className="text-base font-bold text-stone-900">
-                                                        GHS {(item.price ?? item.totalPrice ?? 0).toFixed(2)}
+                                                        <Price amount={item.price ?? item.totalPrice ?? 0} />
                                                     </p>
                                                 </div>
                                             </div>

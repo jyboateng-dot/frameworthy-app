@@ -23,6 +23,7 @@ import { renderAlbumPoster } from '../../utils/albumPoster';
 import { renderMoviePoster } from '../../utils/moviePoster';
 import { useAuth } from '../../context/AuthContext';
 import AuthModal from '../../components/AuthModal';
+import Price from '../../components/common/Price';
 
 // High-fidelity 3D side gradients for the frame
 const getSideBackground = (side, frame) => {
@@ -1637,14 +1638,17 @@ const CustomizeFramePage = ({
                 {/* Sticky Checkout Footer */}
                 <div className={`bottom-0 z-20 backdrop-blur-md border-t border-stone-200 shadow-[0_-10px_40px_rgba(0,0,0,0.03)] flex ${isSideBySide ? 'flex-col gap-0 items-start py-1.5 px-3' : 'items-center justify-between gap-4 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom,0px))] px-5'} ${isSideBySide ? 'relative bg-white/85' : 'sticky bg-white/95'}`}>
                     <div className="flex flex-col">
-                        <span className="text-lg font-bold text-stone-900 tracking-tight">GHS {
-                            Math.round((selectedSize?.price || 0) * (selectedFrame?.priceMod || 1)) +
-                            (selectedFrame?.id !== 'frame-canvas' && matWidth !== 'none' ? (matColor.price || 75) : 0) +
-                            (selectedFrame?.id !== 'frame-canvas' ? (glassType === 'non-glare' ? 100 : glassType === 'museum' ? 200 : 0) : 0) +
-                            (hardwareType === 'french-cleat' ? 50 : 0)
-                        }</span>
+                        <Price
+                            amount={
+                                Math.round((selectedSize?.price || 0) * (selectedFrame?.priceMod || 1)) +
+                                (selectedFrame?.id !== 'frame-canvas' && matWidth !== 'none' ? (matColor.price || 75) : 0) +
+                                (selectedFrame?.id !== 'frame-canvas' ? (glassType === 'non-glare' ? 100 : glassType === 'museum' ? 200 : 0) : 0) +
+                                (hardwareType === 'french-cleat' ? 50 : 0)
+                            }
+                            className="text-lg font-bold text-stone-900 tracking-tight"
+                        />
                         <span className="text-[8px] text-stone-500 whitespace-nowrap">
-                            {isCloudUploadPending ? 'Finishing image upload…' : 'Delivery fee paid to the courier on delivery'}
+                            {isCloudUploadPending ? 'Finishing image upload…' : 'Delivery paid upon delivery'}
                         </span>
                     </div>
                     <div className={`flex w-full mt-1 ${isSideBySide ? 'gap-1.5' : 'gap-2 max-w-[300px]'}`}>
