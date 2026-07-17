@@ -1,24 +1,29 @@
-import React, { useState } from 'react';
+import React, { useState, lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, useNavigate, useLocation, Navigate } from 'react-router-dom';
 import Header from './components/layout/Header';
-import CartPage from './pages/cart/CartPage';
-import WishlistPage from './pages/wishlist/WishlistPage';
 import LandingPage from './pages/LandingPage';
-import CustomizeFramePage from './pages/framing/CustomizeFramePage';
-import CheckoutPage from './pages/checkout/CheckoutPage';
-import SuccessPage from './pages/SuccessPage';
-import InspirationPage from './pages/InspirationPage';
-import SizeGuidePage from './pages/SizeGuidePage';
-import PrestigePaintingsPage from './pages/PrestigePaintingsPage';
-import OriginalPaintingsPage from './pages/OriginalPaintingsPage';
-import CanvasArtPage from './pages/CanvasArtPage';
-import GlossyArtPage from './pages/GlossyArtPage';
-import AuthPage from './pages/AuthPage';
-import AdminDashboard from './pages/admin/AdminDashboard';
-import OrdersPage from './pages/OrdersPage';
-import TermsPage from './pages/TermsPage';
-import PrivacyPage from './pages/PrivacyPage';
-import RefundPolicyPage from './pages/RefundPolicyPage';
+
+// Lazy-loaded: none of these need to be in the initial bundle everyone
+// downloads just to see the homepage. Inspiration in particular pulls in
+// several MB of catalogue data (Met Museum, album covers, movie posters)
+// that should only load when someone actually visits it.
+const CartPage = lazy(() => import('./pages/cart/CartPage'));
+const WishlistPage = lazy(() => import('./pages/wishlist/WishlistPage'));
+const CustomizeFramePage = lazy(() => import('./pages/framing/CustomizeFramePage'));
+const CheckoutPage = lazy(() => import('./pages/checkout/CheckoutPage'));
+const SuccessPage = lazy(() => import('./pages/SuccessPage'));
+const InspirationPage = lazy(() => import('./pages/InspirationPage'));
+const SizeGuidePage = lazy(() => import('./pages/SizeGuidePage'));
+const PrestigePaintingsPage = lazy(() => import('./pages/PrestigePaintingsPage'));
+const OriginalPaintingsPage = lazy(() => import('./pages/OriginalPaintingsPage'));
+const CanvasArtPage = lazy(() => import('./pages/CanvasArtPage'));
+const GlossyArtPage = lazy(() => import('./pages/GlossyArtPage'));
+const AuthPage = lazy(() => import('./pages/AuthPage'));
+const AdminDashboard = lazy(() => import('./pages/admin/AdminDashboard'));
+const OrdersPage = lazy(() => import('./pages/OrdersPage'));
+const TermsPage = lazy(() => import('./pages/TermsPage'));
+const PrivacyPage = lazy(() => import('./pages/PrivacyPage'));
+const RefundPolicyPage = lazy(() => import('./pages/RefundPolicyPage'));
 
 // Contexts
 import { AuthProvider, useAuth } from './context/AuthContext';
@@ -29,6 +34,15 @@ import { FRAME_STYLES, FRAME_SIZES, WALL_TEXTURES, MAT_COLORS } from './data/con
 import { Capacitor } from '@capacitor/core';
 import { App as CapacitorApp } from '@capacitor/app';
 import TesterGate from './components/gate/TesterGate';
+
+// Shown briefly while a lazy-loaded route's chunk downloads — most routes
+// are cached after the first visit, so this is typically only seen once
+// per route per session, if at all on a fast connection.
+const RouteLoadingFallback = () => (
+  <div className="min-h-[60vh] flex items-center justify-center">
+    <div className="w-8 h-8 border-2 border-stone-200 border-t-[#c9a84c] rounded-full animate-spin" />
+  </div>
+);
 
 // --- MAIN LAYOUT COMPONENT ---
 // This component has access to Router hooks (useNavigate, etc.)
@@ -122,6 +136,7 @@ const AppLayout = () => {
         />
       )}
 
+      <Suspense fallback={<RouteLoadingFallback />}>
       <Routes>
         <Route path="/" element={<LandingPage navigate={navigate} setSelectedFrame={setSelectedFrame} />} />
 
@@ -278,6 +293,7 @@ const AppLayout = () => {
         {/* Catch all redirect */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
+      </Suspense>
 
       {/* GLOBAL OVERLAYS */}
     </div>

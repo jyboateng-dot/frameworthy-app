@@ -4,6 +4,7 @@ import { FRAME_STYLES, FRAME_SIZES, findSizeByDimension, formatDimensions } from
 import { useUnit } from '../context/UnitContext';
 import { MET_LOCAL_COLLECTIONS } from '../data/metLocal';
 import WEB_MET_DIMS from '../data/web_met_dims.json';
+import { getThumbnailUrl } from '../services/storage';
 
 const PRIMARY_COLLECTIONS_ORDER = [
     'Classic Masterpieces',
@@ -35,10 +36,10 @@ const MetProductCard = ({ product, onGetThis }) => {
             onMouseLeave={() => setHovered(false)}
         >
             <div className="relative overflow-hidden bg-white flex items-center justify-center border border-stone-200/50" style={{ aspectRatio: '1 / 1' }}>
-                <img 
-                    src={product.image} 
-                    alt={product.title} 
-                    loading="lazy" 
+                <img
+                    src={getThumbnailUrl(product.image)}
+                    alt={product.title}
+                    loading="lazy"
                     className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.03]" 
                 />
                 <div className={`absolute inset-0 bg-stone-50/20 flex items-center justify-center gap-3 transition-opacity duration-300 ${hovered ? 'opacity-100' : 'opacity-0'}`}>

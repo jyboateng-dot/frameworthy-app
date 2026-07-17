@@ -5,6 +5,7 @@ import { fetchAlbumPosterData } from '../utils/albumPoster';
 
 // We'll import ALBUMS_LOCAL_COLLECTIONS but it might be empty initially until the background script finishes
 import { ALBUMS_LOCAL_COLLECTIONS } from '../data/albumsLocal';
+import { getThumbnailUrl } from '../services/storage';
 
 const GENRES = ['Pop', 'HipHop', 'Rock', 'R&B', 'Blues', 'Jazz', 'Indie', 'Afro Pop', 'African', 'Reggae', 'Dancehall'];
 
@@ -19,11 +20,11 @@ const AlbumProductCard = ({ product, onGetThis }) => {
             onMouseLeave={() => setHovered(false)}
         >
             <div className="relative overflow-hidden bg-white flex items-center justify-center border border-stone-200/50 shadow-sm" style={{ aspectRatio: '1 / 1' }}>
-                <img 
-                    src={product.image} 
-                    alt={product.title} 
-                    loading="lazy" 
-                    className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.03]" 
+                <img
+                    src={getThumbnailUrl(product.image)}
+                    alt={product.title}
+                    loading="lazy"
+                    className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.03]"
                 />
                 <div className={`absolute inset-0 bg-stone-900/10 flex items-center justify-center gap-3 transition-opacity duration-300 ${hovered ? 'opacity-100' : 'opacity-0'}`}>
                     <button

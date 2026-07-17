@@ -6,6 +6,7 @@ import SOURCE_DIMS from '../data/source_dims.json';
 
 
 import { PRODUCTS, SERIES_TABS } from '../data/canvas_art';
+import { getThumbnailUrl } from '../services/storage';
 /* ── Card ── */
 const ProductCard = ({ product, onGetThis, onCustomize }) => {
     const { unit } = useUnit();
@@ -23,7 +24,7 @@ const ProductCard = ({ product, onGetThis, onCustomize }) => {
                 style={{ aspectRatio: '1 / 1' }}
             >
                 <img
-                    src={product.image}
+                    src={getThumbnailUrl(product.image)}
                     alt={product.title}
                     loading="lazy"
                     className="w-full h-full object-contain p-4 transition-transform duration-500 ease-out group-hover:scale-[1.03]"

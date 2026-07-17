@@ -13,6 +13,7 @@ import { UNSPLASH_IMAGES } from '../data/unsplashLocal';
 import { MET_LOCAL_COLLECTIONS } from '../data/metLocal';
 import { ALBUMS_LOCAL_COLLECTIONS } from '../data/albumsLocal';
 import { MOVIES_LOCAL_COLLECTIONS } from '../data/moviesLocal';
+import { getThumbnailUrl } from '../services/storage';
 
 const CATEGORY_LABELS = {
     originals: 'Original Painting',
@@ -85,7 +86,7 @@ const ResultCard = ({ result, onGetThis }) => {
         >
             <div className="relative overflow-hidden bg-white flex items-center justify-center border border-stone-200/50 shadow-sm" style={{ aspectRatio: '1 / 1' }}>
                 <img
-                    src={result.image}
+                    src={getThumbnailUrl(result.image)}
                     alt={result.title}
                     loading="lazy"
                     className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.03]"

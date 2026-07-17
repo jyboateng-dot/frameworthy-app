@@ -4,6 +4,7 @@ import { FRAME_STYLES, FRAME_SIZES } from '../data/constants';
 import { fetchMoviePosterData } from '../utils/moviePoster';
 
 import { MOVIES_LOCAL_COLLECTIONS } from '../data/moviesLocal';
+import { getThumbnailUrl } from '../services/storage';
 
 const DEFAULT_TAB = 'IMDB Top 200';
 const GENRES = Object.keys(MOVIES_LOCAL_COLLECTIONS).filter(k => k !== DEFAULT_TAB);
@@ -79,7 +80,7 @@ const MovieProductCard = ({ product, onGetThis }) => {
         >
             <div className="relative overflow-hidden bg-white flex items-center justify-center border border-stone-200/50 shadow-sm" style={{ aspectRatio: '2 / 3' }}>
                 <img
-                    src={product.image}
+                    src={getThumbnailUrl(product.image)}
                     alt={product.title}
                     loading="lazy"
                     className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.03]"

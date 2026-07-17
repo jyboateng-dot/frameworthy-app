@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, lazy, Suspense } from 'react';
 import { ArrowRight, Heart, ChevronLeft, ChevronRight, Search } from 'lucide-react';
 import { FRAME_STYLES, FRAME_SIZES, findSizeByDimension, formatDimensions, parseCustomSize } from '../data/constants';
 import { useUnit } from '../context/UnitContext';
@@ -9,15 +9,23 @@ import OriginalPaintingsPage from './OriginalPaintingsPage';
 import PrestigePaintingsPage from './PrestigePaintingsPage';
 import CanvasArtPage from './CanvasArtPage';
 import GlossyArtPage from './GlossyArtPage';
-import MetArtPage from './MetArtPage';
 import WebImagesPage from './WebImagesPage';
-import AlbumArtPage from './AlbumArtPage';
-import MoviePosterPage from './MoviePosterPage';
-import SearchPage from './SearchPage';
+// Lazy: each of these carries several MB of catalogue data (Met Museum,
+// album covers, movie posters) — only download it for the tab actually
+// opened, not for every Inspiration visit.
+const MetArtPage = lazy(() => import('./MetArtPage'));
+const AlbumArtPage = lazy(() => import('./AlbumArtPage'));
+const MoviePosterPage = lazy(() => import('./MoviePosterPage'));
+const SearchPage = lazy(() => import('./SearchPage'));
 
 import { PRODUCTS } from '../data/framed_prints';
+import { getThumbnailUrl } from '../services/storage';
 
-
+const TabLoadingFallback = () => (
+    <div className="min-h-[40vh] flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-stone-200 border-t-[#c9a84c] rounded-full animate-spin" />
+    </div>
+);
 
 const ProductCard = ({ product, onGetThis, onCustomize }) => {
     const { unit } = useUnit();
@@ -32,7 +40,7 @@ const ProductCard = ({ product, onGetThis, onCustomize }) => {
             onMouseLeave={() => setHovered(false)}
         >
             <div className="relative overflow-hidden bg-white flex items-center justify-center border border-stone-200/50" style={{ aspectRatio: '1 / 1' }}>
-                <img src={product.image} alt={product.title} loading="lazy" className="w-full h-full object-contain p-4 transition-transform duration-500 ease-out group-hover:scale-[1.03]" />
+                <img src={getThumbnailUrl(product.image)} alt={product.title} loading="lazy" className="w-full h-full object-contain p-4 transition-transform duration-500 ease-out group-hover:scale-[1.03]" />
                 <div className={`absolute inset-0 bg-stone-50/20 flex items-center justify-center gap-3 transition-opacity duration-300 ${hovered ? 'opacity-100' : 'opacity-0'}`}>
                     <button onClick={() => onGetThis(product)} className="px-6 py-2.5 bg-white/70 backdrop-blur-md text-stone-900 border border-white/60 hover:bg-white/90 text-[10px] font-semibold uppercase tracking-[0.2em] transition-all duration-300 shadow-sm rounded-sm">Get This</button>
                 </div>
@@ -203,6 +211,7 @@ const InspirationPage = ({ setProductMode, setSelectedFrame, setSelectedSize, na
 
             {currentSection === 'search' && (
                 <div className="max-w-screen-xl mx-auto py-8">
+                    <Suspense fallback={<TabLoadingFallback />}>
                     <SearchPage
                         setProductMode={setProductMode}
                         setSelectedFrame={setSelectedFrame}
@@ -214,6 +223,7 @@ const InspirationPage = ({ setProductMode, setSelectedFrame, setSelectedSize, na
                             setCurrentSection(selection.type);
                         }}
                     />
+                    </Suspense>
                 </div>
             )}
 
@@ -244,25 +254,31 @@ const InspirationPage = ({ setProductMode, setSelectedFrame, setSelectedSize, na
             )}
             {currentSection === 'met' && (
                 <div className="max-w-screen-xl mx-auto py-8">
+                    <Suspense fallback={<TabLoadingFallback />}>
                     <MetArtPage setProductMode={setProductMode} setSelectedFrame={setSelectedFrame} setSelectedSize={setSelectedSize} navigate={navigate} isSubPage={true} disableWindowScroll={isModal} />
+                    </Suspense>
                 </div>
             )}
             {currentSection === 'albums' && (
                 <div className="max-w-screen-xl mx-auto py-8">
+                    <Suspense fallback={<TabLoadingFallback />}>
                     <AlbumArtPage
                         setProductMode={setProductMode} setSelectedFrame={setSelectedFrame} setSelectedSize={setSelectedSize} navigate={navigate} isSubPage={true} disableWindowScroll={isModal}
                         initialSelectedProduct={pendingSelection?.type === 'albums' ? pendingSelection.item : null}
                         onConsumedInitialSelection={() => setPendingSelection(null)}
                     />
+                    </Suspense>
                 </div>
             )}
             {currentSection === 'movies' && (
                 <div className="max-w-screen-xl mx-auto py-8">
+                    <Suspense fallback={<TabLoadingFallback />}>
                     <MoviePosterPage
                         setProductMode={setProductMode} setSelectedFrame={setSelectedFrame} setSelectedSize={setSelectedSize} navigate={navigate} isSubPage={true} disableWindowScroll={isModal}
                         initialSelectedProduct={pendingSelection?.type === 'movies' ? pendingSelection.item : null}
                         onConsumedInitialSelection={() => setPendingSelection(null)}
                     />
+                    </Suspense>
                 </div>
             )}
 

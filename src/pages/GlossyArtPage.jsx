@@ -5,6 +5,7 @@ import { useUnit } from '../context/UnitContext';
 import SOURCE_DIMS from '../data/source_dims.json';
 
 import { PRODUCTS } from '../data/glossy_art';
+import { getThumbnailUrl } from '../services/storage';
 const uniqueDims = Array.from(new Set(PRODUCTS.map(p => p.dims)));
 const SERIES_TABS = [
     { label: 'All', value: 'all' },
@@ -28,7 +29,7 @@ const ProductCard = ({ product, onGetThis, onCustomize }) => {
                 style={{ aspectRatio: '1 / 1' }}
             >
                 <img
-                    src={product.image}
+                    src={getThumbnailUrl(product.image)}
                     alt={product.title}
                     loading="lazy"
                     className="w-full h-full object-contain p-4 transition-transform duration-500 ease-out group-hover:scale-[1.03]"

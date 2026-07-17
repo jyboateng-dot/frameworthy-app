@@ -45,6 +45,24 @@ export const uploadImageToCloud = async (file) => {
  * @param {object} item - Optional. The order item containing size and orientation.
  * @returns {string} A print-ready JPEG URL, or the original URL if it isn't a Cloudinary asset
  */
+/**
+ * Downsizes a catalogue browsing thumbnail via Cloudinary's on-the-fly
+ * transforms — the raw URLs stored in the catalogue data files are full
+ * originals, which is wasteful for a grid card. c_limit preserves aspect
+ * ratio (no cropping) since catalogue images span very different ratios
+ * (square album art, 2:3 movie posters, portrait paintings, etc).
+ * @param {string} url
+ * @param {number} width - target max width in px
+ * @returns {string} a transformed thumbnail URL, or the original if it isn't a Cloudinary asset
+ */
+export const getThumbnailUrl = (url, width = 400) => {
+    if (!url || typeof url !== 'string') return url;
+    if (url.includes('res.cloudinary.com/') && url.includes('/upload/')) {
+        return url.replace('/upload/', `/upload/w_${width},c_limit,q_auto,f_auto/`);
+    }
+    return url;
+};
+
 export const getPrintQualityJpegUrl = (url, item = null) => {
     if (!url || typeof url !== 'string' || url.startsWith('blob:') || url.startsWith('data:')) {
         return url;
