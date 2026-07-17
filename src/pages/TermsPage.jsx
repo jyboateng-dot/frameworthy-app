@@ -13,8 +13,8 @@ const TermsPage = ({ navigate }) => (
 
         <LegalSection title="2. Who We Are">
             <p>
-                FrameWorthy is operated by Frameworthy&amp;co Ltd, No. 87 Independence Avenue, Accra,
-                Ghana (TIN: GHA-724653368-8).
+                FrameWorthy is operated by Frameworthy&amp;co Ltd, No. 17A, Cashew Street, Adjiringanor,
+                Accra, Ghana (TIN: GHA-724653368-8).
             </p>
         </LegalSection>
 

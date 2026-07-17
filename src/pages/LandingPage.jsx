@@ -279,8 +279,8 @@ export default function LandingPage({ onStartFraming, navigate, setSelectedFrame
                         <div>
                             <h6 className="text-white font-bold uppercase tracking-widest text-xs mb-6">Frameworthy&amp;co Ltd</h6>
                             <p className="leading-loose">
-                                No. 87 Independence Avenue<br />
-                                Accra, Ghana<br />
+                                No. 17A, Cashew Street<br />
+                                Adjiringanor, Accra, Ghana<br />
                                 TIN: GHA-724653368-8
                             </p>
                         </div>
