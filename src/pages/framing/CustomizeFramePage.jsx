@@ -15,7 +15,7 @@ import { FRAME_STYLES, FRAME_SIZES, MAT_COLORS, formatDimensions, findSizeByDime
 import WEB_MET_DIMS from '../../data/web_met_dims.json';
 import { useUnit } from '../../context/UnitContext';
 import { useCart } from '../../context/CartContext';
-import { uploadImageToCloud } from '../../services/storage';
+import { uploadImageToCloud, getThumbnailUrl } from '../../services/storage';
 import FrameSelectionModal from '../../components/FrameSelectionModal';
 import MetArtSelectionModal from '../../components/MetArtSelectionModal';
 import InspirationSelectionModal from '../../components/InspirationSelectionModal';
@@ -1002,7 +1002,11 @@ const CustomizeFramePage = ({
 
                             // ─── DYNAMIC ZOOM CLAMPING (Never Overlap/Cutoff) ───
                             const zoomScale = (() => {
-                                if (!isHovered) return 1.0;
+                                // isMaxZoom alone (without isHovered) is how touch double-tap
+                                // drives this — touch devices never fire mouseenter, so gating
+                                // purely on isHovered left double-tap zoom permanently inert on
+                                // mobile/tablet.
+                                if (!isHovered && !isMaxZoom) return 1.0;
                                 
                                 // Calculate unzoomed dimensions in pixels relative to the physical container
                                 const baseWidthPx = (frameWidthPct / 100) * zoneSize.width;
@@ -1032,7 +1036,7 @@ const CustomizeFramePage = ({
 
                             // Calculate push down amount so the top of the frame isn't hidden behind the header in max zoom
                             const pushDownAmount = (() => {
-                                if (!isHovered || !isMaxZoom) return 0;
+                                if (!isMaxZoom) return 0;
                                 const baseWidthPx = (frameWidthPct / 100) * zoneSize.width;
                                 const baseHeightPx = baseWidthPx * (hInch / wInch);
                                 const targetHeight = baseHeightPx * zoomScale;
@@ -1041,7 +1045,7 @@ const CustomizeFramePage = ({
                             })();
 
                             const pushRightAmount = (() => {
-                                if (!isHovered || !isMaxZoom) return 0;
+                                if (!isMaxZoom) return 0;
                                 const baseWidthPx = (frameWidthPct / 100) * zoneSize.width;
                                 const targetWidth = baseWidthPx * zoomScale;
                                 const overflowLeft = (targetWidth - zoneSize.width) / 2;
@@ -1055,6 +1059,16 @@ const CustomizeFramePage = ({
                             // can't JIT a runtime-computed arbitrary value, so this drives an
                             // inline font-size rather than a text-[Npx] class.
                             const baseFrameWidthPx = (frameWidthPct / 100) * zoneSize.width;
+
+                            // On-screen preview only — never affects what's stored on the
+                            // cart item or sent to print. Inspiration/catalogue selections set
+                            // uploadedImage to a full-resolution Cloudinary asset (needed later
+                            // for the actual print), which is overkill for a live preview and
+                            // was the main cause of the visualizer taking forever to load an
+                            // inspiration pick. getThumbnailUrl no-ops for blob:/data:/non-
+                            // Cloudinary URLs, so user uploads and external sources render
+                            // exactly as before.
+                            const displayImage = getThumbnailUrl(uploadedImage, 1400);
                             const dimTopClass = isHovered ? '-top-6' : '-top-4';
                             const dimRightClass = isHovered ? '-right-6' : '-right-4';
                             const dimFontSizePx = isHovered ? 14 : Math.max(8, Math.min(10, baseFrameWidthPx / 12));
@@ -1072,10 +1086,13 @@ const CustomizeFramePage = ({
                                         }, 50); // 50ms debounce absorbs subpixel edge jitter
                                     }}
                                     onTouchEnd={(e) => {
+                                        // No isHovered check here — touch devices never fire
+                                        // mouseenter, so isHovered is always false on mobile/tablet
+                                        // and double-tap toggles isMaxZoom directly instead.
                                         const now = Date.now();
                                         const DOUBLE_TAP_DELAY = 300;
                                         if (now - lastTapRef.current < DOUBLE_TAP_DELAY) {
-                                            if (isHovered) setIsMaxZoom(!isMaxZoom);
+                                            setIsMaxZoom(!isMaxZoom);
                                         }
                                         lastTapRef.current = now;
                                     }}
@@ -1085,13 +1102,13 @@ const CustomizeFramePage = ({
                                     className={`relative shadow-[0_25px_50px_rgba(0,0,0,0.3)] select-none transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] ${
                                         isMaxZoom ? 'cursor-zoom-out' : 'cursor-zoom-in'
                                     } ${
-                                        isHovered 
-                                            ? 'shadow-[0_50px_100px_rgba(0,0,0,0.55)] z-40' 
+                                        isHovered || isMaxZoom
+                                            ? 'shadow-[0_50px_100px_rgba(0,0,0,0.55)] z-40'
                                             : 'z-10'
                                     }`}
                                     style={{
-                                        width: isHovered 
-                                            ? `${frameWidthPct * zoomScale}%` 
+                                        width: isHovered || isMaxZoom
+                                            ? `${frameWidthPct * zoomScale}%`
                                             : `${frameWidthPct}%`,
                                         aspectRatio: `${wInch} / ${hInch}`,
                                         marginTop: `${pushDownAmount}px`,
@@ -1139,7 +1156,7 @@ const CustomizeFramePage = ({
                                         <div className="absolute inset-0 shadow-[0_10px_30px_rgba(0,0,0,0.15)] flex items-center justify-center overflow-hidden z-20">
                                             {uploadedImage && (
                                                 <img
-                                                    src={uploadedImage}
+                                                    src={displayImage}
                                                     alt="Preset Frame"
                                                     className="w-full h-full object-contain"
                                                     ref={(el) => { if (el && el.complete) setIsImageLoading(false); }}
@@ -1237,7 +1254,7 @@ const CustomizeFramePage = ({
                                                     className="absolute top-0 bottom-0 left-0"
                                                     style={{
                                                         width: '4%',
-                                                        backgroundImage: uploadedImage ? `url(${uploadedImage})` : 'none',
+                                                        backgroundImage: uploadedImage ? `url(${displayImage})` : 'none',
                                                         backgroundSize: '100% 100%',
                                                         backgroundPosition: 'left center',
                                                         transformOrigin: 'left',
@@ -1250,7 +1267,7 @@ const CustomizeFramePage = ({
                                                     className="absolute bottom-0 left-0 right-0"
                                                     style={{
                                                         height: '4%',
-                                                        backgroundImage: uploadedImage ? `url(${uploadedImage})` : 'none',
+                                                        backgroundImage: uploadedImage ? `url(${displayImage})` : 'none',
                                                         backgroundSize: '100% 100%',
                                                         backgroundPosition: 'bottom center',
                                                         transformOrigin: 'bottom',
@@ -1283,7 +1300,7 @@ const CustomizeFramePage = ({
                                         
                                         {uploadedImage ? (
                                             <img
-                                                src={uploadedImage}
+                                                src={displayImage}
                                                 alt="Artwork"
                                                 className={`w-full h-full ${selectedFrame?.id === 'frame-canvas' || isPreset ? 'object-cover' : 'object-contain'}`}
                                                 style={{
@@ -1323,7 +1340,7 @@ const CustomizeFramePage = ({
                         {/* Zoomed-In Disclaimer (flows below frame on hover) */}
                         <div
                             className={`text-[7px] sm:text-[9px] text-stone-600/70 select-none pointer-events-none text-center font-medium mix-blend-multiply px-2 leading-relaxed tracking-wide transition-all duration-500 mt-6 z-20 flex flex-col items-center ${
-                                isHovered ? 'opacity-100 scale-100 translate-y-0' : 'opacity-0 scale-95 translate-y-2 h-0 overflow-hidden mt-0'
+                                isHovered || isMaxZoom ? 'opacity-100 scale-100 translate-y-0' : 'opacity-0 scale-95 translate-y-2 h-0 overflow-hidden mt-0'
                             }`}
                         >
                             <span className="whitespace-nowrap">Note: Visualizer renderings are digital approximations. Finished products will feature</span>
@@ -1334,7 +1351,7 @@ const CustomizeFramePage = ({
                     {/* ── SCALE REFERENCE: 160cm Sofa ── */}
                     <div 
                         className={`absolute bottom-5 left-1/2 -translate-x-1/2 w-[48%] pointer-events-none flex flex-col items-center justify-end transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] ${
-                            isHovered ? 'opacity-0 scale-75 translate-y-10' : 'opacity-100 scale-100 translate-y-0'
+                            isHovered || isMaxZoom ? 'opacity-0 scale-75 translate-y-10' : 'opacity-100 scale-100 translate-y-0'
                         }`}
                     >
                         <div className="relative w-full">
@@ -1423,7 +1440,7 @@ const CustomizeFramePage = ({
                             <div className="flex items-center gap-3">
                                 <div 
                                     className="w-10 h-10 rounded-lg bg-cover bg-center shadow-inner"
-                                    style={{ backgroundImage: `url(${isPreset && uploadedImage ? uploadedImage : selectedFrame.previewImg})` }}
+                                    style={{ backgroundImage: `url(${isPreset && uploadedImage ? getThumbnailUrl(uploadedImage, 80) : selectedFrame.previewImg})` }}
                                 />
                                 <div className="text-left">
                                     <p className="text-sm font-bold text-stone-900">{isPreset && presetTitle ? presetTitle : selectedFrame.name}</p>
