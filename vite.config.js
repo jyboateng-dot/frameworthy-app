@@ -14,6 +14,8 @@ export default defineConfig({
     globals: true,
     // firestore.rules tests need the emulator (see vitest.rules.config.js /
     // `npm run test:rules`) and would hang here without one running.
-    exclude: [...configDefaults.exclude, 'src/test/firestore/**'],
+    // functions/ is its own package with its own emulator-backed test run
+    // (`npm --prefix functions test`) — not part of this project's suite.
+    exclude: [...configDefaults.exclude, 'src/test/firestore/**', 'functions/**'],
   },
 })
