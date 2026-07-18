@@ -33,7 +33,9 @@ import { WishlistProvider } from './context/WishlistContext';
 import { FRAME_STYLES, FRAME_SIZES, WALL_TEXTURES, MAT_COLORS } from './data/constants';
 import { Capacitor } from '@capacitor/core';
 import { App as CapacitorApp } from '@capacitor/app';
+import { StatusBar, Style } from '@capacitor/status-bar';
 import TesterGate from './components/gate/TesterGate';
+import NetworkStatusBanner from './components/NetworkStatusBanner';
 
 // Shown briefly while a lazy-loaded route's chunk downloads — most routes
 // are cached after the first visit, so this is typically only seen once
@@ -123,8 +125,21 @@ const AppLayout = () => {
     return () => { listenerPromise.then(listener => listener.remove()); };
   }, [navigate]);
 
+  // Match the status bar to the app's always-dark header (#0a0a0a) instead
+  // of leaving it at the OS default light style with dark, hard-to-read
+  // icons/text. Doesn't touch overlay behavior — the existing
+  // safe-area-inset-top padding in Header.jsx already accounts for that.
+  React.useEffect(() => {
+    if (!Capacitor.isNativePlatform()) return;
+    StatusBar.setStyle({ style: Style.Dark }).catch(() => {});
+    if (Capacitor.getPlatform() === 'android') {
+      StatusBar.setBackgroundColor({ color: '#0a0a0a' }).catch(() => {});
+    }
+  }, []);
+
   return (
     <div className={`font-sans text-fw-text min-h-screen selection:bg-fw-gold selection:text-black bg-[#faf9f8]`}>
+      <NetworkStatusBanner />
       {location.pathname !== '/login' && (
         <Header
           currentStep={getCurrentStep()}
