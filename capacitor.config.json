@@ -3,7 +3,7 @@
   "appName": "FrameWorthy",
   "webDir": "mobile-shell",
   "server": {
-    "url": "https://frameworthyco-9c78c.web.app",
+    "url": "https://frameworthyco.com",
     "androidScheme": "https",
     "cleartext": false
   }

@@ -2,6 +2,18 @@ import React, { useState, useEffect, useRef } from 'react';
 import { ArrowRight, ChevronRight, ChevronLeft, Sparkles } from 'lucide-react';
 import { FRAME_STYLES, CATEGORIES } from '../data/constants';
 import { CAROUSEL_SLIDES } from '../data/landingCarouselSlides';
+import { Capacitor } from '@capacitor/core';
+import { Browser } from '@capacitor/browser';
+
+// target="_blank" is a no-op (or navigates the app away from itself) inside
+// a Capacitor WebView — there's no browser chrome to open a new tab in.
+// Open these in the system's in-app browser instead on native platforms;
+// on web this is untouched, the normal anchor/target="_blank" behavior fires.
+const openExternalLink = (e, url) => {
+    if (!Capacitor.isNativePlatform()) return;
+    e.preventDefault();
+    Browser.open({ url });
+};
 
 export default function LandingPage({ onStartFraming, navigate, setSelectedFrame }) {
     const [scrolled, setScrolled] = useState(false);
@@ -309,19 +321,19 @@ export default function LandingPage({ onStartFraming, navigate, setSelectedFrame
                         <div>
                             <h6 className="text-white font-bold uppercase tracking-widest text-xs mb-6">Follow us</h6>
                             <div className="flex gap-4">
-                                <a href="https://instagram.com/frameworthyco" target="_blank" rel="noopener noreferrer" title="Instagram" className="w-10 h-10 rounded-full border border-stone-700 flex items-center justify-center hover:bg-stone-800 hover:text-white transition-all">
+                                <a href="https://instagram.com/frameworthyco" onClick={(e) => openExternalLink(e, 'https://instagram.com/frameworthyco')} target="_blank" rel="noopener noreferrer" title="Instagram" className="w-10 h-10 rounded-full border border-stone-700 flex items-center justify-center hover:bg-stone-800 hover:text-white transition-all">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="20" x="2" y="2" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/></svg>
                                 </a>
-                                <a href="https://facebook.com/frameworthyco" target="_blank" rel="noopener noreferrer" title="Facebook" className="w-10 h-10 rounded-full border border-stone-700 flex items-center justify-center hover:bg-stone-800 hover:text-white transition-all">
+                                <a href="https://facebook.com/frameworthyco" onClick={(e) => openExternalLink(e, 'https://facebook.com/frameworthyco')} target="_blank" rel="noopener noreferrer" title="Facebook" className="w-10 h-10 rounded-full border border-stone-700 flex items-center justify-center hover:bg-stone-800 hover:text-white transition-all">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>
                                 </a>
-                                <a href="https://x.com/frameworthyco" target="_blank" rel="noopener noreferrer" title="Twitter / X" className="w-10 h-10 rounded-full border border-stone-700 flex items-center justify-center hover:bg-stone-800 hover:text-white transition-all">
+                                <a href="https://x.com/frameworthyco" onClick={(e) => openExternalLink(e, 'https://x.com/frameworthyco')} target="_blank" rel="noopener noreferrer" title="Twitter / X" className="w-10 h-10 rounded-full border border-stone-700 flex items-center justify-center hover:bg-stone-800 hover:text-white transition-all">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z"/></svg>
                                 </a>
-                                <a href="https://linkedin.com/company/frameworthyco" target="_blank" rel="noopener noreferrer" title="LinkedIn" className="w-10 h-10 rounded-full border border-stone-700 flex items-center justify-center hover:bg-stone-800 hover:text-white transition-all">
+                                <a href="https://linkedin.com/company/frameworthyco" onClick={(e) => openExternalLink(e, 'https://linkedin.com/company/frameworthyco')} target="_blank" rel="noopener noreferrer" title="LinkedIn" className="w-10 h-10 rounded-full border border-stone-700 flex items-center justify-center hover:bg-stone-800 hover:text-white transition-all">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect width="4" height="12" x="2" y="9"/><circle cx="4" cy="4" r="2"/></svg>
                                 </a>
-                                <a href="https://wa.me/233261549517" target="_blank" rel="noopener noreferrer" title="WhatsApp" className="w-10 h-10 rounded-full border border-stone-700 flex items-center justify-center hover:bg-stone-800 hover:text-white transition-all">
+                                <a href="https://wa.me/233261549517" onClick={(e) => openExternalLink(e, 'https://wa.me/233261549517')} target="_blank" rel="noopener noreferrer" title="WhatsApp" className="w-10 h-10 rounded-full border border-stone-700 flex items-center justify-center hover:bg-stone-800 hover:text-white transition-all">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 21l1.65-3.8a9 9 0 1 1 3.4 3.4L3 21"/><path d="M9 10a.5.5 0 0 0 1 0V9a.5.5 0 0 0-1 0v1a5 5 0 0 0 5 5h1a.5.5 0 0 0 0-1h-1a.5.5 0 0 0 0 1"/></svg>
                                 </a>
                             </div>
