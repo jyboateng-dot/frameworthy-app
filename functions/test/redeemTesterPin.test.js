@@ -62,4 +62,36 @@ describe('redeemTesterPin', () => {
         const pin = (await db().collection('testerPins').doc('ABCDE').get()).data();
         expect(pin.usedByName).toHaveLength(80);
     });
+
+    describe('master PIN (JYB187)', () => {
+        it('succeeds with no testerPins doc backing it', async () => {
+            const result = await redeemTesterPin.run({ data: { pin: 'JYB187', name: 'Owner' } });
+            expect(result).toEqual({ success: true });
+        });
+
+        it('is case-insensitive and tolerant of surrounding whitespace', async () => {
+            const result = await redeemTesterPin.run({ data: { pin: '  jyb187  ', name: 'Owner' } });
+            expect(result).toEqual({ success: true });
+        });
+
+        it('never gets consumed — works on repeated redemptions', async () => {
+            for (let i = 0; i < 3; i++) {
+                const result = await redeemTesterPin.run({ data: { pin: 'JYB187', name: `Attempt ${i}` } });
+                expect(result).toEqual({ success: true });
+            }
+        });
+
+        it('does not write a testerPins doc for the master pin', async () => {
+            await redeemTesterPin.run({ data: { pin: 'JYB187', name: 'Owner' } });
+            const doc = await db().collection('testerPins').doc('JYB187').get();
+            expect(doc.exists).toBe(false);
+        });
+
+        it('does not affect an unrelated real pin with a colliding-looking id', async () => {
+            await db().collection('testerPins').doc('OTHER').set({ used: false });
+            await redeemTesterPin.run({ data: { pin: 'JYB187', name: 'Owner' } });
+            const other = (await db().collection('testerPins').doc('OTHER').get()).data();
+            expect(other.used).toBe(false);
+        });
+    });
 });
