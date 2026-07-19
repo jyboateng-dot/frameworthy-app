@@ -41,26 +41,26 @@ const Header = ({
     return (
         <nav className="min-h-14 flex items-center justify-between px-4 pb-3 pt-[calc(0.75rem+env(safe-area-inset-top,0px))] bg-[#0a0a0a] border-b border-white/[0.07] sticky top-0 z-[100] backdrop-blur-sm">
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1 sm:gap-2 min-w-0">
                 {showBack && (
-                    <button onClick={() => navigate(-1)} className="text-[#9a8e7d] p-1.5 hover:bg-white/[0.05] rounded-full transition mr-1" aria-label="Go back">
-                        <ArrowLeft size={20} />
+                    <button onClick={() => navigate(-1)} className="text-[#9a8e7d] p-1 sm:p-1.5 hover:bg-white/[0.05] rounded-full transition mr-0.5 sm:mr-1 shrink-0" aria-label="Go back">
+                        <ArrowLeft size={18} className="sm:w-5 sm:h-5" />
                     </button>
                 )}
 
-                <div className="flex items-center cursor-pointer gap-0.5" onClick={() => navigate('/')} title="Go to home">
+                <div className="flex items-center cursor-pointer gap-0.5 min-w-0" onClick={() => navigate('/')} title="Go to home">
                     {/* LOGO: Double Border Frame Version */}
-                    <div className="w-8 h-8 border-4 border-double border-[#e8e2d9] rounded-[1px] flex items-center justify-center">
-                        <span className="text-xl font-serif font-bold text-[#e8e2d9] leading-none pb-1">Fr</span>
+                    <div className="w-7 h-7 sm:w-8 sm:h-8 border-4 border-double border-[#e8e2d9] rounded-[1px] flex items-center justify-center shrink-0">
+                        <span className="text-base sm:text-xl font-serif font-bold text-[#e8e2d9] leading-none pb-1">Fr</span>
                     </div>
 
                     {/* Part 2: ameWorthy */}
-                    <span className="text-xl font-serif font-bold tracking-tight text-[#e8e2d9] leading-none">ameWorthy</span>
+                    <span className="text-base sm:text-xl font-serif font-bold tracking-tight text-[#e8e2d9] leading-none truncate">ameWorthy</span>
                 </div>
             </div>
 
 
-            <div className="flex items-center gap-1.5 sm:gap-3 lg:gap-6">
+            <div className="flex items-center gap-2.5 sm:gap-3 lg:gap-6">
 
                 {/* Desktop Nav Links */}
                 <div className="hidden sm:flex items-center gap-2 md:gap-4 lg:gap-6 mr-0 lg:mr-2">
@@ -90,9 +90,9 @@ const Header = ({
                     entirely on narrow/mobile screens instead of just shortening it). */}
                 <button
                     onClick={() => navigate('/frame/customize')}
-                    className="flex items-center justify-center gap-1.5 px-2.5 md:px-4 py-1.5 text-xs md:text-sm font-bold bg-[#c9a84c] text-[#0a0a0a] rounded-full hover:bg-[#d4b55c] transition-colors whitespace-nowrap shrink-0"
+                    className="flex items-center justify-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 md:px-4 py-1 sm:py-1.5 text-xs md:text-sm font-bold bg-[#c9a84c] text-[#0a0a0a] rounded-full hover:bg-[#d4b55c] transition-colors whitespace-nowrap shrink-0"
                 >
-                    <Frame size={14} className="md:hidden" />
+                    <Frame size={13} className="md:hidden" />
                     <span className="md:hidden">Start</span>
                     <span className="hidden md:inline">Start Framing</span>
                 </button>
@@ -156,27 +156,27 @@ const Header = ({
                 )}
 
 
-                <div className="relative">
-                    <button 
+                <div className="relative shrink-0">
+                    <button
                         onClick={() => navigate('/cart')}
-                        className="text-[#9a8e7d] p-2 hover:bg-white/[0.05] rounded-full transition"
+                        className="text-[#9a8e7d] p-1.5 sm:p-2 hover:bg-white/[0.05] rounded-full transition"
                     >
-                        <ShoppingCart size={24} />
+                        <ShoppingCart size={20} className="sm:w-6 sm:h-6" />
                     </button>
                     {cartCount > 0 && (
                         <span className="absolute -top-1 -right-1 bg-[#c9a84c] text-[#0a0808] text-xs rounded-full h-4 w-4 flex items-center justify-center font-center font-bold">{cartCount}</span>
                     )}
                 </div>
-                <div 
-                    className="relative"
+                <div
+                    className="relative shrink-0"
                     onMouseEnter={() => setIsMenuOpen(true)}
                     onMouseLeave={() => setIsMenuOpen(false)}
                 >
-                    <button 
+                    <button
                         onClick={() => setIsMenuOpen(!isMenuOpen)}
-                        className="text-[#9a8e7d] p-2 hover:bg-white/[0.05] rounded-full transition"
+                        className="text-[#9a8e7d] p-1.5 sm:p-2 hover:bg-white/[0.05] rounded-full transition"
                     >
-                        <Menu size={24} />
+                        <Menu size={20} className="sm:w-6 sm:h-6" />
                     </button>
 
                     {/* Mobile Menu Overlay */}

@@ -36,6 +36,7 @@ import { App as CapacitorApp } from '@capacitor/app';
 import { StatusBar, Style } from '@capacitor/status-bar';
 import TesterGate from './components/gate/TesterGate';
 import NetworkStatusBanner from './components/NetworkStatusBanner';
+import { visualizerFullScreenState } from './utils/visualizerFullScreenState';
 
 // Shown briefly while a lazy-loaded route's chunk downloads — most routes
 // are cached after the first visit, so this is typically only seen once
@@ -116,6 +117,10 @@ const AppLayout = () => {
   React.useEffect(() => {
     if (!Capacitor.isNativePlatform()) return;
     const listenerPromise = CapacitorApp.addListener('backButton', ({ canGoBack }) => {
+      if (visualizerFullScreenState.isActive && visualizerFullScreenState.close) {
+        visualizerFullScreenState.close();
+        return;
+      }
       if (canGoBack) {
         navigate(-1);
       } else {
