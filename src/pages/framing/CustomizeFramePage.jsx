@@ -295,8 +295,17 @@ const CustomizeFramePage = ({
         if ((isAlbumPoster || isMoviePosterPrint) && posterData && selectedSize) {
             setIsImageLoading(true);
             setIsRendering(true);
-            // Use standard 300 DPI print resolution for crisp text in both the visualizer and the final production print
-            const previewDPI = Math.max(300, (window.devicePixelRatio || 1) * 144);
+            // Use standard 300 DPI print resolution for crisp text in both the
+            // visualizer and the final production print. Deliberately NOT
+            // scaled up by devicePixelRatio — on a 3x-DPR phone that pushed
+            // this to 432 DPI, which for the default 24x36" poster size means
+            // a ~10,368x15,552px canvas (~645MB as an RGBA buffer). Desktop
+            // browsers can usually allocate that; mobile browsers routinely
+            // can't and fail canvas rendering silently (a blank/empty
+            // toDataURL() result, or the tab getting killed under memory
+            // pressure) — which is why album/movie poster prints rendered
+            // fine on desktop but never appeared on mobile.
+            const previewDPI = 300;
             const renderPoster = isAlbumPoster ? renderAlbumPoster : renderMoviePoster;
             const fileLabel = isAlbumPoster ? 'album-poster.png' : 'movie-poster.png';
             renderPoster(posterData, selectedSize, previewDPI)
