@@ -295,8 +295,12 @@ const CustomizeFramePage = ({
         if ((isAlbumPoster || isMoviePosterPrint) && posterData && selectedSize) {
             setIsImageLoading(true);
             setIsRendering(true);
-            // Use standard 300 DPI print resolution for crisp text in both the visualizer and the final production print
-            const previewDPI = Math.max(300, (window.devicePixelRatio || 1) * 144);
+            // Use standard 300 DPI print resolution for crisp text in both the visualizer and the final production print.
+            // devicePixelRatio is capped at 2 here — phones are commonly 2.5-4x (iPhones are
+            // universally 3x) versus desktop's near-universal 1-2x, and letting it scale
+            // unbounded blew large print sizes past mobile WebViews' canvas memory limits,
+            // silently failing to render (e.g. a 24x36in poster at 432 DPI = 10,368x15,552px).
+            const previewDPI = Math.max(300, Math.min(window.devicePixelRatio || 1, 2) * 144);
             const renderPoster = isAlbumPoster ? renderAlbumPoster : renderMoviePoster;
             const fileLabel = isAlbumPoster ? 'album-poster.png' : 'movie-poster.png';
             renderPoster(posterData, selectedSize, previewDPI)
