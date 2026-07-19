@@ -5,7 +5,7 @@ import { useLocation } from 'react-router-dom';
 
 const CAROUSEL_SLIDES = [
     { 
-        img: '/hero_hanging_frame.png',
+        img: '/hero_hanging_frame.jpg',
         title: "Welcome to FrameWorthy",
         text: "Transform your cherished memories and favorite artworks into stunning, gallery-quality centerpieces that elevate any space."
     },
@@ -15,22 +15,17 @@ const CAROUSEL_SLIDES = [
         text: "Upload pictures and images directly from your devices."
     },
     {
-        img: '/hallway_banner.png',
+        img: '/hallway_banner.jpg',
         title: "Curate Your Hallways",
         text: "Turn your empty corridors into a beautiful walking gallery of your life's greatest moments and art."
     },
-    { 
-        img: 'https://wallpapers.com/images/hd/aesthetic-album-cover-f71lwawxcvz9s7pa.jpg',
-        title: "Frame Your Favorite Album Covers",
-        text: "Search for your favorite artist and easily frame their iconic album covers."
-    },
-    { 
+    {
         img: '/landing_carousel/slide-3.jpg',
         title: "Endless Possibilities",
         text: "Choose from over 300 different premium frame styles."
     },
     {
-        img: '/living_room_banner.png',
+        img: '/living_room_banner.jpg',
         title: "Elevate Your Living Space",
         text: "Create a stunning focal point in your living room with our premium, handcrafted frames."
     },
@@ -55,7 +50,7 @@ const CAROUSEL_SLIDES = [
         text: "We handcraft your custom frame and deliver it securely to your doorstep."
     },
     {
-        img: '/hero_slide_6.png',
+        img: '/hero_slide_6.jpg',
         title: "Create Your Gallery",
         text: "Curate a personalized gallery wall with your favorite art and memories."
     },

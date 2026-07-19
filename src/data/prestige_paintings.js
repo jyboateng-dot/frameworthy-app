@@ -1,5 +1,6 @@
 import SOURCE_DIMS from './source_dims.json';
 import { FRAME_STYLES } from './constants';
+import { getThumbnailUrl } from '../services/storage';
 
 export const BASE = 'https://res.cloudinary.com/uucoqdzr/image/upload/inspiration_prestige_paintings/';
 
@@ -87,7 +88,7 @@ export const PRODUCTS = RAW_FILES.map((filename) => {
         title: `Prestige ${code.replace('DIPI-', '')}`,
         dims,
         finish: frameName,
-        image: BASE + filename,
+        image: getThumbnailUrl(BASE + filename),
         fullRes: BASE + filename,
         frameStyleId: info.style,
         sizeId,

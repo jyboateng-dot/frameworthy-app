@@ -1,5 +1,6 @@
 import SOURCE_DIMS from './source_dims.json';
 import { FRAME_STYLES } from './constants';
+import { getThumbnailUrl } from '../services/storage';
 
 export const BASE = 'https://res.cloudinary.com/uucoqdzr/image/upload/framed_prints/';
 
@@ -71,7 +72,7 @@ export const PRODUCTS = RAW_FILES.map((file, i) => {
     const code = file.replace(/\.jpg$/, '');
     const displayCode = isSet ? code.replace('SET-', 'SET/') : code.replace(/^(\d{4})/, '$1/').replace(/([SC]+)/, '$1/').replace(/(\d{2})(\w+)$/, '$1/$2');
     const fullResUrl = BASE + file;
-    const thumbUrl = BASE + file;
+    const thumbUrl = getThumbnailUrl(fullResUrl);
 
     const frameObj = FRAME_STYLES.find(f => f.id === info.style);
     const frameName = frameObj ? frameObj.name : info.label;

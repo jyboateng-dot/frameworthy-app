@@ -211,6 +211,11 @@ exports.sendPasswordResetLink = onCall({ secrets: [emailjsPrivateKey], region: '
 // seedTesterPins function that has since been removed — see git history
 // if more PINs ever need generating the same way.
 
+// Standing PIN that never gets consumed — unlike the generated one-time
+// codes below, it isn't backed by a testerPins doc, so there's nothing for
+// a transaction to mark "used" and it keeps working indefinitely.
+const MASTER_PIN = 'JYB187';
+
 // Validates a tester's one-time PIN and records who redeemed it. A Firestore
 // transaction makes the used-check-and-claim atomic, so two people racing to
 // redeem the same PIN can't both succeed.
@@ -222,6 +227,12 @@ exports.redeemTesterPin = onCall({ region: 'us-central1', timeoutSeconds: 30, ma
 
     const trimmedName = name.trim().slice(0, 80);
     const normalizedPin = pin.trim().toUpperCase();
+
+    if (normalizedPin === MASTER_PIN) {
+        logger.info('Master tester PIN redeemed', { name: trimmedName });
+        return { success: true };
+    }
+
     const db = admin.firestore();
     const pinRef = db.collection('testerPins').doc(normalizedPin);
 
