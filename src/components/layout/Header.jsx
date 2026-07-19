@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { User, ShoppingCart, Menu, ArrowLeft, LogOut, Package, ChevronDown, Shield } from 'lucide-react';
+import { User, ShoppingCart, Menu, ArrowLeft, LogOut, Package, ChevronDown, Shield, Frame } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext'; // Import Auth Context
 import { useUnit } from '../../context/UnitContext'; // Import Unit Context
 import { useCart } from '../../context/CartContext'; // Import Cart Context
@@ -84,11 +84,15 @@ const Header = ({
                     </button>
                 </div>
 
-                {/* Standalone Entry Point */}
+                {/* Standalone Entry Point — visible at every width; "Start Framing"
+                    is too wide below md, so it collapses to a gold icon + "Start"
+                    there (previously hidden below sm, which dropped the CTA
+                    entirely on narrow/mobile screens instead of just shortening it). */}
                 <button
                     onClick={() => navigate('/frame/customize')}
-                    className="hidden sm:flex items-center justify-center px-2.5 md:px-4 py-1.5 text-xs md:text-sm font-bold bg-[#c9a84c] text-[#0a0a0a] rounded-full hover:bg-[#d4b55c] transition-colors whitespace-nowrap"
+                    className="flex items-center justify-center gap-1.5 px-2.5 md:px-4 py-1.5 text-xs md:text-sm font-bold bg-[#c9a84c] text-[#0a0a0a] rounded-full hover:bg-[#d4b55c] transition-colors whitespace-nowrap shrink-0"
                 >
+                    <Frame size={14} className="md:hidden" />
                     <span className="md:hidden">Start</span>
                     <span className="hidden md:inline">Start Framing</span>
                 </button>
