@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { User, ShoppingCart, Menu, ArrowLeft, LogOut, Package, ChevronDown, Shield } from 'lucide-react';
+import { User, ShoppingCart, Menu, ArrowLeft, LogOut, Package, ChevronDown, Shield, Frame } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext'; // Import Auth Context
 import { useUnit } from '../../context/UnitContext'; // Import Unit Context
 import { useCart } from '../../context/CartContext'; // Import Cart Context
@@ -91,6 +91,19 @@ const Header = ({
                 >
                     <span className="md:hidden">Start</span>
                     <span className="hidden md:inline">Start Framing</span>
+                </button>
+
+                {/* Compact gold icon version of the entry point above — the
+                    text button is hidden below the sm breakpoint, so
+                    without this, small/narrow screens lose the CTA
+                    entirely instead of just losing its label. */}
+                <button
+                    onClick={() => navigate('/frame/customize')}
+                    className="sm:hidden flex items-center justify-center w-9 h-9 rounded-full bg-[#c9a84c] text-[#0a0a0a] hover:bg-[#d4b55c] transition-colors shrink-0"
+                    aria-label="Start Framing"
+                    title="Start Framing"
+                >
+                    <Frame size={18} />
                 </button>
 
                 {/* User Menu */}
