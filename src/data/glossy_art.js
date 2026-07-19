@@ -1,5 +1,6 @@
 import SOURCE_DIMS from './source_dims.json';
 import { FRAME_STYLES } from './constants';
+import { getThumbnailUrl } from '../services/storage';
 
 export const BASE = 'https://res.cloudinary.com/uucoqdzr/image/upload/inspiration_glossy_art/';
 
@@ -60,7 +61,7 @@ export const PRODUCTS = RAW_FILES.map((filename) => {
         finish: getFinish(code),
         seriesLabel: info.label,
         seriesDesc: info.desc,
-        image: BASE + filename,
+        image: getThumbnailUrl(BASE + filename),
         fullRes: BASE + filename,
         frameStyleId: 'slate-grey-square-shadow',
         sizeId: code.endsWith('A0X') ? 'xl' : 'lg',

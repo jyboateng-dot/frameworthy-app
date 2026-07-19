@@ -9,7 +9,7 @@ import { createOrder, getUserDeliveryAddresses } from '../../services/db';
 import { functions } from '../../services/firebase';
 import { MapPin, CreditCard, Ticket, ShieldCheck, Loader, X } from 'lucide-react';
 import { generateItemDescription, formatDimensionWithOrientation } from '../../utils/itemFormatters';
-import { PROMO_CODES } from '../../data/promoCodes';
+import { calculateSubtotal, resolvePromoCode, calculatePromoDiscount, calculateFinalTotal } from '../../utils/pricing';
 import Price from '../../components/common/Price';
 
 const PAYSTACK_PUBLIC_KEY = import.meta.env.VITE_PAYSTACK_PUBLIC_KEY;
@@ -56,28 +56,23 @@ const CheckoutPage = () => {
         }
     }, [checkoutItems, navigate]);
 
-    const subtotal = checkoutItems.reduce((sum, item) => sum + (item.totalPrice * (item.quantity || 1)), 0);
+    const subtotal = calculateSubtotal(checkoutItems);
 
     const [promoInput, setPromoInput] = useState('');
     const [appliedPromo, setAppliedPromo] = useState(null);
     const [promoError, setPromoError] = useState('');
 
-    const promoDiscount = appliedPromo
-        ? appliedPromo.type === 'percent'
-            ? subtotal * (appliedPromo.value / 100)
-            : Math.min(appliedPromo.value, subtotal)
-        : 0;
-    const finalTotal = Math.max(0, subtotal - promoDiscount);
+    const promoDiscount = calculatePromoDiscount(subtotal, appliedPromo);
+    const finalTotal = calculateFinalTotal(subtotal, promoDiscount);
 
     const handleApplyPromo = () => {
-        const code = promoInput.trim().toUpperCase();
-        if (!code) return;
-        const promo = PROMO_CODES[code];
+        if (!promoInput.trim()) return;
+        const promo = resolvePromoCode(promoInput);
         if (!promo) {
             setPromoError('Invalid promo code');
             return;
         }
-        setAppliedPromo({ code, ...promo });
+        setAppliedPromo(promo);
         setPromoInput('');
         setPromoError('');
     };

@@ -2,24 +2,23 @@ import React, { useState } from 'react';
 import { ArrowRight, ArrowLeft } from 'lucide-react';
 
 // Slides 1-5: mandatory intro covering the need, value proposition, and
-// what to expect as a tester. Slides 6-10: real slides reused from the
-// landing page's own hero carousel (positions 1, 3, 4, 6, and 10 of
-// CAROUSEL_SLIDES in landingCarouselSlides.js).
+// what to expect as a tester. Slides 6-9: real slides reused from the
+// landing page's own hero carousel (landingCarouselSlides.js).
 const SLIDES = [
     {
-        image: '/hero_slide_1.png',
+        image: '/hero_slide_1.jpg',
         eyebrow: "You're invited",
         title: 'Welcome to FrameWorthy',
         body: "You're one of a small group testing FrameWorthy before it opens to the public. Thanks for being here.",
     },
     {
-        image: '/hero_slide_3.png',
+        image: '/hero_slide_3.jpg',
         eyebrow: 'The problem',
         title: "Framing shouldn't be this hard",
         body: "Getting something properly framed usually means guessing sizes, visiting a shop in person, and hoping it looks right once it's on your wall.",
     },
     {
-        image: '/hero_slide_5.png',
+        image: '/hero_slide_5.jpg',
         eyebrow: 'The idea',
         title: 'See it before you buy it',
         body: 'Upload any photo, or pick from our curated collections, and preview it framed, matted, and hanging on a wall of your choice — before you order anything.',
@@ -42,25 +41,19 @@ const SLIDES = [
         body: 'Try placing a test order, poke around every corner, and let us know what confuses you or what you love. Your feedback shapes what ships next.',
     },
     {
-        image: '/hero_hanging_frame.png',
+        image: '/hero_hanging_frame.jpg',
         eyebrow: 'Feature spotlight',
         title: 'Welcome to FrameWorthy',
         body: 'Transform your cherished memories and favorite artworks into stunning, gallery-quality centerpieces that elevate any space.',
     },
     {
-        image: '/hallway_banner.png',
+        image: '/hallway_banner.jpg',
         eyebrow: 'Feature spotlight',
         title: 'Curate Your Hallways',
         body: "Turn your empty corridors into a beautiful walking gallery of your life's greatest moments and art.",
     },
     {
-        image: 'https://wallpapers.com/images/hd/aesthetic-album-cover-f71lwawxcvz9s7pa.jpg',
-        eyebrow: 'Feature spotlight',
-        title: 'Frame Your Favorite Album Covers',
-        body: 'Search for your favorite artist and easily frame their iconic album covers.',
-    },
-    {
-        image: '/living_room_banner.png',
+        image: '/living_room_banner.jpg',
         eyebrow: 'Feature spotlight',
         title: 'Elevate Your Living Space',
         body: 'Create a stunning focal point in your living room with our premium, handcrafted frames.',

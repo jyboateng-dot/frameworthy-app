@@ -55,6 +55,8 @@ ios/App/App.xcodeproj/project.xcworkspace/xcuserdata/
 
 # Firebase CLI local cache
 .firebase/
+firestore-debug.log
+firebase-debug.log
 
 # Migration script console-output dumps (ephemeral, not meaningful in history)
 *_migration_log.txt

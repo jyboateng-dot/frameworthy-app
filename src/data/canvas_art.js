@@ -1,5 +1,6 @@
 import SOURCE_DIMS from './source_dims.json';
 import { FRAME_STYLES } from './constants';
+import { getThumbnailUrl } from '../services/storage';
 
 export const BASE = 'https://res.cloudinary.com/uucoqdzr/image/upload/inspiration_canvas_art/';
 
@@ -98,7 +99,7 @@ export const PRODUCTS = RAW_FILES.map((filename) => {
             : `Canvas ${code.replace('CANVA-', '')}`,
         dims,
         finish,
-        image: BASE + filename,
+        image: getThumbnailUrl(BASE + filename),
         fullRes: BASE + filename,
         frameStyleId: 'black-walnut-shadow',
         sizeId: code.includes('80B0') || code.includes('0B0') ? 'xl' : code.includes('4080') ? 'lg' : 'md',

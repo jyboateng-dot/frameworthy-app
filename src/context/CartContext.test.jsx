@@ -1,0 +1,133 @@
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { renderHook, act } from '@testing-library/react';
+import { CartProvider, useCart } from './CartContext';
+
+const wrapper = ({ children }) => <CartProvider>{children}</CartProvider>;
+
+describe('CartContext', () => {
+    beforeEach(() => {
+        localStorage.clear();
+    });
+
+    it('starts empty when localStorage has no saved cart', () => {
+        const { result } = renderHook(() => useCart(), { wrapper });
+        expect(result.current.cartItems).toEqual([]);
+        expect(result.current.cartCount).toBe(0);
+    });
+
+    it('loads a previously saved cart from localStorage', () => {
+        localStorage.setItem('frameworthy_cart', JSON.stringify([
+            { id: 'a', quantity: 2, isSelected: true },
+        ]));
+        const { result } = renderHook(() => useCart(), { wrapper });
+        expect(result.current.cartItems).toHaveLength(1);
+    });
+
+    it('falls back to an empty cart when saved data is corrupt JSON', () => {
+        localStorage.setItem('frameworthy_cart', '{not valid json');
+        const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+        const { result } = renderHook(() => useCart(), { wrapper });
+        expect(result.current.cartItems).toEqual([]);
+        warnSpy.mockRestore();
+    });
+
+    it('addToCart assigns an id, defaults quantity to 1, and selects the item', () => {
+        const { result } = renderHook(() => useCart(), { wrapper });
+        act(() => {
+            result.current.addToCart({ name: 'Frame A' });
+        });
+        expect(result.current.cartItems).toHaveLength(1);
+        const item = result.current.cartItems[0];
+        expect(item.id).toBeTruthy();
+        expect(item.quantity).toBe(1);
+        expect(item.isSelected).toBe(true);
+        expect(result.current.isCartOpen).toBe(true);
+    });
+
+    it('cartCount sums quantities across all items, not just item count', () => {
+        const { result } = renderHook(() => useCart(), { wrapper });
+        act(() => {
+            result.current.addToCart({ name: 'A' });
+            result.current.addToCart({ name: 'B' });
+        });
+        const [first] = result.current.cartItems;
+        act(() => {
+            result.current.updateQuantity(first.id, 3);
+        });
+        expect(result.current.cartCount).toBe(4); // 3 + 1
+    });
+
+    it('removeFromCart removes only the targeted item', () => {
+        const { result } = renderHook(() => useCart(), { wrapper });
+        act(() => {
+            result.current.addToCart({ name: 'A' });
+            result.current.addToCart({ name: 'B' });
+        });
+        const idToRemove = result.current.cartItems[0].id;
+        act(() => {
+            result.current.removeFromCart(idToRemove);
+        });
+        expect(result.current.cartItems).toHaveLength(1);
+        expect(result.current.cartItems.find(i => i.id === idToRemove)).toBeUndefined();
+    });
+
+    it('updateQuantity ignores values below 1', () => {
+        const { result } = renderHook(() => useCart(), { wrapper });
+        act(() => {
+            result.current.addToCart({ name: 'A' });
+        });
+        const id = result.current.cartItems[0].id;
+        act(() => {
+            result.current.updateQuantity(id, 0);
+        });
+        expect(result.current.cartItems[0].quantity).toBe(1);
+    });
+
+    it('toggleItemSelection flips only the targeted item', () => {
+        const { result } = renderHook(() => useCart(), { wrapper });
+        act(() => {
+            result.current.addToCart({ name: 'A' });
+            result.current.addToCart({ name: 'B' });
+        });
+        const [second, first] = result.current.cartItems; // addToCart prepends
+        act(() => {
+            result.current.toggleItemSelection(first.id);
+        });
+        expect(result.current.cartItems.find(i => i.id === first.id).isSelected).toBe(false);
+        expect(result.current.cartItems.find(i => i.id === second.id).isSelected).toBe(true);
+    });
+
+    it('toggleAllSelection sets isSelected for every item', () => {
+        const { result } = renderHook(() => useCart(), { wrapper });
+        act(() => {
+            result.current.addToCart({ name: 'A' });
+            result.current.addToCart({ name: 'B' });
+        });
+        act(() => {
+            result.current.toggleAllSelection(false);
+        });
+        expect(result.current.cartItems.every(i => i.isSelected === false)).toBe(true);
+    });
+
+    it('clearCart empties the cart', () => {
+        const { result } = renderHook(() => useCart(), { wrapper });
+        act(() => {
+            result.current.addToCart({ name: 'A' });
+        });
+        act(() => {
+            result.current.clearCart();
+        });
+        expect(result.current.cartItems).toEqual([]);
+        expect(result.current.cartCount).toBe(0);
+    });
+
+    it('persists cart changes to localStorage', () => {
+        const { result } = renderHook(() => useCart(), { wrapper });
+        act(() => {
+            result.current.addToCart({ name: 'A' });
+        });
+        const stored = JSON.parse(localStorage.getItem('frameworthy_cart'));
+        expect(stored).toHaveLength(1);
+        expect(stored[0].name).toBe('A');
+    });
+});

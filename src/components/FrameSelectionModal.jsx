@@ -56,9 +56,11 @@ export default function FrameSelectionModal({ isOpen, onClose, selectedFrame, on
                                 className={`group flex flex-col bg-white rounded-lg overflow-hidden border transition-all ${selectedFrame?.id === f.id ? 'border-black ring-2 ring-black ring-offset-1 shadow-md' : 'border-gray-200 hover:border-gray-300 hover:shadow-sm'}`}
                             >
                                 <div className="aspect-square bg-gray-50 overflow-hidden relative">
-                                    <img 
-                                        src={f.previewImg || `/frames/${f.filename}`} 
+                                    <img
+                                        src={f.previewImg || `/frames/${f.filename}`}
                                         alt={f.name}
+                                        loading="lazy"
+                                        decoding="async"
                                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                                     />
                                     {selectedFrame?.id === f.id && (

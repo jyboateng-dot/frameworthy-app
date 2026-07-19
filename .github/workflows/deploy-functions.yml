@@ -1,0 +1,81 @@
+name: Deploy Functions
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - 'functions/**'
+      - '.github/workflows/deploy-functions.yml'
+  workflow_dispatch: {}
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            functions/package-lock.json
+
+      # The Firestore/Auth emulators used by test:functions are a JVM + Node process.
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Cache Firebase emulator binaries
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/firebase/emulators
+          key: firebase-emulators-${{ hashFiles('package-lock.json') }}
+
+      # Root install brings in firebase-tools, which functions/package.json's
+      # test script resolves via npm's ancestor node_modules/.bin lookup.
+      - name: Install root dependencies
+        run: npm ci --ignore-scripts
+
+      - name: Install functions dependencies
+        run: npm ci --ignore-scripts
+        working-directory: functions
+
+      - name: Run Cloud Functions tests
+        run: npm run test:functions
+
+  deploy:
+    needs: test
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            functions/package-lock.json
+
+      - name: Install root dependencies
+        run: npm ci --ignore-scripts
+
+      - name: Install functions dependencies
+        run: npm ci --ignore-scripts
+        working-directory: functions
+
+      # Sets GOOGLE_APPLICATION_CREDENTIALS for later steps; firebase-tools
+      # picks up Application Default Credentials automatically, no
+      # `firebase login:ci` token needed (that flow is deprecated).
+      - id: auth
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.FIREBASE_DEPLOY_SERVICE_ACCOUNT }}
+
+      - name: Deploy functions
+        run: npx firebase deploy --only functions --project frameworthyco-9c78c --force
