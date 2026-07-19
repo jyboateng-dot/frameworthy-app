@@ -84,26 +84,17 @@ const Header = ({
                     </button>
                 </div>
 
-                {/* Standalone Entry Point */}
+                {/* Standalone Entry Point — visible at every width; "Start Framing"
+                    is too wide below md, so it collapses to a gold icon + "Start"
+                    there (previously hidden below sm, which dropped the CTA
+                    entirely on narrow/mobile screens instead of just shortening it). */}
                 <button
                     onClick={() => navigate('/frame/customize')}
-                    className="hidden sm:flex items-center justify-center px-2.5 md:px-4 py-1.5 text-xs md:text-sm font-bold bg-[#c9a84c] text-[#0a0a0a] rounded-full hover:bg-[#d4b55c] transition-colors whitespace-nowrap"
+                    className="flex items-center justify-center gap-1.5 px-2.5 md:px-4 py-1.5 text-xs md:text-sm font-bold bg-[#c9a84c] text-[#0a0a0a] rounded-full hover:bg-[#d4b55c] transition-colors whitespace-nowrap shrink-0"
                 >
+                    <Frame size={14} className="md:hidden" />
                     <span className="md:hidden">Start</span>
                     <span className="hidden md:inline">Start Framing</span>
-                </button>
-
-                {/* Compact gold icon version of the entry point above — the
-                    text button is hidden below the sm breakpoint, so
-                    without this, small/narrow screens lose the CTA
-                    entirely instead of just losing its label. */}
-                <button
-                    onClick={() => navigate('/frame/customize')}
-                    className="sm:hidden flex items-center justify-center w-9 h-9 rounded-full bg-[#c9a84c] text-[#0a0a0a] hover:bg-[#d4b55c] transition-colors shrink-0"
-                    aria-label="Start Framing"
-                    title="Start Framing"
-                >
-                    <Frame size={18} />
                 </button>
 
                 {/* User Menu */}
