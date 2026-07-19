@@ -18,7 +18,6 @@ import { useCart } from '../../context/CartContext';
 import { uploadImageToCloud, getThumbnailUrl } from '../../services/storage';
 import FrameSelectionModal from '../../components/FrameSelectionModal';
 import MetArtSelectionModal from '../../components/MetArtSelectionModal';
-import InspirationSelectionModal from '../../components/InspirationSelectionModal';
 import { renderAlbumPoster } from '../../utils/albumPoster';
 import { renderMoviePoster } from '../../utils/moviePoster';
 import { useAuth } from '../../context/AuthContext';
@@ -149,7 +148,6 @@ const CustomizeFramePage = ({
     const [isWallPickerOpen, setIsWallPickerOpen] = useState(false);
     const [isDimPickerOpen, setIsDimPickerOpen] = useState(false);
     const [isMetModalOpen, setIsMetModalOpen] = useState(false);
-    const [isInspirationModalOpen, setIsInspirationModalOpen] = useState(false);
     const [selectedUploadId, setSelectedUploadId] = useState(null);
     const [isHovered, setIsHovered] = useState(false);
     const [isMaxZoom, setIsMaxZoom] = useState(false);
@@ -228,12 +226,11 @@ const CustomizeFramePage = ({
     
     // Canonical interpretation of an Inspiration selection ("Get This" from any
     // category). This is THE single place that maps a selection's state object
-    // onto the Frame Studio — used identically by both entry points:
-    //  - real navigation (header/hamburger → /inspiration → navigate here with
-    //    location.state), via the Initial Setup effect below
-    //  - the in-studio Inspiration modal (InspirationSelectionModal forwards the
-    //    same state object through its onApplySelection prop)
-    // Add new fields/categories HERE and both paths pick them up automatically.
+    // onto the Frame Studio — reached via real navigation (any entry point,
+    // including the in-studio Inspiration trigger below, → /inspiration →
+    // navigate here with location.state), picked up by the Initial Setup
+    // effect below. Add new fields/categories HERE and it's picked up
+    // automatically regardless of which entry point led here.
     const applyInspirationSelection = (state) => {
         if (!state) return;
 
@@ -1421,7 +1418,7 @@ const CustomizeFramePage = ({
 
                             {/* Inspiration Trigger */}
                             <button
-                                onClick={() => setIsInspirationModalOpen(true)}
+                                onClick={() => navigate('/inspiration')}
                                 className="border border-stone-200 rounded-xl p-3 flex flex-col items-center justify-center hover:bg-stone-50 hover:border-stone-400 transition-colors h-[72px] text-center"
                             >
                                 <ImagePlus size={16} className="text-stone-500" />
@@ -1736,15 +1733,6 @@ const CustomizeFramePage = ({
                 isOpen={isMetModalOpen} 
                 onClose={() => setIsMetModalOpen(false)} 
                 onSelect={handleMetArtSelect}
-            />
-
-            {/* Inspiration Selection Modal */}
-            <InspirationSelectionModal 
-                isOpen={isInspirationModalOpen}
-                onClose={() => setIsInspirationModalOpen(false)}
-                onApplySelection={applyInspirationSelection}
-                setSelectedFrame={setSelectedFrame}
-                setSelectedSize={setSelectedSize}
             />
 
             {/* Auth Modal */}
