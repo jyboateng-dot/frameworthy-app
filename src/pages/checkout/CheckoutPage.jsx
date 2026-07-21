@@ -496,7 +496,7 @@ const CheckoutPage = () => {
                         <span>Total</span>
                         <Price amount={finalTotal} />
                     </div>
-                    <p className="text-xs text-stone-400 pt-1">Delivery paid upon delivery.</p>
+                    <p className="text-xs text-stone-400 pt-1">Shipping fee paid upon delivery.</p>
                 </div>
 
                 {error && <div className="bg-red-50 text-red-500 p-3 rounded-xl text-sm text-center font-bold">{error}</div>}

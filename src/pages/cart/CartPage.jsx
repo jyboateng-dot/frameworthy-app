@@ -77,7 +77,7 @@ const CartPage = () => {
 
             {/* Global Delivery Notice */}
             <div className="px-4 py-3 bg-white flex items-center gap-3 border-b border-stone-100">
-                <span className="text-stone-900 text-xs">Delivery paid upon delivery</span>
+                <span className="text-stone-900 text-xs">Shipping fee paid upon delivery</span>
             </div>
 
             {/* Store Group */}

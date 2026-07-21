@@ -167,6 +167,13 @@ const CustomizeFramePage = ({
     const hoverTimeoutRef = useRef(null);
     const lastTapRef = useRef(0);
     const zoneRef = useRef(null);
+    // Measures the actual rendered height of the full-screen disclaimer
+    // caption so the frame's zoom-fit height cap (below) can reserve exactly
+    // that much room — a fixed percentage guess can't account for real
+    // per-device font rendering/wrapping, so it can't fully eliminate the
+    // overlap risk the way a live measurement can.
+    const fullScreenCaptionRef = useRef(null);
+    const [fullScreenCaptionHeight, setFullScreenCaptionHeight] = useState(0);
     const [loadingAction, setLoadingAction] = useState(null);
     const [wasAddedToCart, setWasAddedToCart] = useState(false);
     // Always holds the uploadedImage value from the most recent render, updated
@@ -295,6 +302,12 @@ const CustomizeFramePage = ({
         if (location.state && Object.keys(location.state).length > 0) {
             applyInspirationSelection(location.state);
 
+            // React Router doesn't reset scroll position on navigation — if the
+            // user was scrolled down browsing Inspiration, arriving here would
+            // otherwise leave them scrolled into the configuration dashboard
+            // instead of seeing the visualizer with their new selection.
+            window.scrollTo(0, 0);
+
             // clear state to prevent re-applying the selection on remounts
             navigate(location.pathname, { replace: true, state: {} });
         }
@@ -385,6 +398,22 @@ const CustomizeFramePage = ({
         observer.observe(zoneRef.current);
         return () => observer.disconnect();
     }, []);
+
+    // The full-screen disclaimer caption only exists in the DOM while
+    // isFullScreen is true (see its conditional render below), so the ref
+    // is null until then — re-run whenever isFullScreen flips to attach/
+    // detach the observer accordingly.
+    useEffect(() => {
+        if (!isFullScreen || !fullScreenCaptionRef.current) {
+            setFullScreenCaptionHeight(0);
+            return;
+        }
+        const observer = new ResizeObserver((entries) => {
+            if (entries[0]) setFullScreenCaptionHeight(entries[0].contentRect.height);
+        });
+        observer.observe(fullScreenCaptionRef.current);
+        return () => observer.disconnect();
+    }, [isFullScreen]);
 
     // Full-screen visualizer: reset hover/max-zoom on every transition so
     // zoom state computed against one container size (pane vs. viewport)
@@ -615,8 +644,20 @@ const CustomizeFramePage = ({
         // from `posterData`), so that must be checked too, or this effect
         // races the isAlbumPoster/isMoviePosterPrint flags being set true and
         // auto-detects orientation off the stale placeholder image instead.
-        // We also skip auto-detect if the current image is the preset image loaded on mount.
-        if (location.state?.presetImage || location.state?.posterData || uploadedImage === initialPresetImageRef.current) {
+        //
+        // Checking the actual VALUE (not just presence) is what makes this
+        // reliable: location.state (via router navigation) and uploadedImage
+        // (via plain useState) update through two different mechanisms that
+        // don't necessarily land in the same commit — uploadedImage can
+        // already reflect the incoming preset image for one or more renders
+        // before location.state actually clears. Skipping on mere presence
+        // caused this whole effect (imageNaturalSize included) to never run
+        // at all for a real, already-applied selection. Comparing values
+        // sidesteps that race: once uploadedImage matches what
+        // location.state says it should become, it's current, not stale,
+        // regardless of whether location.state has cleared yet.
+        const pendingPresetImage = location.state?.presetImage;
+        if ((pendingPresetImage && pendingPresetImage !== uploadedImage) || location.state?.posterData) {
             return;
         }
         // Album/movie poster prints are always portrait and are re-generated
@@ -629,12 +670,25 @@ const CustomizeFramePage = ({
         if (isAlbumPoster || isMoviePosterPrint) {
             return;
         }
+        // Preset/Inspiration selections (Original Paintings, Canvas Art, etc.)
+        // already specify their own orientation via the selection itself, so
+        // auto-detect and square-snap must not override that choice — but
+        // imageNaturalSize still needs computing for these (it now also
+        // drives whether a no-mat frame fills edge-to-edge or letterboxes),
+        // so this only skips the auto-detect/square-snap portion below rather
+        // than returning early and skipping the whole effect. Returning early
+        // here used to silently leave imageNaturalSize null forever for every
+        // preset image, not just the one loaded on mount as intended.
+        const isPresetImage = uploadedImage === initialPresetImageRef.current;
         const effectImage = uploadedImage;
         let cancelled = false;
         const img = new Image();
         img.onload = () => {
             if (cancelled || effectImage !== latestUploadedImageRef.current) return;
             setImageNaturalSize({ w: img.naturalWidth, h: img.naturalHeight });
+            setIsImageLoading(false); // Hide spinner safely even if cached
+            if (isPresetImage) return;
+
             // Album posters and movie posters are always portrait, regardless of
             // the source image's actual pixel aspect ratio — don't let
             // auto-detection override the intentional portrait lock for these flows.
@@ -643,7 +697,6 @@ const CustomizeFramePage = ({
                 setOrientation(isLandscape ? 'landscape' : 'portrait');
             }
             setIsOptimized(false); // Reset optimization state for new image
-            setIsImageLoading(false); // Hide spinner safely even if cached
 
             // Auto-snap to square size if the image is square
             const isSq = Math.abs(img.naturalWidth - img.naturalHeight) <= 5;
@@ -660,7 +713,15 @@ const CustomizeFramePage = ({
             if (cancelled) return;
             setIsImageLoading(false);
         };
-        img.src = uploadedImage;
+        // Only need this for aspect ratio (orientation-match / square-snap),
+        // not pixel-perfect dimensions, so load the same thumbnail-sized
+        // transform the visible <img> already uses (getThumbnailUrl no-ops
+        // for blob:/data: URLs, so direct uploads are unaffected — this only
+        // changes behavior for Cloudinary-hosted preset/Inspiration images).
+        // Previously this always downloaded the full-resolution original a
+        // second time in the background just to measure it, which competed
+        // with the visible thumbnail for bandwidth on slower connections.
+        img.src = getThumbnailUrl(uploadedImage, 1400);
         return () => {
             cancelled = true;
         };
@@ -1194,12 +1255,19 @@ const CustomizeFramePage = ({
                                 const baseHeightPx = baseWidthPx * (hInch / wInch);
 
                                 // Safe zoom boundaries: never exceed 90% of zone height or 85% of
-                                // zone width — except in full screen, which reserves extra room at
-                                // the bottom (78% cap instead of 90%) for the disclaimer caption
-                                // rendered below, so the frame and that text never compete for the
-                                // same space.
+                                // zone width — except in full screen, which reserves room at the
+                                // bottom for the disclaimer caption instead. That reservation is
+                                // based on the caption's actual MEASURED height (fullScreenCaptionHeight,
+                                // via ResizeObserver), not a fixed percentage guess — a guess can't
+                                // account for real per-device font wrapping/rendering, so it can't
+                                // truly eliminate the overlap risk the way a live measurement can.
+                                // The frame is centered in the zone, so guaranteeing R px of
+                                // clearance at the bottom means reserving 2×R (R above + R below).
                                 const maxZoomWidthPx = zoneSize.width * 0.85;
-                                const maxZoomHeightPx = zoneSize.height * (isFullScreen ? 0.78 : 0.90);
+                                const fullScreenCaptionReservePx = Math.max(fullScreenCaptionHeight, 40) + 24 /* bottom offset */ + 16 /* breathing room */;
+                                const maxZoomHeightPx = isFullScreen
+                                    ? Math.max(80, zoneSize.height - fullScreenCaptionReservePx * 2)
+                                    : zoneSize.height * 0.90;
 
                                 const safeBaseW = baseWidthPx > 0 ? baseWidthPx : 1;
                                 const safeBaseH = baseHeightPx > 0 ? baseHeightPx : 1;
@@ -1257,6 +1325,20 @@ const CustomizeFramePage = ({
                             // Cloudinary URLs, so user uploads and external sources render
                             // exactly as before.
                             const displayImage = getThumbnailUrl(uploadedImage, 1400);
+                            // Filling the opening edge-to-edge (object-cover) only
+                            // makes sense when the image's own orientation matches
+                            // the frame's — a landscape photo forced to cover a tall
+                            // portrait opening (or vice versa) would have to crop
+                            // away most of the image instead of just leaving a
+                            // harmless white bar, which is a worse outcome. Square
+                            // images always "match" since contain and cover are
+                            // visually identical at a 1:1 aspect ratio.
+                            const imageOrientationMatchesFrame = imageNaturalSize && (
+                                imageNaturalSize.w === imageNaturalSize.h ||
+                                (imageNaturalSize.w > imageNaturalSize.h && orientation === 'landscape') ||
+                                (imageNaturalSize.h > imageNaturalSize.w && orientation === 'portrait')
+                            );
+                            const shouldFillNoMatOpening = matWidth === 'none' && imageOrientationMatchesFrame;
                             const dimTopClass = isHovered ? '-top-6' : '-top-4';
                             const dimRightClass = isHovered ? '-right-6' : '-right-4';
                             const dimFontSizePx = isHovered ? 14 : Math.max(8, Math.min(10, baseFrameWidthPx / 12));
@@ -1329,12 +1411,12 @@ const CustomizeFramePage = ({
                                         by design — instead of hard-unmounting) */}
                                     {showDimensions && (
                                         <>
-                                            <div style={{ fontSize: `${dimFontSizePx}px` }} className={`absolute ${dimTopClass} left-0 w-full flex items-center justify-center ${wallInkClass} font-mono border-t ${wallInkBorderClass} pt-1 ${wallInkBlend} ${isFullScreen ? 'opacity-0' : 'opacity-80'} transition-opacity duration-300 whitespace-nowrap overflow-visible pointer-events-none`}>
+                                            <div style={{ fontSize: `${dimFontSizePx}px` }} className={`absolute ${dimTopClass} left-0 w-full flex items-center justify-center ${wallInkClass} font-mono border-t ${wallInkBorderClass} pt-1 ${wallInkBlend} ${isFullScreen ? 'opacity-0' : 'opacity-80'} transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] whitespace-nowrap overflow-visible pointer-events-none`}>
                                                 <div className={`absolute left-0 top-0 h-1.5 sm:h-2 w-px ${wallInkBgClass}`} />
                                                 <div className={`absolute right-0 top-0 h-1.5 sm:h-2 w-px ${wallInkBgClass}`} />
                                                 {unit === 'in' ? wInch.toFixed(1) : innerWidthCm.toFixed(1)} {unit === 'in' ? 'in' : 'cm'}
                                             </div>
-                                            <div style={{ fontSize: `${dimFontSizePx}px` }} className={`absolute ${dimRightClass} top-0 h-full flex flex-col items-center justify-center ${wallInkClass} font-mono border-r ${wallInkBorderClass} pr-1 ${wallInkBlend} ${isFullScreen ? 'opacity-0' : 'opacity-80'} transition-opacity duration-300 whitespace-nowrap overflow-visible pointer-events-none`}>
+                                            <div style={{ fontSize: `${dimFontSizePx}px` }} className={`absolute ${dimRightClass} top-0 h-full flex flex-col items-center justify-center ${wallInkClass} font-mono border-r ${wallInkBorderClass} pr-1 ${wallInkBlend} ${isFullScreen ? 'opacity-0' : 'opacity-80'} transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] whitespace-nowrap overflow-visible pointer-events-none`}>
                                                 <div className={`absolute right-0 top-0 w-1.5 sm:w-2 h-px ${wallInkBgClass}`} />
                                                 <div className={`absolute right-0 bottom-0 w-1.5 sm:w-2 h-px ${wallInkBgClass}`} />
                                                 <span style={{ writingMode: 'vertical-rl' }}>{unit === 'in' ? hInch.toFixed(1) : innerHeightCm.toFixed(1)} {unit === 'in' ? 'in' : 'cm'}</span>
@@ -1492,7 +1574,7 @@ const CustomizeFramePage = ({
                                             <img
                                                 src={displayImage}
                                                 alt="Artwork"
-                                                className={`w-full h-full ${selectedFrame?.id === 'frame-canvas' || isPreset ? 'object-cover' : 'object-contain'}`}
+                                                className={`w-full h-full ${selectedFrame?.id === 'frame-canvas' || isPreset || shouldFillNoMatOpening ? 'object-cover' : 'object-contain'}`}
                                                 style={{
                                                     imageRendering: '-webkit-optimize-contrast',
                                                     transform: 'translateZ(0)',
@@ -1584,14 +1666,26 @@ const CustomizeFramePage = ({
                     corner so the two never crowd each other. */}
                 {isFullScreen && (
                     <div
-                        className={`absolute bottom-4 sm:bottom-6 left-1/2 -translate-x-1/2 max-w-[92%] sm:max-w-[70%] text-center text-xs sm:text-sm ${isDarkWall ? 'text-stone-100/90' : 'text-stone-600/80'} select-none pointer-events-none font-medium ${wallNoteBlend} px-2 leading-relaxed tracking-wide z-20 transition-opacity duration-500 ${
+                        ref={fullScreenCaptionRef}
+                        className={`absolute bottom-4 sm:bottom-6 left-1/2 -translate-x-1/2 w-[92%] sm:w-[70%] text-center text-[8px] sm:text-[10px] ${isDarkWall ? 'text-stone-100/90' : 'text-stone-600/80'} select-none pointer-events-none font-medium ${wallNoteBlend} px-2 leading-relaxed tracking-wide z-20 transition-opacity duration-500 ${
                             paneVisible ? 'opacity-100' : 'opacity-0'
                         }`}
                     >
-                        {/* line-clamp-3 caps this at 3 lines everywhere (with an
-                            ellipsis if it doesn't fit) instead of letting it
-                            grow to 4-5 lines on narrow screens at this font size */}
-                        <p className="line-clamp-3">Note: Visualizer renderings are digital approximations. Finished products will feature the exact physical moulding profiles, textures, and details shown in our catalogue.</p>
+                        {/* Sized/widened (8px + 92% on mobile, 10px + 70% from
+                            sm: up) so the full sentence always wraps to exactly 2
+                            lines with no truncation — verified down to a 375px
+                            screen, and the 70% width specifically keeps clear of
+                            the full-screen toggle button in the opposite corner
+                            at wider viewports (a wider % that also hits 2 lines
+                            reached right into the button). line-clamp-2 is just
+                            a backstop, not doing the real work of fitting it.
+                            text-balance evens out the two lines' lengths instead
+                            of leaving a long first line and a short ragged one.
+                            w-[...] (not max-w) on both this div and the <p> below
+                            is required — absolute positioning with only `left`
+                            set otherwise shrink-to-fits narrower than intended,
+                            wrapping to far more lines than the width math assumed. */}
+                        <p className="w-full line-clamp-2 text-balance">Note: Visualizer renderings are digital approximations. Finished products will feature the exact physical moulding profiles, textures, and details shown in our catalogue.</p>
                     </div>
                 )}
 
@@ -1903,7 +1997,7 @@ const CustomizeFramePage = ({
                             className="text-lg font-bold text-stone-900 tracking-tight"
                         />
                         <span className="text-[8px] text-stone-500 whitespace-nowrap">
-                            {isCloudUploadPending ? 'Finishing image upload…' : 'Delivery paid upon delivery'}
+                            {isCloudUploadPending ? 'Finishing image upload…' : 'Shipping fee paid upon delivery'}
                         </span>
                     </div>
                     <div className={`flex w-full mt-1 ${isSideBySide ? 'gap-1.5' : 'gap-2 max-w-[300px]'}`}>
