@@ -91,11 +91,17 @@ const MetArtPage = ({ setProductMode, setSelectedFrame, setSelectedSize, navigat
         );
     }, [availableCollections]);
 
-    // Initial selected category
-    const [activeCategory, setActiveCategory] = useState(primary[0]);
-    const [secondarySelected, setSecondarySelected] = useState('');
-    const [currentPage, setCurrentPage] = useState(1);
+    // Initial selected category — persisted so navigating away (e.g. to
+    // customize a selection) and back to Inspiration restores the same
+    // category/page instead of resetting.
+    const [activeCategory, setActiveCategory] = useState(() => sessionStorage.getItem('fw_met_category') || primary[0]);
+    const [secondarySelected, setSecondarySelected] = useState(() => sessionStorage.getItem('fw_met_secondary') || '');
+    const [currentPage, setCurrentPage] = useState(() => parseInt(sessionStorage.getItem('fw_met_page') || '1', 10));
     const itemsPerPage = 24;
+
+    useEffect(() => { sessionStorage.setItem('fw_met_category', activeCategory || ''); }, [activeCategory]);
+    useEffect(() => { sessionStorage.setItem('fw_met_secondary', secondarySelected || ''); }, [secondarySelected]);
+    useEffect(() => { sessionStorage.setItem('fw_met_page', currentPage.toString()); }, [currentPage]);
 
     const currentArtworks = useMemo(() => {
         if (!activeCategory || !MET_LOCAL_COLLECTIONS[activeCategory]) return [];

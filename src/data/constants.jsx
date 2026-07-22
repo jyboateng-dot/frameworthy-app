@@ -1,3 +1,10 @@
+// The Frame Studio's starting demo photo, shown before a user picks their
+// own image. It's landscape-shaped — shared as a named constant (rather
+// than inlined separately in App.jsx) so CustomizeFramePage's orientation
+// auto-detect effect can recognize it and skip overriding the intended
+// portrait default with this placeholder's own shape.
+export const DEFAULT_DEMO_IMAGE = 'https://images.unsplash.com/photo-1526045478516-99145907023c?auto=format&fit=crop&w=1600&q=80&sat=-20&con=-10';
+
 // Prices are GHS, calibrated against real Ghana custom-framing market rates
 // (~GHS 45 base cost + ~GHS 1.05/sq in), not a straight USD->GHS relabel.
 export const FRAME_SIZES = [
@@ -29,6 +36,7 @@ export const FRAME_SIZES = [
     { id: 'Statement', width: 24, height: 36, label: '60 x 90 cm (Statement)', price: 950 },
 
     // Missing Art & Painting Dimensions
+    { id: '20x20cm', width: 8, height: 8, label: '20 x 20 cm', price: 110 },
     { id: '35x50cm', width: 14, height: 20, label: '35 x 50 cm', price: 340 },
     { id: '40x40cm', width: 16, height: 16, label: '40 x 40 cm', price: 315 },
     { id: '60x60cm', width: 24, height: 24, label: '60 x 60 cm', price: 650 },

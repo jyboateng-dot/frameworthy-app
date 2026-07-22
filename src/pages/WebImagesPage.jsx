@@ -68,9 +68,13 @@ const WebImagesPage = ({ setProductMode, setSelectedFrame, setSelectedSize, navi
     const [shuffledImages, setShuffledImages] = useState(currentShuffledImages);
     const [loading, setLoading] = useState(false);
     
-    // Pagination state
-    const [currentPage, setCurrentPage] = useState(1);
+    // Pagination state — persisted so navigating away (e.g. to customize a
+    // selection) and back to Inspiration restores the same page instead of
+    // resetting (the shuffle order itself already survives via module state).
+    const [currentPage, setCurrentPage] = useState(() => parseInt(sessionStorage.getItem('fw_web_page') || '1', 10));
     const itemsPerPage = 24;
+
+    useEffect(() => { sessionStorage.setItem('fw_web_page', currentPage.toString()); }, [currentPage]);
 
     // disableWindowScroll is true only inside the in-studio Inspiration
     // modal, where window isn't the real scroll container — isSubPage

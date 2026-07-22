@@ -1,5 +1,5 @@
 import React, { useState, useEffect, lazy, Suspense } from 'react';
-import { ArrowRight, Heart, ChevronLeft, ChevronRight, Search } from 'lucide-react';
+import { ArrowRight, Heart, ChevronLeft, ChevronRight, Search, ArrowUp } from 'lucide-react';
 import { FRAME_STYLES, FRAME_SIZES, findSizeByDimension, formatDimensions, parseCustomSize } from '../data/constants';
 import { useUnit } from '../context/UnitContext';
 import { useWishlist } from '../context/WishlistContext';
@@ -85,18 +85,39 @@ const InspirationPage = ({ setProductMode, setSelectedFrame, setSelectedSize, na
     // anyway. Only wire this up on the real standalone route.
     const scrollToTop = () => { if (!isModal) window.scrollTo({ top: 0, behavior: 'smooth' }); };
 
+    // Surfaces a floating "back to top" shortcut once scrolled deep into a
+    // long tab (Original Paintings, Met Museum, etc. can run to many pages) —
+    // same affordance as the visualizer's back-to-top button in the Frame
+    // Studio, so long lists don't require a manual scroll all the way back up.
+    const [showBackToTop, setShowBackToTop] = useState(false);
+
     // Restore and save scroll position
     useEffect(() => {
         if (isModal) return;
 
-        const savedScroll = sessionStorage.getItem('fw_insp_page_scroll');
-        if (savedScroll) {
-            // Small timeout to allow the grid to render before scrolling
-            setTimeout(() => window.scrollTo(0, parseInt(savedScroll, 10)), 100);
+        const savedScroll = parseInt(sessionStorage.getItem('fw_insp_page_scroll') || '0', 10);
+        if (savedScroll > 0) {
+            // The active tab (often a lazy-loaded chunk with its own data
+            // fetch — Album/Movie/Met collections) may still be rendering.
+            // A fixed delay races that on a slow connection or large
+            // dataset, so poll until the page is actually tall enough to
+            // reach savedScroll, capping at ~1s so it can't hang forever.
+            let attempts = 0;
+            const tryScroll = () => {
+                attempts++;
+                const canReach = document.body.scrollHeight - window.innerHeight >= savedScroll;
+                if (canReach || attempts >= 20) {
+                    window.scrollTo(0, savedScroll);
+                } else {
+                    setTimeout(tryScroll, 50);
+                }
+            };
+            setTimeout(tryScroll, 50);
         }
 
         const handleScroll = () => {
             sessionStorage.setItem('fw_insp_page_scroll', window.scrollY.toString());
+            setShowBackToTop(window.scrollY > 400);
         };
 
         window.addEventListener('scroll', handleScroll, { passive: true });
@@ -403,6 +424,21 @@ const InspirationPage = ({ setProductMode, setSelectedFrame, setSelectedSize, na
                         </footer>
                     )}
                 </>
+            )}
+
+            {/* Back to top — same affordance as the visualizer's floating
+                button in the Frame Studio, shown once scrolled deep into any
+                tab (several run to many pages: Original Paintings, Met
+                Museum, etc.). Rendered outside the per-tab blocks so it
+                applies uniformly across all of them. */}
+            {!isModal && showBackToTop && (
+                <button
+                    onClick={scrollToTop}
+                    aria-label="Back to top"
+                    className="fixed bottom-6 right-4 sm:right-6 z-30 w-11 h-11 rounded-full bg-stone-900/25 text-white shadow-lg flex items-center justify-center hover:bg-stone-900/60 transition-colors"
+                >
+                    <ArrowUp size={18} />
+                </button>
             )}
         </div>
     );

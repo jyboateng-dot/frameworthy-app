@@ -30,7 +30,7 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import { CartProvider, useCart } from './context/CartContext';
 import { WishlistProvider } from './context/WishlistContext';
 
-import { FRAME_STYLES, FRAME_SIZES, WALL_TEXTURES, MAT_COLORS } from './data/constants';
+import { FRAME_STYLES, FRAME_SIZES, WALL_TEXTURES, MAT_COLORS, DEFAULT_DEMO_IMAGE } from './data/constants';
 import { Capacitor } from '@capacitor/core';
 import { App as CapacitorApp } from '@capacitor/app';
 import { StatusBar, Style } from '@capacitor/status-bar';
@@ -60,9 +60,7 @@ const AppLayout = () => {
   // Ideally this should be in a specific "ProjectContext", but prop drilling is fine for this size refactor
 
   // FRAMING STATE
-  const [uploadedImage, setUploadedImage] = useState(
-    'https://images.unsplash.com/photo-1526045478516-99145907023c?auto=format&fit=crop&w=1600&q=80&sat=-20&con=-10'
-  );
+  const [uploadedImage, setUploadedImage] = useState(DEFAULT_DEMO_IMAGE);
   const [productionImage, setProductionImage] = useState(null);
   const [selectedFrame, setSelectedFrame] = useState(() => FRAME_STYLES.find(f => f.id === 'frame-10512') || FRAME_STYLES[0]); // Black Contemporary default
   const [selectedSize, setSelectedSize] = useState(FRAME_SIZES[3]); // Large Portrait default

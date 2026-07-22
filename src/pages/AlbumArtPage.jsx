@@ -234,16 +234,16 @@ const AlbumArtPage = ({ setProductMode, setSelectedFrame, setSelectedSize, navig
         <div className={isSubPage ? "text-stone-900" : "min-h-screen bg-[#faf9f8] text-stone-900"} style={{ fontFamily: "'Inter', sans-serif" }}>
             {/* Header */}
             <header className="border-b border-stone-200">
-                <div className={`max-w-screen-xl mx-auto px-6 md:px-12 pb-6 ${isSubPage ? 'pt-1' : 'pt-8'}`}>
+                <div className={`max-w-screen-xl mx-auto px-6 md:px-12 pb-3 sm:pb-6 ${isSubPage ? 'pt-1' : 'pt-8'}`}>
                     <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6">
                         <div>
-                            <p className="text-[9px] uppercase tracking-[0.3em] text-stone-500 font-bold mb-2 flex items-center gap-2">
+                            <p className="text-[9px] uppercase tracking-[0.3em] text-stone-500 font-bold mb-1 sm:mb-2 flex items-center gap-2">
                                 Album Covers
                             </p>
-                            <h1 className="font-serif font-light text-2xl md:text-3xl text-stone-900 tracking-tight leading-none mb-3">
+                            <h1 className="font-serif font-light text-2xl md:text-3xl text-stone-900 tracking-tight leading-none mb-1 sm:mb-3">
                                 Album Artwork
                             </h1>
-                            <p className="text-sm text-stone-500 font-light max-w-xl leading-relaxed">
+                            <p className="hidden sm:block text-sm text-stone-500 font-light max-w-xl leading-relaxed">
                                 Curated high-resolution album covers from the top artists across Pop, Hip-Hop, Rock, and more. Or, search for your favorite record to frame.
                             </p>
                         </div>
@@ -252,7 +252,7 @@ const AlbumArtPage = ({ setProductMode, setSelectedFrame, setSelectedSize, navig
             </header>
 
             {/* Navigation Tabs */}
-            <div className="bg-[#faf9f8]/95 backdrop-blur-sm border-b border-stone-200 sticky top-[60px] z-20 py-3 mt-1">
+            <div className="bg-[#faf9f8]/95 backdrop-blur-sm border-b border-stone-200 sticky top-[60px] z-20 py-2 sm:py-3 mt-1">
                 <div className="max-w-screen-xl mx-auto px-6 md:px-12 flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
                     
                     <button
@@ -288,7 +288,7 @@ const AlbumArtPage = ({ setProductMode, setSelectedFrame, setSelectedSize, navig
                 </div>
 
                 {/* Sub-navigation for Artists or Search Bar */}
-                <div className="max-w-screen-xl mx-auto px-6 md:px-12 mt-4">
+                <div className="max-w-screen-xl mx-auto px-6 md:px-12 mt-2 sm:mt-4">
                     {activeTab === 'Search' ? (
                         <form onSubmit={handleSearch} className="max-w-md relative">
                             <input 

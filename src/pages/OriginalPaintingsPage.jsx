@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ArrowRight, Heart, ChevronLeft, ChevronRight } from 'lucide-react';
 import { FRAME_STYLES, FRAME_SIZES, findSizeByDimension, formatDimensions, parseCustomSize } from '../data/constants';
 import { useUnit } from '../context/UnitContext';
@@ -70,9 +70,14 @@ const ProductCard = ({ product, onGetThis, onCustomize }) => {
 /* ── Page ── */
 const OriginalPaintingsPage = ({ setProductMode, setSelectedFrame, setSelectedSize, navigate, isSubPage = false, disableWindowScroll = false }) => {
     const { unit } = useUnit();
-    const [activeSeries, setActiveSeries] = useState('all');
-    const [page, setPage] = useState(1);
+    // Persisted so navigating away (e.g. to customize a selection) and back
+    // to Inspiration restores the same filter/page instead of resetting.
+    const [activeSeries, setActiveSeries] = useState(() => sessionStorage.getItem('fw_originals_series') || 'all');
+    const [page, setPage] = useState(() => parseInt(sessionStorage.getItem('fw_originals_page') || '1', 10));
     const PAGE_SIZE = 24;
+
+    useEffect(() => { sessionStorage.setItem('fw_originals_series', activeSeries); }, [activeSeries]);
+    useEffect(() => { sessionStorage.setItem('fw_originals_page', page.toString()); }, [page]);
 
     // disableWindowScroll is true only when the ultimate parent is the
     // in-studio Inspiration modal, where this page renders inside a nested

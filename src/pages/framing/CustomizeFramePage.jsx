@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useLocation } from 'react-router-dom';
+import { Capacitor } from '@capacitor/core';
 import {
     ImagePlus,
     Check,
@@ -11,9 +12,10 @@ import {
     Info,
     Loader,
     Maximize2,
-    X
+    X,
+    ArrowUp
 } from 'lucide-react';
-import { FRAME_STYLES, FRAME_SIZES, MAT_COLORS, formatDimensions, findSizeByDimension } from '../../data/constants';
+import { FRAME_STYLES, FRAME_SIZES, MAT_COLORS, formatDimensions, findSizeByDimension, parseCustomSize, DEFAULT_DEMO_IMAGE } from '../../data/constants';
 import WEB_MET_DIMS from '../../data/web_met_dims.json';
 import { useUnit } from '../../context/UnitContext';
 import { useCart } from '../../context/CartContext';
@@ -209,6 +211,25 @@ const CustomizeFramePage = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isVisualizerLoading]);
     const [showAllSizes, setShowAllSizes] = useState(false);
+    const [showCustomSizeForm, setShowCustomSizeForm] = useState(false);
+    const [customWidthInput, setCustomWidthInput] = useState('');
+    const [customHeightInput, setCustomHeightInput] = useState('');
+    const [customSizeError, setCustomSizeError] = useState('');
+    // Kept separate from selectedSize so the user's custom size stays visible
+    // in the list (in its last-position slot) even after they pick a
+    // different size — otherwise it'd vanish the moment it's no longer active.
+    const [customSizeEntry, setCustomSizeEntry] = useState(null);
+    // Surfaces a "back to visualizer" shortcut once the user has scrolled
+    // past it into the customization panel — only meaningful on the mobile/
+    // stacked layout, where scrolling the customization sections scrolls the
+    // visualizer out of view entirely (on desktop side-by-side it's always
+    // visible alongside the panel, which scrolls in its own container).
+    const [showBackToVisualizer, setShowBackToVisualizer] = useState(false);
+    useEffect(() => {
+        const handleScroll = () => setShowBackToVisualizer(window.scrollY > 400);
+        window.addEventListener('scroll', handleScroll, { passive: true });
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, []);
     const [isOptimized, setIsOptimized] = useState(false);
     const [imageNaturalSize, setImageNaturalSize] = useState(null);   // { w, h }
     const [savedSettings, setSavedSettings] = useState(() => ({
@@ -324,17 +345,28 @@ const CustomizeFramePage = ({
         if ((isAlbumPoster || isMoviePosterPrint) && posterData && selectedSize) {
             setIsImageLoading(true);
             setIsRendering(true);
-            // Use standard 300 DPI print resolution for crisp text in both the
-            // visualizer and the final production print. Deliberately NOT
-            // scaled up by devicePixelRatio — on a 3x-DPR phone that pushed
-            // this to 432 DPI, which for the default 24x36" poster size means
-            // a ~10,368x15,552px canvas (~645MB as an RGBA buffer). Desktop
-            // browsers can usually allocate that; mobile browsers routinely
-            // can't and fail canvas rendering silently (a blank/empty
-            // toDataURL() result, or the tab getting killed under memory
-            // pressure) — which is why album/movie poster prints rendered
-            // fine on desktop but never appeared on mobile.
-            const previewDPI = 300;
+            // Use standard 300 DPI print resolution for crisp text in both the visualizer and
+            // the final production print — but cap the resulting canvas's total pixel area,
+            // since mobile Safari/WebView impose a hard ceiling around 16.7M px (roughly
+            // 4096x4096) and silently produce a blank canvas past it. A flat 300 DPI already
+            // blows past that for common poster sizes (24x36in @ 300 DPI = 7200x10800 =
+            // 77.76M px), so DPI must scale down with physical size, not stay fixed. This is
+            // safe for the final print too: getPrintQualityJpegUrl re-upscales via Cloudinary
+            // (e_upscale) to the true 300 DPI print target regardless of the source's actual
+            // resolution, so this only affects the on-screen preview / local-render fallback.
+            //
+            // The 16M cap only exists to protect the memory-constrained mobile case — on a
+            // real desktop browser there's no such ceiling, and capping there too was leaving
+            // poster text visibly soft once zoomed/full-screen (the preview simply didn't have
+            // the pixels to support the on-screen magnification). Raise the budget there.
+            const isMobilePlatform = Capacitor.isNativePlatform() || windowSize.width < 1024;
+            const MAX_CANVAS_PIXELS = isMobilePlatform ? 16_000_000 : 60_000_000;
+            let physW = selectedSize.width, physH = selectedSize.height;
+            if (physW > physH) [physW, physH] = [physH, physW]; // posters always render portrait
+            const idealPixels = (physW * 300) * (physH * 300);
+            const previewDPI = idealPixels > MAX_CANVAS_PIXELS
+                ? Math.floor(300 * Math.sqrt(MAX_CANVAS_PIXELS / idealPixels))
+                : 300;
             const renderPoster = isAlbumPoster ? renderAlbumPoster : renderMoviePoster;
             const fileLabel = isAlbumPoster ? 'album-poster.png' : 'movie-poster.png';
             renderPoster(posterData, selectedSize, previewDPI)
@@ -691,8 +723,12 @@ const CustomizeFramePage = ({
 
             // Album posters and movie posters are always portrait, regardless of
             // the source image's actual pixel aspect ratio — don't let
-            // auto-detection override the intentional portrait lock for these flows.
-            if (!isAlbumPoster && !isMoviePoster && !isMoviePosterPrint) {
+            // auto-detection override the intentional portrait lock for these
+            // flows. Same reasoning for the starting demo photo itself: it's
+            // landscape-shaped, but nobody has actually chosen it — the app's
+            // own portrait default shouldn't be silently overridden by it on
+            // a fresh session before the user has picked anything.
+            if (!isAlbumPoster && !isMoviePoster && !isMoviePosterPrint && uploadedImage !== DEFAULT_DEMO_IMAGE) {
                 const isLandscape = img.naturalWidth > img.naturalHeight;
                 setOrientation(isLandscape ? 'landscape' : 'portrait');
             }
@@ -979,10 +1015,24 @@ const CustomizeFramePage = ({
         };
     };
 
-    // Filter and sort sizes ascending by area (width * height)
+    // Filter and sort sizes so more "popular" sizes — a small footprint and
+    // a close-to-square, standard-print ratio — surface first. Primary key
+    // is the longer side (the dimension that actually reads as "how big is
+    // this on my wall"), so a 10x60cm strip sorts alongside other ~60cm
+    // pieces rather than jumping the queue on its modest area; secondary key
+    // is the aspect ratio itself, so among same-footprint sizes the more
+    // square/standard one ranks first, ahead of an equally-tall but skinnier
+    // alternative; area is the final tiebreaker for genuine ties.
     const uniqueSizes = [];
     const sizeSeen = new Set();
-    const sortedSizes = [...FRAME_SIZES].sort((a, b) => (a.width * a.height) - (b.width * b.height));
+    const sortedSizes = [...FRAME_SIZES].sort((a, b) => {
+        const aMax = Math.max(a.width, a.height), aMin = Math.min(a.width, a.height);
+        const bMax = Math.max(b.width, b.height), bMin = Math.min(b.width, b.height);
+        if (aMax !== bMax) return aMax - bMax;
+        const aRatio = aMax / aMin, bRatio = bMax / bMin;
+        if (Math.abs(aRatio - bRatio) > 0.001) return aRatio - bRatio;
+        return (a.width * a.height) - (b.width * b.height);
+    });
     
     // Check if the image is square
     const isSquareArtwork = isAlbumArt || (imageNaturalSize && imageNaturalSize.w > 0 && Math.abs(imageNaturalSize.w - imageNaturalSize.h) <= 5);
@@ -993,9 +1043,10 @@ const CustomizeFramePage = ({
             continue;
         }
 
-        // Album posters and movie posters are always portrait — only offer
-        // naturally-portrait, non-square sizes.
-        if ((isAlbumPoster || isMoviePoster || isMoviePosterPrint) && size.height <= size.width) {
+        // Album posters and movie posters are portrait-or-square — a landscape
+        // canvas doesn't suit their tracklist/cast-list layout, but square
+        // (e.g. 20x20cm) is a valid alternate format alongside true portrait.
+        if ((isAlbumPoster || isMoviePoster || isMoviePosterPrint) && size.height < size.width) {
             continue;
         }
 
@@ -1007,31 +1058,104 @@ const CustomizeFramePage = ({
         }
     }
 
-    // Identify the most popular 6 small sizes and 6 large sizes
-    const popSmallIds = ['5x7', '8x10', 'a4', '11x14', '12x12', 'a3'];
-    const popLargeIds = ['24x36', '20x30', '18x24', 'a2', '16x20', '12x18'];
+    // Sizes with an extreme, mismatched aspect ratio (17x60cm, 10x60cm, and
+    // similar panoramic/banner shapes) are niche next to standard photo/
+    // print/A-series ratios — there's a clean gap in the catalog between
+    // ~1.54:1 (standard) and 2:1 (niche), so 1.8 sits safely in between
+    // regardless of float precision. Dropped from the picker entirely
+    // (collapsed and expanded) rather than just demoted — anyone who
+    // actually wants one of these shapes can dial it in via Custom Size.
+    const NICHE_ASPECT_RATIO = 1.8;
+    const isNicheAspect = (size) => (Math.max(size.width, size.height) / Math.min(size.width, size.height)) > NICHE_ASPECT_RATIO;
+    const normalSizes = uniqueSizes.filter(s => !isNicheAspect(s));
 
-    const popSmall = popSmallIds.map(id => uniqueSizes.find(s => s.id === id)).filter(Boolean);
-    const popLarge = popLargeIds.map(id => uniqueSizes.find(s => s.id === id)).filter(Boolean);
+    // Plain ascending order by area, top-down in the 2-column grid — since
+    // the grid fills left-to-right row by row, this alone puts the smaller
+    // of each pair on the left and the bigger on the right, for both the
+    // collapsed and full expanded list.
+    let finalSizesList = normalSizes;
 
-    // Build the initial 12 sizes by interleaving small (left) and large (right)
-    const initial12 = [];
-    for (let i = 0; i < 6; i++) {
-        if (popSmall[i]) initial12.push(popSmall[i]);
-        if (popLarge[i]) initial12.push(popLarge[i]);
-    }
+    // Collapsed view shows 5 rows x 2 columns = 10 sizes.
+    const COLLAPSED_COUNT = 10;
 
-    // The remaining sizes are anything not in the initial 12
-    const initial12Keys = new Set(initial12.map(s => `${s.width}x${s.height}`));
-    const remainingSizes = uniqueSizes.filter(s => !initial12Keys.has(`${s.width}x${s.height}`));
+    // A created custom size stays visible as the LAST option — same spot as
+    // the "Custom Size" trigger button itself — even after the user selects
+    // a different size, so it isn't lost the moment it's no longer active.
+    // (It's tracked in its own customSizeEntry state rather than derived from
+    // selectedSize for exactly this reason.) Skipped if it happens to
+    // duplicate a catalog size already in the list.
+    const showCustomEntry = customSizeEntry && !finalSizesList.some(s => s.width === customSizeEntry.width && s.height === customSizeEntry.height);
+    const displayedSizesCollapsed = showCustomEntry
+        ? [...finalSizesList.slice(0, COLLAPSED_COUNT - 1), customSizeEntry]
+        : finalSizesList.slice(0, COLLAPSED_COUNT);
+    const displayedSizesExpanded = showCustomEntry
+        ? [...finalSizesList, customSizeEntry]
+        : finalSizesList;
 
-    // Combine them for the final display order (initial 12 first, followed by the rest when expanded)
-    let finalSizesList = [...initial12, ...remainingSizes];
+    // Builds a size entry from the user's own width/height (in whatever unit
+    // the page is currently displaying) via the same parseCustomSize helper
+    // Inspiration selections use for arbitrary catalogue dimensions — reusing
+    // it keeps custom sizes priced and portrait/landscape-tagged consistently
+    // with everything else. orientation must be set explicitly alongside
+    // selectedSize (they're independent state — see wInch/hInch above), or
+    // the frame renders with the previous selection's orientation.
+    const applyCustomSize = () => {
+        const w = parseFloat(customWidthInput);
+        const h = parseFloat(customHeightInput);
+        if (!w || !h || w <= 0 || h <= 0) {
+            setCustomSizeError('Enter a width and height.');
+            return;
+        }
+        const wCm = unit === 'cm' ? w : w * 2.54;
+        const hCm = unit === 'cm' ? h : h * 2.54;
+        const MAX_CM = 180;
+        if (wCm > MAX_CM || hCm > MAX_CM) {
+            setCustomSizeError(unit === 'cm' ? 'Max custom size is 180 x 180 cm.' : 'Max custom size is 70.9 x 70.9 in.');
+            return;
+        }
+        // Smallest allowed matches the smallest catalog size (5x7in / 13x18cm),
+        // in either orientation — so 13x18 and 18x13 both pass, but nothing
+        // smaller on either side does.
+        const MIN_SHORT_CM = 13, MIN_LONG_CM = 18;
+        const shortSide = Math.min(wCm, hCm);
+        const longSide = Math.max(wCm, hCm);
+        if (shortSide < MIN_SHORT_CM || longSide < MIN_LONG_CM) {
+            setCustomSizeError(unit === 'cm' ? 'Smallest custom size is 13 x 18 cm.' : 'Smallest custom size is 5 x 7 in.');
+            return;
+        }
+        const customSize = parseCustomSize(`${wCm} x ${hCm} cm`);
+        if (!customSize) {
+            setCustomSizeError('Could not create that size.');
+            return;
+        }
+        setSelectedSize(customSize);
+        setCustomSizeEntry(customSize);
+        setOrientation(customSize.orientation);
+        setCustomSizeError('');
+        setShowCustomSizeForm(false);
+        setCustomWidthInput('');
+        setCustomHeightInput('');
+    };
 
-    // If selectedSize is custom and not in the list, inject it at the beginning
-    if (selectedSize && !finalSizesList.find(s => s.id === selectedSize.id)) {
-        finalSizesList = [selectedSize, ...finalSizesList];
-    }
+    // Expanding/collapsing the sizes list drastically changes the Dimensions
+    // section's height — collapsing in particular can shrink the page enough
+    // that the browser's unchanged scrollY now lands well past where the
+    // toggle button used to be, landing the viewport on an unrelated section
+    // further down (e.g. the checkout footer). Re-anchor on the toggle button
+    // itself so it stays in the same visual spot across the layout change.
+    const toggleShowAllSizes = (next) => (e) => {
+        const beforeTop = e.currentTarget.getBoundingClientRect().top;
+        setShowAllSizes(next);
+        requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+                const btn = document.querySelector('[data-size-list-toggle]');
+                if (btn) {
+                    const afterTop = btn.getBoundingClientRect().top;
+                    window.scrollBy(0, afterTop - beforeTop);
+                }
+            });
+        });
+    };
 
     let stepCounter = 1;
     const stepArtwork = stepCounter++;
@@ -1612,14 +1736,28 @@ const CustomizeFramePage = ({
                         {/* Zoomed-In Disclaimer (flows below frame on hover —
                             reuses this same hover-driven fade to also hide in
                             the full-screen enhanced view, rather than a
-                            separate hard-unmount) */}
+                            separate hard-unmount). Same wrapping approach as
+                            the full-screen caption below — a width-constrained,
+                            text-balanced, line-clamped paragraph instead of two
+                            hardcoded nowrap lines — but NOT the same font-size
+                            scale: this lives in the normal (non-full-screen)
+                            pane, which on desktop (isSideBySide, >=1024px) is
+                            narrowed to ~70% width by the side-by-side
+                            customization panel, unlike full-screen's use of the
+                            entire viewport. Verified live: at exactly 1024px
+                            (the isSideBySide threshold — the narrowest point
+                            once the side panel appears) 11px is the max that
+                            still wraps to 2 lines; 14px (safe for full-screen at
+                            that width) truncates to 3 here. 640-1023px is still
+                            full-width (isSideBySide only kicks in at 1024),
+                            confirmed safe up to 17px there, but capped at the
+                            same 11px for one consistent sm:+ value. */}
                         <div
-                            className={`text-[7px] sm:text-[9px] ${wallNoteClass} select-none pointer-events-none text-center font-medium ${wallNoteBlend} px-2 leading-relaxed tracking-wide transition-all duration-500 mt-6 z-20 flex flex-col items-center ${
+                            className={`w-[92%] sm:w-[70%] text-[8px] sm:text-[11px] ${wallNoteClass} select-none pointer-events-none text-center font-medium ${wallNoteBlend} px-2 leading-relaxed tracking-wide transition-all duration-500 mt-6 z-20 ${
                                 (isHovered || isMaxZoom) && !isFullScreen ? 'opacity-100 scale-100 translate-y-0' : 'opacity-0 scale-95 translate-y-2 h-0 overflow-hidden mt-0'
                             }`}
                         >
-                            <span className="whitespace-nowrap">Note: Visualizer renderings are digital approximations. Finished products will feature</span>
-                            <span className="whitespace-nowrap">the exact physical moulding profiles, textures, and details shown in our catalogue.</span>
+                            <p className="w-full line-clamp-2 text-balance">Note: Visualizer renderings are digital approximations. Finished products will feature the exact physical moulding profiles, textures, and details shown in our catalogue.</p>
                         </div>
                     </div>
 
@@ -1627,11 +1765,35 @@ const CustomizeFramePage = ({
                         artefact" — fades out via the same hover-driven
                         opacity transition it already had, rather than
                         hard-unmounting, for the full-screen enhanced view
-                        which shows the frame standalone) */}
+                        which shows the frame standalone).
+
+                        Positioned dynamically via a computed `top` (instead
+                        of a fixed `bottom-5`) so it sits a small, constant
+                        gap below the frame's actual rendered bottom edge
+                        regardless of frame size — previously the frame was
+                        just vertically centered in a fixed-percentage zone,
+                        so a small frame left a huge gap above the sofa while
+                        a large one crept close to it. This reuses zoneSize
+                        (already measured via ResizeObserver) and the same
+                        rest-state frame math the zoom system uses, so it
+                        stays correct across every size/viewport combination
+                        rather than assuming a percentage split holds up. */}
+                    {(() => {
+                        const SOFA_CM_REF = 160;
+                        const SOFA_BODY_PCT_REF = 42;
+                        const restFrameWidthPct = (wInch && hInch) ? ((wInch * 2.54) / SOFA_CM_REF) * SOFA_BODY_PCT_REF : 0;
+                        const restFrameWidthPx = (restFrameWidthPct / 100) * zoneSize.width;
+                        const restFrameHeightPx = (wInch && hInch) ? restFrameWidthPx * (hInch / wInch) : 0;
+                        const zoneTopOffsetPx = windowSize.width >= 640 ? 56 : 48; // matches top-14 / top-12
+                        const SOFA_GAP_PX = 24;
+                        const sofaTopPx = zoneTopOffsetPx + (zoneSize.height / 2) + (restFrameHeightPx / 2) + SOFA_GAP_PX;
+
+                        return (
                     <div
-                        className={`absolute bottom-5 left-1/2 -translate-x-1/2 w-[48%] pointer-events-none flex flex-col items-center justify-end transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+                        className={`absolute left-1/2 -translate-x-1/2 w-[48%] pointer-events-none flex flex-col items-center justify-end transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] ${
                             isHovered || isMaxZoom || isFullScreen ? 'opacity-0 scale-75 translate-y-10' : 'opacity-100 scale-100 translate-y-0'
                         }`}
+                        style={{ top: `${sofaTopPx}px` }}
                     >
                         <div className="relative w-full">
                             <svg viewBox="0 0 800 250" className={`w-full h-auto ${isDarkWall ? 'text-stone-100' : 'text-stone-900'} opacity-[0.12]`} fill="currentColor" xmlns="http://www.w3.org/2000/svg">
@@ -1654,6 +1816,8 @@ const CustomizeFramePage = ({
                             <span className="whitespace-nowrap">the exact physical moulding profiles, textures, and details shown in our catalogue.</span>
                         </div>
                     </div>
+                        );
+                    })()}
 
                 </div>
 
@@ -1667,16 +1831,21 @@ const CustomizeFramePage = ({
                 {isFullScreen && (
                     <div
                         ref={fullScreenCaptionRef}
-                        className={`absolute bottom-4 sm:bottom-6 left-1/2 -translate-x-1/2 w-[92%] sm:w-[70%] text-center text-[8px] sm:text-[10px] ${isDarkWall ? 'text-stone-100/90' : 'text-stone-600/80'} select-none pointer-events-none font-medium ${wallNoteBlend} px-2 leading-relaxed tracking-wide z-20 transition-opacity duration-500 ${
+                        className={`absolute bottom-4 sm:bottom-6 left-1/2 -translate-x-1/2 w-[92%] sm:w-[70%] text-center text-[8px] sm:text-[11px] lg:text-[14px] ${isDarkWall ? 'text-stone-100/90' : 'text-stone-600/80'} select-none pointer-events-none font-medium ${wallNoteBlend} px-2 leading-relaxed tracking-wide z-20 transition-opacity duration-500 ${
                             paneVisible ? 'opacity-100' : 'opacity-0'
                         }`}
                     >
-                        {/* Sized/widened (8px + 92% on mobile, 10px + 70% from
-                            sm: up) so the full sentence always wraps to exactly 2
-                            lines with no truncation — verified down to a 375px
-                            screen, and the 70% width specifically keeps clear of
-                            the full-screen toggle button in the opposite corner
-                            at wider viewports (a wider % that also hits 2 lines
+                        {/* Sized/widened (8px + 92% on mobile, 11px from sm:,
+                            14px from lg:, all at 70% width) so the full sentence
+                            always wraps to exactly 2 lines with no truncation —
+                            re-verified live at 375/400/640/1024/1280px widths
+                            each time this was tuned. 8px is already the max that
+                            fits at a 375px screen; sm:/lg: sizes take advantage
+                            of the much wider layout at those breakpoints instead
+                            of leaving desktop viewers stuck with a mobile-safe
+                            size. The 70% width specifically keeps clear of the
+                            full-screen toggle button in the opposite corner at
+                            wider viewports (a wider % that also hits 2 lines
                             reached right into the button). line-clamp-2 is just
                             a backstop, not doing the real work of fitting it.
                             text-balance evens out the two lines' lengths instead
@@ -1693,10 +1862,17 @@ const CustomizeFramePage = ({
                     Both icons stay mounted and crossfade/rotate via opacity —
                     an instant swap here would be a small but noticeable
                     jarring flicker right at the start of an otherwise smooth
-                    transition. */}
+                    transition. Hidden (not just disabled) during max-zoom —
+                    you can't enter full screen from max-zoom anyway (that
+                    transition resets zoom state first by design), so the
+                    button has nothing useful to do there and just clutters
+                    the deep-inspection view. Stays visible in isFullScreen
+                    itself, since it's the only way to exit. */}
                 <button
                     onClick={() => (isFullScreen ? exitFullScreen() : enterFullScreen())}
-                    className="absolute bottom-3 right-3 sm:bottom-6 sm:right-6 z-30 w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center rounded-full border border-stone-200 shadow-sm hover:shadow-md transition-all bg-white/95 backdrop-blur text-stone-700"
+                    className={`absolute bottom-3 right-3 sm:bottom-6 sm:right-6 z-30 w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center rounded-full border border-stone-200 shadow-sm hover:shadow-md transition-all bg-white/95 backdrop-blur text-stone-700 ${
+                        isMaxZoom && !isFullScreen ? 'opacity-0 scale-75 pointer-events-none' : 'opacity-100 scale-100'
+                    }`}
                     title={isFullScreen ? 'Exit full screen' : 'Full screen'}
                     aria-label={isFullScreen ? 'Exit full screen' : 'Full screen'}
                 >
@@ -1795,33 +1971,95 @@ const CustomizeFramePage = ({
                             </span>
                         </h2>
                         <div className="grid grid-cols-2 gap-2">
-                            {(showAllSizes ? finalSizesList : finalSizesList.slice(0, 12)).map(size => (
+                            {(showAllSizes ? displayedSizesExpanded : displayedSizesCollapsed).map(size => (
                                 <button
                                     key={size.id}
                                     onClick={() => setSelectedSize(size)}
                                     className={`py-2 px-3 rounded-xl border text-xs font-semibold transition-all ${
-                                        (selectedSize.width === size.width && selectedSize.height === size.height) 
-                                            ? 'border-stone-900 bg-stone-900 text-white shadow-md' 
+                                        (selectedSize.width === size.width && selectedSize.height === size.height)
+                                            ? 'border-stone-900 bg-stone-900 text-white shadow-md'
                                             : 'border-stone-200 hover:border-stone-400 text-stone-700'
                                     }`}
                                 >
                                     {formatDimensions(size.label, unit, orientation)}
+                                    {/* A user-typed size gets a small superscript "+" after the
+                                        unit — subtle enough not to look like a badge, but enough to
+                                        mark it as "the one you made" alongside the catalog sizes. */}
+                                    {size.id?.startsWith('custom-') && <sup className="ml-0.5">+</sup>}
                                 </button>
                             ))}
-                            
-                            {!showAllSizes && finalSizesList.length > 12 && (
-                                <button 
-                                    onClick={() => setShowAllSizes(true)}
+
+                            {/* Custom Size — always the last option, in both collapsed and
+                                expanded views, styled like the size buttons it sits alongside
+                                (not the dashed more/less-sizes toggle) since it's a size choice
+                                too, just one the user types in rather than picks. */}
+                            {!showCustomSizeForm ? (
+                                <button
+                                    onClick={() => { setShowCustomSizeForm(true); setCustomSizeError(''); }}
+                                    className="py-2 px-3 rounded-xl border border-stone-200 hover:border-stone-400 text-stone-700 text-xs font-semibold transition-all text-center"
+                                >
+                                    + Custom Size
+                                </button>
+                            ) : (
+                                <div className="col-span-2 p-3 rounded-xl border border-stone-300 bg-stone-50 space-y-2">
+                                    <div className="flex items-center gap-2">
+                                        <input
+                                            type="number"
+                                            inputMode="decimal"
+                                            min="0"
+                                            placeholder={`Width (${unit})`}
+                                            value={customWidthInput}
+                                            onChange={e => setCustomWidthInput(e.target.value)}
+                                            onKeyDown={e => { if (e.key === 'Enter') applyCustomSize(); }}
+                                            className="w-full py-2 px-3 rounded-lg border border-stone-300 text-xs focus:outline-none focus:border-stone-900"
+                                        />
+                                        <span className="text-stone-400 text-xs shrink-0">×</span>
+                                        <input
+                                            type="number"
+                                            inputMode="decimal"
+                                            min="0"
+                                            placeholder={`Height (${unit})`}
+                                            value={customHeightInput}
+                                            onChange={e => setCustomHeightInput(e.target.value)}
+                                            onKeyDown={e => { if (e.key === 'Enter') applyCustomSize(); }}
+                                            className="w-full py-2 px-3 rounded-lg border border-stone-300 text-xs focus:outline-none focus:border-stone-900"
+                                        />
+                                    </div>
+                                    {customSizeError && (
+                                        <p className="text-[11px] text-red-600">{customSizeError}</p>
+                                    )}
+                                    <div className="flex items-center gap-2">
+                                        <button
+                                            onClick={applyCustomSize}
+                                            className="flex-1 py-2 rounded-lg bg-stone-900 text-white text-xs font-bold hover:bg-stone-800 transition-colors"
+                                        >
+                                            Apply
+                                        </button>
+                                        <button
+                                            onClick={() => { setShowCustomSizeForm(false); setCustomSizeError(''); }}
+                                            className="flex-1 py-2 rounded-lg border border-stone-300 text-stone-500 text-xs font-bold hover:bg-stone-100 transition-colors"
+                                        >
+                                            Cancel
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+
+                            {!showAllSizes && finalSizesList.length > COLLAPSED_COUNT && (
+                                <button
+                                    data-size-list-toggle
+                                    onClick={toggleShowAllSizes(true)}
                                     className="col-span-2 py-2 px-3 rounded-xl border border-dashed border-stone-300 text-stone-500 hover:text-stone-900 hover:border-stone-500 hover:bg-stone-50 transition-all text-xs font-bold tracking-wider text-center"
                                     style={{ fontVariant: 'all-small-caps' }}
                                 >
-                                    + more sizes ({finalSizesList.length - 12} more)
+                                    + more sizes ({finalSizesList.length - COLLAPSED_COUNT} more)
                                 </button>
                             )}
-                            
-                            {showAllSizes && finalSizesList.length > 12 && (
-                                <button 
-                                    onClick={() => setShowAllSizes(false)}
+
+                            {showAllSizes && finalSizesList.length > COLLAPSED_COUNT && (
+                                <button
+                                    data-size-list-toggle
+                                    onClick={toggleShowAllSizes(false)}
                                     className="col-span-2 py-2 px-3 rounded-xl border border-dashed border-stone-300 text-stone-500 hover:text-stone-900 hover:border-stone-500 hover:bg-stone-50 transition-all text-xs font-bold tracking-wider text-center"
                                     style={{ fontVariant: 'all-small-caps' }}
                                 >
@@ -1983,6 +2221,20 @@ const CustomizeFramePage = ({
                         </div>
                     </section>
                 </div>
+
+                {/* Jump back to the visualizer — mobile/stacked layout only.
+                    On desktop side-by-side the visualizer pane is always
+                    visible alongside the panel, so there's nothing to jump
+                    back to; there the panel scrolls in its own container. */}
+                {!isSideBySide && showBackToVisualizer && (
+                    <button
+                        onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+                        aria-label="Back to visualizer"
+                        className="fixed bottom-24 right-4 z-30 w-11 h-11 rounded-full bg-stone-900/25 text-white shadow-lg flex items-center justify-center hover:bg-stone-900/60 transition-colors"
+                    >
+                        <ArrowUp size={18} />
+                    </button>
+                )}
 
                 {/* Sticky Checkout Footer */}
                 <div className={`bottom-0 z-20 backdrop-blur-md border-t border-stone-200 shadow-[0_-10px_40px_rgba(0,0,0,0.03)] flex ${isSideBySide ? 'flex-col gap-0 items-start py-1.5 px-3' : 'items-center justify-between gap-4 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom,0px))] px-5'} ${isSideBySide ? 'relative bg-white/85' : 'sticky bg-white/95'}`}>
