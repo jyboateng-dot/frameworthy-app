@@ -621,8 +621,28 @@ const CustomizeFramePage = ({
         
         // Add proportional padding: small frames get a tighter crop to pull menus up, large frames get more breathing room
         const dynamicPadding = Math.min(140, 60 + frameHeightPx * 0.8);
-        const calculatedHeight = frameHeightPx + sofaHeightPx + dynamicPadding;
-        
+
+        // The sofa's own position is computed elsewhere (search SOFA_GAP_PX)
+        // from the ZONE's height, not from this container height directly —
+        // it sits at zoneTop + zoneHeight/2 + frameHeight/2 + gap, since the
+        // frame is centered in a zone that's a fixed 65% of this container.
+        // That means this container must be tall enough for the zone's 65%
+        // to leave room below the frame for the sofa (plus its own dimension
+        // overlay and note text) — otherwise the sofa/note render past this
+        // container's bottom edge and get cut off by its sibling below,
+        // invisible without the container itself growing to compensate.
+        // Solving zoneTop + zoneHeight/2 + frameHeight/2 + gap + sofaBlock <= H
+        // (with zoneHeight = 0.65*H - zoneTop) for H gives the formula below.
+        // These constants MUST match the sofa's own (search SOFA_GAP_PX).
+        const ZONE_TOP_PX = windowSize.width >= 640 ? 56 : 48; // matches top-14 / top-12
+        const SOFA_GAP_PX = 24;
+        const ZONE_HEIGHT_PCT = 0.65; // matches h-[calc(65%-3rem)]
+        const NOTE_RESERVE_PX = 60; // sofa's dimension-overlay line + 2-line note beneath the SVG, plus safety margin (this formula's other inputs are pre-scale estimates, so verified empirically rather than solved exactly)
+        const sofaBlockHeight = sofaHeightPx + NOTE_RESERVE_PX;
+        const minHeightForSofaFit = (ZONE_TOP_PX / 2 + frameHeightPx / 2 + SOFA_GAP_PX + sofaBlockHeight) / (1 - ZONE_HEIGHT_PCT / 2);
+
+        const calculatedHeight = Math.max(frameHeightPx + sofaHeightPx + dynamicPadding, minHeightForSofaFit);
+
         // Ensure it doesn't get ridiculously small (lowered to 180px) or impossibly tall
         // Mobile max height is 65%, Desktop side-by-side uses ~80vh for the visualizer
         const maxHeight = isSideBySide ? windowSize.height * 0.80 : windowSize.height * 0.65;
@@ -1069,14 +1089,20 @@ const CustomizeFramePage = ({
     const isNicheAspect = (size) => (Math.max(size.width, size.height) / Math.min(size.width, size.height)) > NICHE_ASPECT_RATIO;
     const normalSizes = uniqueSizes.filter(s => !isNicheAspect(s));
 
-    // Plain ascending order by area, top-down in the 2-column grid — since
-    // the grid fills left-to-right row by row, this alone puts the smaller
-    // of each pair on the left and the bigger on the right, for both the
-    // collapsed and full expanded list.
     let finalSizesList = normalSizes;
 
-    // Collapsed view shows 5 rows x 2 columns = 10 sizes.
-    const COLLAPSED_COUNT = 10;
+    // Collapsed view is curated, not a slice of the full catalog: left column
+    // is the most popular small-to-medium sizes, right column the most
+    // popular large-to-very-large sizes, each ascending top to bottom. IDs
+    // are looked up against normalSizes so category filters (square-only
+    // album art, portrait-or-square posters) still apply — a popular ID that
+    // isn't available under the current filter is just skipped rather than
+    // leaving a gap.
+    const popularSmallIds = ['5x7', '8x10', 'a4', '11x14', '12x12', 'a3'];
+    const popularLargeIds = ['16x20', 'a2', '18x24', '20x30', '24x36', '100x100cm'];
+    const findPopular = (ids) => ids.map(id => normalSizes.find(s => s.id === id)).filter(Boolean);
+    const leftColumnCollapsed = findPopular(popularSmallIds);
+    const rightColumnCollapsed = findPopular(popularLargeIds);
 
     // A created custom size stays visible as the LAST option — same spot as
     // the "Custom Size" trigger button itself — even after the user selects
@@ -1085,12 +1111,29 @@ const CustomizeFramePage = ({
     // selectedSize for exactly this reason.) Skipped if it happens to
     // duplicate a catalog size already in the list.
     const showCustomEntry = customSizeEntry && !finalSizesList.some(s => s.width === customSizeEntry.width && s.height === customSizeEntry.height);
-    const displayedSizesCollapsed = showCustomEntry
-        ? [...finalSizesList.slice(0, COLLAPSED_COUNT - 1), customSizeEntry]
-        : finalSizesList.slice(0, COLLAPSED_COUNT);
-    const displayedSizesExpanded = showCustomEntry
-        ? [...finalSizesList, customSizeEntry]
-        : finalSizesList;
+
+    // Total catalog sizes actually visible in the collapsed view, used to
+    // decide whether "+ more sizes" should appear at all and what count to
+    // show on it.
+    const collapsedShownCount = leftColumnCollapsed.length + rightColumnCollapsed.length + (showCustomEntry ? 1 : 0);
+
+    const renderSizeButton = (size) => (
+        <button
+            key={size.id}
+            onClick={() => setSelectedSize(size)}
+            className={`py-2 px-3 rounded-xl border text-xs font-semibold transition-all ${
+                (selectedSize.width === size.width && selectedSize.height === size.height)
+                    ? 'border-stone-900 bg-stone-900 text-white shadow-md'
+                    : 'border-stone-200 hover:border-stone-400 text-stone-700'
+            }`}
+        >
+            {formatDimensions(size.label, unit, orientation)}
+            {/* A user-typed size gets a small superscript "+" after the unit —
+                subtle enough not to look like a badge, but enough to mark it
+                as "the one you made" alongside the catalog sizes. */}
+            {size.id?.startsWith('custom-') && <sup className="ml-0.5">+</sup>}
+        </button>
+    );
 
     // Builds a size entry from the user's own width/height (in whatever unit
     // the page is currently displaying) via the same parseCustomSize helper
@@ -1971,36 +2014,56 @@ const CustomizeFramePage = ({
                             </span>
                         </h2>
                         <div className="grid grid-cols-2 gap-2">
-                            {(showAllSizes ? displayedSizesExpanded : displayedSizesCollapsed).map(size => (
-                                <button
-                                    key={size.id}
-                                    onClick={() => setSelectedSize(size)}
-                                    className={`py-2 px-3 rounded-xl border text-xs font-semibold transition-all ${
-                                        (selectedSize.width === size.width && selectedSize.height === size.height)
-                                            ? 'border-stone-900 bg-stone-900 text-white shadow-md'
-                                            : 'border-stone-200 hover:border-stone-400 text-stone-700'
-                                    }`}
-                                >
-                                    {formatDimensions(size.label, unit, orientation)}
-                                    {/* A user-typed size gets a small superscript "+" after the
-                                        unit — subtle enough not to look like a badge, but enough to
-                                        mark it as "the one you made" alongside the catalog sizes. */}
-                                    {size.id?.startsWith('custom-') && <sup className="ml-0.5">+</sup>}
-                                </button>
-                            ))}
-
-                            {/* Custom Size — always the last option, in both collapsed and
-                                expanded views, styled like the size buttons it sits alongside
-                                (not the dashed more/less-sizes toggle) since it's a size choice
-                                too, just one the user types in rather than picks. */}
-                            {!showCustomSizeForm ? (
-                                <button
-                                    onClick={() => { setShowCustomSizeForm(true); setCustomSizeError(''); }}
-                                    className="py-2 px-3 rounded-xl border border-stone-200 hover:border-stone-400 text-stone-700 text-xs font-semibold transition-all text-center"
-                                >
-                                    + Custom Size
-                                </button>
+                            {!showAllSizes ? (
+                                <>
+                                    {/* Collapsed: curated, column-major — left
+                                        is the most popular small-to-medium
+                                        sizes, right the most popular large-
+                                        to-very-large sizes, each independently
+                                        ascending top to bottom. The custom
+                                        entry is an additional button tacked
+                                        onto the right column, not a
+                                        replacement for any of its 6 sizes —
+                                        but the "+ Custom Size" trigger itself
+                                        always lives at the bottom of the
+                                        left column. */}
+                                    <div className="flex flex-col gap-2">
+                                        {leftColumnCollapsed.map(renderSizeButton)}
+                                        {!showCustomSizeForm && (
+                                            <button
+                                                onClick={() => { setShowCustomSizeForm(true); setCustomSizeError(''); }}
+                                                className="py-2 px-3 rounded-xl border border-stone-200 hover:border-stone-400 text-stone-700 text-xs font-semibold transition-all text-center"
+                                            >
+                                                + Custom Size
+                                            </button>
+                                        )}
+                                    </div>
+                                    <div className="flex flex-col gap-2">
+                                        {rightColumnCollapsed.map(renderSizeButton)}
+                                        {showCustomEntry && renderSizeButton(customSizeEntry)}
+                                    </div>
+                                </>
                             ) : (
+                                <>
+                                    {/* Expanded: back to plain ascending order
+                                        across the whole grid (its natural
+                                        row-major fill), ignoring the
+                                        collapsed view's popular-size column
+                                        split entirely. */}
+                                    {finalSizesList.map(renderSizeButton)}
+                                    {showCustomEntry && renderSizeButton(customSizeEntry)}
+                                    {!showCustomSizeForm && (
+                                        <button
+                                            onClick={() => { setShowCustomSizeForm(true); setCustomSizeError(''); }}
+                                            className="py-2 px-3 rounded-xl border border-stone-200 hover:border-stone-400 text-stone-700 text-xs font-semibold transition-all text-center"
+                                        >
+                                            + Custom Size
+                                        </button>
+                                    )}
+                                </>
+                            )}
+
+                            {showCustomSizeForm && (
                                 <div className="col-span-2 p-3 rounded-xl border border-stone-300 bg-stone-50 space-y-2">
                                     <div className="flex items-center gap-2">
                                         <input
@@ -2045,18 +2108,18 @@ const CustomizeFramePage = ({
                                 </div>
                             )}
 
-                            {!showAllSizes && finalSizesList.length > COLLAPSED_COUNT && (
+                            {!showAllSizes && finalSizesList.length > collapsedShownCount && (
                                 <button
                                     data-size-list-toggle
                                     onClick={toggleShowAllSizes(true)}
                                     className="col-span-2 py-2 px-3 rounded-xl border border-dashed border-stone-300 text-stone-500 hover:text-stone-900 hover:border-stone-500 hover:bg-stone-50 transition-all text-xs font-bold tracking-wider text-center"
                                     style={{ fontVariant: 'all-small-caps' }}
                                 >
-                                    + more sizes ({finalSizesList.length - COLLAPSED_COUNT} more)
+                                    + more sizes ({finalSizesList.length - collapsedShownCount} more)
                                 </button>
                             )}
 
-                            {showAllSizes && finalSizesList.length > COLLAPSED_COUNT && (
+                            {showAllSizes && finalSizesList.length > collapsedShownCount && (
                                 <button
                                     data-size-list-toggle
                                     onClick={toggleShowAllSizes(false)}
