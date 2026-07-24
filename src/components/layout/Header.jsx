@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
-import { User, ShoppingCart, Menu, ArrowLeft, LogOut, Package, ChevronDown, Shield, Frame, MessageCircle, Mail } from 'lucide-react';
+import { User, ShoppingCart, Menu, ArrowLeft, LogOut, Package, ChevronDown, Shield, Frame, MessageCircle, Mail, HelpCircle } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext'; // Import Auth Context
 import { useUnit } from '../../context/UnitContext'; // Import Unit Context
 import { useCart } from '../../context/CartContext'; // Import Cart Context
@@ -26,11 +26,6 @@ const Header = ({
     const location = useLocation();
     const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
     const [unreadMessageCount, setUnreadMessageCount] = useState(0);
-    const [hasUnreadChatReply, setHasUnreadChatReply] = useState(false);
-    // Whether the "Contact Us" row's Chat/Email sub-choices are expanded —
-    // shared by both the desktop dropdown and the mobile menu since only one
-    // of those two is ever open at a time in practice.
-    const [isContactOpen, setIsContactOpen] = useState(false);
 
     const showBack = currentStep !== 'landing' && currentStep !== 'success';
     const isAdmin = user?.email === ADMIN_EMAIL;
@@ -48,25 +43,6 @@ const Header = ({
         });
         return unsub;
     }, [isAdmin]);
-
-    // Live unread-reply badge for the customer-facing "Chat with us" menu
-    // item — only for a signed-in, non-admin user (the admin uses the
-    // separate Messages inbox above instead of chatting with themselves).
-    useEffect(() => {
-        if (!user || isAdmin) {
-            setHasUnreadChatReply(false);
-            return;
-        }
-        const unsub = subscribeToThread(user.uid, (thread) => {
-            setHasUnreadChatReply(!!thread?.unreadByCustomer);
-        });
-        return unsub;
-    }, [user, isAdmin]);
-
-    // Reset the Contact Us expansion whenever its parent menu closes, so it
-    // doesn't stay open the next time the menu is reopened.
-    useEffect(() => { if (!isMenuOpen) setIsContactOpen(false); }, [isMenuOpen]);
-    useEffect(() => { if (!isUserMenuOpen) setIsContactOpen(false); }, [isUserMenuOpen]);
 
     const handleChatClick = (closeMenu) => {
         if (!user) {
@@ -132,6 +108,12 @@ const Header = ({
                     >
                         Inspiration
                     </button>
+                    <button
+                        onClick={() => navigate('/help')}
+                        className="text-[10px] lg:text-[11px] font-bold uppercase tracking-wider text-[#9a8e7d] hover:text-[#e8e2d9] transition-colors whitespace-nowrap"
+                    >
+                        Help Centre
+                    </button>
                 </div>
 
                 {/* Standalone Entry Point — visible at every width; "Start Framing"
@@ -178,38 +160,13 @@ const Header = ({
                                     >
                                         <Package size={16} /> My Orders
                                     </button>
-                                    {!isAdmin && (
-                                        <>
-                                            <button
-                                                onClick={() => setIsContactOpen(o => !o)}
-                                                className="w-full text-left px-4 py-2 text-sm text-[#9a8e7d] hover:bg-white/[0.05] hover:text-[#e8e2d9] flex items-center justify-between gap-2 transition"
-                                            >
-                                                <span className="flex items-center gap-2">
-                                                    Contact Us
-                                                    {hasUnreadChatReply && <span className="w-2 h-2 rounded-full bg-[#c9a84c]" />}
-                                                </span>
-                                                <ChevronDown size={14} className={`transition-transform ${isContactOpen ? 'rotate-180' : ''}`} />
-                                            </button>
-                                            {isContactOpen && (
-                                                <div className="pl-4">
-                                                    <button
-                                                        onClick={() => handleChatClick(() => setIsUserMenuOpen(false))}
-                                                        className="w-full text-left px-4 py-2 text-sm text-[#9a8e7d] hover:bg-white/[0.05] hover:text-[#e8e2d9] flex items-center justify-between gap-2 transition"
-                                                    >
-                                                        <span className="flex items-center gap-2"><MessageCircle size={16} /> Chat</span>
-                                                        {hasUnreadChatReply && <span className="w-2 h-2 rounded-full bg-[#c9a84c]" />}
-                                                    </button>
-                                                    <a
-                                                        href={`mailto:${CONTACT_EMAIL}`}
-                                                        onClick={() => setIsUserMenuOpen(false)}
-                                                        className="w-full text-left px-4 py-2 text-sm text-[#9a8e7d] hover:bg-white/[0.05] hover:text-[#e8e2d9] flex items-center gap-2 transition"
-                                                    >
-                                                        <Mail size={16} /> Email
-                                                    </a>
-                                                </div>
-                                            )}
-                                        </>
-                                    )}
+                                    <button
+                                        onClick={() => { navigate('/help'); setIsUserMenuOpen(false); }}
+                                        className="w-full text-left px-4 py-2 text-sm text-[#9a8e7d] hover:bg-white/[0.05] hover:text-[#e8e2d9] flex items-center gap-2 transition"
+                                    >
+                                        <HelpCircle size={16} /> Help Centre
+                                    </button>
+
                                     {user.email === ADMIN_EMAIL && (
                                         <>
                                             <button
@@ -279,40 +236,10 @@ const Header = ({
                                 <button onClick={() => { navigate('/'); setIsMenuOpen(false); }} className="text-left py-2 hover:bg-white/[0.05] rounded px-2 transition text-[#e8e2d9] font-bold">Home</button>
                                 <button onClick={handleFramesClick} className="text-left py-2 hover:bg-white/[0.05] rounded px-2 transition text-[#e8e2d9]">Frames</button>
                                 <button onClick={() => { navigate('/inspiration'); setIsMenuOpen(false); }} className="text-left py-2 hover:bg-white/[0.05] rounded px-2 transition text-[#e8e2d9]">Inspiration</button>
+                                <button onClick={() => { navigate('/help'); setIsMenuOpen(false); }} className="text-left py-2 hover:bg-white/[0.05] rounded px-2 transition text-[#e8e2d9]">Help Centre</button>
                                 <button onClick={() => { navigate('/frame/customize'); setIsMenuOpen(false); }} className="text-center py-2 mt-1 rounded-full font-bold text-sm bg-[#c9a84c] text-[#0a0a0a] hover:bg-[#d4b55c] transition-colors">Start Framing</button>
 
-                                {!isAdmin && (
-                                    <>
-                                        <button
-                                            onClick={() => setIsContactOpen(o => !o)}
-                                            className="text-left py-2 hover:bg-white/[0.05] rounded px-2 transition flex items-center justify-between gap-2 text-[#e8e2d9]"
-                                        >
-                                            <span className="flex items-center gap-2">
-                                                Contact Us
-                                                {hasUnreadChatReply && <span className="w-2 h-2 rounded-full bg-[#c9a84c]" />}
-                                            </span>
-                                            <ChevronDown size={14} className={`transition-transform ${isContactOpen ? 'rotate-180' : ''}`} />
-                                        </button>
-                                        {isContactOpen && (
-                                            <div className="pl-4">
-                                                <button
-                                                    onClick={() => handleChatClick(() => setIsMenuOpen(false))}
-                                                    className="w-full text-left py-2 hover:bg-white/[0.05] rounded px-2 transition flex items-center justify-between gap-2 text-[#e8e2d9]"
-                                                >
-                                                    <span className="flex items-center gap-2"><MessageCircle size={16} /> Chat</span>
-                                                    {hasUnreadChatReply && <span className="w-2 h-2 rounded-full bg-[#c9a84c]" />}
-                                                </button>
-                                                <a
-                                                    href={`mailto:${CONTACT_EMAIL}`}
-                                                    onClick={() => setIsMenuOpen(false)}
-                                                    className="text-left py-2 hover:bg-white/[0.05] rounded px-2 transition flex items-center gap-2 text-[#e8e2d9]"
-                                                >
-                                                    <Mail size={16} /> Email
-                                                </a>
-                                            </div>
-                                        )}
-                                    </>
-                                )}
+
 
                                 {user ? (
                                     <>

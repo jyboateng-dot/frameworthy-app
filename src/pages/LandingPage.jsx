@@ -309,11 +309,13 @@ export default function LandingPage({ onStartFraming, navigate, setSelectedFrame
 
                         {/* Col 3 */}
                         <div>
-                            <h6 className="text-white font-bold uppercase tracking-widest text-xs mb-6">Legal</h6>
+                            <h6 className="text-white font-bold uppercase tracking-widest text-xs mb-6">Support &amp; Legal</h6>
                             <div className="leading-loose flex flex-col gap-1 items-start">
+                                <button onClick={() => navigate && navigate('/help')} className="hover:text-white transition-colors text-left font-bold text-[#c9a84c]">Help Centre</button>
                                 <button onClick={() => navigate && navigate('/terms')} className="hover:text-white transition-colors text-left">Terms of Service</button>
                                 <button onClick={() => navigate && navigate('/privacy')} className="hover:text-white transition-colors text-left">Privacy Policy</button>
                                 <button onClick={() => navigate && navigate('/refund-policy')} className="hover:text-white transition-colors text-left">Refund &amp; Return Policy</button>
+                                <button onClick={() => navigate && navigate('/delivery-policy')} className="hover:text-white transition-colors text-left">Delivery Policy</button>
                             </div>
                         </div>
 

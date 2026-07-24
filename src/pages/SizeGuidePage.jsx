@@ -1,163 +1,56 @@
-import React, { useState, useEffect } from 'react';
-import { ArrowLeft, ArrowRight, ChevronRight, ChevronLeft } from 'lucide-react';
+import React, { useState } from 'react';
+import { ArrowRight, Check, ChevronDown, ChevronUp, Ruler, RotateCw } from 'lucide-react';
+import { FRAME_SIZES, formatDimensions } from '../data/constants';
+import { useUnit } from '../context/UnitContext';
 
-const SIZE_GUIDE_SLIDES = [
-    {
-        img: '/size-guide/Gemini_Generated_Image_ramjbzramjbzramj.png',
-        title: "The Perfect Fit",
-        text: "Discover the ideal dimensions for your artwork. A well-sized frame transforms any room into a curated space."
-    },
-    {
-        img: '/size-guide/Gemini_Generated_Image_rqzr8urqzr8urqzr (1).png',
-        title: "Small & Intimate",
-        text: "Perfect for desks, nightstands, and small cozy corners. Best enjoyed up close."
-    },
-    {
-        img: '/size-guide/il_1588xN.4643730962_lh8n.jpg',
-        title: "Tabletop Displays",
-        text: "Bring personality to your shelves and mantles with our versatile compact sizes."
-    },
-    {
-        img: '/size-guide/il_1588xN.4846462637_mxzo.webp',
-        title: "The Standard Classic",
-        text: "Our mid-sized frames fit beautifully on bookshelves or paired together in tight spaces."
-    },
-    {
-        img: '/size-guide/il_1588xN.5071461154_s7y1 (1).webp',
-        title: "Building a Gallery",
-        text: "Mix and match medium sizes to build stunning, eclectic gallery walls."
-    },
-    {
-        img: '/size-guide/il_1588xN.6863728214_qfxz.webp',
-        title: "Hallways & Entryways",
-        text: "Welcome guests with perfectly proportioned art that anchors transitional spaces."
-    },
-    {
-        img: '/size-guide/il_1588xN.6928579129_kn6g.webp',
-        title: "Large Statement",
-        text: "Commands attention. Stunning above small cabinets, reading chairs, or fireplaces."
-    },
-    {
-        img: '/size-guide/il_1588xN.7654243148_jrhy.webp',
-        title: "Focal Points",
-        text: "A large frame draws the eye and sets the tone for the entire room's decor."
-    },
-    {
-        img: '/size-guide/il_1588xN.7655050130_lhfm.webp',
-        title: "Grand Exhibition",
-        text: "Massive impact. Designed to anchor a room, hanging perfectly over sofas or beds."
-    }
+const COMPARISONS = [
+    { id: '5x7', room: 'a desk, bookshelf or bedside table', reference: 'a paperback book', note: 'about 13 × 20 cm', object: 'book', frame: [82, 115], item: [66, 102] },
+    { id: '11x14', room: 'a console or bedside table', reference: 'an open 13-inch laptop', note: 'about 30 × 21 cm', object: 'laptop', frame: [113, 144], item: [155, 97] },
+    { id: '12x18', room: 'a hallway or gallery wall', reference: 'a dining chair back', note: 'about 45 cm wide', object: 'chair', frame: [120, 180], item: [137, 174] },
+    { id: '18x24', room: 'an entryway or reading corner', reference: 'a standard sleeping pillow', note: 'about 50 × 75 cm', object: 'pillow', frame: [144, 192], item: [192, 126] },
+    { id: '24x36', room: 'above a sofa, bed or dining table', reference: 'half a two-seater sofa', note: 'a two-seater is about 160 cm wide', object: 'sofa', frame: [270, 180], item: [300, 125], landscape: true }
 ];
 
-export default function SizeGuidePage({ navigate }) {
-    const [currentSlide, setCurrentSlide] = useState(0);
+const CORE_SIZE_IDS = ['5x7', '8x10', 'a4', '11x14', '12x12', '12x18', 'a3', '16x20', 'a2', '18x24', '20x30', '24x36'];
+const ALIAS_IDS = new Set(['sm', 'md', 'lg', 'xl', 'lg-land', 'xl-land', 'Small', 'Medium', 'Large', 'Statement']);
 
-    const nextSlide = () => {
-        setCurrentSlide(s => (s + 1) % SIZE_GUIDE_SLIDES.length);
-    };
+const findSize = (id) => FRAME_SIZES.find((size) => size.id === id);
+const dimensions = (size, unit, orientation = 'portrait') => formatDimensions(size.label, unit, orientation).replace(/\s*\([^)]*\)/, '');
 
-    const prevSlide = () => {
-        setCurrentSlide(s => (s - 1 + SIZE_GUIDE_SLIDES.length) % SIZE_GUIDE_SLIDES.length);
-    };
+function ObjectDrawing({ kind, x, y, width, height }) {
+    const stroke = '#2e2922';
+    const fill = '#c39a6c';
+    if (kind === 'book') return <g><rect x={x} y={y} width={width} height={height} rx="2" fill="#b56f50" stroke={stroke} strokeWidth="3" /><line x1={x + 12} y1={y + 18} x2={x + width - 12} y2={y + 18} stroke="#f6e7cb" strokeWidth="3" /><line x1={x + 12} y1={y + 30} x2={x + width - 24} y2={y + 30} stroke="#f6e7cb" strokeWidth="2" /><text x={x + width / 2} y={y + height - 15} textAnchor="middle" fill="#f6e7cb" fontSize="10" fontWeight="700" letterSpacing="1">BOOK</text></g>;
+    if (kind === 'laptop') return <g><rect x={x + width * .1} y={y} width={width * .8} height={height * .72} rx="5" fill="#5f716d" stroke={stroke} strokeWidth="5" /><rect x={x + width * .16} y={y + height * .08} width={width * .68} height={height * .52} fill="#b7cfc1" /><path d={`M${x} ${y + height * .77} H${x + width} L${x + width * .92} ${y + height} H${x + width * .08} Z`} fill="#78807b" stroke={stroke} strokeWidth="3" /><line x1={x + width * .42} y1={y + height * .88} x2={x + width * .58} y2={y + height * .88} stroke="#dcd5c7" strokeWidth="3" /></g>;
+    if (kind === 'chair') return <g><rect x={x + width * .15} y={y} width={width * .7} height={height * .48} rx="19" fill={fill} stroke={stroke} strokeWidth="4" /><line x1={x + width * .35} y1={y + 15} x2={x + width * .35} y2={y + height * .4} stroke="#80543e" strokeWidth="5" /><line x1={x + width * .5} y1={y + 15} x2={x + width * .5} y2={y + height * .4} stroke="#80543e" strokeWidth="5" /><line x1={x + width * .65} y1={y + 15} x2={x + width * .65} y2={y + height * .4} stroke="#80543e" strokeWidth="5" /><rect x={x + width * .08} y={y + height * .6} width={width * .84} height={height * .18} rx="6" fill="#c89370" stroke={stroke} strokeWidth="3" /><line x1={x + width * .21} y1={y + height * .78} x2={x + width * .16} y2={y + height} stroke={stroke} strokeWidth="5" /><line x1={x + width * .79} y1={y + height * .78} x2={x + width * .84} y2={y + height} stroke={stroke} strokeWidth="5" /></g>;
+    if (kind === 'pillow') return <g><rect x={x} y={y} width={width} height={height} rx={height * .27} fill="#d8c49d" stroke={stroke} strokeWidth="3" /><rect x={x + 13} y={y + 13} width={width - 26} height={height - 26} rx={height * .2} fill="none" stroke="#a38b63" strokeWidth="2" /><circle cx={x + width / 2} cy={y + height / 2} r="4" fill="#a38b63" /></g>;
+    return <g><path d={`M${x + 12} ${y + height * .78} V${y + height * .27} Q${x + 12} ${y} ${x + 45} ${y} H${x + width - 45} Q${x + width - 12} ${y} ${x + width - 12} ${y + height * .27} V${y + height * .78} Z`} fill="#7d8e7f" stroke={stroke} strokeWidth="4" /><rect x={x + 24} y={y + height * .4} width={width * .28} height={height * .35} rx="15" fill="#a3af9e" /><rect x={x + width * .55} y={y + height * .4} width={width * .28} height={height * .35} rx="15" fill="#a3af9e" /><rect x={x + width * .09} y={y + height * .72} width={width * .82} height={height * .16} rx="8" fill="#93a18f" /><line x1={x + 28} y1={y + height * .88} x2={x + 22} y2={y + height} stroke={stroke} strokeWidth="5" /><line x1={x + width - 28} y1={y + height * .88} x2={x + width - 22} y2={y + height} stroke={stroke} strokeWidth="5" /></g>;
+}
 
-    // Auto-advance carousel
-    useEffect(() => {
-        const timer = setInterval(() => {
-            setCurrentSlide(s => (s + 1) % SIZE_GUIDE_SLIDES.length);
-        }, 5000);
-        return () => clearInterval(timer);
-    }, [currentSlide]);
+function ScaleDiagram({ item, index }) {
+    const [frameWidth, frameHeight] = item.frame;
+    const [objectWidth, objectHeight] = item.item;
+    const baseline = 224;
+    const frameX = 104;
+    const objectX = 395;
+    const gradientId = `art-${item.id}`;
+    return <svg viewBox="0 0 620 260" className="h-auto w-full" role="img" aria-label={`${item.id} frame beside ${item.reference}`}>
+        <defs><linearGradient id={gradientId} x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#4d6f69" /><stop offset=".52" stopColor="#dfbe80" /><stop offset="1" stopColor="#af7057" /></linearGradient></defs>
+        <rect width="620" height="260" fill="#eee4d3" /><path d="M0 226H620" stroke="#bba583" strokeWidth="2" /><path d="M48 226H572" stroke="#d3c1a4" strokeWidth="10" />
+        <text x="42" y="34" fill="#75644b" fontSize="11" fontWeight="700" letterSpacing="2">FRAME OPENING</text><text x="395" y="34" fill="#75644b" fontSize="11" fontWeight="700" letterSpacing="2">HOUSEHOLD REFERENCE</text>
+        <g transform={`translate(${frameX} ${baseline - frameHeight})`}><rect width={frameWidth} height={frameHeight} fill="#29241e" /><rect x="9" y="9" width={frameWidth - 18} height={frameHeight - 18} fill={`url(#${gradientId})`} stroke="#fbf4e7" strokeWidth="1" /></g>
+        <line x1={frameX} y1="239" x2={frameX + frameWidth} y2="239" stroke="#8e7959" strokeWidth="1" /><text x={frameX + frameWidth / 2} y="254" textAnchor="middle" fill="#675a49" fontSize="11" fontWeight="700">FRAME</text>
+        <ObjectDrawing kind={item.object} x={objectX} y={baseline - objectHeight} width={objectWidth} height={objectHeight} />
+        <line x1={objectX} y1="239" x2={objectX + objectWidth} y2="239" stroke="#8e7959" strokeWidth="1" /><text x={objectX + objectWidth / 2} y="254" textAnchor="middle" fill="#675a49" fontSize="11" fontWeight="700">REFERENCE</text>
+        <circle cx="328" cy="189" r="15" fill="#faf7f0" stroke="#bba583" /><text x="328" y="193" textAnchor="middle" fill="#75644b" fontSize="11" fontWeight="700">{String(index).padStart(2, '0')}</text>
+    </svg>;
+}
 
-    return (
-        <div className="h-screen bg-[#faf9f8] text-stone-900 font-sans antialiased overflow-hidden selection:bg-stone-200">
-            
-            {/* Global Back Navigation */}
-            <div className="absolute top-8 left-6 lg:left-12 z-50">
-                <button
-                    onClick={() => navigate(-1)}
-                    className="flex items-center gap-2 text-stone-500 hover:text-stone-900 transition-colors duration-200 text-xs font-bold uppercase tracking-wider"
-                >
-                    <ArrowLeft size={14} /> Back to browsing
-                </button>
-            </div>
+export default function SizeGuidePage({ setSelectedSize, setProductMode, navigate }) {
+    const { unit, setUnit } = useUnit();
+    const [showAllSizes, setShowAllSizes] = useState(false);
+    const sizes = showAllSizes ? FRAME_SIZES.filter((size) => !ALIAS_IDS.has(size.id)) : CORE_SIZE_IDS.map(findSize);
+    const chooseSize = (size) => { setSelectedSize(size); setProductMode('frame'); navigate('/frame/customize'); };
 
-            {/* Asymmetric Carousel Section */}
-            <section className="relative pt-20 lg:pt-24 w-full h-full flex items-center bg-[#faf9f8]">
-                <div className="max-w-7xl mx-auto px-6 lg:px-12 w-full grid grid-cols-1 lg:grid-cols-12 gap-8 items-center h-[calc(100vh-8rem)]">
-                    
-                    {/* Left: Anchored Typography */}
-                    <div className="lg:col-span-5 relative z-10 flex flex-col justify-center h-full max-h-[500px]">
-                        {SIZE_GUIDE_SLIDES.map((slide, index) => (
-                            <div 
-                                key={index}
-                                className={`absolute inset-0 flex flex-col justify-center transition-all duration-700 ease-[cubic-bezier(0.25,1,0.5,1)] ${
-                                    currentSlide === index ? 'opacity-100 translate-y-0 pointer-events-auto z-10' : 'opacity-0 translate-y-8 pointer-events-none z-0'
-                                }`}
-                            >
-                                <div className="text-stone-400 font-bold tracking-widest text-xs uppercase mb-6 flex items-center gap-4">
-                                    <span className="w-8 h-[1px] bg-stone-300"></span>
-                                    0{index + 1} &mdash; 0{SIZE_GUIDE_SLIDES.length}
-                                </div>
-                                <h1 className="text-5xl lg:text-7xl font-bold tracking-tighter leading-[1.05] mb-6 text-stone-900 font-serif">
-                                    {slide.title}
-                                </h1>
-                                <p className="text-lg lg:text-xl text-stone-600 max-w-lg leading-relaxed mb-8">
-                                    {slide.text}
-                                </p>
-                                <div className="z-20">
-                                    <button 
-                                        onClick={() => navigate('/frame/customize')}
-                                        className="group flex items-center gap-4 text-sm font-bold tracking-wide uppercase text-stone-900 hover:text-stone-600 transition-colors pointer-events-auto"
-                                    >
-                                        <span className="border-b-2 border-stone-900 pb-1 group-hover:border-stone-600 transition-colors">Start Framing</span>
-                                        <ArrowRight className="w-5 h-5 group-hover:translate-x-2 transition-transform" />
-                                    </button>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-
-                    {/* Right: Asymmetric Image Composition */}
-                    <div className="lg:col-span-7 relative h-full w-full mt-8 lg:mt-0">
-                        {/* Decorative background box offset */}
-                        <div className="absolute top-8 -right-8 w-full h-full bg-stone-200/50 hidden lg:block" />
-                        
-                        <div className="relative w-full h-full overflow-hidden shadow-2xl bg-white p-4">
-                            {SIZE_GUIDE_SLIDES.map((slide, index) => (
-                                <div 
-                                    key={index}
-                                    className={`absolute inset-0 w-full h-full p-4 transition-all duration-1000 ease-[cubic-bezier(0.25,1,0.5,1)] flex items-center justify-center ${
-                                        currentSlide === index ? 'opacity-100 scale-100 z-10 pointer-events-auto' : 'opacity-0 scale-[0.98] z-0 pointer-events-none'
-                                    }`}
-                                >
-                                    <img 
-                                        src={slide.img} 
-                                        alt={slide.title} 
-                                        className="w-full h-full object-contain drop-shadow-md" 
-                                    />
-                                </div>
-                            ))}
-                        </div>
-
-                        {/* Minimalist Controls Overlayed on Image */}
-                        <div className="absolute bottom-6 left-6 lg:-left-6 z-30 flex gap-0 shadow-xl overflow-hidden rounded-sm">
-                            <button 
-                                onClick={prevSlide}
-                                className="w-14 h-14 bg-white/90 backdrop-blur-md text-stone-900 flex items-center justify-center hover:bg-stone-100 transition-all border-r border-stone-200"
-                            >
-                                <ChevronLeft className="w-6 h-6" />
-                            </button>
-                            <button 
-                                onClick={nextSlide}
-                                className="w-14 h-14 bg-white/90 backdrop-blur-md text-stone-900 flex items-center justify-center hover:bg-stone-100 transition-all"
-                            >
-                                <ChevronRight className="w-6 h-6" />
-                            </button>
-                        </div>
-                    </div>
-
-                </div>
-            </section>
-        </div>
-    );
+    return <main className="min-h-screen bg-[#faf7f0] pb-16 text-[#27221b]"><section className="border-b border-[#27221b]/15 bg-[#fdfbf7]"><div className="mx-auto max-w-7xl px-5 py-12 sm:px-8 sm:py-16 lg:px-12"><div className="flex flex-col justify-between gap-8 lg:flex-row lg:items-end"><div className="max-w-3xl"><p className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[.22em] text-[#967342]"><Ruler size={15} /> FrameWorthy Size Guide</p><h1 className="mt-4 font-serif text-5xl leading-[.95] tracking-tight sm:text-6xl">How big is that frame, <em className="font-normal text-[#a27c42]">really?</em></h1><p className="mt-6 max-w-2xl text-base leading-relaxed text-[#6c6256] sm:text-lg">A measurement on its own is hard to picture. These comparisons show common FrameWorthy sizes beside objects you live with every day.</p></div><div className="inline-flex self-start rounded-full border border-[#27221b]/15 bg-[#f3ecdf] p-1 text-xs font-bold">{['cm', 'in'].map((value) => <button key={value} onClick={() => setUnit(value)} className={`rounded-full px-4 py-2 uppercase transition ${unit === value ? 'bg-[#27221b] text-white shadow-sm' : 'text-[#766d62] hover:text-[#27221b]'}`}>{value}</button>)}</div></div><div className="mt-10 grid gap-4 border-t border-[#27221b]/10 pt-6 sm:grid-cols-3"><p className="flex gap-3 text-sm leading-relaxed text-[#655c51]"><Check className="mt-0.5 shrink-0 text-[#a27c42]" size={18} /><span><strong className="block text-[#27221b]">Frames are shown to comparative scale.</strong>Each pair has the same baseline and ratio.</span></p><p className="flex gap-3 text-sm leading-relaxed text-[#655c51]"><RotateCw className="mt-0.5 shrink-0 text-[#a27c42]" size={18} /><span><strong className="block text-[#27221b]">Rotate any size.</strong>Choose portrait or landscape after you upload your art.</span></p><p className="flex gap-3 text-sm leading-relaxed text-[#655c51]"><Check className="mt-0.5 shrink-0 text-[#a27c42]" size={18} /><span><strong className="block text-[#27221b]">Confirm it in the visualizer.</strong>Your own wall and artwork are the final test.</span></p></div></div></section><section className="mx-auto max-w-7xl px-5 py-6 sm:px-8 lg:px-12"><div className="py-8"><p className="text-[11px] font-bold uppercase tracking-[.22em] text-[#967342]">The comparison board</p><h2 className="mt-2 font-serif text-4xl tracking-tight">Frames beside familiar objects.</h2></div>{COMPARISONS.map((item, index) => { const size = findSize(item.id); const label = dimensions(size, unit, item.landscape ? 'landscape' : 'portrait'); return <article key={item.id} className="grid gap-6 border-t border-[#27221b]/15 py-9 last:border-b sm:py-11 lg:grid-cols-[.72fr_1.3fr_.72fr] lg:items-center"><div><p className="text-[10px] font-bold uppercase tracking-[.2em] text-[#967342]">Size {String(index + 1).padStart(2, '0')}</p><h3 className="mt-2 font-serif text-3xl tracking-tight">{label}</h3><p className="mt-3 text-sm leading-relaxed text-[#6b6257]">A strong choice for <strong className="text-[#27221b]">{item.room}</strong>.</p><button onClick={() => chooseSize(size)} className="mt-5 flex items-center gap-2 text-sm font-bold text-[#5d3d1a] hover:text-[#a27c42]">Choose this size <ArrowRight size={17} /></button></div><ScaleDiagram item={item} index={index + 1} /><div className="border-l-2 border-[#b58e53] pl-4"><p className="text-[10px] font-bold uppercase tracking-[.18em] text-[#967342]">This is close to</p><h4 className="mt-2 font-serif text-2xl tracking-tight">{item.reference}</h4><p className="mt-2 text-sm leading-relaxed text-[#6b6257]">{item.note}</p></div></article>; })}</section><section className="mx-auto max-w-7xl px-5 sm:px-8 lg:px-12"><div className="rounded-2xl border border-[#27221b]/10 bg-[#eee5d7] p-6 sm:p-9"><div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between"><div><p className="text-[11px] font-bold uppercase tracking-[.2em] text-[#967342]">Already measured your art?</p><h2 className="mt-2 font-serif text-3xl tracking-tight">Start with the closest opening size.</h2><p className="mt-2 max-w-2xl text-sm leading-relaxed text-[#6c6257]">Choose a standard size now. You can rotate it and explore custom measurements in the framing studio.</p></div><button onClick={() => setShowAllSizes((value) => !value)} className="flex shrink-0 items-center gap-2 self-start text-sm font-bold text-[#5d3d1a] hover:text-[#27221b]">{showAllSizes ? 'Show popular sizes' : 'See all sizes'} {showAllSizes ? <ChevronUp size={17} /> : <ChevronDown size={17} />}</button></div><div className="mt-7 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">{sizes.map((size) => <button key={size.id} onClick={() => chooseSize(size)} className="group rounded-xl border border-[#27221b]/10 bg-[#fffdf9] px-4 py-4 text-left transition hover:-translate-y-0.5 hover:border-[#a27c42] hover:shadow-md"><p className="font-serif text-xl text-[#27221b]">{dimensions(size, unit)}</p><p className="mt-1 flex items-center gap-1 text-xs font-medium text-[#876b43]">Choose this size <ArrowRight size={13} className="transition group-hover:translate-x-1" /></p></button>)}</div></div></section></main>;
 }

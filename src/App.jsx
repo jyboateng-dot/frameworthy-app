@@ -25,6 +25,8 @@ const OrdersPage = lazy(() => import('./pages/OrdersPage'));
 const TermsPage = lazy(() => import('./pages/TermsPage'));
 const PrivacyPage = lazy(() => import('./pages/PrivacyPage'));
 const RefundPolicyPage = lazy(() => import('./pages/RefundPolicyPage'));
+const DeliveryPolicyPage = lazy(() => import('./pages/DeliveryPolicyPage'));
+const HelpCenterPage = lazy(() => import('./pages/HelpCenterPage'));
 
 // Contexts
 import { AuthProvider, useAuth } from './context/AuthContext';
@@ -265,9 +267,11 @@ const AppLayout = () => {
           />
         } />
 
-<Route path="/terms" element={<TermsPage navigate={navigate} />} />
+        <Route path="/terms" element={<TermsPage navigate={navigate} />} />
         <Route path="/privacy" element={<PrivacyPage navigate={navigate} />} />
         <Route path="/refund-policy" element={<RefundPolicyPage navigate={navigate} />} />
+        <Route path="/delivery-policy" element={<DeliveryPolicyPage navigate={navigate} />} />
+        <Route path="/help" element={<HelpCenterPage navigate={navigate} onOpenChat={() => setIsChatOpen(true)} />} />
 
         <Route path="/original-paintings" element={
           <OriginalPaintingsPage
