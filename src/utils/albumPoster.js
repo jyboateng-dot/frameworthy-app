@@ -129,7 +129,14 @@ export async function renderAlbumPoster(posterData, sizeDims, dpi = 100) {
         truncated = displayCount < tracks.length;
     }
 
-    let trackFontPx = lineHeight * (columns === 1 ? 0.95 : 0.6);
+    // A sans-serif font's actual line metrics (ascent+descent) run roughly
+    // 1.2-1.3x its nominal size, so the font size needs real headroom below
+    // lineHeight or adjacent rows visually collide — 0.95 (the single-column
+    // case previously) left only ~5%, nowhere near enough and the most
+    // common case (albums with <=20 tracks always render single-column).
+    // 0.70 leaves ~43% headroom, safe for any sans-serif at this weight.
+    const FONT_LINE_RATIO = 0.70;
+    let trackFontPx = lineHeight * FONT_LINE_RATIO;
     ctx.font = `600 ${trackFontPx}px "Inter", sans-serif`;
 
     // 1. Measure the natural width of the track columns
