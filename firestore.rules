@@ -53,6 +53,20 @@ service cloud.firestore {
       allow delete: if false;
     }
 
+    match /chats/{uid} {
+      // One thread per customer, doc ID = their own Firebase Auth uid — the
+      // customer can read/write only their own thread, the admin can
+      // read/write every thread. Messages are immutable once created (no
+      // update/delete) since this is a chat log, not editable content.
+      allow read, write: if request.auth != null && (request.auth.uid == uid || isAdmin());
+
+      match /messages/{messageId} {
+        allow read: if request.auth != null && (request.auth.uid == uid || isAdmin());
+        allow create: if request.auth != null && (request.auth.uid == uid || isAdmin());
+        allow update, delete: if false;
+      }
+    }
+
     // `paystackReferences/{reference}` is written only by verifyPaystackPayment
     // via the Admin SDK (which bypasses these rules entirely) to atomically
     // claim a payment reference against exactly one order, preventing the

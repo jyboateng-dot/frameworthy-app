@@ -2307,8 +2307,8 @@ const CustomizeFramePage = ({
                                         { id: 'standard', name: 'Standard Acrylic', desc: 'Clear, lightweight protection.', price: 0 },
                                         { id: 'non-glare', name: 'Non-Glare Acrylic', desc: 'Reduces reflections in bright rooms.', price: 100 },
                                         { id: 'museum', name: 'Museum Glass', desc: '99% UV protection, zero reflection.', price: 200 },
-                                        { id: 'canvas-traditional', name: 'Traditional Canvas', desc: "Frame's inner lip overlaps the canvas edges — classic, gallery-glass-free look.", price: 350 },
-                                        { id: 'canvas-floater', name: 'Floater Canvas', desc: 'Canvas floats with a reveal gap inside the frame — modern, gallery-style.', price: 400 },
+                                        { id: 'canvas-traditional', name: 'Traditional Canvas', desc: "Frame's inner lip overlaps the canvas edges", price: 350 },
+                                        { id: 'canvas-floater', name: 'Floater Canvas', desc: 'Canvas floats with a reveal gap inside the frame', price: 400 },
                                     ].map(glass => (
                                         <button
                                             key={glass.id}
@@ -2371,7 +2371,7 @@ const CustomizeFramePage = ({
                     <button
                         onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
                         aria-label="Back to visualizer"
-                        className="fixed bottom-24 right-4 z-30 w-11 h-11 rounded-full bg-stone-900/25 text-white shadow-lg flex items-center justify-center hover:bg-stone-900/60 transition-colors"
+                        className="fixed bottom-24 right-4 z-30 w-11 h-11 rounded-full bg-stone-900/40 text-white shadow-lg flex items-center justify-center hover:bg-stone-900/60 transition-colors"
                     >
                         <ArrowUp size={18} />
                     </button>

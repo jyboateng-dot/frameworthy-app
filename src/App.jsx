@@ -20,6 +20,7 @@ const CanvasArtPage = lazy(() => import('./pages/CanvasArtPage'));
 const GlossyArtPage = lazy(() => import('./pages/GlossyArtPage'));
 const AuthPage = lazy(() => import('./pages/AuthPage'));
 const AdminDashboard = lazy(() => import('./pages/admin/AdminDashboard'));
+const AdminMessagesPage = lazy(() => import('./pages/admin/AdminMessagesPage'));
 const OrdersPage = lazy(() => import('./pages/OrdersPage'));
 const TermsPage = lazy(() => import('./pages/TermsPage'));
 const PrivacyPage = lazy(() => import('./pages/PrivacyPage'));
@@ -36,6 +37,7 @@ import { App as CapacitorApp } from '@capacitor/app';
 import { StatusBar, Style } from '@capacitor/status-bar';
 import TesterGate from './components/gate/TesterGate';
 import NetworkStatusBanner from './components/NetworkStatusBanner';
+import ChatFloater from './components/chat/ChatFloater';
 import { visualizerFullScreenState } from './utils/visualizerFullScreenState';
 
 // Shown briefly while a lazy-loaded route's chunk downloads — most routes
@@ -55,6 +57,7 @@ const AppLayout = () => {
   const { user } = useAuth();
   const { cartCount, setIsCartOpen } = useCart();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isChatOpen, setIsChatOpen] = useState(false);
 
   // --- GLOBAL STATE LIFTED UP (For Checkout/Persistance across steps) ---
   // Ideally this should be in a specific "ProjectContext", but prop drilling is fine for this size refactor
@@ -151,6 +154,7 @@ const AppLayout = () => {
           cartCount={cartCount}
           isMenuOpen={isMenuOpen}
           setIsMenuOpen={setIsMenuOpen}
+          onOpenChat={() => setIsChatOpen(true)}
         />
       )}
 
@@ -206,6 +210,9 @@ const AppLayout = () => {
         {/* ADMIN ROUTE */}
         <Route path="/admin" element={
           <AdminDashboard />
+        } />
+        <Route path="/admin/messages" element={
+          <AdminMessagesPage />
         } />
 
         {/* CUSTOMER ROUTE */}
@@ -306,6 +313,7 @@ const AppLayout = () => {
       </Suspense>
 
       {/* GLOBAL OVERLAYS */}
+      <ChatFloater isOpen={isChatOpen} setIsOpen={setIsChatOpen} />
     </div>
   );
 };
