@@ -590,9 +590,11 @@ const CustomizeFramePage = ({
     useEffect(() => {
         if (!selectedSize || !selectedFrame) return;
         let base = Math.round(selectedSize.price * (selectedFrame.priceMod || 1));
-        if (matWidth !== 'none') base += (matColor.price || 75);
+        if (selectedFrame.id !== 'frame-canvas' && glassType !== 'canvas-floater' && glassType !== 'canvas-traditional' && matWidth !== 'none') base += (matColor.price || 75);
         if (glassType === 'non-glare') base += 100;
         if (glassType === 'museum') base += 200;
+        if (glassType === 'canvas-floater') base += 400;
+        if (glassType === 'canvas-traditional') base += 350;
         if (hardwareType === 'french-cleat') base += 50;
         setTotalPrice(base);
     }, [selectedSize, selectedFrame, matWidth, matColor, glassType, hardwareType, setTotalPrice]);
@@ -912,6 +914,13 @@ const CustomizeFramePage = ({
             });
 
             const isCanvasPrint = selectedFrame?.id === 'frame-canvas';
+            // A regular frame with "Canvas Print" glazing — mirrors the live
+            // visualizer's isCanvasGlazing flag, so the order thumbnail
+            // reflects the same Floater reveal-gap / Traditional overlap
+            // instead of rendering as a plain matted print.
+            const isTraditionalCanvas = glassType === 'canvas-traditional' && !isCanvasPrint;
+            const isFloaterCanvas = glassType === 'canvas-floater' && !isCanvasPrint;
+            const isCanvasGlazing = isTraditionalCanvas || isFloaterCanvas;
             // selectedSize's width/height are the size preset's canonical
             // (portrait) dimensions — swap them for landscape, same as the
             // live on-screen visualizer (wInch/hInch above), otherwise the
@@ -942,12 +951,16 @@ const CustomizeFramePage = ({
 
             const borderW = isCanvasPrint ? 0 : Math.round(w * 0.06);
             const borderH = isCanvasPrint ? 0 : Math.round(h * 0.06);
-            if (!isCanvasPrint) {
+            // Traditional canvas mount: the frame's inner lip overlaps the
+            // canvas edges, so the border is painted AFTER the image (below,
+            // deferred) instead of before, letting it visually crop the
+            // artwork's bleeding edge rather than just framing beside it.
+            if (!isCanvasPrint && !isTraditionalCanvas) {
                 ctx.fillStyle = selectedFrame?.baseColor || '#342e2b';
                 ctx.fillRect(offsetX, offsetY, w, h);
             }
 
-            const matPct = (!isCanvasPrint && matWidth !== 'none') ? ({ narrow: 0.04, standard: 0.06, wide: 0.08 }[matWidth] || 0.04) : 0;
+            const matPct = (!isCanvasPrint && !isCanvasGlazing && matWidth !== 'none') ? ({ narrow: 0.04, standard: 0.06, wide: 0.08 }[matWidth] || 0.04) : 0;
             const matW = Math.round(w * matPct);
             const matH = Math.round(h * matPct);
             const matLeft = offsetX + borderW, matTop = offsetY + borderH, matRight = offsetX + w - borderW, matBottom = offsetY + h - borderH;
@@ -956,19 +969,33 @@ const CustomizeFramePage = ({
                 ctx.fillRect(matLeft, matTop, matRight - matLeft, matBottom - matTop);
             }
 
-            const artLeft = matLeft + matW;
-            const artTop = matTop + matH;
-            const artW = Math.max(1, (matRight - matW) - artLeft);
-            const artH = Math.max(1, (matBottom - matH) - artTop);
+            // Floater canvas mount: reveal a thin gap between the frame's
+            // inner wall and the canvas edge, mirroring the live
+            // visualizer's reveal gap.
+            const gapPx = isFloaterCanvas ? Math.round(Math.min(w, h) * 0.02) : 0;
+            if (gapPx > 0) {
+                ctx.fillStyle = '#78716c';
+                ctx.fillRect(matLeft, matTop, matRight - matLeft, matBottom - matTop);
+            }
+            // Traditional canvas mount: let the artwork bleed slightly
+            // further than the border's inner edge so the border (painted
+            // after, below) crops it.
+            const overlapPx = isTraditionalCanvas ? Math.round(Math.min(borderW, borderH) * 0.5) : 0;
 
-            // Canvas prints wrap edge-to-edge (cover); framed art is
-            // letterboxed within the mat opening (contain) — mirrors the
-            // object-fit rules used in the live visualizer.
+            const artLeft = matLeft + matW + gapPx - overlapPx;
+            const artTop = matTop + matH + gapPx - overlapPx;
+            const artW = Math.max(1, (matRight - matW - gapPx + overlapPx) - artLeft);
+            const artH = Math.max(1, (matBottom - matH - gapPx + overlapPx) - artTop);
+
+            // Canvas prints (both the frame-less Gallery Wrap and a regular
+            // frame with Canvas Print glazing) wrap edge-to-edge (cover);
+            // framed art is letterboxed within the mat opening (contain) —
+            // mirrors the object-fit rules used in the live visualizer.
             const imgAspect = img.naturalWidth / img.naturalHeight;
             const boxAspect = artW / artH;
             let drawW, drawH;
             const widthConstrained = imgAspect > boxAspect;
-            if (isCanvasPrint ? widthConstrained : !widthConstrained) {
+            if ((isCanvasPrint || isCanvasGlazing) ? widthConstrained : !widthConstrained) {
                 drawH = artH;
                 drawW = artH * imgAspect;
             } else {
@@ -985,6 +1012,17 @@ const CustomizeFramePage = ({
             ctx.drawImage(img, drawX, drawY, drawW, drawH);
             ctx.restore();
 
+            // Traditional canvas mount: paint the border ring last so it
+            // sits on top of and crops the artwork's bleeding edge (deferred
+            // from above, where it was skipped).
+            if (isTraditionalCanvas) {
+                ctx.fillStyle = selectedFrame?.baseColor || '#342e2b';
+                ctx.fillRect(offsetX, offsetY, w, borderH); // top
+                ctx.fillRect(offsetX, offsetY + h - borderH, w, borderH); // bottom
+                ctx.fillRect(offsetX, offsetY, borderW, h); // left
+                ctx.fillRect(offsetX + w - borderW, offsetY, borderW, h); // right
+            }
+
             const blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/png'));
             if (!blob) return null;
             const file = new File([blob], 'order-thumbnail.png', { type: 'image/png' });
@@ -997,8 +1035,10 @@ const CustomizeFramePage = ({
 
     const buildCartItem = (visualizerImage) => {
         const calculatedTotal = Math.round((selectedSize?.price || 0) * (selectedFrame?.priceMod || 1)) +
-            (selectedFrame?.id !== 'frame-canvas' && matWidth !== 'none' ? (matColor.price || 75) : 0) +
+            (selectedFrame?.id !== 'frame-canvas' && glassType !== 'canvas-floater' && glassType !== 'canvas-traditional' && matWidth !== 'none' ? (matColor.price || 75) : 0) +
             (selectedFrame?.id !== 'frame-canvas' ? (glassType === 'non-glare' ? 100 : glassType === 'museum' ? 200 : 0) : 0) +
+            (selectedFrame?.id !== 'frame-canvas' && glassType === 'canvas-floater' ? 400 : 0) +
+            (selectedFrame?.id !== 'frame-canvas' && glassType === 'canvas-traditional' ? 350 : 0) +
             (hardwareType === 'french-cleat' ? 50 : 0);
 
         return {
@@ -1208,9 +1248,16 @@ const CustomizeFramePage = ({
     const showOrientation = !isPreset && !isAlbumArt && !isAlbumPoster && !isMoviePoster && !isMoviePosterPrint;
     const stepOrientation = showOrientation ? stepCounter++ : null;
     
-    const showMatting = selectedFrame?.id !== 'frame-canvas' && !isPreset;
+    // A canvas print (glassType 'canvas-floater'/'canvas-traditional') is
+    // mounted inside whichever frame moulding is selected — it doesn't take
+    // a paper mat, so matting is hidden for it the same way it's hidden for
+    // the frame-less 'frame-canvas' Gallery Wrapped Canvas style.
+    const canvasMountStyle = glassType === 'canvas-floater' ? 'floater' : glassType === 'canvas-traditional' ? 'traditional' : null;
+    const isCanvasGlazing = !!canvasMountStyle && selectedFrame?.id !== 'frame-canvas';
+
+    const showMatting = selectedFrame?.id !== 'frame-canvas' && !isCanvasGlazing && !isPreset;
     const stepMatting = showMatting ? stepCounter++ : null;
-    
+
     const showGlazing = selectedFrame?.id !== 'frame-canvas';
     const stepGlazing = showGlazing ? stepCounter++ : null;
     
@@ -1273,7 +1320,7 @@ const CustomizeFramePage = ({
                         title="Change Wall Color"
                     >
                         <div className="w-4 h-4 rounded-full border border-stone-200 shrink-0" style={{ backgroundColor: wallColor.hex, boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.1)' }} />
-                        <span className="hidden sm:inline">Wall Color</span>
+                        <span className="hidden sm:inline [font-variant:small-caps]">wall color</span>
                         <ChevronDown size={14} className={`transition-transform text-stone-400 ${isWallPickerOpen ? 'rotate-180' : ''}`} />
                     </button>
 
@@ -1290,7 +1337,7 @@ const CustomizeFramePage = ({
                                 : 'scale(0.95)'
                         }}
                     >
-                        <p className="text-[10px] font-bold uppercase tracking-wider text-stone-500 mb-2 text-center w-full whitespace-nowrap sm:hidden">Wall Color</p>
+                        <p className="text-[10px] font-bold tracking-wider text-stone-500 mb-2 text-center w-full whitespace-nowrap sm:hidden [font-variant:small-caps]">wall color</p>
                         <div className="grid grid-cols-2 gap-1.5 place-items-center">
                             {WALL_COLORS.map(color => (
                                 <button
@@ -1405,6 +1452,16 @@ const CustomizeFramePage = ({
                             const matPctW = Math.max(0, Math.min(rawMatPctW, 45 - mouldingPctW));
                             const matPctH = Math.max(0, Math.min(rawMatPctH, 45 - mouldingPctH));
 
+                            // Canvas Print mount styles (glassType 'canvas'): Floater reveals a
+                            // small gap between the canvas edge and the frame's inner wall;
+                            // Traditional lets the frame's inner lip overlap and hide the canvas
+                            // edge. Both a fixed physical inch amount converted to %, same
+                            // derivation as matPct above, so they scale sensibly across sizes.
+                            const floaterGapPctW = (0.25 / wInch) * 100;
+                            const floaterGapPctH = (0.25 / hInch) * 100;
+                            const traditionalOverlapPctW = Math.min(0.375 / wInch * 100, mouldingPctW);
+                            const traditionalOverlapPctH = Math.min(0.375 / hInch * 100, mouldingPctH);
+
                             // ─── DYNAMIC ZOOM CLAMPING (Never Overlap/Cutoff) ───
                             const zoomScale = (() => {
                                 // isMaxZoom alone (without isHovered) is how touch double-tap
@@ -1445,16 +1502,27 @@ const CustomizeFramePage = ({
                                 // Max possible scale that fits safely inside the visual bounds
                                 let maxScale = Math.min(scaleW, scaleH);
 
+                                // Album/movie poster prints carry small fixed tracklist/metadata
+                                // text (rendered at up to 300 DPI, well beyond what these caps
+                                // need — see the poster-generation effect above), so they can
+                                // safely zoom further than a plain photo before pixelating, and
+                                // doing so is the whole point of zooming/full-screen for them:
+                                // reading that fine print. Regular uploads don't carry that
+                                // fixed small text, so they keep the original, more conservative
+                                // caps.
+                                const isPosterPrint = isAlbumPoster || isMoviePosterPrint;
+
                                 if (isMaxZoom && !isFullScreen) {
                                     // Deep inspection mode: push past boundaries if necessary (but
                                     // don't get completely ridiculous). Skipped in full screen —
                                     // it's already at its largest fit-to-screen size there, so
                                     // there's nothing further for a double-tap to usefully do.
-                                    return Math.max(3.5, maxScale * 2.25);
+                                    return Math.max(isPosterPrint ? 5.5 : 3.5, maxScale * (isPosterPrint ? 3 : 2.25));
                                 }
 
-                                // Cap at 8.0x to prevent over-pixelation on tiny frames, never shrink below 1.0x
-                                return Math.max(1.0, Math.min(8.0, maxScale));
+                                // Cap at 8.0x (16.0x for poster prints) to prevent over-pixelation
+                                // on tiny frames, never shrink below 1.0x.
+                                return Math.max(1.0, Math.min(isPosterPrint ? 16.0 : 8.0, maxScale));
                             })();
 
                             // Calculate push down amount so the top of the frame isn't hidden behind the header in max zoom
@@ -1666,24 +1734,25 @@ const CustomizeFramePage = ({
                                                 </div>
                                                     
                                                 {/* Matting Background */}
-                                                <div 
+                                                <div
                                                     className="absolute shadow-[0_2px_5px_rgba(0,0,0,0.15),_0_1px_2px_rgba(0,0,0,0.1)] transition-all duration-300"
                                                     style={{
                                                         top: `${mouldingPctH}%`,
                                                         bottom: `${mouldingPctH}%`,
                                                         left: `${mouldingPctW}%`,
                                                         right: `${mouldingPctW}%`,
-                                                        backgroundColor: matWidth !== 'none' ? matColor.hex : '#fff'
+                                                        backgroundColor: (!isCanvasGlazing && matWidth !== 'none') ? matColor.hex : (canvasMountStyle === 'floater' ? '#78716c' : '#fff')
                                                     }}
                                                 >
                                                     {/* Outer Mat Bevel (where mat meets frame) */}
-                                                    {matWidth !== 'none' && (
+                                                    {!isCanvasGlazing && matWidth !== 'none' && (
                                                         <>
                                                             <div className="absolute inset-0 shadow-[inset_0_1px_2px_rgba(0,0,0,0.12)] pointer-events-none z-10" />
                                                             <div className="absolute -inset-[1px] border border-white/60 pointer-events-none z-10 shadow-[0_1px_1px_rgba(0,0,0,0.1)]" />
                                                         </>
                                                     )}
                                                 </div>
+
                                             </>
                                         ) : (
                                             /* Canvas Print Rendering - 3D Edges */
@@ -1722,31 +1791,31 @@ const CustomizeFramePage = ({
 
                                     {/* Artwork Area */}
                                     {!isPreset && (
-                                        <div 
-                                            className={`absolute overflow-hidden transition-all duration-300 z-20 ${selectedFrame?.id === 'frame-canvas' ? 'shadow-[inset_0_0_0_1px_rgba(255,255,255,0.1)]' : 'shadow-[inset_0_1px_3px_rgba(0,0,0,0.1)]'}`}
+                                        <div
+                                            className={`absolute overflow-hidden transition-all duration-300 ${isCanvasGlazing && canvasMountStyle === 'traditional' ? 'z-[5]' : 'z-20'} ${selectedFrame?.id === 'frame-canvas' || isCanvasGlazing ? 'shadow-[inset_0_0_0_1px_rgba(255,255,255,0.1)]' : 'shadow-[inset_0_1px_3px_rgba(0,0,0,0.1)]'}`}
                                         style={{
-                                            top: selectedFrame?.id === 'frame-canvas' || isPreset ? '0%' : `${mouldingPctH + matPctH}%`,
-                                            bottom: selectedFrame?.id === 'frame-canvas' || isPreset ? '0%' : `${mouldingPctH + matPctH}%`,
-                                            left: selectedFrame?.id === 'frame-canvas' || isPreset ? '0%' : `${mouldingPctW + matPctW}%`,
-                                            right: selectedFrame?.id === 'frame-canvas' || isPreset ? '0%' : `${mouldingPctW + matPctW}%`,
-                                            backgroundColor: (selectedFrame?.id !== 'frame-canvas' && matWidth !== 'none' && !isPreset) ? matColor.hex : 'transparent'
+                                            top: selectedFrame?.id === 'frame-canvas' || isPreset ? '0%' : isCanvasGlazing ? (canvasMountStyle === 'floater' ? `${mouldingPctH + floaterGapPctH}%` : `${Math.max(0, mouldingPctH - traditionalOverlapPctH)}%`) : `${mouldingPctH + matPctH}%`,
+                                            bottom: selectedFrame?.id === 'frame-canvas' || isPreset ? '0%' : isCanvasGlazing ? (canvasMountStyle === 'floater' ? `${mouldingPctH + floaterGapPctH}%` : `${Math.max(0, mouldingPctH - traditionalOverlapPctH)}%`) : `${mouldingPctH + matPctH}%`,
+                                            left: selectedFrame?.id === 'frame-canvas' || isPreset ? '0%' : isCanvasGlazing ? (canvasMountStyle === 'floater' ? `${mouldingPctW + floaterGapPctW}%` : `${Math.max(0, mouldingPctW - traditionalOverlapPctW)}%`) : `${mouldingPctW + matPctW}%`,
+                                            right: selectedFrame?.id === 'frame-canvas' || isPreset ? '0%' : isCanvasGlazing ? (canvasMountStyle === 'floater' ? `${mouldingPctW + floaterGapPctW}%` : `${Math.max(0, mouldingPctW - traditionalOverlapPctW)}%`) : `${mouldingPctW + matPctW}%`,
+                                            backgroundColor: (selectedFrame?.id !== 'frame-canvas' && !isCanvasGlazing && matWidth !== 'none' && !isPreset) ? matColor.hex : 'transparent'
                                         }}
                                     >
                                         {/* Inner Mat Bevel (where mat meets artwork) */}
-                                        {selectedFrame?.id !== 'frame-canvas' && matWidth !== 'none' && !isPreset && (
+                                        {selectedFrame?.id !== 'frame-canvas' && !isCanvasGlazing && matWidth !== 'none' && !isPreset && (
                                             <div className="absolute inset-0 shadow-[0_1px_3px_rgba(0,0,0,0.2)] pointer-events-none z-30" />
                                         )}
-                                        
+
                                         {uploadedImage ? (
                                             <img
                                                 src={displayImage}
                                                 alt="Artwork"
-                                                className={`w-full h-full ${selectedFrame?.id === 'frame-canvas' || isPreset || shouldFillNoMatOpening ? 'object-cover' : 'object-contain'}`}
+                                                className={`w-full h-full ${selectedFrame?.id === 'frame-canvas' || isPreset || shouldFillNoMatOpening || isCanvasGlazing ? 'object-cover' : 'object-contain'}`}
                                                 style={{
                                                     imageRendering: '-webkit-optimize-contrast',
                                                     transform: 'translateZ(0)',
                                                     backfaceVisibility: 'hidden',
-                                                    backgroundColor: (selectedFrame?.id !== 'frame-canvas' && matWidth !== 'none' && !isPreset) ? matColor.hex : 'transparent'
+                                                    backgroundColor: (selectedFrame?.id !== 'frame-canvas' && !isCanvasGlazing && matWidth !== 'none' && !isPreset) ? matColor.hex : 'transparent'
                                                 }}
                                                 // If the browser already has this image cached (e.g. it was
                                                 // just shown in an Inspiration grid moments ago), `complete`
@@ -1830,6 +1899,13 @@ const CustomizeFramePage = ({
                         const zoneTopOffsetPx = windowSize.width >= 640 ? 56 : 48; // matches top-14 / top-12
                         const SOFA_GAP_PX = 24;
                         const sofaTopPx = zoneTopOffsetPx + (zoneSize.height / 2) + (restFrameHeightPx / 2) + SOFA_GAP_PX;
+                        // Same formula as the frame's own width/height labels
+                        // (search dimFontSizePx) — scales with the frame's
+                        // rendered width so the sofa's dimension text reads at
+                        // a consistent size relative to the frame's, instead
+                        // of a fixed size that looks oversized next to a tiny
+                        // frame or undersized next to a large one.
+                        const sofaDimFontSizePx = Math.max(8, Math.min(10, restFrameWidthPx / 12));
 
                         return (
                     <div
@@ -1848,7 +1924,7 @@ const CustomizeFramePage = ({
 
                         {/* Sofa Dimension Overlay */}
                         {showDimensions && (
-                            <div className={`relative w-[87.5%] -mt-1 flex items-center justify-center ${wallInkClass} font-mono text-[8px] sm:text-[10px] whitespace-nowrap border-b ${wallInkBorderClass} pb-0.5 ${wallInkBlend} opacity-80`}>
+                            <div style={{ fontSize: `${sofaDimFontSizePx}px` }} className={`relative w-[87.5%] mt-0 flex items-center justify-center ${wallInkClass} font-mono whitespace-nowrap border-b ${wallInkBorderClass} pb-0.5 ${wallInkBlend} opacity-80`}>
                                 <div className={`absolute left-0 bottom-0 h-1.5 sm:h-2 w-px ${wallInkBgClass}`} />
                                 <div className={`absolute right-0 bottom-0 h-1.5 sm:h-2 w-px ${wallInkBgClass}`} />
                                 Standard 2-Seater Sofa - {unit === 'in' ? (160 / 2.54).toFixed(1) : '160.0'} {unit === 'in' ? 'in' : 'cm'}
@@ -1958,8 +2034,8 @@ const CustomizeFramePage = ({
                                     <div className="w-4 h-4 border-2 border-stone-300 border-t-stone-900 rounded-full animate-spin" />
                                 ) : (
                                     <>
-                                        <ImageUp size={16} className={(!uploadedImage || uploadedImage === 'https://images.unsplash.com/photo-1526045478516-99145907023c?auto=format&fit=crop&w=1600&q=80&sat=-20&con=-10') ? 'text-stone-400' : 'text-stone-950'} />
-                                        <span className="mt-1 text-[10px] font-bold uppercase tracking-wider text-stone-750 truncate w-full">
+                                        <ImageUp size={16} className={(!uploadedImage || uploadedImage === 'https://images.unsplash.com/photo-1526045478516-99145907023c?auto=format&fit=crop&w=1600&q=80&sat=-20&con=-10') ? 'text-stone-500' : 'text-stone-950'} />
+                                        <span className="mt-1 text-[10px] font-bold uppercase tracking-wider text-stone-700 truncate w-full">
                                             {(!uploadedImage || uploadedImage === 'https://images.unsplash.com/photo-1526045478516-99145907023c?auto=format&fit=crop&w=1600&q=80&sat=-20&con=-10') ? 'Upload Image' : 'Replace Image'}
                                         </span>
                                     </>
@@ -2167,7 +2243,7 @@ const CustomizeFramePage = ({
                     {selectedFrame?.id !== 'frame-canvas' && (
                         <>
                             {/* 5. Matting */}
-                            {!isPreset && (
+                            {!isPreset && !isCanvasGlazing && (
                                 <section>
                                     <h2 className="text-xs font-bold uppercase tracking-wider text-stone-900 mb-3 flex items-center gap-2">
                                         <span className="bg-stone-100 text-stone-500 w-5 h-5 rounded-full flex items-center justify-center text-[10px]">{stepMatting}</span>
@@ -2231,10 +2307,12 @@ const CustomizeFramePage = ({
                                         { id: 'standard', name: 'Standard Acrylic', desc: 'Clear, lightweight protection.', price: 0 },
                                         { id: 'non-glare', name: 'Non-Glare Acrylic', desc: 'Reduces reflections in bright rooms.', price: 100 },
                                         { id: 'museum', name: 'Museum Glass', desc: '99% UV protection, zero reflection.', price: 200 },
+                                        { id: 'canvas-traditional', name: 'Traditional Canvas', desc: "Frame's inner lip overlaps the canvas edges — classic, gallery-glass-free look.", price: 350 },
+                                        { id: 'canvas-floater', name: 'Floater Canvas', desc: 'Canvas floats with a reveal gap inside the frame — modern, gallery-style.', price: 400 },
                                     ].map(glass => (
                                         <button
                                             key={glass.id}
-                                            onClick={() => setGlassType(glass.id)}
+                                            onClick={() => { setGlassType(glass.id); if (glass.id === 'canvas-floater' || glass.id === 'canvas-traditional') setMatWidth('none'); }}
                                             className={`w-full flex items-center justify-between p-3 rounded-xl border text-left transition-all ${glassType === glass.id ? 'border-stone-900 bg-stone-50 shadow-sm' : 'border-stone-200 hover:border-stone-300'}`}
                                         >
                                             <div>
@@ -2305,8 +2383,10 @@ const CustomizeFramePage = ({
                         <Price
                             amount={
                                 Math.round((selectedSize?.price || 0) * (selectedFrame?.priceMod || 1)) +
-                                (selectedFrame?.id !== 'frame-canvas' && matWidth !== 'none' ? (matColor.price || 75) : 0) +
+                                (selectedFrame?.id !== 'frame-canvas' && glassType !== 'canvas-floater' && glassType !== 'canvas-traditional' && matWidth !== 'none' ? (matColor.price || 75) : 0) +
                                 (selectedFrame?.id !== 'frame-canvas' ? (glassType === 'non-glare' ? 100 : glassType === 'museum' ? 200 : 0) : 0) +
+            (selectedFrame?.id !== 'frame-canvas' && glassType === 'canvas-floater' ? 400 : 0) +
+            (selectedFrame?.id !== 'frame-canvas' && glassType === 'canvas-traditional' ? 350 : 0) +
                                 (hardwareType === 'french-cleat' ? 50 : 0)
                             }
                             className="text-lg font-bold text-stone-900 tracking-tight"

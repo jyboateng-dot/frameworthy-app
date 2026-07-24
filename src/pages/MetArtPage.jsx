@@ -62,6 +62,9 @@ const MetProductCard = ({ product, onGetThis }) => {
                 <h3 className="text-sm text-stone-900 font-medium leading-tight truncate" title={product.title}>{product.title}</h3>
                 <p className="text-xs text-stone-500 truncate">{product.artist}</p>
                 <p className="text-[10px] text-stone-500 font-light leading-snug">{formatDimensions(dims, unit, product.orientation)}</p>
+                <div className="flex items-center gap-2 text-[10px] uppercase tracking-wider mt-1">
+                    <button onClick={() => onGetThis(product)} className="text-stone-900 hover:text-stone-700 font-bold transition-colors duration-150">Get This</button>
+                </div>
             </div>
         </div>
     );

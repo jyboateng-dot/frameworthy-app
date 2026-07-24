@@ -13,7 +13,7 @@ const CustomizeFramePage = lazy(() => import('./pages/framing/CustomizeFramePage
 const CheckoutPage = lazy(() => import('./pages/checkout/CheckoutPage'));
 const SuccessPage = lazy(() => import('./pages/SuccessPage'));
 const InspirationPage = lazy(() => import('./pages/InspirationPage'));
-const SizeGuidePage = lazy(() => import('./pages/SizeGuidePage'));
+// SizeGuidePage stashed for now — route/import removed below, file left on disk.
 const PrestigePaintingsPage = lazy(() => import('./pages/PrestigePaintingsPage'));
 const OriginalPaintingsPage = lazy(() => import('./pages/OriginalPaintingsPage'));
 const CanvasArtPage = lazy(() => import('./pages/CanvasArtPage'));
@@ -182,7 +182,7 @@ const AppLayout = () => {
             setGlassType={setGlassType}
             hardwareType={hardwareType}
             setHardwareType={setHardwareType}
-            
+
             activeLayout={activeLayout}
             setActiveLayout={setActiveLayout}
             collageImages={collageImages}
@@ -258,15 +258,7 @@ const AppLayout = () => {
           />
         } />
 
-        <Route path="/size-guide" element={
-          <SizeGuidePage
-            setSelectedSize={setSelectedSize}
-            setProductMode={setProductMode}
-            navigate={navigate}
-          />
-        } />
-
-        <Route path="/terms" element={<TermsPage navigate={navigate} />} />
+<Route path="/terms" element={<TermsPage navigate={navigate} />} />
         <Route path="/privacy" element={<PrivacyPage navigate={navigate} />} />
         <Route path="/refund-policy" element={<RefundPolicyPage navigate={navigate} />} />
 

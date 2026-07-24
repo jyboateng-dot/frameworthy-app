@@ -3,7 +3,7 @@ import { getPrintQualityJpegUrl } from '../services/storage';
 // Shared human-readable labels — kept here so the cart/checkout description
 // string and the admin fulfillment view (OrderDetailModal) never drift out
 // of sync with each other.
-export const GLASS_LABELS = { standard: 'Standard Acrylic', 'non-glare': 'Non-Glare Acrylic', museum: 'Museum Glass' };
+export const GLASS_LABELS = { standard: 'Standard Acrylic', 'non-glare': 'Non-Glare Acrylic', museum: 'Museum Glass', 'canvas-traditional': 'Traditional Canvas', 'canvas-floater': 'Floater Canvas' };
 export const HARDWARE_LABELS = { wire: 'Wire Hanging', sawtooth: 'Sawtooth Hanger', 'french-cleat': 'French Cleat', easel: 'Tabletop Easel' };
 export const MAT_WIDTH_LABELS = { none: 'No Mat', narrow: 'Narrow Mat', standard: 'Standard Mat', wide: 'Wide Mat' };
 

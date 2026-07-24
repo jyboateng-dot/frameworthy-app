@@ -59,6 +59,9 @@ const ProductCard = ({ product, onGetThis }) => {
                 </div>
                 <p className="text-[10px] text-stone-500 font-light leading-snug">{formatDimensions(product.dims, unit)}</p>
                 <p className="text-xs text-stone-500">{product.artist}</p>
+                <div className="flex items-center gap-2 text-[10px] uppercase tracking-wider mt-1">
+                    <button onClick={() => onGetThis(product)} className="text-stone-900 hover:text-stone-700 font-bold transition-colors duration-150">Get This</button>
+                </div>
             </div>
         </div>
     );

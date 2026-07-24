@@ -185,9 +185,9 @@ const InspirationPage = ({ setProductMode, setSelectedFrame, setSelectedSize, na
             { id: 'prestige', label: 'Prestige Paintings' },
             { id: 'canvas', label: 'Canvas Art' },
             { id: 'glossy', label: 'Glossy Art' },
-            { id: 'web', label: 'Web Images' },
-            { id: 'met', label: 'Met Museum Collection' },
             { id: 'albums', label: 'Album Artwork' },
+            { id: 'met', label: 'Met Museum Collection' },
+            { id: 'web', label: 'Web Images' },
             { id: 'movies', label: 'Movie Posters' },
             { id: 'inspiration', label: 'Framed Prints' },
         ];

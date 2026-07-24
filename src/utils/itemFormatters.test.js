@@ -139,7 +139,7 @@ describe('formatOrderForClient', () => {
 
 describe('label maps stay in sync with the values used elsewhere in the app', () => {
     it('covers the expected glass, hardware, and mat-width codes', () => {
-        expect(Object.keys(GLASS_LABELS)).toEqual(['standard', 'non-glare', 'museum']);
+        expect(Object.keys(GLASS_LABELS)).toEqual(['standard', 'non-glare', 'museum', 'canvas-traditional', 'canvas-floater']);
         expect(Object.keys(HARDWARE_LABELS)).toEqual(['wire', 'sawtooth', 'french-cleat', 'easel']);
         expect(Object.keys(MAT_WIDTH_LABELS)).toEqual(['none', 'narrow', 'standard', 'wide']);
     });

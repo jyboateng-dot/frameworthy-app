@@ -54,10 +54,5 @@ export const CAROUSEL_SLIDES = [
         img: '/landing_carousel/slide-9.jpg',
         title: "Showcase the Best",
         text: "Display your most cherished moments in stunning large format."
-    },
-    {
-        img: '/landing_carousel/slide-10.jpg',
-        title: "Size Guide",
-        text: "Find the perfect fit for your space with our intuitive sizing references."
     }
 ];

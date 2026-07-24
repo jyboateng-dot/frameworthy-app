@@ -46,6 +46,9 @@ const AlbumProductCard = ({ product, onGetThis }) => {
                 <h3 className="text-sm font-bold text-stone-900 leading-tight truncate" title={product.title}>{product.title}</h3>
                 <p className="text-xs text-stone-500 truncate mt-0.5">{product.artist}</p>
                 {product.year && <p className="text-[10px] text-stone-400 mt-1">{product.year}</p>}
+                <div className="flex items-center gap-2 text-[10px] uppercase tracking-wider mt-1">
+                    <button onClick={() => onGetThis(product)} className="text-stone-900 hover:text-stone-700 font-bold transition-colors duration-150">Get This</button>
+                </div>
             </div>
         </div>
     );
@@ -367,14 +370,14 @@ const AlbumArtPage = ({ setProductMode, setSelectedFrame, setSelectedSize, navig
                                     Previous
                                 </button>
                                 
-                                <div className="flex gap-1">
+                                <div className="flex gap-1 min-w-0 max-w-full overflow-x-auto no-scrollbar">
                                     {Array.from({ length: totalPages }, (_, i) => i + 1).map(pageNum => (
                                         <button
                                             key={pageNum}
                                             onClick={() => { setCurrentPage(pageNum); scrollToTop(); }}
-                                            className={`w-8 h-8 flex items-center justify-center rounded-sm text-sm transition-colors ${
-                                                currentPage === pageNum 
-                                                ? 'bg-stone-900 text-white' 
+                                            className={`flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-sm text-sm transition-colors ${
+                                                currentPage === pageNum
+                                                ? 'bg-stone-900 text-white'
                                                 : 'text-stone-500 hover:bg-stone-200'
                                             }`}
                                         >
