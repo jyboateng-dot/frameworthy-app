@@ -9,7 +9,9 @@ import {
     ImageUp,
     ChevronDown,
     Info,
-    Loader
+    Loader,
+    Maximize2,
+    X
 } from 'lucide-react';
 import { FRAME_STYLES, FRAME_SIZES, MAT_COLORS, formatDimensions, findSizeByDimension } from '../../data/constants';
 import WEB_MET_DIMS from '../../data/web_met_dims.json';
@@ -18,12 +20,12 @@ import { useCart } from '../../context/CartContext';
 import { uploadImageToCloud, getThumbnailUrl } from '../../services/storage';
 import FrameSelectionModal from '../../components/FrameSelectionModal';
 import MetArtSelectionModal from '../../components/MetArtSelectionModal';
-import InspirationSelectionModal from '../../components/InspirationSelectionModal';
 import { renderAlbumPoster } from '../../utils/albumPoster';
 import { renderMoviePoster } from '../../utils/moviePoster';
 import { useAuth } from '../../context/AuthContext';
 import AuthModal from '../../components/AuthModal';
 import Price from '../../components/common/Price';
+import { visualizerFullScreenState } from '../../utils/visualizerFullScreenState';
 
 // High-fidelity 3D side gradients for the frame
 const getSideBackground = (side, frame) => {
@@ -149,10 +151,19 @@ const CustomizeFramePage = ({
     const [isWallPickerOpen, setIsWallPickerOpen] = useState(false);
     const [isDimPickerOpen, setIsDimPickerOpen] = useState(false);
     const [isMetModalOpen, setIsMetModalOpen] = useState(false);
-    const [isInspirationModalOpen, setIsInspirationModalOpen] = useState(false);
     const [selectedUploadId, setSelectedUploadId] = useState(null);
     const [isHovered, setIsHovered] = useState(false);
     const [isMaxZoom, setIsMaxZoom] = useState(false);
+    const [isFullScreen, setIsFullScreen] = useState(false);
+    // Decoupled from isFullScreen so entering/exiting can crossfade instead
+    // of hard-cutting: isFullScreen controls which layout (docked vs.
+    // full-screen) is mounted, paneVisible controls that pane's own
+    // opacity/scale, applied to BOTH layouts — see enterFullScreen/
+    // exitFullScreen below. Defaults true because the docked pane needs no
+    // fade-in on the very first render, only right after returning from
+    // full screen.
+    const [paneVisible, setPaneVisible] = useState(true);
+    const fullScreenCloseTimeoutRef = useRef(null);
     const hoverTimeoutRef = useRef(null);
     const lastTapRef = useRef(0);
     const zoneRef = useRef(null);
@@ -228,12 +239,11 @@ const CustomizeFramePage = ({
     
     // Canonical interpretation of an Inspiration selection ("Get This" from any
     // category). This is THE single place that maps a selection's state object
-    // onto the Frame Studio — used identically by both entry points:
-    //  - real navigation (header/hamburger → /inspiration → navigate here with
-    //    location.state), via the Initial Setup effect below
-    //  - the in-studio Inspiration modal (InspirationSelectionModal forwards the
-    //    same state object through its onApplySelection prop)
-    // Add new fields/categories HERE and both paths pick them up automatically.
+    // onto the Frame Studio — reached via real navigation (any entry point,
+    // including the in-studio Inspiration trigger below, → /inspiration →
+    // navigate here with location.state), picked up by the Initial Setup
+    // effect below. Add new fields/categories HERE and it's picked up
+    // automatically regardless of which entry point led here.
     const applyInspirationSelection = (state) => {
         if (!state) return;
 
@@ -375,6 +385,119 @@ const CustomizeFramePage = ({
         observer.observe(zoneRef.current);
         return () => observer.disconnect();
     }, []);
+
+    // Full-screen visualizer: reset hover/max-zoom on every transition so
+    // zoom state computed against one container size (pane vs. viewport)
+    // never carries over into the other.
+    // Deliberately quicker than the frame's own hover-zoom (duration-700) —
+    // entering/exiting full screen is a mode switch the user wants to
+    // happen right away, not a leisurely hover effect, so it uses a
+    // brisker pace. Must match the pane's own duration-300 transition class
+    // below (and the dashboard's), since this is also how long enter/exit
+    // waits before actually swapping the docked/full-screen layout.
+    const FULL_SCREEN_TRANSITION_MS = 300;
+
+    const enterFullScreen = () => {
+        if (fullScreenCloseTimeoutRef.current) {
+            clearTimeout(fullScreenCloseTimeoutRef.current);
+            fullScreenCloseTimeoutRef.current = null;
+        }
+        setIsHovered(false);
+        setIsMaxZoom(false);
+        // Fade the CURRENT docked view out first — dashboard included,
+        // since it shares paneVisible — then swap to the full-screen layout
+        // only once that's finished. Mirrors exitFullScreen so both
+        // directions are symmetric: the hard cut (dashboard un/remounting,
+        // fixed vs. relative positioning, which can't itself be animated)
+        // always happens while nothing is visible. This used to flip
+        // isFullScreen instantly in the same tick as paneVisible, which
+        // yanked the dashboard out of the DOM with no fade at all (it can
+        // only fade while still mounted) at the exact instant the pane's
+        // own geometry snapped to full-screen — that combination was the
+        // glitchy entry transition.
+        setPaneVisible(false);
+        fullScreenCloseTimeoutRef.current = setTimeout(() => {
+            setIsFullScreen(true);
+            fullScreenCloseTimeoutRef.current = null;
+        }, FULL_SCREEN_TRANSITION_MS);
+    };
+    const exitFullScreen = () => {
+        if (fullScreenCloseTimeoutRef.current) {
+            clearTimeout(fullScreenCloseTimeoutRef.current);
+            fullScreenCloseTimeoutRef.current = null;
+        }
+        setIsHovered(false);
+        setIsMaxZoom(false);
+        // Fade/scale out first, then swap back to the docked layout only
+        // once that's finished, so the hard cut (fixed-position pane
+        // collapsing back into the normal flex layout, dashboard
+        // remounting) always happens while fully invisible instead of
+        // mid-transition. paneVisible stays false across that swap — see
+        // the effect below, which is what actually fades the docked view
+        // back in afterward. Without that, the docked branch would render
+        // at full opacity the instant it remounts (it has no "just
+        // arrived" state of its own), snapping straight to its final size
+        // right as everything else pops back in — the glitch this fixes.
+        setPaneVisible(false);
+        fullScreenCloseTimeoutRef.current = setTimeout(() => {
+            setIsFullScreen(false);
+            fullScreenCloseTimeoutRef.current = null;
+        }, FULL_SCREEN_TRANSITION_MS);
+    };
+
+    // Whichever layout we just switched to (full-screen on enter, docked on
+    // exit) was mounted invisible — see enterFullScreen/exitFullScreen above
+    // — so it can fade in the same way in both directions. Runs on every
+    // isFullScreen flip, not just entering: React bails out harmlessly if
+    // paneVisible is already true (e.g. on initial mount).
+    //
+    // A single requestAnimationFrame isn't reliably enough of a delay
+    // either — it can still land in the same paint as the state change
+    // that mounted the invisible layout, so that starting state never
+    // actually gets painted and the fade-in silently no-ops. The standard
+    // fix is a double rAF: the first callback runs right before a repaint
+    // (guaranteeing the invisible state has been painted by the time it
+    // fires), and only the SECOND rAF — scheduled from inside the first —
+    // reliably lands on the next-next frame, after that paint has happened.
+    useEffect(() => {
+        let raf2 = null;
+        const raf1 = requestAnimationFrame(() => {
+            raf2 = requestAnimationFrame(() => setPaneVisible(true));
+        });
+        return () => {
+            cancelAnimationFrame(raf1);
+            if (raf2 !== null) cancelAnimationFrame(raf2);
+        };
+    }, [isFullScreen]);
+
+    useEffect(() => {
+        return () => {
+            if (fullScreenCloseTimeoutRef.current) clearTimeout(fullScreenCloseTimeoutRef.current);
+        };
+    }, []);
+
+    // Escape closes full screen on desktop (mirrors the X button).
+    useEffect(() => {
+        if (!isFullScreen) return;
+        const handleKeyDown = (e) => {
+            if (e.key === 'Escape') exitFullScreen();
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isFullScreen]);
+
+    // Lets App.jsx's Android hardware-back-button handler close full screen
+    // instead of navigating back a page — see visualizerFullScreenState.js.
+    useEffect(() => {
+        visualizerFullScreenState.isActive = isFullScreen;
+        visualizerFullScreenState.close = isFullScreen ? exitFullScreen : null;
+        return () => {
+            visualizerFullScreenState.isActive = false;
+            visualizerFullScreenState.close = null;
+        };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isFullScreen]);
 
     // Met Selection handler — routes through applyInspirationSelection (the
     // file's single canonical selection handler) instead of only setting
@@ -865,23 +988,57 @@ const CustomizeFramePage = ({
     
     const stepHardware = stepCounter++;
 
+    // The dimension labels/tick-marks and disclaimer note are rendered
+    // directly against the wall color using text-stone-800/600 plus
+    // mix-blend-color-burn/multiply — a deliberate "etched into the wall"
+    // look that only reads clearly on light walls. Color-burn and multiply
+    // both DARKEN, so on the darker solid wall colors (navy, charcoal,
+    // teal, etc.) that combination crushes dark text into near-black-on-
+    // near-black instead of standing out. Once the wall is dark enough that
+    // treatment stops working, switch to plain light text with no blend
+    // mode, which stays legible against any solid color.
+    const wallLuminance = (() => {
+        const hex = wallColor.hex.replace('#', '');
+        const r = parseInt(hex.substring(0, 2), 16);
+        const g = parseInt(hex.substring(2, 4), 16);
+        const b = parseInt(hex.substring(4, 6), 16);
+        return (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+    })();
+    const isDarkWall = wallLuminance < 0.5;
+    const wallInkClass = isDarkWall ? 'text-stone-100' : 'text-stone-800';
+    const wallInkBorderClass = isDarkWall ? 'border-stone-100' : 'border-stone-800';
+    const wallInkBgClass = isDarkWall ? 'bg-stone-100' : 'bg-stone-800';
+    const wallInkBlend = isDarkWall ? '' : 'mix-blend-color-burn';
+    const wallNoteClass = isDarkWall ? 'text-stone-100/85' : 'text-stone-600/70';
+    const wallNoteBlend = isDarkWall ? '' : 'mix-blend-multiply';
+
     if (!selectedSize || !selectedFrame) return <div className="min-h-screen bg-[#faf9f8]" />;
 
     return (
         <div className={`flex ${isSideBySide ? 'flex-row h-[calc(100dvh-56px)] overflow-hidden' : 'flex-col min-h-[calc(100dvh-56px)]'} bg-[#faf9f8]`}>
             
             {/* LEFT: IMMERSIVE VISUALIZER */}
-            <div 
-                className={`shrink-0 relative flex items-center justify-center border-r border-stone-200 transition-all duration-700 ease-in-out ${isMaxZoom ? 'overflow-auto' : 'overflow-hidden'} [scrollbar-gutter:stable] ${isSideBySide ? 'w-[70%] h-auto shrink' : 'w-full'}`} 
-                style={{ 
+            <div
+                className={`flex items-center justify-center transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${isMaxZoom ? 'overflow-auto' : 'overflow-hidden'} [scrollbar-gutter:stable] ${paneVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-95'} ${
+                    isFullScreen
+                        ? 'fixed inset-0 z-[250]'
+                        : `shrink-0 relative border-r border-stone-200 ${isSideBySide ? 'w-[70%] h-auto shrink' : 'w-full'}`
+                }`}
+                style={{
                     backgroundColor: wallColor.hex,
-                    height: !isSideBySide ? `${visualizerMetrics.height}px` : undefined 
+                    height: (!isFullScreen && !isSideBySide) ? `${visualizerMetrics.height}px` : undefined
                 }}
             >
 
                 
-                {/* Wall Color Palette - Floating Top Right */}
-                <div className="absolute top-3 right-3 sm:top-6 sm:right-6 z-20">
+                {/* Wall Color Palette - Floating Top Right (fades out in the
+                    full-screen enhanced view — chrome-free by design — and
+                    also while double-tap/double-click max-zoom is active,
+                    since that's its own immersive "get in close" mode where
+                    this chrome would just clutter the zoomed frame — rather
+                    than hard-unmounting, so it's a smooth part of the same
+                    transition instead of an instant pop) */}
+                <div className={`absolute top-3 right-3 sm:top-6 sm:right-6 z-20 transition-opacity duration-300 ${(isFullScreen || isMaxZoom) ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
                     <button
                         onClick={() => setIsWallPickerOpen(!isWallPickerOpen)}
                         className="flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1.5 rounded-full border border-stone-200 shadow-sm hover:shadow-md transition-all bg-white/95 backdrop-blur text-stone-700 font-semibold text-xs ml-auto"
@@ -920,8 +1077,10 @@ const CustomizeFramePage = ({
                     </div>
                 </div>
 
-                {/* Dimension Toggle & Unit Selector - Dynamic Pill */}
-                <div className="absolute top-3 left-3 sm:top-6 sm:left-6 z-20 flex items-stretch bg-white/95 backdrop-blur border border-stone-200 rounded-full shadow-sm hover:shadow-md transition-all overflow-hidden h-8 sm:h-9">
+                {/* Dimension Toggle & Unit Selector - Dynamic Pill (fades out
+                    in the full-screen enhanced view and during max-zoom,
+                    same treatment as the Wall Color palette above) */}
+                <div className={`absolute top-3 left-3 sm:top-6 sm:left-6 z-20 flex items-stretch bg-white/95 backdrop-blur border border-stone-200 rounded-full shadow-sm hover:shadow-md transition-all overflow-hidden h-8 sm:h-9 duration-300 ${(isFullScreen || isMaxZoom) ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
                     <button
                         onClick={() => setShowDimensions(!showDimensions)}
                         className={`flex items-center gap-1.5 px-3 h-full text-xs font-semibold transition-colors ${
@@ -930,7 +1089,6 @@ const CustomizeFramePage = ({
                         title="Toggle Dimensions"
                     >
                         <Ruler size={14} className="shrink-0" />
-                        <span className="hidden sm:inline">Dimensions</span>
                     </button>
                     
                     {/* Unit Toggles (Slide in/out) */}
@@ -982,7 +1140,11 @@ const CustomizeFramePage = ({
                     {/* ── FRAME POSITIONING ZONE ── */}
                     <div
                         ref={zoneRef}
-                        className="absolute left-0 top-12 sm:top-14 w-full h-[calc(65%-3rem)] sm:h-[calc(65%-3.5rem)] flex flex-col items-center justify-center transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]"
+                        className={`absolute left-0 w-full flex flex-col items-center justify-center transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+                            isFullScreen
+                                ? 'top-0 h-full'
+                                : 'top-12 sm:top-14 h-[calc(65%-3rem)] sm:h-[calc(65%-3.5rem)]'
+                        }`}
                     >
 
                         {/* ── THE FRAME ── */}
@@ -1020,31 +1182,42 @@ const CustomizeFramePage = ({
                                 // isMaxZoom alone (without isHovered) is how touch double-tap
                                 // drives this — touch devices never fire mouseenter, so gating
                                 // purely on isHovered left double-tap zoom permanently inert on
-                                // mobile/tablet.
-                                if (!isHovered && !isMaxZoom) return 1.0;
-                                
+                                // mobile/tablet. Full screen always computes a scale (the
+                                // "enhanced" standalone view) regardless of hover/tap state —
+                                // there's no sofa/dashboard to preserve physical scale against
+                                // once those are hidden, so it's always shown as large as
+                                // possible instead of requiring a hover to reveal that.
+                                if (!isHovered && !isMaxZoom && !isFullScreen) return 1.0;
+
                                 // Calculate unzoomed dimensions in pixels relative to the physical container
                                 const baseWidthPx = (frameWidthPct / 100) * zoneSize.width;
                                 const baseHeightPx = baseWidthPx * (hInch / wInch);
-                                
-                                // Safe zoom boundaries: never exceed 90% of zone height or 85% of zone width
+
+                                // Safe zoom boundaries: never exceed 90% of zone height or 85% of
+                                // zone width — except in full screen, which reserves extra room at
+                                // the bottom (78% cap instead of 90%) for the disclaimer caption
+                                // rendered below, so the frame and that text never compete for the
+                                // same space.
                                 const maxZoomWidthPx = zoneSize.width * 0.85;
-                                const maxZoomHeightPx = zoneSize.height * 0.90;
-                                
+                                const maxZoomHeightPx = zoneSize.height * (isFullScreen ? 0.78 : 0.90);
+
                                 const safeBaseW = baseWidthPx > 0 ? baseWidthPx : 1;
                                 const safeBaseH = baseHeightPx > 0 ? baseHeightPx : 1;
-                                
+
                                 const scaleW = maxZoomWidthPx / safeBaseW;
                                 const scaleH = maxZoomHeightPx / safeBaseH;
-                                
+
                                 // Max possible scale that fits safely inside the visual bounds
                                 let maxScale = Math.min(scaleW, scaleH);
-                                
-                                if (isMaxZoom) {
-                                    // Deep inspection mode: push past boundaries if necessary (but don't get completely ridiculous)
+
+                                if (isMaxZoom && !isFullScreen) {
+                                    // Deep inspection mode: push past boundaries if necessary (but
+                                    // don't get completely ridiculous). Skipped in full screen —
+                                    // it's already at its largest fit-to-screen size there, so
+                                    // there's nothing further for a double-tap to usefully do.
                                     return Math.max(3.5, maxScale * 2.25);
                                 }
-                                
+
                                 // Cap at 8.0x to prevent over-pixelation on tiny frames, never shrink below 1.0x
                                 return Math.max(1.0, Math.min(8.0, maxScale));
                             })();
@@ -1115,14 +1288,14 @@ const CustomizeFramePage = ({
                                         if (isHovered) setIsMaxZoom(!isMaxZoom);
                                     }}
                                     className={`relative shadow-[0_25px_50px_rgba(0,0,0,0.3)] select-none transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] ${
-                                        isMaxZoom ? 'cursor-zoom-out' : 'cursor-zoom-in'
+                                        isMaxZoom && !isFullScreen ? 'cursor-zoom-out' : isFullScreen ? '' : 'cursor-zoom-in'
                                     } ${
-                                        isHovered || isMaxZoom
+                                        isHovered || isMaxZoom || isFullScreen
                                             ? 'shadow-[0_50px_100px_rgba(0,0,0,0.55)] z-40'
                                             : 'z-10'
                                     }`}
                                     style={{
-                                        width: isHovered || isMaxZoom
+                                        width: isHovered || isMaxZoom || isFullScreen
                                             ? `${frameWidthPct * zoomScale}%`
                                             : `${frameWidthPct}%`,
                                         aspectRatio: `${wInch} / ${hInch}`,
@@ -1151,17 +1324,19 @@ const CustomizeFramePage = ({
                                         </svg>
                                     </div>
 
-                                    {/* Dimension Overlays */}
+                                    {/* Dimension Overlays (fade out in the
+                                        full-screen enhanced view — chrome-free
+                                        by design — instead of hard-unmounting) */}
                                     {showDimensions && (
                                         <>
-                                            <div style={{ fontSize: `${dimFontSizePx}px` }} className={`absolute ${dimTopClass} left-0 w-full flex items-center justify-center text-stone-800 font-mono border-t border-stone-800 pt-1 mix-blend-color-burn opacity-80 whitespace-nowrap overflow-visible pointer-events-none`}>
-                                                <div className="absolute left-0 top-0 h-1.5 sm:h-2 w-px bg-stone-800" />
-                                                <div className="absolute right-0 top-0 h-1.5 sm:h-2 w-px bg-stone-800" />
+                                            <div style={{ fontSize: `${dimFontSizePx}px` }} className={`absolute ${dimTopClass} left-0 w-full flex items-center justify-center ${wallInkClass} font-mono border-t ${wallInkBorderClass} pt-1 ${wallInkBlend} ${isFullScreen ? 'opacity-0' : 'opacity-80'} transition-opacity duration-300 whitespace-nowrap overflow-visible pointer-events-none`}>
+                                                <div className={`absolute left-0 top-0 h-1.5 sm:h-2 w-px ${wallInkBgClass}`} />
+                                                <div className={`absolute right-0 top-0 h-1.5 sm:h-2 w-px ${wallInkBgClass}`} />
                                                 {unit === 'in' ? wInch.toFixed(1) : innerWidthCm.toFixed(1)} {unit === 'in' ? 'in' : 'cm'}
                                             </div>
-                                            <div style={{ fontSize: `${dimFontSizePx}px` }} className={`absolute ${dimRightClass} top-0 h-full flex flex-col items-center justify-center text-stone-800 font-mono border-r border-stone-800 pr-1 mix-blend-color-burn opacity-80 whitespace-nowrap overflow-visible pointer-events-none`}>
-                                                <div className="absolute right-0 top-0 w-1.5 sm:w-2 h-px bg-stone-800" />
-                                                <div className="absolute right-0 bottom-0 w-1.5 sm:w-2 h-px bg-stone-800" />
+                                            <div style={{ fontSize: `${dimFontSizePx}px` }} className={`absolute ${dimRightClass} top-0 h-full flex flex-col items-center justify-center ${wallInkClass} font-mono border-r ${wallInkBorderClass} pr-1 ${wallInkBlend} ${isFullScreen ? 'opacity-0' : 'opacity-80'} transition-opacity duration-300 whitespace-nowrap overflow-visible pointer-events-none`}>
+                                                <div className={`absolute right-0 top-0 w-1.5 sm:w-2 h-px ${wallInkBgClass}`} />
+                                                <div className={`absolute right-0 bottom-0 w-1.5 sm:w-2 h-px ${wallInkBgClass}`} />
                                                 <span style={{ writingMode: 'vertical-rl' }}>{unit === 'in' ? hInch.toFixed(1) : innerHeightCm.toFixed(1)} {unit === 'in' ? 'in' : 'cm'}</span>
                                             </div>
                                         </>
@@ -1352,10 +1527,13 @@ const CustomizeFramePage = ({
                         );
                     })()}
                         
-                        {/* Zoomed-In Disclaimer (flows below frame on hover) */}
+                        {/* Zoomed-In Disclaimer (flows below frame on hover —
+                            reuses this same hover-driven fade to also hide in
+                            the full-screen enhanced view, rather than a
+                            separate hard-unmount) */}
                         <div
-                            className={`text-[7px] sm:text-[9px] text-stone-600/70 select-none pointer-events-none text-center font-medium mix-blend-multiply px-2 leading-relaxed tracking-wide transition-all duration-500 mt-6 z-20 flex flex-col items-center ${
-                                isHovered || isMaxZoom ? 'opacity-100 scale-100 translate-y-0' : 'opacity-0 scale-95 translate-y-2 h-0 overflow-hidden mt-0'
+                            className={`text-[7px] sm:text-[9px] ${wallNoteClass} select-none pointer-events-none text-center font-medium ${wallNoteBlend} px-2 leading-relaxed tracking-wide transition-all duration-500 mt-6 z-20 flex flex-col items-center ${
+                                (isHovered || isMaxZoom) && !isFullScreen ? 'opacity-100 scale-100 translate-y-0' : 'opacity-0 scale-95 translate-y-2 h-0 overflow-hidden mt-0'
                             }`}
                         >
                             <span className="whitespace-nowrap">Note: Visualizer renderings are digital approximations. Finished products will feature</span>
@@ -1363,14 +1541,18 @@ const CustomizeFramePage = ({
                         </div>
                     </div>
 
-                    {/* ── SCALE REFERENCE: 160cm Sofa ── */}
-                    <div 
+                    {/* ── SCALE REFERENCE: 160cm Sofa ── (the "reference
+                        artefact" — fades out via the same hover-driven
+                        opacity transition it already had, rather than
+                        hard-unmounting, for the full-screen enhanced view
+                        which shows the frame standalone) */}
+                    <div
                         className={`absolute bottom-5 left-1/2 -translate-x-1/2 w-[48%] pointer-events-none flex flex-col items-center justify-end transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] ${
-                            isHovered || isMaxZoom ? 'opacity-0 scale-75 translate-y-10' : 'opacity-100 scale-100 translate-y-0'
+                            isHovered || isMaxZoom || isFullScreen ? 'opacity-0 scale-75 translate-y-10' : 'opacity-100 scale-100 translate-y-0'
                         }`}
                     >
                         <div className="relative w-full">
-                            <svg viewBox="0 0 800 250" className="w-full h-auto text-stone-900 opacity-[0.12]" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                            <svg viewBox="0 0 800 250" className={`w-full h-auto ${isDarkWall ? 'text-stone-100' : 'text-stone-900'} opacity-[0.12]`} fill="currentColor" xmlns="http://www.w3.org/2000/svg">
                                 <path d="M50 250 L750 250 L750 150 L700 150 L700 200 L100 200 L100 150 L50 150 Z" />
                                 <rect x="120" y="100" width="270" height="100" rx="10" />
                                 <rect x="410" y="100" width="270" height="100" rx="10" />
@@ -1379,23 +1561,64 @@ const CustomizeFramePage = ({
 
                         {/* Sofa Dimension Overlay */}
                         {showDimensions && (
-                            <div className="relative w-[87.5%] -mt-1 flex items-center justify-center text-stone-800 font-mono text-[8px] sm:text-[10px] whitespace-nowrap border-b border-stone-800 pb-0.5 mix-blend-color-burn opacity-80">
-                                <div className="absolute left-0 bottom-0 h-1.5 sm:h-2 w-px bg-stone-800" />
-                                <div className="absolute right-0 bottom-0 h-1.5 sm:h-2 w-px bg-stone-800" />
+                            <div className={`relative w-[87.5%] -mt-1 flex items-center justify-center ${wallInkClass} font-mono text-[8px] sm:text-[10px] whitespace-nowrap border-b ${wallInkBorderClass} pb-0.5 ${wallInkBlend} opacity-80`}>
+                                <div className={`absolute left-0 bottom-0 h-1.5 sm:h-2 w-px ${wallInkBgClass}`} />
+                                <div className={`absolute right-0 bottom-0 h-1.5 sm:h-2 w-px ${wallInkBgClass}`} />
                                 Standard 2-Seater Sofa - {unit === 'in' ? (160 / 2.54).toFixed(1) : '160.0'} {unit === 'in' ? 'in' : 'cm'}
                             </div>
                         )}
-                        <div className="text-[7px] sm:text-[9px] text-stone-600/70 select-none text-center font-medium mix-blend-multiply px-2 leading-tight tracking-wide mt-1 translate-y-1.5 flex flex-col items-center">
+                        <div className={`text-[7px] sm:text-[9px] ${wallNoteClass} select-none text-center font-medium ${wallNoteBlend} px-2 leading-tight tracking-wide mt-1 translate-y-1.5 flex flex-col items-center`}>
                             <span className="whitespace-nowrap">Note: Visualizer renderings are digital approximations. Finished products will feature</span>
                             <span className="whitespace-nowrap">the exact physical moulding profiles, textures, and details shown in our catalogue.</span>
                         </div>
                     </div>
 
                 </div>
+
+                {/* Full-Screen Disclaimer Caption — the sofa reference (and
+                    its own copy of this note) is hidden in full screen, so
+                    this is the only place the disclaimer still appears there.
+                    Reserved its own space at the bottom via the zoomScale
+                    height cap above rather than overlaying the frame, and
+                    centered above the toggle button rather than sharing its
+                    corner so the two never crowd each other. */}
+                {isFullScreen && (
+                    <div
+                        className={`absolute bottom-4 sm:bottom-6 left-1/2 -translate-x-1/2 max-w-[92%] sm:max-w-[70%] text-center text-xs sm:text-sm ${isDarkWall ? 'text-stone-100/90' : 'text-stone-600/80'} select-none pointer-events-none font-medium ${wallNoteBlend} px-2 leading-relaxed tracking-wide z-20 transition-opacity duration-500 ${
+                            paneVisible ? 'opacity-100' : 'opacity-0'
+                        }`}
+                    >
+                        {/* line-clamp-3 caps this at 3 lines everywhere (with an
+                            ellipsis if it doesn't fit) instead of letting it
+                            grow to 4-5 lines on narrow screens at this font size */}
+                        <p className="line-clamp-3">Note: Visualizer renderings are digital approximations. Finished products will feature the exact physical moulding profiles, textures, and details shown in our catalogue.</p>
+                    </div>
+                )}
+
+                {/* Full-Screen Toggle - Floating Bottom Right (YouTube-style).
+                    Both icons stay mounted and crossfade/rotate via opacity —
+                    an instant swap here would be a small but noticeable
+                    jarring flicker right at the start of an otherwise smooth
+                    transition. */}
+                <button
+                    onClick={() => (isFullScreen ? exitFullScreen() : enterFullScreen())}
+                    className="absolute bottom-3 right-3 sm:bottom-6 sm:right-6 z-30 w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center rounded-full border border-stone-200 shadow-sm hover:shadow-md transition-all bg-white/95 backdrop-blur text-stone-700"
+                    title={isFullScreen ? 'Exit full screen' : 'Full screen'}
+                    aria-label={isFullScreen ? 'Exit full screen' : 'Full screen'}
+                >
+                    <span className="relative w-[18px] h-[18px] flex items-center justify-center">
+                        <Maximize2 size={16} className={`absolute transition-all duration-300 ${isFullScreen ? 'opacity-0 rotate-45 scale-75' : 'opacity-100 rotate-0 scale-100'}`} />
+                        <X size={18} className={`absolute transition-all duration-300 ${isFullScreen ? 'opacity-100 rotate-0 scale-100' : 'opacity-0 -rotate-45 scale-75'}`} />
+                    </span>
+                </button>
             </div>
 
-            {/* RIGHT: CONFIGURATION DASHBOARD */}
-            <div className={`flex flex-col relative shadow-[-10px_0_30px_rgba(0,0,0,0.02)] z-10 ${isSideBySide ? 'w-[30%] flex-none h-[calc(100dvh-56px)] overflow-hidden' : 'w-full flex-1 h-auto'}`} style={{ backgroundColor: wallColor.hex }}>
+            {/* RIGHT: CONFIGURATION DASHBOARD — fades in with the same
+                paneVisible flag as the visualizer pane so it doesn't just
+                hard-pop back in the instant it remounts after a full-screen
+                exit. */}
+            {!isFullScreen && (
+            <div className={`flex flex-col relative shadow-[-10px_0_30px_rgba(0,0,0,0.02)] z-10 transition-all duration-300 ${paneVisible ? 'opacity-100' : 'opacity-0'} ${isSideBySide ? 'w-[30%] flex-none h-[calc(100dvh-56px)] overflow-hidden' : 'w-full flex-1 h-auto'}`} style={{ backgroundColor: wallColor.hex }}>
                 {/* Premium Tint Overlay: Keeps the sidebar 90% white, letting 10% of the wall color bleed through */}
                 <div className="absolute inset-0 bg-white/90" />
                 
@@ -1432,7 +1655,7 @@ const CustomizeFramePage = ({
 
                             {/* Inspiration Trigger */}
                             <button
-                                onClick={() => setIsInspirationModalOpen(true)}
+                                onClick={() => navigate('/inspiration')}
                                 className="border border-stone-200 rounded-xl p-3 flex flex-col items-center justify-center hover:bg-stone-50 hover:border-stone-400 transition-colors h-[72px] text-center"
                             >
                                 <ImagePlus size={16} className="text-stone-500" />
@@ -1728,7 +1951,8 @@ const CustomizeFramePage = ({
                     </div>
                 </div>
             </div>
-            
+            )}
+
             {/* Frame Selection Modal — gated here (rather than relying on its
                 own isOpen-guard return null) so it fully unmounts on close,
                 resetting its internal activeCategory tab back to the default
@@ -1747,15 +1971,6 @@ const CustomizeFramePage = ({
                 isOpen={isMetModalOpen} 
                 onClose={() => setIsMetModalOpen(false)} 
                 onSelect={handleMetArtSelect}
-            />
-
-            {/* Inspiration Selection Modal */}
-            <InspirationSelectionModal 
-                isOpen={isInspirationModalOpen}
-                onClose={() => setIsInspirationModalOpen(false)}
-                onApplySelection={applyInspirationSelection}
-                setSelectedFrame={setSelectedFrame}
-                setSelectedSize={setSelectedSize}
             />
 
             {/* Auth Modal */}
