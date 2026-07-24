@@ -270,6 +270,12 @@ const CustomizeFramePage = ({
 
     // Initial Setup
     useEffect(() => {
+        // React Router doesn't reset scroll position on navigation — landing
+        // here from partway down a long Inspiration/catalogue grid otherwise
+        // carries that scroll offset over, so the visualizer (first in the
+        // DOM on every layout) can end up scrolled out of view on arrival.
+        window.scrollTo(0, 0);
+
         if (!selectedFrame) setSelectedFrame(FRAME_STYLES[0]);
         if (!selectedSize) setSelectedSize(FRAME_SIZES[2]); // 16x20 default
 
