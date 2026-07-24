@@ -280,6 +280,12 @@ const CustomizeFramePage = ({
 
     // Initial Setup
     useEffect(() => {
+        // React Router doesn't reset scroll position on navigation — landing
+        // here from partway down a long Inspiration/catalogue grid otherwise
+        // carries that scroll offset over, so the visualizer (first in the
+        // DOM on every layout) can end up scrolled out of view on arrival.
+        window.scrollTo(0, 0);
+
         if (!selectedFrame) setSelectedFrame(FRAME_STYLES[0]);
         if (!selectedSize) setSelectedSize(FRAME_SIZES[2]); // 16x20 default
 
@@ -305,12 +311,17 @@ const CustomizeFramePage = ({
         if ((isAlbumPoster || isMoviePosterPrint) && posterData && selectedSize) {
             setIsImageLoading(true);
             setIsRendering(true);
-            // Use standard 300 DPI print resolution for crisp text in both the visualizer and the final production print.
-            // devicePixelRatio is capped at 2 here — phones are commonly 2.5-4x (iPhones are
-            // universally 3x) versus desktop's near-universal 1-2x, and letting it scale
-            // unbounded blew large print sizes past mobile WebViews' canvas memory limits,
-            // silently failing to render (e.g. a 24x36in poster at 432 DPI = 10,368x15,552px).
-            const previewDPI = Math.max(300, Math.min(window.devicePixelRatio || 1, 2) * 144);
+            // Use standard 300 DPI print resolution for crisp text in both the
+            // visualizer and the final production print. Deliberately NOT
+            // scaled up by devicePixelRatio — on a 3x-DPR phone that pushed
+            // this to 432 DPI, which for the default 24x36" poster size means
+            // a ~10,368x15,552px canvas (~645MB as an RGBA buffer). Desktop
+            // browsers can usually allocate that; mobile browsers routinely
+            // can't and fail canvas rendering silently (a blank/empty
+            // toDataURL() result, or the tab getting killed under memory
+            // pressure) — which is why album/movie poster prints rendered
+            // fine on desktop but never appeared on mobile.
+            const previewDPI = 300;
             const renderPoster = isAlbumPoster ? renderAlbumPoster : renderMoviePoster;
             const fileLabel = isAlbumPoster ? 'album-poster.png' : 'movie-poster.png';
             renderPoster(posterData, selectedSize, previewDPI)
