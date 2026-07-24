@@ -432,14 +432,21 @@ function formatRuntime(tracks) {
     return `${mm}:${String(ss).padStart(2, '0')}`;
 }
 
-async function fetchTracklist(collectionId) {
+// The iTunes lookup endpoint occasionally fails a single request (transient
+// network blip, rate limiting) — retried a couple of times before giving up,
+// rather than silently rendering a poster with no tracklist and no
+// indication anything went wrong. A final failure is thrown, not swallowed,
+// so the caller's existing "Failed to fetch album tracklist" alert fires.
+async function fetchTracklist(collectionId, attempt = 1) {
     try {
         // `country=US` is required here — without it this specific lookup+entity=song
         // combination reliably fails with a network-level "Failed to fetch" in the browser.
         const res = await fetch(`https://itunes.apple.com/lookup?id=${collectionId}&entity=song&country=US`);
+        if (!res.ok) throw new Error(`iTunes lookup failed: ${res.status}`);
         const data = await res.json();
         const collection = data.results.find(r => r.wrapperType === 'collection');
         const tracks = data.results.filter(r => r.wrapperType === 'track');
+        if (tracks.length === 0) throw new Error('iTunes lookup returned no tracks');
         return {
             tracks,
             releaseDate: collection?.releaseDate || new Date().toISOString(),
@@ -447,8 +454,12 @@ async function fetchTracklist(collectionId) {
             genre: collection?.primaryGenreName || ''
         };
     } catch (e) {
-        console.error('Failed to fetch tracklist:', e);
-        return { tracks: [], releaseDate: new Date().toISOString(), copyright: '', genre: '' };
+        if (attempt < 3) {
+            await new Promise(r => setTimeout(r, 400 * attempt));
+            return fetchTracklist(collectionId, attempt + 1);
+        }
+        console.error('Failed to fetch tracklist after retries:', e);
+        throw e;
     }
 }
 
