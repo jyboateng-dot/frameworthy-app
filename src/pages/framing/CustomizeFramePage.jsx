@@ -1587,9 +1587,16 @@ const CustomizeFramePage = ({
                                         }, 50); // 50ms debounce absorbs subpixel edge jitter
                                     }}
                                     onTouchEnd={(e) => {
-                                        // No isHovered check here — touch devices never fire
-                                        // mouseenter, so isHovered is always false on mobile/tablet
-                                        // and double-tap toggles isMaxZoom directly instead.
+                                        // Mobile browsers synthesize a compatibility mouse-event
+                                        // sequence (mouseenter, click, and — on a fast second tap —
+                                        // dblclick) after every touchend unless it's suppressed here.
+                                        // Left unchecked, that ghost mouseenter flips isHovered true
+                                        // on the very first tap, then the ghost dblclick fires
+                                        // onDoubleClick below, which (seeing isHovered now true)
+                                        // toggles isMaxZoom a second time and cancels out the toggle
+                                        // this handler just made — a real double-tap netted zero
+                                        // change, and only a third tap left a visible toggle.
+                                        e.preventDefault();
                                         const now = Date.now();
                                         const DOUBLE_TAP_DELAY = 300;
                                         if (now - lastTapRef.current < DOUBLE_TAP_DELAY) {
