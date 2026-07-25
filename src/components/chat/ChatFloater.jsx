@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { X, Send, Bot, Sparkles } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
-import { subscribeToMessages, subscribeToThread, sendMessage, markThreadRead } from '../../services/chat';
+import { subscribeToMessages, subscribeToThread, sendMessage, markThreadRead, requestHumanSupport } from '../../services/chat';
 
 // Instant Messaging Floater Component with AI Assistant & Real-time Typing
 const ChatFloater = ({ isOpen, setIsOpen }) => {
@@ -61,7 +61,9 @@ const ChatFloater = ({ isOpen, setIsOpen }) => {
                             <p className="font-serif font-bold text-base text-[#faf9f8] tracking-wide">FrameWorthy Support</p>
                             <Sparkles size={13} className="text-[#c9a84c]" />
                         </div>
-                        <p className="text-xs font-semibold text-[#c9a84c]">AI Assistant • 24/7 Support</p>
+                        <p className="text-xs font-semibold text-[#c9a84c]">
+                            {thread?.humanRequested ? 'Human Support Active' : 'AI Assistant • 24/7 Support'}
+                        </p>
                     </div>
                 </div>
                 <button

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
-import { User, ShoppingCart, Menu, ArrowLeft, LogOut, Package, ChevronDown, Shield, Frame, MessageCircle, Mail, HelpCircle } from 'lucide-react';
+import { User, ShoppingCart, Menu, ArrowLeft, LogOut, Package, ChevronDown, Shield, Frame, MessageCircle, Mail, HelpCircle, Headphones } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext'; // Import Auth Context
 import { useUnit } from '../../context/UnitContext'; // Import Unit Context
 import { useCart } from '../../context/CartContext'; // Import Cart Context
@@ -29,6 +29,7 @@ const Header = ({
 
     const showBack = currentStep !== 'landing' && currentStep !== 'success';
     const isAdmin = user?.email === ADMIN_EMAIL;
+    const [latestNotificationThread, setLatestNotificationThread] = useState(null);
 
     // Live unread-chat count for the admin nav badge — only subscribes when
     // the signed-in user is actually the admin, so a normal customer never
@@ -36,10 +37,17 @@ const Header = ({
     useEffect(() => {
         if (!isAdmin) {
             setUnreadMessageCount(0);
+            setLatestNotificationThread(null);
             return;
         }
         const unsub = subscribeToAllThreads((threads) => {
-            setUnreadMessageCount(threads.filter(t => t.unreadByAdmin).length);
+            const unread = threads.filter(t => t.unreadByAdmin);
+            setUnreadMessageCount(unread.length);
+            if (unread.length > 0) {
+                setLatestNotificationThread(unread[0]);
+            } else {
+                setLatestNotificationThread(null);
+            }
         });
         return unsub;
     }, [isAdmin]);
@@ -68,11 +76,9 @@ const Header = ({
                 element.scrollIntoView({ behavior: 'smooth' });
             }
         }, 150);
-    };
-
-    return (
+    };    return (
+        <>
         <nav className="min-h-14 flex items-center justify-between px-4 pb-3 pt-[calc(0.75rem+env(safe-area-inset-top,0px))] bg-[#0a0a0a] border-b border-white/[0.07] sticky top-0 z-[100] backdrop-blur-sm">
-
             <div className="flex items-center gap-1 sm:gap-2 min-w-0">
                 {showBack && (
                     <button onClick={() => navigate(-1)} className="text-[#9a8e7d] p-1 sm:p-1.5 hover:bg-white/[0.05] rounded-full transition mr-0.5 sm:mr-1 shrink-0" aria-label="Go back">
@@ -108,12 +114,6 @@ const Header = ({
                     >
                         Inspiration
                     </button>
-                    <button
-                        onClick={() => navigate('/help')}
-                        className="text-[10px] lg:text-[11px] font-bold uppercase tracking-wider text-[#9a8e7d] hover:text-[#e8e2d9] transition-colors whitespace-nowrap"
-                    >
-                        Help Centre
-                    </button>
                 </div>
 
                 {/* Standalone Entry Point — visible at every width; "Start Framing"
@@ -127,6 +127,15 @@ const Header = ({
                     <Frame size={13} className="md:hidden" />
                     <span className="md:hidden">Start</span>
                     <span className="hidden md:inline">Start Framing</span>
+                </button>
+
+                {/* Help Centre Icon */}
+                <button
+                    onClick={() => navigate('/help')}
+                    className="hidden sm:flex text-[#9a8e7d] p-1.5 sm:p-2 hover:text-[#e8e2d9] hover:bg-white/[0.05] rounded-full transition"
+                    title="Help Centre"
+                >
+                    <Headphones size={20} className="sm:w-5 sm:h-5" />
                 </button>
 
                 {/* User Menu */}
@@ -282,6 +291,33 @@ const Header = ({
                 </div>
             </div>
         </nav>
+
+        {/* ADMIN LIVE CHAT NOTIFICATION TOAST */}
+        {isAdmin && latestNotificationThread && (
+            <div className="fixed top-20 right-4 sm:right-8 z-[200] max-w-sm w-full bg-[#141210] border border-[#c9a84c]/50 text-white p-4 rounded-2xl shadow-2xl animate-bounce-short flex items-center justify-between gap-3">
+                <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                        <span className="w-2.5 h-2.5 rounded-full bg-[#c9a84c] animate-ping" />
+                        <p className="text-xs font-bold text-[#c9a84c] uppercase tracking-wider">
+                            {latestNotificationThread.humanRequested ? '🚨 Human Agent Requested' : '💬 New Chat Message'}
+                        </p>
+                    </div>
+                    <p className="text-sm font-semibold text-[#e8e2d9] truncate">
+                        {latestNotificationThread.userDisplayName || latestNotificationThread.userEmail || 'Customer'}
+                    </p>
+                    <p className="text-xs text-[#9a8e7d] truncate italic">
+                        "{latestNotificationThread.lastMessage}"
+                    </p>
+                </div>
+                <button
+                    onClick={() => navigate(`/admin/messages?chat=${latestNotificationThread.id}`)}
+                    className="bg-[#c9a84c] text-stone-950 font-bold text-xs px-3 py-2 rounded-xl hover:bg-[#d4b55c] transition shrink-0 shadow"
+                >
+                    Respond Now
+                </button>
+            </div>
+        )}
+        </>
     );
 };
 

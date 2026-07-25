@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { subscribeToAllThreads, subscribeToMessages, sendMessage, markThreadRead, toggleAiAutoReply } from '../../services/chat';
 import { Send, MessageCircle, ArrowLeft, Bot, Sparkles, UserCheck } from 'lucide-react';
@@ -8,11 +8,20 @@ const ADMIN_EMAIL = 'admin@frameworthyco.com';
 
 const AdminMessagesPage = () => {
     const { user, isLoading: authLoading } = useAuth();
+    const [searchParams] = useSearchParams();
+    const targetChatUid = searchParams.get('chat');
+
     const [threads, setThreads] = useState([]);
-    const [selectedUid, setSelectedUid] = useState(null);
+    const [selectedUid, setSelectedUid] = useState(targetChatUid || null);
     const [messages, setMessages] = useState([]);
     const [draft, setDraft] = useState('');
     const [isSending, setIsSending] = useState(false);
+
+    useEffect(() => {
+        if (targetChatUid) {
+            setSelectedUid(targetChatUid);
+        }
+    }, [targetChatUid]);
 
     useEffect(() => {
         if (!user || user.email !== ADMIN_EMAIL) return;

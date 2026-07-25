@@ -152,7 +152,7 @@ const AlbumArtPage = ({ setProductMode, setSelectedFrame, setSelectedSize, navig
                     initialFrame: frameObj || null,
                     initialSize: sizeObj || null,
                     orientation: 'portrait',
-                    initialMatWidth: 'narrow',
+                    initialMatWidth: 'none',
                     isAlbumArt: true
                 }
             });

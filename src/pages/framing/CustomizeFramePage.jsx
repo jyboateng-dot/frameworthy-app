@@ -1436,11 +1436,14 @@ const CustomizeFramePage = ({
                             const innerHeightCm = hInch * 2.54;
                             const frameWidthPct = (innerWidthCm / SOFA_CM) * SOFA_BODY_PCT;
                             
-                            // Moulding: Standard visual thickness
-                            // Instead of strictly physical math (which makes borders look paper-thin on large frames 
-                            // and brutally thick on small frames), we render all frame widths as a standard visual width.
-                            // 5% of the shortest edge provides a beautiful, standard proportion for all frames.
-                            const standardVisualPct = 5; 
+                            // Moulding: Dynamic visual thickness
+                            // We determine if a frame is narrow, standard, or wide based on its catalogue data.
+                            const standardVisualPct = (() => {
+                                if (!selectedFrame || !selectedFrame.widthCategory) return 5;
+                                if (selectedFrame.widthCategory === 'wide') return 10;
+                                if (selectedFrame.widthCategory === 'narrow') return 2;
+                                return 5;
+                            })();
                             const minSide = Math.min(wInch, hInch);
                             const mouldingPctW = (minSide / wInch) * standardVisualPct;
                             const mouldingPctH = (minSide / hInch) * standardVisualPct;
@@ -2090,7 +2093,7 @@ const CustomizeFramePage = ({
                             </span>
                         </h2>
                         <div className="grid grid-cols-2 gap-2">
-                            {!showAllSizes ? (
+                            {(!showAllSizes && !isAlbumArt && finalSizesList.length > 6) ? (
                                 <>
                                     {/* Collapsed: curated, column-major — left
                                         is the most popular small-to-medium
@@ -2184,7 +2187,7 @@ const CustomizeFramePage = ({
                                 </div>
                             )}
 
-                            {!showAllSizes && finalSizesList.length > collapsedShownCount && (
+                            {!showAllSizes && !isAlbumArt && finalSizesList.length > 6 && finalSizesList.length > collapsedShownCount && (
                                 <button
                                     data-size-list-toggle
                                     onClick={toggleShowAllSizes(true)}
@@ -2195,7 +2198,7 @@ const CustomizeFramePage = ({
                                 </button>
                             )}
 
-                            {showAllSizes && finalSizesList.length > collapsedShownCount && (
+                            {showAllSizes && !isAlbumArt && finalSizesList.length > 6 && finalSizesList.length > collapsedShownCount && (
                                 <button
                                     data-size-list-toggle
                                     onClick={toggleShowAllSizes(false)}

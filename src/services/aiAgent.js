@@ -164,7 +164,7 @@ export function getLocalAiResponse(userMessage) {
     }
 
     // 12. Hanging Hardware & Room Visualizer
-    if (matchAny(text, ['hang', 'hanging', 'wire', 'hook', 'hardware', 'visualizer', 'wall'])) {
+    if (matchAny(text, ['hang', 'hanging', 'wire', 'hook', 'hardware', 'visualizer', 'visualize', 'preview', 'wall'])) {
         return "Every frame arrives 100% ready to hang out of the box with pre-installed heavy-duty hanging wire, sawtooth hangers, or stainless steel D-rings! You can also use our Room Visualizer in the customizer to preview your frame against different wall colors and textures.";
     }
 
@@ -217,13 +217,13 @@ ${historyText}
 Customer: ${userMessage}
 Assistant:`;
 
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiApiKey}`, {
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${geminiApiKey}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 contents: [{ parts: [{ text: prompt }] }],
                 generationConfig: {
-                    maxOutputTokens: 250,
+                    maxOutputTokens: 800,
                     temperature: 0.7,
                 }
             })
