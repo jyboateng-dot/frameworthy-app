@@ -12,8 +12,7 @@ import {
     Info,
     Loader,
     Maximize2,
-    X,
-    ArrowUp
+    X
 } from 'lucide-react';
 import { FRAME_STYLES, FRAME_SIZES, MAT_COLORS, formatDimensions, findSizeByDimension, parseCustomSize, DEFAULT_DEMO_IMAGE } from '../../data/constants';
 import WEB_MET_DIMS from '../../data/web_met_dims.json';
@@ -219,17 +218,6 @@ const CustomizeFramePage = ({
     // in the list (in its last-position slot) even after they pick a
     // different size — otherwise it'd vanish the moment it's no longer active.
     const [customSizeEntry, setCustomSizeEntry] = useState(null);
-    // Surfaces a "back to visualizer" shortcut once the user has scrolled
-    // past it into the customization panel — only meaningful on the mobile/
-    // stacked layout, where scrolling the customization sections scrolls the
-    // visualizer out of view entirely (on desktop side-by-side it's always
-    // visible alongside the panel, which scrolls in its own container).
-    const [showBackToVisualizer, setShowBackToVisualizer] = useState(false);
-    useEffect(() => {
-        const handleScroll = () => setShowBackToVisualizer(window.scrollY > 400);
-        window.addEventListener('scroll', handleScroll, { passive: true });
-        return () => window.removeEventListener('scroll', handleScroll);
-    }, []);
     const [isOptimized, setIsOptimized] = useState(false);
     const [imageNaturalSize, setImageNaturalSize] = useState(null);   // { w, h }
     const [savedSettings, setSavedSettings] = useState(() => ({
@@ -1297,7 +1285,12 @@ const CustomizeFramePage = ({
                 className={`flex items-center justify-center transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${isMaxZoom ? 'overflow-auto' : 'overflow-hidden'} [scrollbar-gutter:stable] ${paneVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-95'} ${
                     isFullScreen
                         ? 'fixed inset-0 z-[250]'
-                        : `shrink-0 relative border-r border-stone-200 ${isSideBySide ? 'w-[70%] h-auto shrink' : 'w-full'}`
+                        // Stacked mobile/narrow layout: pin the visualizer just below the
+                        // header instead of letting it scroll away with the page, so it
+                        // stays in view while the customization panel underneath scrolls.
+                        // Desktop side-by-side already keeps it in view (fixed-height row,
+                        // panel scrolls in its own container), so sticky is a no-op there.
+                        : `shrink-0 relative border-r border-stone-200 ${isSideBySide ? 'w-[70%] h-auto shrink' : 'w-full sticky top-[60px] z-30'}`
                 }`}
                 style={{
                     backgroundColor: wallColor.hex,
@@ -2365,20 +2358,6 @@ const CustomizeFramePage = ({
                         </div>
                     </section>
                 </div>
-
-                {/* Jump back to the visualizer — mobile/stacked layout only.
-                    On desktop side-by-side the visualizer pane is always
-                    visible alongside the panel, so there's nothing to jump
-                    back to; there the panel scrolls in its own container. */}
-                {!isSideBySide && showBackToVisualizer && (
-                    <button
-                        onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-                        aria-label="Back to visualizer"
-                        className="fixed bottom-24 right-4 z-30 w-11 h-11 rounded-full bg-stone-900/40 text-white shadow-lg flex items-center justify-center hover:bg-stone-900/60 transition-colors"
-                    >
-                        <ArrowUp size={18} />
-                    </button>
-                )}
 
                 {/* Sticky Checkout Footer */}
                 <div className={`bottom-0 z-20 backdrop-blur-md border-t border-stone-200 shadow-[0_-10px_40px_rgba(0,0,0,0.03)] flex ${isSideBySide ? 'flex-col gap-0 items-start py-1.5 px-3' : 'items-center justify-between gap-4 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom,0px))] px-5'} ${isSideBySide ? 'relative bg-white/85' : 'sticky bg-white/95'}`}>
