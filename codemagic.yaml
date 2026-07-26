@@ -70,3 +70,59 @@ workflows:
         notify:
           success: true
           failure: true
+
+  ios-release:
+    name: iOS Release Build (TestFlight)
+    max_build_duration: 60
+    instance_type: mac_mini_m2
+    integrations:
+      # Name of the App Store Connect API key integration added under
+      # Codemagic > Team settings > Integrations > App Store Connect.
+      # Must match exactly whatever name is given there.
+      app_store_connect: frameworthy_asc
+    environment:
+      node: 22
+      xcode: latest
+      cocoapods: default
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: com.frameworthyco.app
+      vars:
+        PACKAGE_NAME: "com.frameworthyco.app"
+    triggering:
+      # Manual/tag-triggered only, unlike android-debug — this submits to
+      # TestFlight, so it shouldn't fire on every push to master.
+      events:
+        - tag
+      tag_patterns:
+        - pattern: 'ios-*'
+          include: true
+    scripts:
+      - name: Install npm dependencies
+        script: npm install --legacy-peer-deps
+      - name: Sync Capacitor iOS project
+        script: npx cap sync ios
+      - name: Fetch signing certificate and provisioning profile
+        script: xcode-project use-profiles
+      - name: Increment build number
+        script: |
+          cd ios/App
+          agvtool new-version -all $BUILD_NUMBER
+      - name: Build ipa for distribution
+        script: |
+          xcode-project build-ipa \
+            --project ios/App/App.xcodeproj \
+            --scheme App
+    artifacts:
+      - build/ios/ipa/*.ipa
+      - /tmp/xcodebuild_logs/*.log
+    publishing:
+      app_store_connect:
+        auth: integration
+        submit_to_testflight: true
+      email:
+        recipients:
+          - jyboateng@gmail.com
+        notify:
+          success: true
+          failure: true

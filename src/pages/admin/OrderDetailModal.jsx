@@ -2,6 +2,7 @@ import React from 'react';
 import { X, Download, Layers, ImageOff } from 'lucide-react';
 import { GLASS_LABELS, HARDWARE_LABELS, MAT_WIDTH_LABELS } from '../../utils/itemFormatters';
 import { getPrintQualityJpegUrl } from '../../services/storage';
+import { openExternalLinkFromEvent } from '../../utils/nativeLinks';
 
 // Collage image entries have shown up as either bare URL strings or objects
 // with a url/src/image key depending on where they were produced — normalize
@@ -70,6 +71,7 @@ const ItemFulfillmentCard = ({ item }) => {
                                 download
                                 target="_blank"
                                 rel="noreferrer"
+                                onClick={(e) => openExternalLinkFromEvent(e, printUrl)}
                                 className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 text-blue-700 hover:bg-blue-100 rounded-lg text-xs font-bold transition-colors"
                             >
                                 <Download size={14} /> Download Print File
@@ -133,6 +135,7 @@ const ItemFulfillmentCard = ({ item }) => {
                                     download
                                     target="_blank"
                                     rel="noreferrer"
+                                    onClick={(e) => openExternalLinkFromEvent(e, getPrintQualityJpegUrl(src))}
                                     className="w-16 h-16 rounded-lg border border-gray-200 overflow-hidden block hover:ring-2 hover:ring-blue-400 hover:-translate-y-0.5 transition-all shadow-sm"
                                     title={`Download photo ${ci + 1}`}
                                 >

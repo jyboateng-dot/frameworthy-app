@@ -3,6 +3,7 @@ import { X, Copy, Mail, MessageCircle, Check, Send, Lock, User } from 'lucide-re
 import emailjs from '@emailjs/browser';
 import { formatOrdersForSharing, formatOrderForClient, generateItemDescription, GLASS_LABELS, HARDWARE_LABELS, MAT_WIDTH_LABELS } from '../../utils/itemFormatters';
 import { getPrintQualityJpegUrl } from '../../services/storage';
+import { openExternalLink } from '../../utils/nativeLinks';
 
 const ADMIN_EMAIL = 'admin@frameworthyco.com';
 const RECIPIENTS_STORAGE_KEY = 'fw_share_recipients_history';
@@ -104,7 +105,7 @@ const ShareOrdersModal = ({ orders, onClose }) => {
 
     const handleWhatsApp = () => {
         const url = `https://wa.me/?text=${encodeURIComponent(shareText)}`;
-        window.open(url, '_blank');
+        openExternalLink(url);
     };
 
     const handleEmail = () => {
@@ -125,7 +126,7 @@ const ShareOrdersModal = ({ orders, onClose }) => {
     const handleClientWhatsApp = () => {
         if (!clientPhone) return;
         const url = `https://wa.me/${clientPhone}?text=${encodeURIComponent(clientMessage)}`;
-        window.open(url, '_blank');
+        openExternalLink(url);
     };
 
     const handleClientEmail = () => {

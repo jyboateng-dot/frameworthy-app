@@ -37,6 +37,8 @@ import { FRAME_STYLES, FRAME_SIZES, WALL_TEXTURES, MAT_COLORS, DEFAULT_DEMO_IMAG
 import { Capacitor } from '@capacitor/core';
 import { App as CapacitorApp } from '@capacitor/app';
 import { StatusBar, Style } from '@capacitor/status-bar';
+import { enableNetwork } from 'firebase/firestore';
+import { db } from './services/firebase';
 import TesterGate from './components/gate/TesterGate';
 import NetworkStatusBanner from './components/NetworkStatusBanner';
 import ChatFloater from './components/chat/ChatFloater';
@@ -132,6 +134,24 @@ const AppLayout = () => {
     });
     return () => { listenerPromise.then(listener => listener.remove()); };
   }, [navigate]);
+
+  // Firestore's realtime listeners (chat messages, the admin unread-message
+  // badge) stream over a connection that iOS/Android can silently suspend
+  // while the app is backgrounded. Firestore does reconnect on its own, but
+  // its retry backoff can leave chat looking stale for a few seconds after
+  // returning to the app. enableNetwork() is a safe no-op if already
+  // connected, but forces an immediate reconnect attempt on resume instead
+  // of waiting on that backoff. No-op on web: nothing suspends the
+  // connection there, and the App plugin doesn't fire this event anyway.
+  React.useEffect(() => {
+    if (!Capacitor.isNativePlatform()) return;
+    const listenerPromise = CapacitorApp.addListener('appStateChange', ({ isActive }) => {
+      if (isActive) {
+        enableNetwork(db).catch(() => {});
+      }
+    });
+    return () => { listenerPromise.then(listener => listener.remove()); };
+  }, []);
 
   // Match the status bar to the app's always-dark header (#0a0a0a) instead
   // of leaving it at the OS default light style with dark, hard-to-read

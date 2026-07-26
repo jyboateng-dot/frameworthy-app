@@ -2,18 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { ArrowRight, ChevronRight, ChevronLeft, Sparkles } from 'lucide-react';
 import { FRAME_STYLES, CATEGORIES } from '../data/constants';
 import { CAROUSEL_SLIDES } from '../data/landingCarouselSlides';
-import { Capacitor } from '@capacitor/core';
-import { Browser } from '@capacitor/browser';
-
-// target="_blank" is a no-op (or navigates the app away from itself) inside
-// a Capacitor WebView — there's no browser chrome to open a new tab in.
-// Open these in the system's in-app browser instead on native platforms;
-// on web this is untouched, the normal anchor/target="_blank" behavior fires.
-const openExternalLink = (e, url) => {
-    if (!Capacitor.isNativePlatform()) return;
-    e.preventDefault();
-    Browser.open({ url });
-};
+import { openExternalLinkFromEvent as openExternalLink } from '../utils/nativeLinks';
 
 export default function LandingPage({ onStartFraming, navigate, setSelectedFrame }) {
     const [scrolled, setScrolled] = useState(false);
