@@ -20,6 +20,11 @@ const CAROUSEL_SLIDES = [
         text: "Turn your empty corridors into a beautiful walking gallery of your life's greatest moments and art."
     },
     {
+        img: 'https://res.cloudinary.com/uucoqdzr/image/upload/v1785108111/landing_carousel/album-cover.jpg',
+        title: "Frame Your Favorite Album Covers",
+        text: "Search for your favorite artist and easily frame their iconic album covers."
+    },
+    {
         img: '/landing_carousel/slide-3.jpg',
         title: "Endless Possibilities",
         text: "Choose from over 300 different premium frame styles."
@@ -62,7 +67,7 @@ const CAROUSEL_SLIDES = [
 ];
 
 const AuthPage = ({ navigate }) => {
-    const { login, signup, googleLogin, resetPassword, redirectReturnTo, clearRedirectReturnTo } = useAuth();
+    const { login, signup, googleLogin, appleLogin, resetPassword, redirectReturnTo, clearRedirectReturnTo } = useAuth();
     const location = useLocation();
 
     // Determine initial mode based on URL query param
@@ -92,7 +97,7 @@ const AuthPage = ({ navigate }) => {
             navigate(redirectReturnTo);
             clearRedirectReturnTo();
         }
-    }, [redirectReturnTo]);
+    }, [redirectReturnTo, navigate, clearRedirectReturnTo]);
 
     // Auto-advance carousel
     useEffect(() => {
@@ -111,7 +116,6 @@ const AuthPage = ({ navigate }) => {
 
     const [showPassword, setShowPassword] = useState(false);
     const [rememberMe, setRememberMe] = useState(false);
-    const [showTerms, setShowTerms] = useState(false);
     const [errors, setErrors] = useState({});
     const [isLoading, setIsLoading] = useState(false);
     const [resetStatus, setResetStatus] = useState(null); // { type: 'success' | 'error', message }
@@ -122,10 +126,14 @@ const AuthPage = ({ navigate }) => {
         try {
             if (provider === 'google') {
                 await googleLogin(returnTo);
+            } else if (provider === 'apple') {
+                await appleLogin(returnTo);
             }
-            // On native, signInWithRedirect navigates the whole app away
-            // before this line ever runs — the redirectReturnTo effect above
-            // handles navigation in that case instead.
+            // On native Android/web, signInWithRedirect or the native Apple
+            // sheet either navigates the whole app away (redirectReturnTo
+            // effect above handles that case) or resolves right here (native
+            // iOS Apple sign-in) — either way this line is only reached once
+            // there's actually a signed-in user to send onward.
             if (navigate) navigate(returnTo);
         } catch (err) {
             console.error(err);
@@ -298,7 +306,10 @@ const AuthPage = ({ navigate }) => {
                             </button>
                         </div>
 
-                        {/* Social Logins — only providers actually enabled in Firebase Auth are offered here */}
+                        {/* Social Logins — requires the "Apple" provider enabled in Firebase Console
+                            (Authentication > Sign-in method), configured with a Services ID, Apple
+                            Team ID, Key ID, and private key from a Sign In with Apple key (separate
+                            from the App Store Connect API key used for Codemagic signing) */}
                         <div className="mb-6">
                             <button
                                 onClick={() => handleSocialLogin('google')}
@@ -311,6 +322,15 @@ const AuthPage = ({ navigate }) => {
                                     <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
                                 </svg>
                                 Continue with Google
+                            </button>
+                            <button
+                                onClick={() => handleSocialLogin('apple')}
+                                className="w-full flex items-center justify-center gap-2 py-2.5 mt-2.5 bg-black hover:bg-stone-900 transition font-bold text-sm text-white shadow-sm rounded-xl"
+                            >
+                                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M16.365 1.43c0 1.14-.463 2.147-1.15 2.87-.774.83-2.033 1.474-3.06 1.393-.13-1.1.4-2.234 1.135-2.965.79-.792 2.113-1.362 3.075-1.298zm2.792 16.735c-.585 1.26-.85 1.822-1.593 2.94-1.036 1.56-2.5 3.51-4.312 3.526-1.61.017-2.02-1.045-4.2-1.033-2.18.012-2.633 1.05-4.243 1.033-1.812-.016-3.194-1.77-4.23-3.33C-2.16 17.63-1.14 12.14 1.36 9.65c1.24-1.244 2.86-1.98 4.37-1.98 1.63 0 2.65 1.06 4 1.06 1.31 0 2.1-1.06 4-1.06 1.34 0 2.76.73 3.77 1.99-3.31 1.813-2.78 6.53.65 8.51-.31.716-.65 1.34-1 1.98z" />
+                                </svg>
+                                Continue with Apple
                             </button>
                         </div>
 

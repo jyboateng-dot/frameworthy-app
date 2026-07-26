@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import {
     createUserWithEmailAndPassword,
     signInWithEmailAndPassword,
@@ -6,13 +6,16 @@ import {
     onAuthStateChanged,
     signInWithPopup,
     signInWithRedirect,
+    signInWithCredential,
     getRedirectResult,
     updateProfile,
     setPersistence,
     browserLocalPersistence,
-    browserSessionPersistence
+    browserSessionPersistence,
+    OAuthProvider
 } from 'firebase/auth';
 import { Capacitor } from '@capacitor/core';
+import { SignInWithApple } from '@capacitor-community/apple-sign-in';
 import { httpsCallable } from 'firebase/functions';
 import { auth, googleProvider, appleProvider, functions } from '../services/firebase';
 import { logClientError } from '../services/errorLogging';
@@ -81,7 +84,57 @@ export const AuthProvider = ({ children }) => {
         return signInWithPopup(auth, googleProvider);
     };
 
+    // Native "Sign In with Apple" on iOS specifically — App Store review
+    // (guideline 4.8) expects the real native experience (Apple's own
+    // account sheet, Face ID/Touch ID) since the app already offers Google
+    // as an alternative sign-in method, not a browser round-trip. Android
+    // has no native Apple ID account to hand off to, so it stays on the
+    // signInWithRedirect path below like before.
+    //
+    // Firebase requires proof this credential was requested by this exact
+    // attempt, not replayed from a captured token: a random nonce is hashed
+    // and handed to Apple (who embeds it in the signed identityToken), then
+    // the original raw value is handed to Firebase, which re-hashes it and
+    // checks the two match.
+    const appleLoginNative = async () => {
+        const rawNonce = Array.from(crypto.getRandomValues(new Uint8Array(16)))
+            .map((b) => b.toString(16).padStart(2, '0')).join('');
+        const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(rawNonce));
+        const hashedNonce = Array.from(new Uint8Array(digest))
+            .map((b) => b.toString(16).padStart(2, '0')).join('');
+
+        // clientId/redirectURI are required by the plugin's shared TS
+        // interface but ignored by its native iOS implementation, which
+        // talks to ASAuthorizationAppleIDProvider directly using the app's
+        // own bundle ID/entitlement instead.
+        const { response } = await SignInWithApple.authorize({
+            clientId: 'com.frameworthyco.app',
+            redirectURI: 'https://frameworthyco.com',
+            scopes: 'email name',
+            nonce: hashedNonce,
+        });
+
+        const credential = new OAuthProvider('apple.com').credential({
+            idToken: response.identityToken,
+            rawNonce,
+        });
+        const userCredential = await signInWithCredential(auth, credential);
+
+        // Apple only ever sends the user's name on the very first
+        // authorization for a given account — capture it into the Firebase
+        // profile now, since it won't be offered again on later sign-ins.
+        const fullName = [response.givenName, response.familyName].filter(Boolean).join(' ');
+        if (fullName && !userCredential.user.displayName) {
+            await updateProfile(userCredential.user, { displayName: fullName });
+        }
+
+        return userCredential;
+    };
+
     const appleLogin = (returnTo) => {
+        if (Capacitor.isNativePlatform() && Capacitor.getPlatform() === 'ios') {
+            return appleLoginNative();
+        }
         if (Capacitor.isNativePlatform()) {
             if (returnTo) sessionStorage.setItem(AUTH_RETURN_TO_KEY, returnTo);
             return signInWithRedirect(auth, appleProvider);
@@ -107,8 +160,14 @@ export const AuthProvider = ({ children }) => {
         return sendPasswordResetLink({ email });
     };
 
+    // Stable identity (useCallback) so consumers can safely list it as a
+    // useEffect dependency without that effect re-running on every
+    // AuthProvider render — setRedirectReturnTo itself is already stable
+    // (useState setters are), so an empty dependency array is correct here.
+    const clearRedirectReturnTo = useCallback(() => setRedirectReturnTo(null), []);
+
     return (
-        <AuthContext.Provider value={{ user, login, signup, googleLogin, appleLogin, logout, resetPassword, isLoading, redirectReturnTo, clearRedirectReturnTo: () => setRedirectReturnTo(null) }}>
+        <AuthContext.Provider value={{ user, login, signup, googleLogin, appleLogin, logout, resetPassword, isLoading, redirectReturnTo, clearRedirectReturnTo }}>
             {children}
         </AuthContext.Provider>
     );
