@@ -112,6 +112,8 @@ workflows:
         script: npm install --legacy-peer-deps
       - name: Sync Capacitor iOS project
         script: npx cap sync ios
+      - name: Set up provisioning profile and export options
+        script: xcode-project use-profiles
       - name: Increment build number
         script: |
           cd ios/App
