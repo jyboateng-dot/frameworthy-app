@@ -63,6 +63,11 @@ const AppLayout = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
 
+  // Scroll to top on route change
+  React.useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [location.pathname]);
+
   // --- GLOBAL STATE LIFTED UP (For Checkout/Persistance across steps) ---
   // Ideally this should be in a specific "ProjectContext", but prop drilling is fine for this size refactor
 
