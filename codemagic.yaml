@@ -103,7 +103,11 @@ workflows:
       - name: Sync Capacitor iOS project
         script: npx cap sync ios
       - name: Fetch signing certificate and provisioning profile
-        script: xcode-project use-profiles
+        script: |
+          app-store-connect fetch-signing-files "com.frameworthyco.app" --type IOS_APP_STORE --create
+          keychain initialize
+          keychain add-certificates
+          xcode-project use-profiles
       - name: Increment build number
         script: |
           cd ios/App
