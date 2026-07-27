@@ -65,7 +65,9 @@ const AppLayout = () => {
 
   // Scroll to top on route change
   React.useEffect(() => {
-    window.scrollTo(0, 0);
+    if (location.pathname === '/') {
+      window.scrollTo(0, 0);
+    }
   }, [location.pathname]);
 
   // --- GLOBAL STATE LIFTED UP (For Checkout/Persistance across steps) ---
