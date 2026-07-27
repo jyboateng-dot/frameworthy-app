@@ -153,7 +153,7 @@ const WebImagesPage = ({ setProductMode, setSelectedFrame, setSelectedSize, navi
         <div className={isSubPage ? "text-stone-900" : "min-h-screen bg-[#faf9f8] text-stone-900"} style={{ fontFamily: "'Inter', sans-serif" }}>
             {/* HEADER */}
             <header className="border-b border-stone-200">
-                <div className={`max-w-screen-xl mx-auto px-6 md:px-12 pb-4 ${isSubPage ? 'pt-1' : 'pt-8'}`}>
+                <div className={`max-w-[2560px] mx-auto px-6 md:px-12 pb-4 ${isSubPage ? 'pt-1' : 'pt-8'}`}>
                     <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6">
                         <div>
                             <p className="text-[9px] uppercase tracking-[0.3em] text-stone-500 font-bold mb-1">Web Collection</p>
@@ -181,7 +181,7 @@ const WebImagesPage = ({ setProductMode, setSelectedFrame, setSelectedSize, navi
                 </div>
             </header>
 
-            <main className="max-w-screen-xl mx-auto px-6 md:px-12 pt-6 pb-12">
+            <main className="max-w-[2560px] mx-auto px-6 md:px-12 pt-6 pb-12">
                 {images.length === 0 ? (
                     <div className="w-full flex flex-col items-center justify-center py-20 text-stone-400">
                         <RefreshCw size={24} className="animate-spin mb-4" />

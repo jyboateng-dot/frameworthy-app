@@ -78,7 +78,7 @@ export default function LandingPage({ onStartFraming, navigate, setSelectedFrame
             
             {/* Hero Carousel Section */}
             <section className="relative pt-16 pb-4 lg:pt-20 lg:pb-8 w-full flex items-center bg-[#faf9f8] overflow-hidden">
-                <div className="max-w-7xl mx-auto px-6 lg:px-12 w-full grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6 items-start">
+                <div className="max-w-[2560px] mx-auto px-6 lg:px-12 w-full grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6 items-start">
                     
                     {/* Left: Anchored Typography */}
                     <div className="lg:col-span-5 relative z-10 flex flex-col">
@@ -156,7 +156,7 @@ export default function LandingPage({ onStartFraming, navigate, setSelectedFrame
             </section>
 {/* Categorized Gallery Section */}
             <section id="curated-frames" className="py-12 lg:py-16 bg-white relative overflow-hidden">
-                <div className="max-w-7xl mx-auto px-6 lg:px-12">
+                <div className="max-w-[2560px] mx-auto px-6 lg:px-12">
                     <div className="flex flex-col md:flex-row justify-between items-end mb-12">
                         <div>
                             <h2 className="text-3xl lg:text-4xl font-bold tracking-tight text-stone-900 mb-4">Curated Frame Collection</h2>
@@ -253,7 +253,7 @@ export default function LandingPage({ onStartFraming, navigate, setSelectedFrame
 
             {/* Info Section */}
             <section className="py-12 bg-stone-50 border-t border-stone-200">
-                <div className="max-w-7xl mx-auto px-6 lg:px-12">
+                <div className="max-w-[2560px] mx-auto px-6 lg:px-12">
                     <div className="text-center mb-8">
                         <h2 className="text-3xl lg:text-4xl font-bold tracking-tight text-stone-900 mb-2">How It Works</h2>
                         <p className="text-stone-500 max-w-2xl mx-auto">Three simple steps to museum-quality framing.</p>
@@ -288,7 +288,7 @@ export default function LandingPage({ onStartFraming, navigate, setSelectedFrame
 
             {/* Bubola-style Info & Footer Section */}
             <section className="bg-stone-900 text-stone-300 py-24">
-                <div className="max-w-7xl mx-auto px-6 lg:px-12">
+                <div className="max-w-[2560px] mx-auto px-6 lg:px-12">
 
 
                     {/* 4-Column Footer */}

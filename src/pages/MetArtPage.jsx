@@ -168,7 +168,7 @@ const MetArtPage = ({ setProductMode, setSelectedFrame, setSelectedSize, navigat
         <div className={isSubPage ? "text-stone-900" : "min-h-screen bg-[#faf9f8] text-stone-900"} style={{ fontFamily: "'Inter', sans-serif" }}>
             {/* Header */}
             <header className="border-b border-stone-200">
-                <div className={`max-w-screen-xl mx-auto px-6 md:px-12 pb-4 ${isSubPage ? 'pt-1' : 'pt-8'}`}>
+                <div className={`max-w-[2560px] mx-auto px-6 md:px-12 pb-4 ${isSubPage ? 'pt-1' : 'pt-8'}`}>
                     <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6">
                         <div>
                             <p className="text-[9px] uppercase tracking-[0.3em] text-stone-500 font-bold mb-1">Met Museum Archive</p>
@@ -191,7 +191,7 @@ const MetArtPage = ({ setProductMode, setSelectedFrame, setSelectedSize, navigat
 
             {/* Categories Navigation */}
             <div className="bg-[#faf9f8]/95 backdrop-blur-sm border-b border-stone-200 sticky top-12 z-20 py-3 mt-1">
-                <div className="max-w-screen-xl mx-auto px-6 md:px-12 flex items-center gap-2 overflow-x-auto no-scrollbar after:content-[''] after:pr-6 md:after:pr-12">
+                <div className="max-w-[2560px] mx-auto px-6 md:px-12 flex items-center gap-2 overflow-x-auto no-scrollbar after:content-[''] after:pr-6 md:after:pr-12">
                     {primary.map(cat => (
                         <button
                             key={cat}
@@ -241,7 +241,7 @@ const MetArtPage = ({ setProductMode, setSelectedFrame, setSelectedSize, navigat
             </div>
 
             {/* Artwork Grid */}
-            <main className="max-w-screen-xl mx-auto px-6 md:px-12 pt-8 pb-12">
+            <main className="max-w-[2560px] mx-auto px-6 md:px-12 pt-8 pb-12">
                 {currentArtworks.length === 0 ? (
                     <div className="w-full flex flex-col items-center justify-center py-24 text-stone-400">
                         <RefreshCw size={24} className="animate-spin mb-4" />

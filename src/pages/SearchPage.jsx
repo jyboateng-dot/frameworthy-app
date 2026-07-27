@@ -344,7 +344,7 @@ const SearchPage = ({ setProductMode, setSelectedFrame, setSelectedSize, navigat
     return (
         <div className={isSubPage ? "text-stone-900" : "min-h-screen bg-[#faf9f8] text-stone-900"} style={{ fontFamily: "'Inter', sans-serif" }}>
             <header className="border-b border-stone-200">
-                <div className={`max-w-screen-xl mx-auto px-6 md:px-12 pb-6 ${isSubPage ? 'pt-1' : 'pt-8'}`}>
+                <div className={`max-w-[2560px] mx-auto px-6 md:px-12 pb-6 ${isSubPage ? 'pt-1' : 'pt-8'}`}>
                     <p className="text-[9px] uppercase tracking-[0.3em] text-stone-500 font-bold mb-2 flex items-center gap-2">
                         <SearchIcon size={12} /> Search Everything
                     </p>
@@ -368,7 +368,7 @@ const SearchPage = ({ setProductMode, setSelectedFrame, setSelectedSize, navigat
                 </div>
             </header>
 
-            <main className="max-w-screen-xl mx-auto px-6 md:px-12 pt-8 pb-16">
+            <main className="max-w-[2560px] mx-auto px-6 md:px-12 pt-8 pb-16">
                 {!hasQuery ? (
                     <div className="w-full flex flex-col items-center justify-center py-20 text-stone-400">
                         <SearchIcon size={28} className="mb-4 opacity-40" />

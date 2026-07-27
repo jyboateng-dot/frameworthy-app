@@ -127,7 +127,7 @@ const OriginalPaintingsPage = ({ setProductMode, setSelectedFrame, setSelectedSi
 
             {/* HEADER */}
             <header className="border-b border-stone-200">
-                <div className={`max-w-screen-xl mx-auto px-6 md:px-12 pb-4 ${isSubPage ? 'pt-1' : 'pt-8'}`}>
+                <div className={`max-w-[2560px] mx-auto px-6 md:px-12 pb-4 ${isSubPage ? 'pt-1' : 'pt-8'}`}>
 
                     <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6">
                         <div>
@@ -151,7 +151,7 @@ const OriginalPaintingsPage = ({ setProductMode, setSelectedFrame, setSelectedSi
 
             {/* FILTER BAR */}
             <div className="bg-[#faf9f8]/95 backdrop-blur-sm border-b border-stone-200 sticky top-[60px] z-20">
-                <div className="overflow-x-auto no-scrollbar max-w-screen-xl mx-auto px-6 md:px-12 after:content-[''] after:pr-6 md:after:pr-12">
+                <div className="overflow-x-auto no-scrollbar max-w-[2560px] mx-auto px-6 md:px-12 after:content-[''] after:pr-6 md:after:pr-12">
                     <div className="flex gap-8 min-w-max">
                     {SERIES_TABS.map(t => (
                         <button
@@ -171,7 +171,7 @@ const OriginalPaintingsPage = ({ setProductMode, setSelectedFrame, setSelectedSi
             </div>
 
             {/* GRID */}
-            <main className="max-w-screen-xl mx-auto px-6 md:px-12 pt-6 pb-12">
+            <main className="max-w-[2560px] mx-auto px-6 md:px-12 pt-6 pb-12">
                 {filtered.length === 0 ? (
                     <div className="py-40 text-center text-stone-400 text-sm font-light">No paintings in this series.</div>
                 ) : (
@@ -226,7 +226,7 @@ const OriginalPaintingsPage = ({ setProductMode, setSelectedFrame, setSelectedSi
 
             {/* FOOTER CTA */}
             <footer className="border-t border-stone-200 bg-[#faf9f8]">
-                <div className="max-w-screen-xl mx-auto px-6 md:px-12 py-14 flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
+                <div className="max-w-[2560px] mx-auto px-6 md:px-12 py-14 flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
                     <div>
                         <p className="text-[9px] uppercase tracking-[0.3em] text-stone-400 font-black mb-2">Handcrafted in our studio</p>
                         <p className="font-serif font-light text-2xl text-stone-900">

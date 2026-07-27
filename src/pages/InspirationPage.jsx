@@ -193,11 +193,11 @@ const InspirationPage = ({ setProductMode, setSelectedFrame, setSelectedSize, na
         ];
         return (
             <>
-                <div className="pt-8 pb-2 px-6 md:px-12 max-w-screen-xl mx-auto">
+                <div className="pt-8 pb-2 px-6 md:px-12 max-w-[2560px] mx-auto">
                     <h1 className="font-serif text-[1.6875rem] md:text-[2.0625rem] text-stone-900 font-light tracking-tight">Inspiration</h1>
                 </div>
                 <div className="bg-[#faf9f8]/95 backdrop-blur-sm border-b border-stone-200 sticky top-0 z-30 py-3">
-                    <div className="max-w-screen-xl mx-auto px-6 md:px-12 flex items-center gap-2 overflow-x-auto no-scrollbar">
+                    <div className="max-w-[2560px] mx-auto px-6 md:px-12 flex items-center gap-2 overflow-x-auto no-scrollbar">
                         {sections.map(s => (
                             <React.Fragment key={s.id}>
                                 <button
@@ -231,7 +231,7 @@ const InspirationPage = ({ setProductMode, setSelectedFrame, setSelectedSize, na
             {renderTabs()}
 
             {currentSection === 'search' && (
-                <div className="max-w-screen-xl mx-auto py-8">
+                <div className="max-w-[2560px] mx-auto py-8">
                     <Suspense fallback={<TabLoadingFallback />}>
                     <SearchPage
                         setProductMode={setProductMode}
@@ -249,39 +249,39 @@ const InspirationPage = ({ setProductMode, setSelectedFrame, setSelectedSize, na
             )}
 
             {currentSection === 'originals' && (
-                <div className="max-w-screen-xl mx-auto py-8">
+                <div className="max-w-[2560px] mx-auto py-8">
                     <OriginalPaintingsPage setProductMode={setProductMode} setSelectedFrame={setSelectedFrame} setSelectedSize={setSelectedSize} navigate={navigate} isSubPage={true} disableWindowScroll={isModal} />
                 </div>
             )}
             {currentSection === 'prestige' && (
-                <div className="max-w-screen-xl mx-auto py-8">
+                <div className="max-w-[2560px] mx-auto py-8">
                     <PrestigePaintingsPage setProductMode={setProductMode} setSelectedFrame={setSelectedFrame} setSelectedSize={setSelectedSize} navigate={navigate} isSubPage={true} disableWindowScroll={isModal} />
                 </div>
             )}
             {currentSection === 'canvas' && (
-                <div className="max-w-screen-xl mx-auto py-8">
+                <div className="max-w-[2560px] mx-auto py-8">
                     <CanvasArtPage setProductMode={setProductMode} setSelectedFrame={setSelectedFrame} setSelectedSize={setSelectedSize} navigate={navigate} isSubPage={true} disableWindowScroll={isModal} />
                 </div>
             )}
             {currentSection === 'glossy' && (
-                <div className="max-w-screen-xl mx-auto py-8">
+                <div className="max-w-[2560px] mx-auto py-8">
                     <GlossyArtPage setProductMode={setProductMode} setSelectedFrame={setSelectedFrame} setSelectedSize={setSelectedSize} navigate={navigate} isSubPage={true} disableWindowScroll={isModal} />
                 </div>
             )}
             {currentSection === 'web' && (
-                <div className="max-w-screen-xl mx-auto py-8">
+                <div className="max-w-[2560px] mx-auto py-8">
                     <WebImagesPage setProductMode={setProductMode} setSelectedFrame={setSelectedFrame} setSelectedSize={setSelectedSize} navigate={navigate} isSubPage={true} disableWindowScroll={isModal} />
                 </div>
             )}
             {currentSection === 'met' && (
-                <div className="max-w-screen-xl mx-auto py-8">
+                <div className="max-w-[2560px] mx-auto py-8">
                     <Suspense fallback={<TabLoadingFallback />}>
                     <MetArtPage setProductMode={setProductMode} setSelectedFrame={setSelectedFrame} setSelectedSize={setSelectedSize} navigate={navigate} isSubPage={true} disableWindowScroll={isModal} />
                     </Suspense>
                 </div>
             )}
             {currentSection === 'albums' && (
-                <div className="max-w-screen-xl mx-auto py-8">
+                <div className="max-w-[2560px] mx-auto py-8">
                     <Suspense fallback={<TabLoadingFallback />}>
                     <AlbumArtPage
                         setProductMode={setProductMode} setSelectedFrame={setSelectedFrame} setSelectedSize={setSelectedSize} navigate={navigate} isSubPage={true} disableWindowScroll={isModal}
@@ -292,7 +292,7 @@ const InspirationPage = ({ setProductMode, setSelectedFrame, setSelectedSize, na
                 </div>
             )}
             {currentSection === 'movies' && (
-                <div className="max-w-screen-xl mx-auto py-8">
+                <div className="max-w-[2560px] mx-auto py-8">
                     <Suspense fallback={<TabLoadingFallback />}>
                     <MoviePosterPage
                         setProductMode={setProductMode} setSelectedFrame={setSelectedFrame} setSelectedSize={setSelectedSize} navigate={navigate} isSubPage={true} disableWindowScroll={isModal}
@@ -307,7 +307,7 @@ const InspirationPage = ({ setProductMode, setSelectedFrame, setSelectedSize, na
                 <>
                     {/* HEADER */}
                     <header className="border-b border-stone-200">
-                        <div className="max-w-screen-xl mx-auto px-6 md:px-12 pt-4 pb-4">
+                        <div className="max-w-[2560px] mx-auto px-6 md:px-12 pt-4 pb-4">
  
                             <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6">
                                 <div className="mb-6">
@@ -331,7 +331,7 @@ const InspirationPage = ({ setProductMode, setSelectedFrame, setSelectedSize, na
 
                     {/* Sub-tabs for Framed Prints */}
                     <div className="bg-[#faf9f8]/95 backdrop-blur-sm border-b border-stone-200 sticky top-[60px] z-20">
-                        <div className="overflow-x-auto no-scrollbar max-w-screen-xl mx-auto px-6 md:px-12">
+                        <div className="overflow-x-auto no-scrollbar max-w-[2560px] mx-auto px-6 md:px-12">
                             <div className="flex gap-8 min-w-max">
                                 {INSPIRATION_TABS.map(t => (
                                 <button
@@ -351,7 +351,7 @@ const InspirationPage = ({ setProductMode, setSelectedFrame, setSelectedSize, na
                     </div>
 
                     {/* GRID */}
-                    <main className="max-w-screen-xl mx-auto px-6 md:px-12 pt-6 pb-12">
+                    <main className="max-w-[2560px] mx-auto px-6 md:px-12 pt-6 pb-12">
                         {filteredInspiration.length === 0 ? (
                             <div className="py-40 text-center text-stone-400 text-sm font-light">No prints in this series.</div>
                         ) : (
@@ -407,7 +407,7 @@ const InspirationPage = ({ setProductMode, setSelectedFrame, setSelectedSize, na
                     {/* FOOTER */}
                     {!isModal && (
                         <footer className="border-t border-stone-200 bg-[#faf9f8]">
-                            <div className="max-w-screen-xl mx-auto px-6 md:px-12 py-14 flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
+                            <div className="max-w-[2560px] mx-auto px-6 md:px-12 py-14 flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
                                 <div>
                                     <p className="text-[9px] uppercase tracking-[0.3em] text-stone-400 font-black mb-2">Handcrafted in our studio</p>
                                     <p className="font-serif font-light text-2xl text-stone-900">

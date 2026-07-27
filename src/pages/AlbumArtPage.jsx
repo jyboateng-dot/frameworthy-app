@@ -237,7 +237,7 @@ const AlbumArtPage = ({ setProductMode, setSelectedFrame, setSelectedSize, navig
         <div className={isSubPage ? "text-stone-900" : "min-h-screen bg-[#faf9f8] text-stone-900"} style={{ fontFamily: "'Inter', sans-serif" }}>
             {/* Header */}
             <header className="border-b border-stone-200">
-                <div className={`max-w-screen-xl mx-auto px-6 md:px-12 pb-3 sm:pb-6 ${isSubPage ? 'pt-1' : 'pt-8'}`}>
+                <div className={`max-w-[2560px] mx-auto px-6 md:px-12 pb-3 sm:pb-6 ${isSubPage ? 'pt-1' : 'pt-8'}`}>
                     <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6">
                         <div>
                             <p className="text-[9px] uppercase tracking-[0.3em] text-stone-500 font-bold mb-1 sm:mb-2 flex items-center gap-2">
@@ -256,7 +256,7 @@ const AlbumArtPage = ({ setProductMode, setSelectedFrame, setSelectedSize, navig
 
             {/* Navigation Tabs */}
             <div className="bg-[#faf9f8]/95 backdrop-blur-sm border-b border-stone-200 sticky top-[60px] z-20 py-2 sm:py-3 mt-1">
-                <div className="max-w-screen-xl mx-auto px-6 md:px-12 flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
+                <div className="max-w-[2560px] mx-auto px-6 md:px-12 flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
                     
                     <button
                         onClick={() => { setActiveTab('Search'); setCurrentPage(1); }}
@@ -291,7 +291,7 @@ const AlbumArtPage = ({ setProductMode, setSelectedFrame, setSelectedSize, navig
                 </div>
 
                 {/* Sub-navigation for Artists or Search Bar */}
-                <div className="max-w-screen-xl mx-auto px-6 md:px-12 mt-2 sm:mt-4">
+                <div className="max-w-[2560px] mx-auto px-6 md:px-12 mt-2 sm:mt-4">
                     {activeTab === 'Search' ? (
                         <form onSubmit={handleSearch} className="max-w-md relative">
                             <input 
@@ -331,7 +331,7 @@ const AlbumArtPage = ({ setProductMode, setSelectedFrame, setSelectedSize, navig
             </div>
 
             {/* Grid */}
-            <main className="max-w-screen-xl mx-auto px-6 md:px-12 pt-8 pb-16">
+            <main className="max-w-[2560px] mx-auto px-6 md:px-12 pt-8 pb-16">
                 {currentArtworks.length === 0 ? (
                     <div className="w-full flex flex-col items-center justify-center py-24 text-stone-400">
                         {activeTab === 'Search' ? (
