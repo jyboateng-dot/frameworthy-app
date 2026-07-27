@@ -3,6 +3,8 @@ workflows:
     name: Android Debug Build
     max_build_duration: 30
     environment:
+      groups:
+        - production
       node: 22
       java: 21
       vars:
@@ -81,6 +83,8 @@ workflows:
       # Must match exactly whatever name is given there.
       app_store_connect: frameworthy_asc
     environment:
+      groups:
+        - production
       node: 22
       xcode: latest
       cocoapods: default
