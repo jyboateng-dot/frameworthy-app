@@ -181,14 +181,32 @@ export default function LandingPage({ onStartFraming, navigate, setSelectedFrame
                     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mb-12">
                         {currentFrames.map((frame, index) => (
                             <div key={frame.id} className="group cursor-pointer" onClick={() => handleFrameSelect(frame)}>
-                                <div className="aspect-square rounded-2xl bg-stone-50 overflow-hidden mb-4 relative p-8 flex items-center justify-center transition-transform duration-500 group-hover:scale-[1.02]">
-                                    <div className="absolute inset-0 opacity-0 group-hover:opacity-100 bg-black/5 transition-opacity duration-300 z-10" />
-                                    <img 
-                                        src={frame.previewImg || `/frames/${frame.filename}`} 
-                                        alt={frame.name} 
-                                        className="w-full h-full object-cover shadow-2xl transition-transform duration-700 group-hover:scale-110"
+                                <div className="aspect-square rounded-2xl bg-stone-100 overflow-hidden mb-4 relative transition-transform duration-500 group-hover:scale-[1.02]">
+                                    {/* Corner-profile shots ship with generous white margin around
+                                        the moulding (product photography convention), so a 1:1 crop
+                                        renders the frame as a small inset swatch. Scaling well past
+                                        100% before object-cover crops lets the wood/finish fill the
+                                        card edge-to-edge instead, matching a macro product shot
+                                        rather than a thumbnail on a mount board. The origin is
+                                        biased toward the lower-middle rather than dead center: most
+                                        shots concentrate the frame's solid mass toward the bottom of
+                                        the frame (mitre pointing down) with the open mat/background
+                                        toward the top, so zooming from that point crops into more
+                                        moulding and less background than a centered zoom would —
+                                        including on the minority of shots framed off-axis with the
+                                        inner mat opening still visible. */}
+                                    <img
+                                        src={frame.previewImg || `/frames/${frame.filename}`}
+                                        alt={frame.name}
+                                        className="w-full h-full object-cover scale-[1.65] origin-[50%_68%] transition-transform duration-700 group-hover:scale-[1.78]"
                                     />
-                                    
+                                    {/* Soft inset vignette — grounds every corner shot in the same
+                                        gentle studio-light falloff regardless of that source photo's
+                                        own background/lighting, so the grid reads as one consistent
+                                        set rather than a patchwork of differently-lit product photos. */}
+                                    <div className="absolute inset-0 shadow-[inset_0_0_46px_12px_rgba(28,26,23,0.18)] pointer-events-none" />
+                                    <div className="absolute inset-0 opacity-0 group-hover:opacity-100 bg-black/10 transition-opacity duration-300 z-10" />
+
                                     {/* Hover overlay with button */}
                                     <div className="absolute inset-0 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-20">
                                         <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-xl transform translate-y-4 group-hover:translate-y-0 transition-all duration-300">
