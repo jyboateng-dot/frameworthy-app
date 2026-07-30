@@ -29,6 +29,7 @@ beforeEach(async () => {
 });
 
 const ADMIN_EMAIL = 'admin@frameworthyco.com';
+const SECOND_ADMIN_EMAIL = 'info@frameworthyco.com';
 
 const pendingOrder = (overrides = {}) => ({
     paymentStatus: 'pending',
@@ -96,6 +97,11 @@ describe('orders collection', () => {
             const admin = testEnv.authenticatedContext('admin-uid', { email: ADMIN_EMAIL }).firestore();
             await assertSucceeds(getDoc(doc(admin, 'orders/alice-order')));
             await assertSucceeds(getDoc(doc(admin, 'orders/bob-order')));
+        });
+
+        it('lets the second admin address read any order too', async () => {
+            const admin = testEnv.authenticatedContext('admin-uid-2', { email: SECOND_ADMIN_EMAIL }).firestore();
+            await assertSucceeds(getDoc(doc(admin, 'orders/alice-order')));
         });
     });
 

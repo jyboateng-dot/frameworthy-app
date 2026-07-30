@@ -5,10 +5,8 @@ import { useAuth } from '../../context/AuthContext'; // Import Auth Context
 import { useUnit } from '../../context/UnitContext'; // Import Unit Context
 import { useCart } from '../../context/CartContext'; // Import Cart Context
 import { subscribeToAllThreads, subscribeToThread } from '../../services/chat';
+import { isAdminEmail } from '../../constants/admin';
 
-// Mirrors AdminDashboard.jsx's own check — keep these in sync if the admin
-// email ever changes.
-const ADMIN_EMAIL = 'admin@frameworthyco.com';
 // Same address used everywhere else in the app for a direct customer-facing
 // contact (LandingPage footer, Terms/Privacy/Refund pages).
 const CONTACT_EMAIL = 'admin@frameworthyco.com';
@@ -28,7 +26,7 @@ const Header = ({
     const [unreadMessageCount, setUnreadMessageCount] = useState(0);
 
     const showBack = currentStep !== 'landing' && currentStep !== 'success';
-    const isAdmin = user?.email === ADMIN_EMAIL;
+    const isAdmin = isAdminEmail(user?.email);
     const [latestNotificationThread, setLatestNotificationThread] = useState(null);
 
     // Live unread-chat count for the admin nav badge — only subscribes when
@@ -176,7 +174,7 @@ const Header = ({
                                         <HelpCircle size={16} /> Help Centre
                                     </button>
 
-                                    {user.email === ADMIN_EMAIL && (
+                                    {isAdminEmail(user.email) && (
                                         <>
                                             <button
                                                 onClick={() => { navigate('/admin'); setIsUserMenuOpen(false); }}
@@ -259,7 +257,7 @@ const Header = ({
                                         >
                                             <Package size={16} /> My Orders
                                         </button>
-                                        {user.email === ADMIN_EMAIL && (
+                                        {isAdminEmail(user.email) && (
                                             <>
                                                 <button
                                                     onClick={() => { navigate('/admin'); setIsMenuOpen(false); }}

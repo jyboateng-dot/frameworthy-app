@@ -3,10 +3,11 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Single hardcoded admin, matching AdminDashboard.jsx's own check —
-    // keep these two in sync if the admin email ever changes.
+    // Hardcoded admin allowlist, matching src/constants/admin.js's
+    // ADMIN_EMAILS — keep these two in sync if the admin emails ever change.
     function isAdmin() {
-      return request.auth != null && request.auth.token.email == 'admin@frameworthyco.com';
+      return request.auth != null &&
+        request.auth.token.email in ['admin@frameworthyco.com', 'info@frameworthyco.com'];
     }
 
     match /orders/{orderId} {

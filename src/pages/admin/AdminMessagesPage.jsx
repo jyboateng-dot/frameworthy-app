@@ -3,8 +3,7 @@ import { Navigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { subscribeToAllThreads, subscribeToMessages, sendMessage, markThreadRead, toggleAiAutoReply } from '../../services/chat';
 import { Send, MessageCircle, ArrowLeft, Bot, Sparkles, UserCheck } from 'lucide-react';
-
-const ADMIN_EMAIL = 'admin@frameworthyco.com';
+import { isAdminEmail } from '../../constants/admin';
 
 const AdminMessagesPage = () => {
     const { user, isLoading: authLoading } = useAuth();
@@ -24,7 +23,7 @@ const AdminMessagesPage = () => {
     }, [targetChatUid]);
 
     useEffect(() => {
-        if (!user || user.email !== ADMIN_EMAIL) return;
+        if (!user || !isAdminEmail(user.email)) return;
         const unsub = subscribeToAllThreads(setThreads);
         return unsub;
     }, [user]);
@@ -37,7 +36,7 @@ const AdminMessagesPage = () => {
     }, [selectedUid]);
 
     if (authLoading) return <div className="min-h-screen flex items-center justify-center"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-black"></div></div>;
-    if (!user || user.email !== ADMIN_EMAIL) {
+    if (!user || !isAdminEmail(user.email)) {
         return <Navigate to="/" replace />;
     }
 

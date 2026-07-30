@@ -5,8 +5,7 @@ import { getOrders, updateOrderStatus } from '../../services/db';
 import { Package, Search, Image as ImageIcon, CheckCircle, Clock, Truck, ChevronDown, CircleDollarSign, AlertTriangle, ClipboardList, Share2 } from 'lucide-react';
 import OrderDetailModal from './OrderDetailModal';
 import ShareOrdersModal from './ShareOrdersModal';
-
-const ADMIN_EMAIL = 'admin@frameworthyco.com';
+import { isAdminEmail } from '../../constants/admin';
 
 const AdminDashboard = () => {
     const { user, isLoading: authLoading } = useAuth();
@@ -23,7 +22,7 @@ const AdminDashboard = () => {
 
     useEffect(() => {
         // Only fetch if user is authorized
-        if (user && user.email === ADMIN_EMAIL) {
+        if (user && isAdminEmail(user.email)) {
             fetchOrders();
         }
     }, [user]);
@@ -73,7 +72,7 @@ const AdminDashboard = () => {
     if (authLoading) return <div className="min-h-screen flex items-center justify-center"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-black"></div></div>;
     
     // Redirect if not logged in or not the admin
-    if (!user || user.email !== ADMIN_EMAIL) {
+    if (!user || !isAdminEmail(user.email)) {
         return <Navigate to="/" replace />;
     }
 
