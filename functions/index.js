@@ -2,6 +2,7 @@ const { onCall, HttpsError } = require('firebase-functions/v2/https');
 const { defineSecret } = require('firebase-functions/params');
 const { logger } = require('firebase-functions');
 const admin = require('firebase-admin');
+const { recomputeOrderTotal } = require('./pricing');
 
 admin.initializeApp();
 
@@ -56,14 +57,35 @@ exports.verifyPaystackPayment = onCall({ secrets: [paystackSecretKey], region: '
         throw new HttpsError('failed-precondition', 'Payment could not be verified as successful');
     }
 
+    // Recompute what this order should cost from its configuration alone.
+    // order.totalPrice is written by the client, so comparing the amount paid
+    // against it would only prove "they paid what they said they'd pay" —
+    // a tampered client could claim totalPrice: 1 and pay GHS 1 for a GHS 321
+    // frame. The price table in pricing-data.json is the server's own copy.
+    const recomputed = recomputeOrderTotal(order);
+    if (recomputed.error) {
+        logger.error('Could not recompute order total', { orderId, reference, reason: recomputed.error });
+        throw new HttpsError('failed-precondition', 'Order could not be priced for verification');
+    }
+
     // Guard against a tampered/mismatched amount — Paystack amounts are in
-    // the lowest currency unit (pesewas for GHS), order.totalPrice is major units.
-    const expectedAmount = Math.round(Number(order.totalPrice) * 100);
+    // the lowest currency unit (pesewas for GHS), recomputed total is major units.
+    const expectedAmount = Math.round(recomputed.total * 100);
     if (result.data.amount !== expectedAmount || result.data.currency !== order.currency) {
         logger.error('Amount/currency mismatch on verified payment', {
-            orderId, reference, expectedAmount, got: result.data.amount, currency: result.data.currency
+            orderId, reference, expectedAmount, got: result.data.amount,
+            currency: result.data.currency, clientClaimedTotal: order.totalPrice
         });
         throw new HttpsError('failed-precondition', 'Verified amount does not match order total');
+    }
+
+    // Surfaces client/server price disagreement even when the customer paid
+    // the correct (server) amount — a mismatch here means either a stale
+    // pricing-data.json or a client-side tampering attempt worth knowing about.
+    if (Math.round(Number(order.totalPrice) * 100) !== expectedAmount) {
+        logger.warn('Client-stated order total disagreed with server recomputation', {
+            orderId, reference, clientClaimedTotal: order.totalPrice, serverTotal: recomputed.total
+        });
     }
 
     // Paystack references stay verifiable indefinitely (re-querying an
@@ -251,4 +273,60 @@ exports.redeemTesterPin = onCall({ region: 'us-central1', timeoutSeconds: 30, ma
         });
         return { success: true };
     });
+});
+
+// Guest order lookup. Guest checkout writes orders under userId 'guest' with
+// no auth context, so firestore.rules can never let a guest read their order
+// back directly — there's no identity to match against. This callable is the
+// deliberate, narrow exception: it releases a single order's status to
+// whoever can present BOTH its Firestore document id AND the email it was
+// placed under.
+//
+// Why that pair is an acceptable bar: the document id is a 20-char Firestore
+// auto-id that only ever appears on the post-payment success screen and in
+// the confirmation email — it's unguessable and unenumerable, and the email
+// requirement means a leaked/mistyped id alone still isn't enough. Wrong id
+// and wrong email return the same 'not-found' so the endpoint can't be used
+// to probe which order ids exist.
+//
+// Deliberately NOT returned: shipping address, phone, or line-item detail —
+// status queries don't need them, so a correct-pair lookup by someone who
+// shouldn't have the pair (e.g. a forwarded email) leaks as little as
+// possible.
+exports.lookupGuestOrder = onCall({ region: 'us-central1', timeoutSeconds: 30, maxInstances: 5 }, async (request) => {
+    const { orderId, email } = request.data || {};
+    if (!orderId || typeof orderId !== 'string' || !email || typeof email !== 'string') {
+        throw new HttpsError('invalid-argument', 'orderId and email are required');
+    }
+
+    const normalizedEmail = email.trim().toLowerCase();
+    // Firestore auto-ids are exactly 20 chars of [A-Za-z0-9] — reject anything
+    // else before touching the database.
+    if (!/^[A-Za-z0-9]{20}$/.test(orderId.trim()) || !normalizedEmail.includes('@')) {
+        throw new HttpsError('not-found', 'No matching order found');
+    }
+
+    const snap = await admin.firestore().collection('orders').doc(orderId.trim()).get();
+    if (!snap.exists) {
+        throw new HttpsError('not-found', 'No matching order found');
+    }
+
+    const order = snap.data();
+    if ((order.userEmail || '').trim().toLowerCase() !== normalizedEmail) {
+        // Same error as a missing doc — the caller learns nothing about
+        // whether this id exists.
+        throw new HttpsError('not-found', 'No matching order found');
+    }
+
+    return {
+        orderId: snap.id,
+        paymentStatus: order.paymentStatus || 'pending',
+        status: order.status || 'pending',
+        totalPrice: order.totalPrice ?? null,
+        currency: order.currency || 'GHS',
+        createdAt: order.createdAt ? order.createdAt.toMillis() : null,
+        itemCount: Array.isArray(order.items)
+            ? order.items.reduce((n, item) => n + (Number(item.quantity) || 1), 0)
+            : null,
+    };
 });

@@ -22,12 +22,25 @@ const paystackSuccess = (overrides = {}) => ({
 
 const db = () => admin.firestore();
 
+// A canvas frame (priceMod 1.0) at custom-60x100 prices to exactly GHS 100
+// server-side — matching the GHS 100 / 10000-pesewa amounts these tests use.
+// The order total is now recomputed from this configuration rather than read
+// from totalPrice, so every seeded order needs a priceable item.
+const item100 = (overrides = {}) => ({
+    selectedFrame: { id: 'frame-canvas' },
+    selectedSize: { id: 'custom-60x100' },
+    matWidth: 'none',
+    quantity: 1,
+    ...overrides,
+});
+
 const seedOrder = async (id, data) => {
     await db().collection('orders').doc(id).set({
         userId: 'alice',
         totalPrice: 100,
         currency: 'GHS',
         paymentStatus: 'pending',
+        items: [item100()],
         ...data,
     });
 };
@@ -137,5 +150,78 @@ describe('verifyPaystackPayment', () => {
 
         const order2 = (await db().collection('orders').doc('order2').get()).data();
         expect(order2.paymentStatus).toBe('pending');
+    });
+
+    // The price is recomputed server-side from the order's configuration.
+    // Before that, these checks compared the amount paid against the
+    // client-written totalPrice, so an order could simply declare itself cheap.
+    describe('server-side price recomputation', () => {
+        it('rejects an order whose client-stated total undercuts the real price', async () => {
+            // Real price of this configuration is GHS 100, but the order
+            // claims GHS 1 and only GHS 1 was actually paid.
+            await seedOrder('order1', { totalPrice: 1, currency: 'GHS' });
+            mockPaystackFetch(async () => paystackSuccess({ amount: 100 })); // 100 pesewas = GHS 1
+
+            await expect(verifyPaystackPayment.run({ data: { reference: 'ref1', orderId: 'order1' } }))
+                .rejects.toMatchObject({ code: 'failed-precondition' });
+
+            const order = (await db().collection('orders').doc('order1').get()).data();
+            expect(order.paymentStatus).toBe('pending');
+        });
+
+        it('accepts payment of the real server-computed price even if totalPrice was tampered low', async () => {
+            await seedOrder('order1', { totalPrice: 1, currency: 'GHS' });
+            mockPaystackFetch(async () => paystackSuccess({ amount: 10000 })); // the true GHS 100
+
+            const res = await verifyPaystackPayment.run({ data: { reference: 'ref1', orderId: 'order1' } });
+            expect(res).toEqual({ success: true, alreadyVerified: false });
+        });
+
+        it('prices multiple items and quantities', async () => {
+            // 2 x GHS 100 = GHS 200
+            await seedOrder('order1', {
+                totalPrice: 200,
+                items: [item100({ quantity: 2 })],
+            });
+            mockPaystackFetch(async () => paystackSuccess({ amount: 20000 }));
+
+            const res = await verifyPaystackPayment.run({ data: { reference: 'ref1', orderId: 'order1' } });
+            expect(res).toEqual({ success: true, alreadyVerified: false });
+        });
+
+        it('applies a known promo code server-side', async () => {
+            // SAVE50 is a fixed GHS 50 discount: 100 - 50 = 50
+            await seedOrder('order1', { totalPrice: 50, promoCode: 'SAVE50' });
+            mockPaystackFetch(async () => paystackSuccess({ amount: 5000 }));
+
+            const res = await verifyPaystackPayment.run({ data: { reference: 'ref1', orderId: 'order1' } });
+            expect(res).toEqual({ success: true, alreadyVerified: false });
+        });
+
+        it('rejects an invented promo code rather than honouring the discount', async () => {
+            await seedOrder('order1', { totalPrice: 1, promoCode: 'TOTALLY_FREE_99' });
+            mockPaystackFetch(async () => paystackSuccess({ amount: 100 }));
+
+            await expect(verifyPaystackPayment.run({ data: { reference: 'ref1', orderId: 'order1' } }))
+                .rejects.toMatchObject({ code: 'failed-precondition' });
+        });
+
+        it('rejects an order referencing a product that is not in the price table', async () => {
+            await seedOrder('order1', {
+                items: [item100({ selectedFrame: { id: 'frame-does-not-exist' } })],
+            });
+            mockPaystackFetch(async () => paystackSuccess());
+
+            await expect(verifyPaystackPayment.run({ data: { reference: 'ref1', orderId: 'order1' } }))
+                .rejects.toMatchObject({ code: 'failed-precondition' });
+        });
+
+        it('rejects an order with no items rather than pricing it at zero', async () => {
+            await seedOrder('order1', { items: [] });
+            mockPaystackFetch(async () => paystackSuccess());
+
+            await expect(verifyPaystackPayment.run({ data: { reference: 'ref1', orderId: 'order1' } }))
+                .rejects.toMatchObject({ code: 'failed-precondition' });
+        });
     });
 });
