@@ -3,6 +3,7 @@ const { defineSecret } = require('firebase-functions/params');
 const { logger } = require('firebase-functions');
 const admin = require('firebase-admin');
 const { recomputeOrderTotal } = require('./pricing');
+const { FRAMEWORTHY_KNOWLEDGE_BASE } = require('./supportKnowledge');
 
 admin.initializeApp();
 
@@ -329,4 +330,79 @@ exports.lookupGuestOrder = onCall({ region: 'us-central1', timeoutSeconds: 30, m
             ? order.items.reduce((n, item) => n + (Number(item.quantity) || 1), 0)
             : null,
     };
+});
+
+// ---------------------------------------------------------------------------
+// askSupportAgent — server-side proxy for the Help Centre AI chat.
+//
+// The client used to call Gemini directly with a VITE_-baked API key, which
+// put the key in the public JS bundle. This callable keeps the key in Secret
+// Manager and the knowledge-base prompt server-side. Chat requires a
+// signed-in user (threads live at chats/{uid}), so auth is required here too —
+// it also stops anonymous quota burn on the Gemini key.
+//
+// On any upstream failure this throws `unavailable`; the client falls back to
+// its local keyword engine, same as before.
+// Stored in Secret Manager via `firebase functions:secrets:set GEMINI_API_KEY`
+const geminiApiKey = defineSecret('GEMINI_API_KEY');
+
+const GEMINI_MODEL = 'gemini-3.5-flash';
+
+exports.askSupportAgent = onCall({ secrets: [geminiApiKey], region: 'us-central1', timeoutSeconds: 30, maxInstances: 5 }, async (request) => {
+    if (!request.auth) {
+        throw new HttpsError('unauthenticated', 'Sign in to use chat support');
+    }
+
+    const { message, history } = request.data || {};
+    if (!message || typeof message !== 'string' || !message.trim()) {
+        throw new HttpsError('invalid-argument', 'message is required');
+    }
+    if (message.length > 2000) {
+        throw new HttpsError('invalid-argument', 'message is too long');
+    }
+
+    // History is optional context; cap and sanitize it rather than trusting
+    // the client's shape.
+    const historyText = (Array.isArray(history) ? history : [])
+        .slice(-6)
+        .filter((m) => m && typeof m.text === 'string')
+        .map((m) => `${m.senderRole === 'customer' ? 'Customer' : 'Assistant'}: ${m.text.slice(0, 2000)}`)
+        .join('\n');
+
+    const prompt = `${FRAMEWORTHY_KNOWLEDGE_BASE}
+
+### CONVERSATION HISTORY
+${historyText}
+
+Customer: ${message}
+Assistant:`;
+
+    let response;
+    try {
+        response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${geminiApiKey.value()}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                contents: [{ parts: [{ text: prompt }] }],
+                generationConfig: { maxOutputTokens: 800, temperature: 0.7 },
+            }),
+        });
+    } catch (err) {
+        logger.error('askSupportAgent: Gemini request failed', { message: err.message });
+        throw new HttpsError('unavailable', 'Support assistant is temporarily unavailable');
+    }
+
+    if (!response.ok) {
+        logger.error('askSupportAgent: Gemini returned an error', { status: response.status });
+        throw new HttpsError('unavailable', 'Support assistant is temporarily unavailable');
+    }
+
+    const data = await response.json();
+    const text = data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+    if (!text) {
+        logger.error('askSupportAgent: Gemini returned no text');
+        throw new HttpsError('unavailable', 'Support assistant is temporarily unavailable');
+    }
+
+    return { text };
 });
