@@ -384,7 +384,12 @@ Assistant:`;
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 contents: [{ parts: [{ text: prompt }] }],
-                generationConfig: { maxOutputTokens: 800, temperature: 0.7 },
+                // thinkingBudget: 0 disables gemini-3.5-flash's internal
+                // reasoning tokens, which otherwise count against
+                // maxOutputTokens and were consuming nearly the entire cap
+                // before any visible reply text was generated (observed
+                // finishReason: MAX_TOKENS with candidatesTokenCount ~30).
+                generationConfig: { maxOutputTokens: 500, temperature: 0.7, thinkingConfig: { thinkingBudget: 0 } },
             }),
         });
     } catch (err) {
