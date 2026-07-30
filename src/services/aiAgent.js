@@ -148,9 +148,9 @@ export function getLocalAiResponse(userMessage) {
         return "We accept payments in GHS securely via Paystack! You can pay using MTN Mobile Money, Telecel Cash, AT Money, or any Visa/Mastercard. All transactions are protected with bank-level 256-bit encryption.";
     }
 
-    // 9. Orders & Tracking
-    if (matchAny(text, ['track', 'tracking', 'status', 'order', 'orders', 'my order', 'fw-', 'receipt'])) {
-        return "You can track your order status in real time under 'My Orders' in your account menu! Orders move through Pending -> Processing (production) -> Shipped -> Delivered. Order codes follow the format FW-XXXXX.";
+    // 9. Orders & Status
+    if (matchAny(text, ['track', 'tracking', 'status', 'order', 'orders', 'my order', 'receipt'])) {
+        return "You can check your order status under 'My Orders' in your account menu! Orders are updated step by step: Order Received -> In Production -> Out for Delivery -> Delivered. Checked out as a guest? Use the Order Status page with your order ID and the email you used at checkout.";
     }
 
     // 10. Location, Physical Address & Phone Contacts

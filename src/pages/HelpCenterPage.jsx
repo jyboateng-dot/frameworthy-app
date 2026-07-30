@@ -287,7 +287,7 @@ const HelpCenterPage = ({ navigate, onOpenChat }) => {
                             </div>
                             <div>
                                 <h4 className="font-serif font-bold text-base text-stone-900">Have an active order?</h4>
-                                <p className="text-xs text-stone-500">Track your order progress and review receipts in your account.</p>
+                                <p className="text-xs text-stone-500">Check your order status and review receipts in your account.</p>
                             </div>
                         </div>
                         <button

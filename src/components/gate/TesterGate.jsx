@@ -4,7 +4,11 @@ import ValueCarousel from './ValueCarousel';
 
 const ACCESS_KEY = 'fw_tester_access';
 const CAROUSEL_KEY = 'fw_tester_carousel_seen';
-const PUBLIC_PATHS = ['/terms', '/privacy', '/refund-policy', '/delivery-policy', '/help'];
+// /order-status is public for the same reason as /help: someone following up
+// on an order (possibly from a different device than the one they tested on,
+// e.g. via their confirmation email) shouldn't be stopped by the tester PIN
+// wall. The page itself reveals nothing without a valid order-id + email pair.
+const PUBLIC_PATHS = ['/terms', '/privacy', '/refund-policy', '/delivery-policy', '/help', '/order-status'];
 
 const TesterGate = ({ children }) => {
     const isPublicPath = PUBLIC_PATHS.includes(window.location.pathname);

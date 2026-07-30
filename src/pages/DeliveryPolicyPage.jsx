@@ -30,7 +30,7 @@ const DeliveryPolicyPage = ({ navigate }) => (
             </p>
         </LegalSection>
 
-        <LegalSection title="5. Order Tracking & Status">
+        <LegalSection title="5. Order Status Updates">
             <p>
                 You will receive a notification (via email or SMS) when your order has finished production and is handed over to our delivery partner. The courier will contact you directly to arrange the final drop-off.
             </p>
