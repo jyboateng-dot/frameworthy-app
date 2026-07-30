@@ -41,7 +41,7 @@ const AccessGate = ({ onUnlock }) => {
         <div className="min-h-screen bg-[#faf9f8] text-stone-900 flex items-center justify-center px-4">
             <div className="w-full max-w-sm">
                 <div className="flex items-center justify-center gap-0.5 mb-8">
-                    <div className="w-9 h-9 border-4 border-double border-stone-900 rounded-[1px] flex items-center justify-center">
+                    <div className="w-9 h-9 border-4 border-double border-[#c9a84c] rounded-[1px] flex items-center justify-center">
                         <span className="text-2xl font-serif font-bold text-stone-900 leading-none pb-1">Fr</span>
                     </div>
                     <span className="text-2xl font-serif font-bold tracking-tight text-stone-900 leading-none">ameWorthy</span>

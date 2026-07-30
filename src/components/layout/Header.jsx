@@ -88,7 +88,7 @@ const Header = ({
 
                 <div className="flex items-center cursor-pointer gap-0.5 min-w-0" onClick={() => navigate('/')} title="Go to home">
                     {/* LOGO: Double Border Frame Version */}
-                    <div className="w-7 h-7 sm:w-8 sm:h-8 border-4 border-double border-[#e8e2d9] rounded-[1px] flex items-center justify-center shrink-0">
+                    <div className="w-7 h-7 sm:w-8 sm:h-8 border-4 border-double border-[#c9a84c] rounded-[1px] flex items-center justify-center shrink-0">
                         <span className="text-base sm:text-xl font-serif font-bold text-[#e8e2d9] leading-none pb-1">Fr</span>
                     </div>
 
