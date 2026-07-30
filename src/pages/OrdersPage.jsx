@@ -28,8 +28,19 @@ const OrdersPage = () => {
         const fetchOrders = async () => {
             try {
                 const data = await getUserOrders(user.uid);
-                // Filter out 'pending' orders (abandoned checkouts) so they don't show in order history
-                setOrders(data.filter(order => order.status !== 'pending'));
+                // Hide abandoned checkouts — an order row is written before
+                // the Paystack popup opens, so closing it leaves one behind
+                // that was never paid for.
+                //
+                // This must key off paymentStatus, not status: they're two
+                // separate axes. paymentStatus ('pending' -> 'paid') is set
+                // only by verifyPaystackPayment, while status
+                // ('pending'/'processing'/'shipped'/'delivered') is fulfilment
+                // progress that only the admin advances. A freshly paid order
+                // is paymentStatus 'paid' but status still 'pending', so
+                // filtering on status hid every order the customer had just
+                // successfully paid for until an admin manually touched it.
+                setOrders(data.filter(order => order.paymentStatus === 'paid'));
             } catch (err) {
                 console.error('Failed to fetch orders:', err);
             } finally {
@@ -118,12 +129,20 @@ const OrdersPage = () => {
                                             Status
                                         </p>
                                         <div className="flex items-center justify-end">
+                                            {/* Fulfilment progress only — every order shown here is
+                                                already paid (see the paymentStatus filter above), so
+                                                a 'paid' case would be dead code: 'paid' is a
+                                                paymentStatus value and never appears in `status`.
+                                                'pending' here means paid but not yet started. */}
                                             <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold ${
-                                                order.status === 'shipped' ? 'bg-green-100 text-green-800' :
-                                                order.status === 'paid' ? 'bg-[#c9a84c]/20 text-yellow-900' :
+                                                order.status === 'delivered' ? 'bg-green-100 text-green-800' :
+                                                order.status === 'shipped' ? 'bg-blue-100 text-blue-800' :
+                                                order.status === 'processing' ? 'bg-[#c9a84c]/20 text-yellow-900' :
                                                 'bg-stone-100 text-stone-600'
                                             }`}>
-                                                {order.status ? order.status.toUpperCase() : 'PENDING'}
+                                                {order.status === 'pending' || !order.status
+                                                    ? 'ORDER RECEIVED'
+                                                    : order.status.toUpperCase()}
                                             </span>
                                         </div>
                                     </div>

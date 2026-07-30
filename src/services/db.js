@@ -3,13 +3,27 @@
 import { db } from './firebase';
 import { collection, addDoc, serverTimestamp, getDocs, query, orderBy, where, updateDoc, doc } from 'firebase/firestore';
 
+// An order carries two independent status fields — don't conflate them:
+//
+//   paymentStatus: 'pending' -> 'paid'
+//     Whether money actually arrived. Written ONLY by the
+//     verifyPaystackPayment Cloud Function after checking with Paystack
+//     server-side (firestore.rules forbids clients from setting 'paid').
+//     Set to 'pending' by CheckoutPage in the order payload.
+//
+//   status: 'pending' -> 'processing' -> 'shipped' -> 'delivered'
+//     Fulfilment progress, advanced only by the admin dashboard. Set below.
+//
+// A just-paid order is therefore paymentStatus 'paid' + status 'pending'.
+// Anything asking "has this been paid for?" must check paymentStatus;
+// `status` alone never answers that.
 export const createOrder = async (orderData) => {
     console.log('Creates real Firestore order:', orderData);
     try {
         const docRef = await addDoc(collection(db, "orders"), {
             ...orderData,
             createdAt: serverTimestamp(),
-            status: 'pending' // pending, paid, shipped
+            status: 'pending'
         });
         return { id: docRef.id, status: 'pending' };
     } catch (e) {
