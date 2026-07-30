@@ -73,6 +73,15 @@ export const CartProvider = ({ children }) => {
         setCartItems([]);
     };
 
+    // Checkout only ever purchases the *selected* items, so clearing the
+    // whole cart afterwards would silently delete the unselected ones the
+    // customer deliberately left behind for later. Removes just what was
+    // actually paid for, by id.
+    const removeItems = (ids) => {
+        const idSet = new Set(ids);
+        setCartItems(prev => prev.filter(item => !idSet.has(item.id)));
+    };
+
     return (
         <CartContext.Provider value={{ 
             cartCount, 
@@ -83,6 +92,7 @@ export const CartProvider = ({ children }) => {
             toggleItemSelection,
             toggleAllSelection,
             clearCart,
+            removeItems,
             isCartOpen,
             setIsCartOpen
         }}>

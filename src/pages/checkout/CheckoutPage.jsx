@@ -7,7 +7,7 @@ import { useCart } from '../../context/CartContext';
 import { useAuth } from '../../context/AuthContext';
 import { createOrder, getUserDeliveryAddresses } from '../../services/db';
 import { functions } from '../../services/firebase';
-import { MapPin, CreditCard, Ticket, ShieldCheck, Loader, X } from 'lucide-react';
+import { MapPin, CreditCard, Ticket, ShieldCheck, Loader, X, Smartphone, Copy, Check } from 'lucide-react';
 import { generateItemDescription, formatDimensionWithOrientation } from '../../utils/itemFormatters';
 import { calculateSubtotal, resolvePromoCode, calculatePromoDiscount, calculateFinalTotal } from '../../utils/pricing';
 import Price from '../../components/common/Price';
@@ -43,7 +43,7 @@ const sendOrderConfirmationEmail = ({ email, orderId, items, total, address, cit
 
 const CheckoutPage = () => {
     const navigate = useNavigate();
-    const { cartItems, clearCart } = useCart();
+    const { cartItems, removeItems } = useCart();
     const { user } = useAuth();
     
     // Only checkout items that were selected in the cart
@@ -145,6 +145,26 @@ const CheckoutPage = () => {
 
     const [isProcessing, setIsProcessing] = useState(false);
     const [error, setError] = useState('');
+    // Deliberately closing the Paystack popup isn't a failure — it gets a
+    // neutral notice rather than the red error treatment used for real
+    // problems, so cancelling doesn't read as "something went wrong".
+    const [notice, setNotice] = useState('');
+    // Set only when money may have left the customer's account but we
+    // couldn't confirm it. Held separately from `error` so the reference can
+    // be rendered as copyable text rather than buried in a sentence.
+    const [failedReference, setFailedReference] = useState('');
+    const [referenceCopied, setReferenceCopied] = useState(false);
+
+    const handleCopyReference = async () => {
+        try {
+            await navigator.clipboard.writeText(failedReference);
+            setReferenceCopied(true);
+            setTimeout(() => setReferenceCopied(false), 2000);
+        } catch {
+            // Clipboard can be unavailable (insecure context, permissions) —
+            // the reference is still displayed for manual selection.
+        }
+    };
 
     // Base config only needs the public key — the per-checkout reference,
     // email, and amount are supplied as an override at call time (see
@@ -174,6 +194,8 @@ const CheckoutPage = () => {
 
         setIsProcessing(true);
         setError('');
+        setNotice('');
+        setFailedReference('');
 
         const orderPayload = {
             userId: user ? user.uid : 'guest',
@@ -250,17 +272,48 @@ const CheckoutPage = () => {
 
             const reference = `FW_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
 
+            // Paystack takes `firstname`/`lastname` separately, so split the
+            // single name field we collect. Anything after the first token is
+            // the surname ("Kwame Nkrumah Jr" -> "Kwame" / "Nkrumah Jr").
+            const [firstname, ...restOfName] = fullName.trim().split(/\s+/);
+            const lastname = restOfName.join(' ');
+
+            const itemCount = checkoutItems.reduce((n, item) => n + (item.quantity || 1), 0);
+
             initializePayment({
                 config: {
                     reference,
                     email,
                     amount: Math.round(finalTotal * 100), // GHS -> pesewas
                     currency: 'GHS',
-                    // Paystack's own popup collects the actual payment
-                    // details — this just biases which channel it opens to
-                    // based on the toggle above, instead of separately
-                    // (and redundantly) collecting card/MoMo details on-page.
-                    channels: paymentMethod === 'momo' ? ['mobile_money'] : ['card']
+                    // Prefills inside Paystack's popup. `phone` matters most:
+                    // mobile money is the default method, and without this the
+                    // customer has to retype the number they just entered above.
+                    firstname: firstname || undefined,
+                    lastname: lastname || undefined,
+                    phone: phoneNumber ? phoneNumber.trim() : undefined,
+                    // Shown under the merchant name in the popup — without it
+                    // the customer just sees their email echoed back.
+                    label: `FrameWorthy · ${itemCount} item${itemCount === 1 ? '' : 's'}`,
+                    // Surfaces on the Paystack dashboard and receipts. The
+                    // reference alone is opaque during a support query or
+                    // payment dispute; this makes a transaction traceable back
+                    // to an order without cross-referencing Firestore.
+                    metadata: {
+                        orderId,
+                        custom_fields: [
+                            { display_name: 'Order ID', variable_name: 'order_id', value: orderId },
+                            { display_name: 'Customer', variable_name: 'customer_name', value: fullName },
+                            { display_name: 'Delivery', variable_name: 'delivery', value: `${deliveryAddress}, ${city}` },
+                            { display_name: 'Items', variable_name: 'item_count', value: String(itemCount) }
+                        ]
+                    },
+                    // Both channels are offered regardless of the toggle, with
+                    // the selected one first. Passing only one meant a customer
+                    // who opened MoMo but wanted to pay by card had to close the
+                    // popup (cancelling the attempt), flip the toggle and start
+                    // over; now they can just switch inside Paystack's own UI.
+                    channels: paymentMethod === 'momo' ? ['mobile_money', 'card'] : ['card', 'mobile_money']
                 },
                 onSuccess: async () => {
                     try {
@@ -277,20 +330,31 @@ const CheckoutPage = () => {
                                 promoCode: appliedPromo?.code || null,
                                 promoDiscount: appliedPromo ? promoDiscount : 0
                             });
-                            clearCart();
-                            navigate('/success');
+                            // Only the items just paid for — anything the
+                            // customer deselected stays in the cart.
+                            removeItems(checkoutItems.map(item => item.id));
+                            // Carry the order reference through so the success
+                            // page can show it. This is the only record a
+                            // guest ever gets: guest orders use userId 'guest',
+                            // so they can't be listed on /orders and aren't
+                            // readable back under firestore.rules.
+                            navigate('/success', {
+                                state: { orderId, reference, email, total: finalTotal, isGuest: !user }
+                            });
                         } else {
-                            setError('Payment could not be verified. Please contact support with reference ' + reference);
+                            setError('We couldn\'t confirm your payment. If you were charged, contact support with the reference below and we\'ll sort it out.');
+                            setFailedReference(reference);
                             setIsProcessing(false);
                         }
                     } catch (err) {
                         console.error('Payment verification failed:', err);
-                        setError('Payment could not be verified. Please contact support with reference ' + reference);
+                        setError('We couldn\'t confirm your payment. If you were charged, contact support with the reference below and we\'ll sort it out.');
+                        setFailedReference(reference);
                         setIsProcessing(false);
                     }
                 },
                 onClose: () => {
-                    setError('Payment was cancelled.');
+                    setNotice('Payment cancelled — your order is saved, you can pay whenever you\'re ready.');
                     setIsProcessing(false);
                 }
             });
@@ -393,14 +457,14 @@ const CheckoutPage = () => {
                     
                     <div className="grid grid-cols-2 gap-3">
                         <button type="button" onClick={() => setPaymentMethod('momo')} className={`py-2 rounded border text-sm font-bold flex items-center justify-center gap-2 ${paymentMethod === 'momo' ? 'border-stone-900 bg-stone-900 text-white' : 'border-stone-200 text-stone-600'}`}>
-                            Mobile Money
+                            <Smartphone size={16} /> Mobile Money
                         </button>
                         <button type="button" onClick={() => setPaymentMethod('card')} className={`py-2 rounded border text-sm font-bold flex items-center justify-center gap-2 ${paymentMethod === 'card' ? 'border-stone-900 bg-stone-900 text-white' : 'border-stone-200 text-stone-600'}`}>
                             <CreditCard size={16} /> Card
                         </button>
                     </div>
                     <p className="text-xs text-stone-400 mt-3">
-                        You'll enter your {paymentMethod === 'momo' ? 'Mobile Money' : 'card'} details securely on the next step.
+                        You'll enter your {paymentMethod === 'momo' ? 'Mobile Money' : 'card'} details securely on the next step — you can still switch there if you change your mind.
                     </p>
                 </div>
 
@@ -499,7 +563,40 @@ const CheckoutPage = () => {
                     <p className="text-xs text-stone-400 pt-1">Shipping fee paid upon delivery.</p>
                 </div>
 
-                {error && <div className="bg-red-50 text-red-500 p-3 rounded-xl text-sm text-center font-bold">{error}</div>}
+                {notice && (
+                    <div className="bg-stone-100 text-stone-600 p-3 rounded-xl text-sm text-center flex items-center justify-center gap-2">
+                        <span>{notice}</span>
+                        <button
+                            type="button"
+                            onClick={() => setNotice('')}
+                            className="text-stone-400 hover:text-stone-700 transition shrink-0"
+                            aria-label="Dismiss"
+                        >
+                            <X size={14} />
+                        </button>
+                    </div>
+                )}
+
+                {error && (
+                    <div className="bg-red-50 text-red-500 p-3 rounded-xl text-sm text-center font-bold">
+                        <p>{error}</p>
+                        {failedReference && (
+                            <div className="mt-2 flex items-center justify-center gap-2">
+                                <code className="bg-white/70 px-2 py-1 rounded font-mono text-xs text-red-700 select-all break-all">
+                                    {failedReference}
+                                </code>
+                                <button
+                                    type="button"
+                                    onClick={handleCopyReference}
+                                    className="flex items-center gap-1 text-xs font-bold text-red-600 hover:text-red-800 transition shrink-0"
+                                >
+                                    {referenceCopied ? <Check size={14} /> : <Copy size={14} />}
+                                    {referenceCopied ? 'Copied' : 'Copy'}
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                )}
 
                 {/* Spacer for sticky footer */}
                 <div className="h-4"></div>

@@ -71,6 +71,35 @@ describe('CartContext', () => {
         expect(result.current.cartItems.find(i => i.id === idToRemove)).toBeUndefined();
     });
 
+    // Checkout buys only the selected items, so it removes exactly those on
+    // success. It used to call clearCart(), which wiped the whole cart —
+    // silently deleting anything the customer had deselected to buy later.
+    it('removeItems removes only the given ids, leaving the rest of the cart intact', () => {
+        const { result } = renderHook(() => useCart(), { wrapper });
+        act(() => {
+            result.current.addToCart({ name: 'A' });
+            result.current.addToCart({ name: 'B' });
+            result.current.addToCart({ name: 'C' });
+        });
+        const [first, , third] = result.current.cartItems;
+        act(() => {
+            result.current.removeItems([first.id, third.id]);
+        });
+        expect(result.current.cartItems).toHaveLength(1);
+        expect(result.current.cartItems[0].name).toBe('B');
+    });
+
+    it('removeItems leaves the cart untouched when given no ids', () => {
+        const { result } = renderHook(() => useCart(), { wrapper });
+        act(() => {
+            result.current.addToCart({ name: 'A' });
+        });
+        act(() => {
+            result.current.removeItems([]);
+        });
+        expect(result.current.cartItems).toHaveLength(1);
+    });
+
     it('updateQuantity ignores values below 1', () => {
         const { result } = renderHook(() => useCart(), { wrapper });
         act(() => {
