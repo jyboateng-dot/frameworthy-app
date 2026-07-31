@@ -2214,11 +2214,22 @@ const CustomizeFramePage = ({
                     {/* 4. Orientation */}
                     {!isPreset && !isAlbumArt && !isAlbumPoster && !isMoviePoster && !isMoviePosterPrint && (
                         <section>
-                            <h2 className="text-xs font-bold uppercase tracking-wider text-stone-900 mb-3 flex items-center gap-2">
-                                <span className="bg-stone-100 text-stone-500 w-5 h-5 rounded-full flex items-center justify-center text-[10px]">{stepOrientation}</span>
-                                Orientation
+                            <h2 className="text-xs font-bold uppercase tracking-wider text-stone-900 mb-3 flex items-center justify-between gap-2">
+                                <span className="flex items-center gap-2">
+                                    <span className="bg-stone-100 text-stone-500 w-5 h-5 rounded-full flex items-center justify-center text-[10px]">{stepOrientation}</span>
+                                    Orientation
+                                </span>
+                                {hasImage && uploadedImage && (
+                                    <button
+                                        type="button"
+                                        onClick={handleOptimizeToggle}
+                                        className={`normal-case font-semibold text-[11px] px-2.5 py-1 rounded-full transition-colors ${isOptimized ? 'bg-[#c9a84c] text-stone-950' : 'bg-stone-100 text-stone-500 hover:text-stone-700'}`}
+                                    >
+                                        {isOptimized ? 'Auto-fit on' : 'Auto-fit to photo'}
+                                    </button>
+                                )}
                             </h2>
-                        
+
                         <div className="flex bg-stone-100 p-1 rounded-xl">
                             <button
                                 onClick={() => {
