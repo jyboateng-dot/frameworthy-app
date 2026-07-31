@@ -73,7 +73,34 @@ service cloud.firestore {
 
       match /messages/{messageId} {
         allow read: if request.auth != null && (request.auth.uid == uid || isAdmin());
-        allow create: if request.auth != null && (request.auth.uid == uid || isAdmin());
+
+        // Without checking senderRole/senderId, the thread owner's `create`
+        // access (needed for their own messages) also let them write a
+        // message claiming senderRole: 'admin' straight into their own
+        // thread — fabricated "admin" replies (e.g. a fake refund approval)
+        // that render identically to a real one in both ChatFloater.jsx and
+        // AdminMessagesPage.jsx. Pin each role to the identity that's
+        // actually allowed to produce it, and cap text length (previously
+        // unbounded) to a Firestore-doc-appropriate size.
+        //
+        // senderRole: 'assistant' is necessarily writable by the thread
+        // owner too — chat.js's triggerAiResponse() posts the AI's reply
+        // from the *customer's own browser session* after calling
+        // askSupportAgent, there's no server-side write path for it today.
+        // That's a real, narrower residual gap (a customer could locally
+        // fabricate an assistant-looking reply) that would need moving the
+        // AI response write into the askSupportAgent Cloud Function itself
+        // to close — out of scope here, where the concrete risk being
+        // fixed is impersonating admin/staff, not the bot.
+        allow create: if request.resource.data.text is string && request.resource.data.text.size() <= 4000
+                      && (
+                        (request.auth != null && request.auth.uid == uid
+                          && request.resource.data.senderRole in ['customer', 'assistant']
+                          && ((request.resource.data.senderRole == 'customer' && request.resource.data.senderId == request.auth.uid)
+                              || (request.resource.data.senderRole == 'assistant' && request.resource.data.senderId == 'ai-assistant')))
+                        || (isAdmin() && request.resource.data.senderRole == 'admin' && request.resource.data.senderId == 'admin')
+                      );
+
         allow update, delete: if false;
       }
     }

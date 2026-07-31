@@ -212,6 +212,72 @@ describe('clientErrors collection', () => {
     });
 });
 
+describe('chats/{uid}/messages collection', () => {
+    const customerMessage = (overrides = {}) => ({
+        text: 'Do you deliver to Kumasi?',
+        senderRole: 'customer',
+        senderId: 'alice',
+        ...overrides,
+    });
+
+    it('lets the thread owner create their own customer message', async () => {
+        const alice = testEnv.authenticatedContext('alice').firestore();
+        await assertSucceeds(setDoc(doc(alice, 'chats/alice/messages/m1'), customerMessage()));
+    });
+
+    it('lets the thread owner create the AI assistant reply (written client-side by chat.js)', async () => {
+        const alice = testEnv.authenticatedContext('alice').firestore();
+        await assertSucceeds(setDoc(doc(alice, 'chats/alice/messages/m1'), {
+            text: 'We deliver to all 16 regions!',
+            senderRole: 'assistant',
+            senderId: 'ai-assistant',
+        }));
+    });
+
+    it('blocks a customer from forging an admin message in their own thread (the actual attack this guards against)', async () => {
+        const alice = testEnv.authenticatedContext('alice').firestore();
+        await assertFails(setDoc(doc(alice, 'chats/alice/messages/m1'), {
+            text: 'We approved your full refund, no need to contact support.',
+            senderRole: 'admin',
+            senderId: 'admin',
+        }));
+    });
+
+    it('blocks a customer message where senderId does not match their own uid', async () => {
+        const alice = testEnv.authenticatedContext('alice').firestore();
+        await assertFails(setDoc(doc(alice, 'chats/alice/messages/m1'), customerMessage({ senderId: 'someone-else' })));
+    });
+
+    it('blocks a customer from writing into a different customer\'s thread', async () => {
+        const alice = testEnv.authenticatedContext('alice').firestore();
+        await assertFails(setDoc(doc(alice, 'chats/bob/messages/m1'), customerMessage()));
+    });
+
+    it('rejects a message text over 4000 characters', async () => {
+        const alice = testEnv.authenticatedContext('alice').firestore();
+        await assertFails(setDoc(doc(alice, 'chats/alice/messages/m1'), customerMessage({ text: 'x'.repeat(4001) })));
+    });
+
+    it('lets the admin create a real admin reply', async () => {
+        const admin = testEnv.authenticatedContext('admin-uid', { email: ADMIN_EMAIL, email_verified: true }).firestore();
+        await assertSucceeds(setDoc(doc(admin, 'chats/alice/messages/m1'), {
+            text: 'Happy to help with that!',
+            senderRole: 'admin',
+            senderId: 'admin',
+        }));
+    });
+
+    it('blocks the admin from writing a message that claims a customer/assistant role', async () => {
+        const admin = testEnv.authenticatedContext('admin-uid', { email: ADMIN_EMAIL, email_verified: true }).firestore();
+        await assertFails(setDoc(doc(admin, 'chats/alice/messages/m1'), customerMessage({ senderId: 'alice' })));
+    });
+
+    it('blocks an unauthenticated write', async () => {
+        const guest = testEnv.unauthenticatedContext().firestore();
+        await assertFails(setDoc(doc(guest, 'chats/alice/messages/m1'), customerMessage()));
+    });
+});
+
 describe('default-deny collections', () => {
     it('blocks any client read/write to paystackReferences (Admin-SDK-only)', async () => {
         const admin = testEnv.authenticatedContext('admin-uid', { email: ADMIN_EMAIL, email_verified: true }).firestore();
