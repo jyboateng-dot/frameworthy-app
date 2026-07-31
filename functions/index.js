@@ -485,6 +485,42 @@ exports.askSupportAgent = onCall({ secrets: [geminiApiKey], region: 'us-central1
         throw new HttpsError('invalid-argument', 'message is too long');
     }
 
+    // Abuse guard: message/history size is capped above, but nothing
+    // previously bounded call *frequency* — a free Firebase account costs
+    // nothing to create, and a script calling this directly (bypassing the
+    // chat UI) in a tight loop would run up the Gemini bill unbounded.
+    // Same throttle pattern as sendPasswordResetLink, keyed by uid instead
+    // of email. Unlike that one, a throttled caller here gets a real error
+    // rather than a faked success — generateAiResponse on the client
+    // already falls back to the local keyword engine on any callable
+    // failure, so this degrades gracefully instead of needing to hide.
+    const db = admin.firestore();
+    const throttleRef = db.collection('chatAgentThrottle').doc(request.auth.uid);
+    const COOLDOWN_MS = 3_000;
+    try {
+        const allowed = await db.runTransaction(async (tx) => {
+            const snap = await tx.get(throttleRef);
+            const now = Date.now();
+            if (snap.exists) {
+                const last = snap.data().lastCallMs || 0;
+                if (now - last < COOLDOWN_MS) {
+                    return false;
+                }
+            }
+            tx.set(throttleRef, { lastCallMs: now });
+            return true;
+        });
+        if (!allowed) {
+            throw new HttpsError('resource-exhausted', 'Please wait a moment before sending another message');
+        }
+    } catch (err) {
+        if (err instanceof HttpsError) throw err;
+        // Fail closed on throttle-store errors so this can't be bypassed by
+        // forcing the transaction to error.
+        logger.error('askSupportAgent throttle check failed', err);
+        throw new HttpsError('unavailable', 'Support assistant is temporarily unavailable');
+    }
+
     // History is optional context; cap and sanitize it rather than trusting
     // the client's shape.
     const historyText = (Array.isArray(history) ? history : [])
