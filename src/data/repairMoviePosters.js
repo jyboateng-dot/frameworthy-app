@@ -93,7 +93,7 @@ async function repair() {
                     saved = true;
                     results.push({ id, title: omdb.Title, status: 'repaired', url: candidateUrl });
                     break;
-                } catch (e) { /* try next candidate */ }
+                } catch { /* try next candidate */ }
             }
             if (!saved) {
                 results.push({ id, title: omdb.Title, status: 'still-failed' });

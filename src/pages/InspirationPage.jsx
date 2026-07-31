@@ -27,7 +27,7 @@ const TabLoadingFallback = () => (
     </div>
 );
 
-const ProductCard = ({ product, onGetThis, onCustomize }) => {
+const ProductCard = ({ product, onGetThis }) => {
     const { unit } = useUnit();
     const { toggleWishlist, isInWishlist } = useWishlist();
     const liked = isInWishlist(product.id);
@@ -60,7 +60,6 @@ const ProductCard = ({ product, onGetThis, onCustomize }) => {
 };
 
 const InspirationPage = ({ setProductMode, setSelectedFrame, setSelectedSize, navigate, isModal = false }) => {
-    const { unit } = useUnit();
     const [currentSection, setCurrentSection] = useState(() => sessionStorage.getItem('fw_insp_section') || 'originals');
     // A result picked from the cross-category Search tab that needs its
     // native category's "Choose Framing Style" modal opened immediately —
@@ -161,8 +160,6 @@ const InspirationPage = ({ setProductMode, setSelectedFrame, setSelectedSize, na
             },
         });
     };
-
-    const handleCustomize = (product) => handleGetThis(product);
 
     // Inspiration logic
     const FRAMED_PRINTS_PRODUCTS = PRODUCTS.filter(p => p.dims !== 'Gallery set');
@@ -366,7 +363,6 @@ const InspirationPage = ({ setProductMode, setSelectedFrame, setSelectedSize, na
                                             key={product.id}
                                             product={product}
                                             onGetThis={handleGetThis}
-                                            onCustomize={handleCustomize}
                                         />
                                     ))}
                                 </div>

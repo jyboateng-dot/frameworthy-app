@@ -235,7 +235,7 @@ const MoviePosterPage = ({ setProductMode, setSelectedFrame, setSelectedSize, na
                 try {
                     const { w, h } = await loadImageNaturalSize(movie.image);
                     sizeObj = pickBestFrameSize(w, h);
-                } catch (err) {
+                } catch {
                     sizeObj = FRAME_SIZES.find(s => s.id === '24x36') || FRAME_SIZES[0];
                 }
 

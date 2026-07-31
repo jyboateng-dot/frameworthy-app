@@ -194,13 +194,16 @@ const SearchPage = ({ setProductMode, setSelectedFrame, setSelectedSize, navigat
     // search API. Only images cleared for commercial use/modification are
     // requested, since these get printed as physical products.
     useEffect(() => {
-        if (!debouncedQuery) {
-            setWebResults([]);
-            setWebError(false);
-            setHasMoreWeb(false);
-            return;
-        }
+        // The web-results section this feeds is only rendered while
+        // hasQuery is true (see the !hasQuery placeholder branch below), so
+        // there's nothing to reset here — the next real query just
+        // overwrites this state before it's ever displayed.
+        if (!debouncedQuery) return;
         let cancelled = false;
+        // Standard "flip on loading before the fetch starts" idiom — flagged
+        // by react-hooks/set-state-in-effect, but there's no external event
+        // to hang this off; the effect starting *is* the event.
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setWebLoading(true);
         setWebError(false);
         // Anonymous (keyless) Openverse requests cap page_size at 20.

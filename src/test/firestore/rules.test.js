@@ -228,7 +228,7 @@ describe('clientErrors collection', () => {
 
     it('rejects a report missing the required platform field', async () => {
         const guest = testEnv.unauthenticatedContext().firestore();
-        const { platform, ...rest } = validError();
+        const { platform: _platform, ...rest } = validError();
         await assertFails(setDoc(doc(guest, 'clientErrors/err1'), rest));
     });
 

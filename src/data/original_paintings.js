@@ -27,24 +27,6 @@ const finishMap = (code) => {
     return { label: 'Gold canvas frame', style: 'frame-83878' };
 };
 
-const getSeries = (code) => {
-    const num = code.replace('DIPI-W', '').replace('DIPI-Z', '');
-    const n = parseInt(num.substring(0, 3), 10);
-    if (code.startsWith('DIPI-W')) {
-        if (n < 200) return 'W0-W1';
-        if (n < 700) return 'W6';
-        if (n < 750) return 'W7';
-        return 'W8';
-    }
-    if (code.startsWith('DIPI-Z')) {
-        if (n < 430) return 'Z1-Z4';
-        if (n < 560) return 'Z5';
-        if (n < 620) return 'Z6a';
-        return 'Z6b';
-    }
-    return 'other';
-};
-
 const RAW_FILES = [
     'DIPI-W04524.jpg','DIPI-W20524.jpg','DIPI-W21865F0.jpg','DIPI-W30660X.jpg',
     'DIPI-W53224.jpg','DIPI-W60030X.jpg','DIPI-W60130X.jpg','DIPI-W60230X.jpg',

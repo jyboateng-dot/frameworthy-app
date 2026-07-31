@@ -17,7 +17,7 @@ function fetchAlbums(artistName, retries = 5) {
                 try {
                     const json = JSON.parse(data);
                     resolve(json.results || []);
-                } catch (e) {
+                } catch {
                     if (data.includes("Rate limit") || data.includes("Forbidden") || data.includes("403")) {
                         console.log(`Rate limited on ${artistName}, waiting 10s...`);
                         if (retries > 0) {

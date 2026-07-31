@@ -29,7 +29,7 @@ function fetchTop250() {
 
 // Fetch movies from OMDb by title search
 function searchOMDB(keyword, page = 1) {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
         const url = `https://www.omdbapi.com/?s=${encodeURIComponent(keyword)}&type=movie&page=${page}&apikey=${OMDB_API_KEY}`;
         https.get(url, res => {
             let data = '';
@@ -38,7 +38,7 @@ function searchOMDB(keyword, page = 1) {
                 try {
                     const json = JSON.parse(data);
                     resolve(json.Search || []);
-                } catch (e) {
+                } catch {
                     resolve([]); // fail silently
                 }
             });

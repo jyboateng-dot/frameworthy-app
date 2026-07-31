@@ -1,10 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
 import { User, ShoppingCart, Menu, ArrowLeft, LogOut, Package, ChevronDown, Shield, Frame, MessageCircle, Mail, HelpCircle, Headphones } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext'; // Import Auth Context
-import { useUnit } from '../../context/UnitContext'; // Import Unit Context
 import { useCart } from '../../context/CartContext'; // Import Cart Context
-import { subscribeToAllThreads, subscribeToThread } from '../../services/chat';
+import { subscribeToAllThreads } from '../../services/chat';
 import { isAdminEmail } from '../../constants/admin';
 
 // Same address used everywhere else in the app for a direct customer-facing
@@ -16,12 +14,10 @@ const Header = ({
     user, // This user prop comes from App.jsx's useAuth(), but we can also use useAuth() directly here if we want to be cleaner.
     navigate,
     isMenuOpen,
-    setIsMenuOpen,
-    onOpenChat
+    setIsMenuOpen
 }) => {
     const { logout } = useAuth(); // Get logout function
-    const { cartCount, setIsCartOpen } = useCart(); // Get cart context
-    const location = useLocation();
+    const { cartCount } = useCart(); // Get cart context
     const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
     const [unreadMessageCount, setUnreadMessageCount] = useState(0);
 
@@ -33,31 +29,18 @@ const Header = ({
     // the signed-in user is actually the admin, so a normal customer never
     // opens this listener.
     useEffect(() => {
-        if (!isAdmin) {
-            setUnreadMessageCount(0);
-            setLatestNotificationThread(null);
-            return;
-        }
+        if (!isAdmin) return;
         const unsub = subscribeToAllThreads((threads) => {
             const unread = threads.filter(t => t.unreadByAdmin);
             setUnreadMessageCount(unread.length);
-            if (unread.length > 0) {
-                setLatestNotificationThread(unread[0]);
-            } else {
-                setLatestNotificationThread(null);
-            }
+            setLatestNotificationThread(unread.length > 0 ? unread[0] : null);
         });
-        return unsub;
+        return () => {
+            unsub();
+            setUnreadMessageCount(0);
+            setLatestNotificationThread(null);
+        };
     }, [isAdmin]);
-
-    const handleChatClick = (closeMenu) => {
-        if (!user) {
-            navigate(`/auth?returnTo=${encodeURIComponent(location.pathname)}`);
-        } else {
-            onOpenChat?.();
-        }
-        closeMenu();
-    };
 
     const handleLogout = () => {
         logout();

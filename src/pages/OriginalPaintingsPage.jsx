@@ -15,7 +15,7 @@ const SERIES_TABS = [
 ];
 
 /* ── Card ── */
-const ProductCard = ({ product, onGetThis, onCustomize }) => {
+const ProductCard = ({ product, onGetThis }) => {
     const { unit } = useUnit();
     const { toggleWishlist, isInWishlist } = useWishlist();
     const liked = isInWishlist(product.id);
@@ -116,8 +116,6 @@ const OriginalPaintingsPage = ({ setProductMode, setSelectedFrame, setSelectedSi
         });
     };
 
-    const handleCustomize = (product) => handleGetThis(product);
-
     const filtered = activeSeries === 'all' ? PRODUCTS : PRODUCTS.filter(p => p.dims === activeSeries);
     const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
     const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
@@ -188,7 +186,6 @@ const OriginalPaintingsPage = ({ setProductMode, setSelectedFrame, setSelectedSi
                                     key={product.id}
                                     product={product}
                                     onGetThis={handleGetThis}
-                                    onCustomize={handleCustomize}
                                 />
                             ))}
                         </div>

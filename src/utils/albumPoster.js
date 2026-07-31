@@ -77,7 +77,6 @@ export async function renderAlbumPoster(posterData, sizeDims, dpi = 100) {
     const colGap = contentWidth * 0.06;
 
     const dateStr = new Date(tracksInfo.releaseDate).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
-    const releaseYear = new Date(tracksInfo.releaseDate).getFullYear();
     const label = tracksInfo.copyright ? tracksInfo.copyright.replace(/[℗©]|\(P\)|\(C\)/gi, '').replace(/\d{4}/, '').trim() : 'INDEPENDENT';
     const genreLine = tracksInfo.genre ? `A ${tracksInfo.genre.toUpperCase()} ALBUM` : 'A STUDIO ALBUM';
 
@@ -422,14 +421,6 @@ function wrapLines(ctx, text, maxWidth) {
     }
     if (line) lines.push(line);
     return lines;
-}
-
-function formatRuntime(tracks) {
-    const totalMs = tracks.reduce((sum, t) => sum + (t.trackTimeMillis || 0), 0);
-    const totalSeconds = Math.round(totalMs / 1000);
-    const mm = Math.floor(totalSeconds / 60);
-    const ss = totalSeconds % 60;
-    return `${mm}:${String(ss).padStart(2, '0')}`;
 }
 
 // The iTunes lookup endpoint occasionally fails a single request (transient

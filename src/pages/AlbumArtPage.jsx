@@ -119,7 +119,7 @@ const AlbumArtPage = ({ setProductMode, setSelectedFrame, setSelectedSize, navig
             const seen = new Set();
             const unique = [];
             for (const item of processed) {
-                const cleanTitle = item.title.toLowerCase().replace(/[\(\[].*?[\)\]]/g, '').trim();
+                const cleanTitle = item.title.toLowerCase().replace(/[([].*?[)\]]/g, '').trim();
                 if (!seen.has(cleanTitle)) {
                     seen.add(cleanTitle);
                     unique.push(item);

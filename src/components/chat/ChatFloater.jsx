@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { X, Send, Bot, Sparkles } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
-import { subscribeToMessages, subscribeToThread, sendMessage, markThreadRead, requestHumanSupport } from '../../services/chat';
+import { subscribeToMessages, subscribeToThread, sendMessage, markThreadRead } from '../../services/chat';
 
 // Instant Messaging Floater Component with AI Assistant & Real-time Typing
 const ChatFloater = ({ isOpen, setIsOpen }) => {

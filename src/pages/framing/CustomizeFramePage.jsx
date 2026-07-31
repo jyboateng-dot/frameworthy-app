@@ -116,7 +116,6 @@ const CustomizeFramePage = ({
     activeLayout,
     setActiveLayout,
     collageImages,
-    setCollageImages,
     frameThickness,
     setFrameThickness,
     isPreset,
@@ -150,9 +149,7 @@ const CustomizeFramePage = ({
     const [isCloudUploadPending, setIsCloudUploadPending] = useState(false);
     const [isFrameModalOpen, setIsFrameModalOpen] = useState(false);
     const [isWallPickerOpen, setIsWallPickerOpen] = useState(false);
-    const [isDimPickerOpen, setIsDimPickerOpen] = useState(false);
     const [isMetModalOpen, setIsMetModalOpen] = useState(false);
-    const [selectedUploadId, setSelectedUploadId] = useState(null);
     const [isHovered, setIsHovered] = useState(false);
     const [isMaxZoom, setIsMaxZoom] = useState(false);
     const [isFullScreen, setIsFullScreen] = useState(false);
@@ -240,7 +237,6 @@ const CustomizeFramePage = ({
         return () => window.removeEventListener('resize', handleResize);
     }, []);
 
-    const isLandscape = windowSize.width > windowSize.height;
     // Side-by-side mode applies to large desktop displays or tablets in landscape orientation
     const isSideBySide = windowSize.width >= 1024;
     
@@ -533,7 +529,6 @@ const CustomizeFramePage = ({
         };
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isFullScreen]);
 
     // Lets App.jsx's Android hardware-back-button handler close full screen
@@ -545,7 +540,6 @@ const CustomizeFramePage = ({
             visualizerFullScreenState.isActive = false;
             visualizerFullScreenState.close = null;
         };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isFullScreen]);
 
     // Met Selection handler — routes through applyInspirationSelection (the

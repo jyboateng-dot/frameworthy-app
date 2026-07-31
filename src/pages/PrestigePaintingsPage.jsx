@@ -15,7 +15,7 @@ const SERIES_TABS = [
 ];
 
 /* ── Single card ── */
-const ProductCard = ({ product, onGetThis, onCustomize }) => {
+const ProductCard = ({ product, onGetThis }) => {
     const { unit } = useUnit();
     const { toggleWishlist, isInWishlist } = useWishlist();
     const liked = isInWishlist(product.id);
@@ -113,8 +113,6 @@ const PrestigePaintingsPage = ({ setProductMode, setSelectedFrame, setSelectedSi
         });
     };
 
-    const handleCustomize = (product) => handleGetThis(product);
-
     const filtered = activeSeries === 'all' ? PRODUCTS : PRODUCTS.filter(p => p.dims === activeSeries);
 
     const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
@@ -186,7 +184,6 @@ const PrestigePaintingsPage = ({ setProductMode, setSelectedFrame, setSelectedSi
                                     key={product.id}
                                     product={product}
                                     onGetThis={handleGetThis}
-                                    onCustomize={handleCustomize}
                                 />
                             ))}
                         </div>

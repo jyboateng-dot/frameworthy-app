@@ -1,11 +1,10 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ArrowRight, ChevronRight, ChevronLeft, Sparkles } from 'lucide-react';
 import { FRAME_STYLES, CATEGORIES } from '../data/constants';
 import { CAROUSEL_SLIDES } from '../data/landingCarouselSlides';
 import { openExternalLinkFromEvent as openExternalLink } from '../utils/nativeLinks';
 
 export default function LandingPage({ onStartFraming, navigate, setSelectedFrame }) {
-    const [scrolled, setScrolled] = useState(false);
     const [activeCategory, setActiveCategory] = useState('Most Popular');
     const [currentPage, setCurrentPage] = useState(1);
     const [currentSlide, setCurrentSlide] = useState(0);
@@ -24,15 +23,6 @@ export default function LandingPage({ onStartFraming, navigate, setSelectedFrame
     }, [currentSlide]);
 
     
-    // Smooth scroll shadow effect
-    useEffect(() => {
-        const handleScroll = () => {
-            setScrolled(window.scrollY > 20);
-        };
-        window.addEventListener('scroll', handleScroll);
-        return () => window.removeEventListener('scroll', handleScroll);
-    }, []);
-
     // Pagination logic
     const filteredFrames = activeCategory === 'Most Popular'
         ? [
@@ -179,7 +169,7 @@ export default function LandingPage({ onStartFraming, navigate, setSelectedFrame
 
                     {/* Frame Grid */}
                     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mb-12">
-                        {currentFrames.map((frame, index) => (
+                        {currentFrames.map((frame) => (
                             <div key={frame.id} className="group cursor-pointer" onClick={() => handleFrameSelect(frame)}>
                                 <div className="aspect-square rounded-2xl bg-stone-100 overflow-hidden mb-4 relative transition-transform duration-500 group-hover:scale-[1.02]">
                                     {/* Corner-profile shots ship with generous white margin around

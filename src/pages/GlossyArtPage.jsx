@@ -14,7 +14,7 @@ const SERIES_TABS = [
 ];
 
 /* ── Card ── */
-const ProductCard = ({ product, onGetThis, onCustomize }) => {
+const ProductCard = ({ product, onGetThis }) => {
     const { unit } = useUnit();
     const { toggleWishlist, isInWishlist } = useWishlist();
     const liked = isInWishlist(product.id);
@@ -76,7 +76,7 @@ const ProductCard = ({ product, onGetThis, onCustomize }) => {
 };
 
 /* ── Page ── */
-const GlossyArtPage = ({ setProductMode, setSelectedFrame, setSelectedSize, navigate, isSubPage = false, disableWindowScroll = false }) => {
+const GlossyArtPage = ({ setProductMode, navigate, isSubPage = false, disableWindowScroll = false }) => {
     const { unit } = useUnit();
     // Persisted so navigating away (e.g. to customize a selection) and back
     // to Inspiration restores the same filter/page instead of resetting.
@@ -181,7 +181,6 @@ const GlossyArtPage = ({ setProductMode, setSelectedFrame, setSelectedSize, navi
                                     key={product.id}
                                     product={product}
                                     onGetThis={handleGetThis}
-                                    onCustomize={handleGetThis}
                                 />
                             ))}
                         </div>

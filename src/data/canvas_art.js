@@ -18,15 +18,6 @@ const dimsFromCode = (code, filename) => {
     return '60 × 60 cm';
 };
 
-const seriesLabel = (code) => {
-    if (code.includes('MIX')) return 'MIX';
-    if (code.includes('80B0') || code.includes('0B0')) return 'B0';
-    if (code.includes('4080')) return '40×80';
-    if (code.includes('50F0')) return '50F0';
-    if (code.endsWith('17') || code.endsWith('25')) return 'Narrow';
-    return 'Other';
-};
-
 const RAW_FILES = [
     'CANVA-027280B0.jpg',
     'CANVA-030017.jpg','CANVA-030117.jpg','CANVA-030217.jpg','CANVA-030317.jpg',

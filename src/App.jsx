@@ -59,7 +59,7 @@ const AppLayout = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user } = useAuth();
-  const { cartCount, setIsCartOpen } = useCart();
+  const { cartCount } = useCart();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
 
@@ -78,7 +78,7 @@ const AppLayout = () => {
   const [productionImage, setProductionImage] = useState(null);
   const [selectedFrame, setSelectedFrame] = useState(() => FRAME_STYLES.find(f => f.id === 'frame-10512') || FRAME_STYLES[0]); // Black Contemporary default
   const [selectedSize, setSelectedSize] = useState(FRAME_SIZES[3]); // Large Portrait default
-  const [selectedWall, setSelectedWall] = useState(WALL_TEXTURES[2]); // For visualizer persistence
+  const [, setSelectedWall] = useState(WALL_TEXTURES[2]); // For visualizer persistence
 
   // HOISTED FRAMING CUSTOMIZATIONS
   const [orientation, setOrientation] = useState('portrait');

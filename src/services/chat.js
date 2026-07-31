@@ -70,7 +70,7 @@ export const sendMessage = async (uid, text, senderRole, userMeta = {}) => {
     // 3. Trigger AI Auto-Reply or Human Handoff if message is from a customer
     if (senderRole === 'customer') {
         notifyAdminViaEmail(text).catch(err => console.error('Notification error:', err));
-        triggerAiResponse(uid, text, userMeta).catch(err => {
+        triggerAiResponse(uid, text).catch(err => {
             console.error('Error triggering AI response:', err);
         });
     }
@@ -79,7 +79,7 @@ export const sendMessage = async (uid, text, senderRole, userMeta = {}) => {
 /**
  * Trigger AI Response / Human Handoff Engine
  */
-async function triggerAiResponse(uid, text, userMeta) {
+async function triggerAiResponse(uid, text) {
     const threadRef = doc(db, 'chats', uid);
 
     // Atomically claim the "AI is responding" slot inside a transaction —

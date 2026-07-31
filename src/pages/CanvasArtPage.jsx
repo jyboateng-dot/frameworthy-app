@@ -9,7 +9,7 @@ import SOURCE_DIMS from '../data/source_dims.json';
 import { PRODUCTS, SERIES_TABS } from '../data/canvas_art';
 import { getThumbnailUrl } from '../services/storage';
 /* ── Card ── */
-const ProductCard = ({ product, onGetThis, onCustomize }) => {
+const ProductCard = ({ product, onGetThis }) => {
     const { unit } = useUnit();
     const { toggleWishlist, isInWishlist } = useWishlist();
     const liked = isInWishlist(product.id);
@@ -180,7 +180,6 @@ const CanvasArtPage = ({ setProductMode, setSelectedFrame, setSelectedSize, navi
                                     key={product.id}
                                     product={product}
                                     onGetThis={handleGetThis}
-                                    onCustomize={handleGetThis}
                                 />
                             ))}
                         </div>

@@ -88,11 +88,14 @@ const WebImagesPage = ({ setProductMode, setSelectedFrame, setSelectedSize, navi
     // where window IS the real scroll container).
     const scrollToTop = () => { if (!disableWindowScroll) window.scrollTo({ top: 0, behavior: 'smooth' }); };
 
-    // Trigger state sync if UNSPLASH_IMAGES updates (e.g. after background download completes)
+    // Trigger state sync if UNSPLASH_IMAGES updates (e.g. after background
+    // download completes) — genuinely syncing with an external mutable data
+    // source that changes outside React's render cycle, not derivable state.
     useEffect(() => {
         if (shuffledImages.length === 0 && UNSPLASH_IMAGES.length > 0) {
             const initialShuffled = shuffleArray(UNSPLASH_IMAGES);
             currentShuffledImages = initialShuffled;
+            // eslint-disable-next-line react-hooks/set-state-in-effect
             setShuffledImages(initialShuffled);
         }
     }, [shuffledImages]);

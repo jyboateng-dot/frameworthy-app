@@ -1,16 +1,14 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState } from 'react';
 
 const UnitContext = createContext();
 
-export const UnitProvider = ({ children }) => {
-    const [unit, setUnitState] = useState('cm');
+const loadStoredUnit = () => {
+    const storedUnit = localStorage.getItem('fw_unit_preference');
+    return storedUnit === 'in' || storedUnit === 'cm' ? storedUnit : 'cm';
+};
 
-    useEffect(() => {
-        const storedUnit = localStorage.getItem('fw_unit_preference');
-        if (storedUnit === 'in' || storedUnit === 'cm') {
-            setUnitState(storedUnit);
-        }
-    }, []);
+export const UnitProvider = ({ children }) => {
+    const [unit, setUnitState] = useState(loadStoredUnit);
 
     const setUnit = (newUnit) => {
         setUnitState(newUnit);

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { usePaystackPayment } from 'react-paystack';
 import { httpsCallable } from 'firebase/functions';
 import emailjs from '@emailjs/browser';
@@ -98,6 +98,7 @@ const CheckoutPage = () => {
 
     useEffect(() => {
         if (user) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect -- standard "flip on loading before the fetch starts" idiom
             setIsFetchingAddresses(true);
             getUserDeliveryAddresses(user.uid).then(addresses => {
                 setSavedAddresses(addresses);

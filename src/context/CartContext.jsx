@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
 
 const CartContext = createContext();
 const CART_STORAGE_KEY = 'frameworthy_cart';
@@ -14,16 +14,17 @@ const loadStoredCart = () => {
 };
 
 export const CartProvider = ({ children }) => {
-    const [cartCount, setCartCount] = useState(0);
     const [cartItems, setCartItems] = useState(loadStoredCart);
     const [isCartOpen, setIsCartOpen] = useState(false);
 
-    // Update cartCount to reflect total quantity across all items — matches
-    // CartPage's own "Cart (N)" count, so the header badge and the cart page
-    // never disagree about how many items are in the cart.
-    useEffect(() => {
-        setCartCount(cartItems.reduce((sum, item) => sum + (item.quantity || 1), 0));
-    }, [cartItems]);
+    // Total quantity across all items — matches CartPage's own "Cart (N)"
+    // count, so the header badge and the cart page never disagree about how
+    // many items are in the cart. Derived directly from cartItems rather than
+    // mirrored into its own state, since it's always computable from it.
+    const cartCount = useMemo(
+        () => cartItems.reduce((sum, item) => sum + (item.quantity || 1), 0),
+        [cartItems]
+    );
 
     // Persist on every change so a refresh or new tab doesn't lose the cart
     useEffect(() => {

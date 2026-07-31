@@ -32,7 +32,6 @@ if (appCheckSiteKey) {
     // debug token to the browser console; register that token under
     // App Check > Apps > (this app) > Manage debug tokens to allow dev traffic.
     if (import.meta.env.DEV) {
-        // eslint-disable-next-line no-undef
         self.FIREBASE_APPCHECK_DEBUG_TOKEN = true;
     }
     initializeAppCheck(app, {
