@@ -22,6 +22,9 @@ const AdminDashboard = () => {
     const [selectedOrder, setSelectedOrder] = useState(null);
     const [selectedOrderIds, setSelectedOrderIds] = useState(new Set());
     const [sharingOrders, setSharingOrders] = useState(null);
+    const [lastDoc, setLastDoc] = useState(null);
+    const [hasMore, setHasMore] = useState(false);
+    const [loadingMore, setLoadingMore] = useState(false);
 
     useEffect(() => {
         // Only fetch if user is authorized
@@ -34,8 +37,10 @@ const AdminDashboard = () => {
         setLoading(true);
         setFetchError(false);
         try {
-            const data = await getOrders();
-            setOrders(data);
+            const { orders: page, lastDoc: cursor, hasMore: more } = await getOrders();
+            setOrders(page);
+            setLastDoc(cursor);
+            setHasMore(more);
         } catch (error) {
             // Previously silent (console.error only) — a failed fetch fell
             // through to the same "No orders found" empty state as a
@@ -45,6 +50,26 @@ const AdminDashboard = () => {
             setFetchError(true);
         } finally {
             setLoading(false);
+        }
+    };
+
+    // getOrders() was previously unbounded — this fetched every order ever
+    // created (including full items arrays) on every dashboard load, cost
+    // and latency growing with store history. Paginated now; this appends
+    // the next page instead of replacing what's already loaded, so search/
+    // filter still works over everything fetched so far.
+    const handleLoadMore = async () => {
+        if (!lastDoc || loadingMore) return;
+        setLoadingMore(true);
+        try {
+            const { orders: page, lastDoc: cursor, hasMore: more } = await getOrders(lastDoc);
+            setOrders(prev => [...prev, ...page]);
+            setLastDoc(cursor);
+            setHasMore(more);
+        } catch (error) {
+            console.error("Failed to load more orders:", error);
+        } finally {
+            setLoadingMore(false);
         }
     };
 
@@ -390,6 +415,18 @@ const AdminDashboard = () => {
                         </div>
                     )}
                 </div>
+
+                {hasMore && !loading && !fetchError && (
+                    <div className="flex justify-center mt-6">
+                        <button
+                            onClick={handleLoadMore}
+                            disabled={loadingMore}
+                            className="px-6 py-2.5 bg-white border border-gray-200 text-gray-700 font-bold rounded-full text-sm hover:bg-gray-50 transition disabled:opacity-50"
+                        >
+                            {loadingMore ? 'Loading…' : 'Load more orders'}
+                        </button>
+                    </div>
+                )}
 
             </div>
 
