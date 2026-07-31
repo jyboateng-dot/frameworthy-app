@@ -110,8 +110,15 @@ async function triggerAiResponse(uid, text, userMeta) {
     const threadSnap = await getDoc(threadRef);
     const data = threadSnap.exists() ? threadSnap.data() : {};
     
-    // Only pause AI if a human agent has explicitly been requested and takeover is active
-    if (data.humanRequested === true && data.aiEnabled === false) {
+    // Skip whenever the AI has been turned off for this thread, for any
+    // reason — an admin's own reply, the explicit AI-off toggle, or an
+    // automatic keyword-detected handoff all set aiEnabled: false, and any
+    // of them should keep the AI silent on this thread. The previous check
+    // also required humanRequested === true, but an admin reply and the
+    // manual toggle both set humanRequested: false, so that condition never
+    // matched and the AI would silently resume on the customer's very next
+    // message — talking over whoever had just taken the thread over.
+    if (data.aiEnabled === false) {
         return;
     }
 
