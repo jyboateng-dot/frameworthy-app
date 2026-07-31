@@ -35,6 +35,14 @@ const AdminMessagesPage = () => {
         return unsub;
     }, [selectedUid]);
 
+    // Without this, switching threads mid-reply left the old draft sitting
+    // in the input — handleSend captures the *current* selectedUid at
+    // submit time, so a stray leftover draft would get sent into whichever
+    // thread the admin has now clicked into, not the one it was written for.
+    useEffect(() => {
+        setDraft('');
+    }, [selectedUid]);
+
     if (authLoading) return <div className="min-h-screen flex items-center justify-center"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-black"></div></div>;
     if (!user || !isAdminEmail(user.email)) {
         return <Navigate to="/" replace />;
