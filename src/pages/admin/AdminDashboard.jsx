@@ -7,6 +7,8 @@ import OrderDetailModal from './OrderDetailModal';
 import ShareOrdersModal from './ShareOrdersModal';
 import { isAdminEmail } from '../../constants/admin';
 
+const STATUS_ORDER = ['pending', 'processing', 'shipped', 'delivered'];
+
 const AdminDashboard = () => {
     const { user, isLoading: authLoading } = useAuth();
     const [orders, setOrders] = useState([]);
@@ -55,6 +57,22 @@ const AdminDashboard = () => {
     };
 
     const handleStatusChange = async (orderId, newStatus) => {
+        const order = orders.find(o => o.id === orderId);
+        const currentIndex = STATUS_ORDER.indexOf(order?.status || 'pending');
+        const newIndex = STATUS_ORDER.indexOf(newStatus);
+        // The dropdown always lists every status regardless of where the
+        // order currently is, so a misclick can silently regress a shipped
+        // order back to pending with nothing else catching it (the rules
+        // and updateOrderStatus don't enforce a state machine either) —
+        // require a deliberate confirmation for anything that isn't a
+        // forward or same-status move.
+        if (newIndex < currentIndex) {
+            const confirmed = window.confirm(
+                `This moves the order backward from "${order.status || 'pending'}" to "${newStatus}". Are you sure?`
+            );
+            if (!confirmed) return;
+        }
+
         setUpdatingId(orderId);
         try {
             await updateOrderStatus(orderId, newStatus);
