@@ -12,10 +12,17 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 // Firestore's transaction retry ensures only one sees a not-yet-claimed slot.
 let threadState;
 
-vi.mock('../services/firebase', () => ({ db: {} }));
+vi.mock('../services/firebase', () => ({ db: {}, functions: {} }));
 vi.mock('./aiAgent', () => ({
     generateAiResponse: vi.fn().mockResolvedValue('AI reply'),
     isHumanHandoffRequested: vi.fn().mockReturnValue(false),
+}));
+// notifyAdminViaEmail now calls the notifyAdminOfChatMessage Cloud Function
+// instead of sending via emailjs directly — mock httpsCallable to return a
+// stub so sendMessage's fire-and-forget notification call doesn't throw.
+const notifyAdminOfChatMessageMock = vi.fn().mockResolvedValue({ data: { sent: true } });
+vi.mock('firebase/functions', () => ({
+    httpsCallable: vi.fn(() => notifyAdminOfChatMessageMock),
 }));
 vi.mock('firebase/firestore', () => ({
     collection: vi.fn(() => ({})),
@@ -46,7 +53,36 @@ vi.mock('firebase/firestore', () => ({
 }));
 
 const { addDoc } = await import('firebase/firestore');
-const { sendMessage } = await import('./chat');
+const { sendMessage, requestHumanSupport } = await import('./chat');
+
+describe('chat.js — admin email notification', () => {
+    beforeEach(() => {
+        vi.clearAllMocks();
+        threadState = undefined;
+    });
+
+    it('calls notifyAdminOfChatMessage with the message text on a customer send', async () => {
+        await sendMessage('uid1', 'do you deliver to Tema?', 'customer');
+        expect(notifyAdminOfChatMessageMock).toHaveBeenCalledWith({ text: 'do you deliver to Tema?', isHandoff: false });
+        // sendMessage's own triggerAiResponse call is also fire-and-forget —
+        // wait it out so its delayed addDoc doesn't leak into a later test.
+        await new Promise((r) => setTimeout(r, 850));
+    });
+
+    it('calls it with isHandoff: true on an explicit human-support request', async () => {
+        await requestHumanSupport('uid1');
+        expect(notifyAdminOfChatMessageMock).toHaveBeenCalledWith({
+            text: 'Customer requested human support directly in chat.',
+            isHandoff: true,
+        });
+    });
+
+    it('does not throw if the notification call fails — it is fire-and-forget best effort', async () => {
+        notifyAdminOfChatMessageMock.mockRejectedValueOnce(new Error('network down'));
+        await expect(sendMessage('uid1', 'hi', 'customer')).resolves.toBeUndefined();
+        await new Promise((r) => setTimeout(r, 850));
+    });
+});
 
 describe('chat.js — AI takeover gating', () => {
     beforeEach(() => {

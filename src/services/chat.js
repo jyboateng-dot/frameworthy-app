@@ -1,55 +1,29 @@
 // Customer <-> Admin <-> AI Assistant chat service — Firestore-backed, real-time.
-import { db } from './firebase';
+import { db, functions } from './firebase';
 import { collection, doc, addDoc, setDoc, onSnapshot, query, orderBy, serverTimestamp, getDocs, limit, runTransaction } from 'firebase/firestore';
+import { httpsCallable } from 'firebase/functions';
 import { generateAiResponse, isHumanHandoffRequested } from './aiAgent';
-import emailjs from '@emailjs/browser';
 
-const EMAILJS_SERVICE_ID = import.meta.env.VITE_EMAILJS_SERVICE_ID;
-const EMAILJS_TEMPLATE_ID = import.meta.env.VITE_EMAILJS_STUDIO_TEMPLATE_ID || import.meta.env.VITE_EMAILJS_TEMPLATE_ID;
-const EMAILJS_PUBLIC_KEY = import.meta.env.VITE_EMAILJS_PUBLIC_KEY;
-
-// Last email notification timestamp per user to avoid email spam (max 1 email per 2 minutes per user)
-const emailCoolOffMap = new Map();
+const notifyAdminOfChatMessage = httpsCallable(functions, 'notifyAdminOfChatMessage');
 
 /**
- * Send an email notification to admin with a direct jump link to the specific chat thread.
+ * Ask the notifyAdminOfChatMessage Cloud Function to email the admin about a
+ * new message. The cooldown (1 per 2 minutes per user, bypassed for an
+ * explicit human-handoff request) is enforced server-side now — this used to
+ * be an in-memory Map here, which reset on every reload and was independent
+ * per tab, and the send itself used to happen directly from the browser via
+ * emailjs.send() with the public key, which meant a caller could skip this
+ * throttle entirely by calling that API directly.
  */
-export const notifyAdminViaEmail = async (uid, text, userMeta = {}, isHandoff = false) => {
-    const lastSent = emailCoolOffMap.get(uid) || 0;
-    const now = Date.now();
-    // Allow immediate send if it's an explicit handoff request, otherwise enforce 2-min cooloff
-    if (!isHandoff && now - lastSent < 120000) return;
-    
-    emailCoolOffMap.set(uid, now);
-
-    if (EMAILJS_SERVICE_ID && EMAILJS_TEMPLATE_ID && EMAILJS_PUBLIC_KEY) {
-        try {
-            const origin = typeof window !== 'undefined' ? window.location.origin : 'https://frameworthyco-9c78c.web.app';
-            const chatLink = `${origin}/admin/messages?chat=${uid}`;
-            const userName = userMeta.displayName || 'Customer';
-            const userEmail = userMeta.email || 'Anonymous/Guest Customer';
-
-            await emailjs.send(
-                EMAILJS_SERVICE_ID,
-                EMAILJS_TEMPLATE_ID,
-                {
-                    to_email: 'admin@frameworthyco.com',
-                    to_name: 'FrameWorthy Admin',
-                    user_name: userName,
-                    user_email: userEmail,
-                    subject: isHandoff ? `🚨 URGENT: Human Assistance Requested by ${userName}` : `💬 New Customer Message from ${userName}`,
-                    message: `Customer Message: "${text}"\n\nDirect Chat Link: ${chatLink}`,
-                },
-                EMAILJS_PUBLIC_KEY
-            );
-            console.log('Admin email notification sent successfully.');
-        } catch (err) {
-            console.error('Failed to send admin notification email:', err);
-        }
+export const notifyAdminViaEmail = async (text, isHandoff = false) => {
+    try {
+        await notifyAdminOfChatMessage({ text, isHandoff });
+    } catch (err) {
+        console.error('Failed to send admin notification email:', err);
     }
 };
 
-export const requestHumanSupport = async (uid, userMeta = {}) => {
+export const requestHumanSupport = async (uid) => {
     const threadRef = doc(db, 'chats', uid);
     await setDoc(threadRef, {
         aiEnabled: false,
@@ -59,7 +33,7 @@ export const requestHumanSupport = async (uid, userMeta = {}) => {
         lastMessageAt: serverTimestamp(),
     }, { merge: true });
 
-    await notifyAdminViaEmail(uid, "Customer requested human support directly in chat.", userMeta, true);
+    await notifyAdminViaEmail("Customer requested human support directly in chat.", true);
 };
 
 export const sendMessage = async (uid, text, senderRole, userMeta = {}) => {
@@ -95,7 +69,7 @@ export const sendMessage = async (uid, text, senderRole, userMeta = {}) => {
 
     // 3. Trigger AI Auto-Reply or Human Handoff if message is from a customer
     if (senderRole === 'customer') {
-        notifyAdminViaEmail(uid, text, userMeta).catch(err => console.error('Notification error:', err));
+        notifyAdminViaEmail(text).catch(err => console.error('Notification error:', err));
         triggerAiResponse(uid, text, userMeta).catch(err => {
             console.error('Error triggering AI response:', err);
         });

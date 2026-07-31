@@ -263,6 +263,7 @@ const emailjsPrivateKey = defineSecret('EMAILJS_PRIVATE_KEY');
 // service and public key are not secrets by EmailJS's own design.
 const EMAILJS_SERVICE_ID = 'service_aefbwot';
 const EMAILJS_RESET_TEMPLATE_ID = 'template_wn39cmf';
+const EMAILJS_STUDIO_TEMPLATE_ID = 'template_hbx1njo';
 const EMAILJS_PUBLIC_KEY = 'O8XgNWf6VmV-veLaX';
 
 // Generates a Firebase password-reset link server-side and emails it via
@@ -348,6 +349,95 @@ exports.sendPasswordResetLink = onCall({ secrets: [emailjsPrivateKey], region: '
     }
 
     return { success: true };
+});
+
+// Sends the "new chat message" / "human requested" admin notification email.
+// Previously the client called emailjs.send() directly, throttled by an
+// in-memory Map keyed by uid — reset on every page reload, independent per
+// browser tab, so a refresh (or a second tab) bypassed the "1 email per 2
+// minutes" limit entirely. It also meant a determined caller could skip the
+// throttle altogether by calling emailjs.send() directly with the public
+// key/service/template ids, which ship in the client bundle by EmailJS's own
+// design. Moving the send itself here (using the private key, only usable
+// server-side) closes both: the throttle now lives in Firestore, and the
+// public keys alone can no longer trigger a send at all.
+exports.notifyAdminOfChatMessage = onCall({ secrets: [emailjsPrivateKey], region: 'us-central1', timeoutSeconds: 30, maxInstances: 5 }, async (request) => {
+    if (!request.auth) {
+        throw new HttpsError('unauthenticated', 'Sign in to use chat support');
+    }
+
+    const { text, isHandoff } = request.data || {};
+    if (!text || typeof text !== 'string') {
+        throw new HttpsError('invalid-argument', 'text is required');
+    }
+
+    const uid = request.auth.uid;
+    const throttleRef = admin.firestore().collection('chatEmailThrottle').doc(uid);
+    const COOLDOWN_MS = 120_000;
+    try {
+        const allowed = await admin.firestore().runTransaction(async (tx) => {
+            // An explicit human-handoff request always gets through
+            // immediately — mirrors the client's original behavior, since
+            // that's the one case worth interrupting the cooldown for.
+            if (isHandoff === true) return true;
+            const snap = await tx.get(throttleRef);
+            const now = Date.now();
+            if (snap.exists) {
+                const last = snap.data().lastSentMs || 0;
+                if (now - last < COOLDOWN_MS) {
+                    return false;
+                }
+            }
+            tx.set(throttleRef, { lastSentMs: now });
+            return true;
+        });
+        if (!allowed) {
+            return { sent: false };
+        }
+    } catch (err) {
+        logger.error('notifyAdminOfChatMessage throttle check failed', err);
+        return { sent: false };
+    }
+
+    // Trusting the authenticated caller's own token for name/email rather
+    // than client-supplied userMeta — the old client code took
+    // userMeta.displayName/email as given, which a caller could set to
+    // anything when calling the (formerly client-side) send directly.
+    const userName = request.auth.token.name || 'Customer';
+    const userEmail = request.auth.token.email || 'Anonymous/Guest Customer';
+    const chatLink = `https://frameworthyco-9c78c.web.app/admin/messages?chat=${uid}`;
+
+    try {
+        const emailResponse = await fetch('https://api.emailjs.com/api/v1.0/email/send', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                service_id: EMAILJS_SERVICE_ID,
+                template_id: EMAILJS_STUDIO_TEMPLATE_ID,
+                user_id: EMAILJS_PUBLIC_KEY,
+                accessToken: emailjsPrivateKey.value(),
+                template_params: {
+                    to_email: 'admin@frameworthyco.com',
+                    to_name: 'FrameWorthy Admin',
+                    user_name: userName,
+                    user_email: userEmail,
+                    subject: isHandoff ? `URGENT: Human Assistance Requested by ${userName}` : `New Customer Message from ${userName}`,
+                    message: `Customer Message: "${text.slice(0, 2000)}"\n\nDirect Chat Link: ${chatLink}`,
+                },
+            }),
+            signal: AbortSignal.timeout(10_000),
+        });
+        if (!emailResponse.ok) {
+            const body = await emailResponse.text().catch(() => '<unreadable body>');
+            logger.error('notifyAdminOfChatMessage: EmailJS send failed', { status: emailResponse.status, body });
+            return { sent: false };
+        }
+    } catch (err) {
+        logger.error('notifyAdminOfChatMessage: EmailJS request failed', err);
+        return { sent: false };
+    }
+
+    return { sent: true };
 });
 
 // One-time-use PINs gating access to the private tester build. Docs live in
