@@ -131,6 +131,7 @@ const MoviePosterPage = ({ setProductMode, setSelectedFrame, setSelectedSize, na
     // both styles now involve async work (dimension detection / OMDb + palette
     // fetch), so the loading indicator needs to know which button to show it on.
     const [generatingStyle, setGeneratingStyle] = useState(null);
+    const [generateError, setGenerateError] = useState(false);
 
     useEffect(() => {
         if (initialSelectedProduct && onConsumedInitialSelection) onConsumedInitialSelection();
@@ -217,10 +218,12 @@ const MoviePosterPage = ({ setProductMode, setSelectedFrame, setSelectedSize, na
 
     const handleGetThis = (movie) => {
         setSelectedProduct(movie);
+        setGenerateError(false);
     };
 
     const handleChooseStyle = async (movie, style) => {
         setGeneratingStyle(style);
+        setGenerateError(false);
         try {
             const frameObj = FRAME_STYLES.find(f => f.id === 'frame-10512') || FRAME_STYLES[0];
 
@@ -280,7 +283,7 @@ const MoviePosterPage = ({ setProductMode, setSelectedFrame, setSelectedSize, na
             });
         } catch (err) {
             console.error('Failed to generate movie poster:', err);
-            alert('Failed to fetch movie details. Please try again.');
+            setGenerateError(true);
         } finally {
             setGeneratingStyle(null);
         }
@@ -470,6 +473,12 @@ const MoviePosterPage = ({ setProductMode, setSelectedFrame, setSelectedSize, na
                         </button>
 
                         <h2 className="text-2xl font-serif mb-6 text-stone-900">Choose Framing Style</h2>
+
+                        {generateError && (
+                            <p className="text-sm text-red-600 bg-red-50 border border-red-100 rounded-lg px-3 py-2 mb-4">
+                                Couldn't fetch movie details. Please try again.
+                            </p>
+                        )}
 
                         <div className="grid grid-cols-2 gap-4">
                             {/* Original Poster Option */}

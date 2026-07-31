@@ -33,6 +33,7 @@ const ShareOrdersModal = ({ orders, onClose }) => {
     const [copied, setCopied] = useState(false);
     const [sending, setSending] = useState(false);
     const [sendSuccess, setSendSuccess] = useState(false);
+    const [sendError, setSendError] = useState('');
     const [recipients, setRecipients] = useState([]);
     const [recipientInput, setRecipientInput] = useState('');
     const [recipientError, setRecipientError] = useState('');
@@ -142,10 +143,11 @@ const ShareOrdersModal = ({ orders, onClose }) => {
         const publicKey = import.meta.env.VITE_EMAILJS_PUBLIC_KEY;
 
         if (!serviceId || !templateId || !publicKey) {
-            alert("EmailJS Studio Template is not configured. Please add VITE_EMAILJS_STUDIO_TEMPLATE_ID to your .env.local file. (Your service ID and public key are already detected!)");
+            setSendError("EmailJS Studio Template is not configured. Add VITE_EMAILJS_STUDIO_TEMPLATE_ID to your .env.local file — the service ID and public key are already detected.");
             return;
         }
 
+        setSendError('');
         setSending(true);
         const htmlContent = htmlRef.current ? htmlRef.current.innerHTML : '';
         const toEmail = [ADMIN_EMAIL, ...recipients].join(', ');
@@ -172,7 +174,7 @@ const ShareOrdersModal = ({ orders, onClose }) => {
             }
         } catch (error) {
             console.error("Failed to send email:", error);
-            alert("Failed to send email directly. Please check your EmailJS configuration or use the manual copy/email buttons.");
+            setSendError("Failed to send email directly. Check your EmailJS configuration or use the manual copy/email buttons below.");
         } finally {
             setSending(false);
         }
@@ -308,7 +310,11 @@ const ShareOrdersModal = ({ orders, onClose }) => {
                     </div>
 
                 {/* Footer / Actions */}
-                <div className="p-6 bg-white border-t border-gray-100 shrink-0 flex flex-col sm:flex-row gap-3">
+                <div className="p-6 bg-white border-t border-gray-100 shrink-0 flex flex-col gap-3">
+                {sendError && (
+                    <p className="text-sm text-red-600 bg-red-50 border border-red-100 rounded-lg px-3 py-2">{sendError}</p>
+                )}
+                <div className="flex flex-col sm:flex-row gap-3">
                     <button
                         onClick={handleDirectSend}
                         disabled={sending}
@@ -331,6 +337,7 @@ const ShareOrdersModal = ({ orders, onClose }) => {
                         <Mail size={18} />
                         Mail App
                     </button>
+                </div>
                 </div>
                 </div>
 
