@@ -237,11 +237,12 @@ const AdminDashboard = () => {
                                 <thead>
                                     <tr className="bg-gray-50 border-b border-gray-100 text-xs uppercase tracking-wider text-gray-500">
                                         <th className="px-6 py-4">
-                                            <input 
-                                                type="checkbox" 
+                                            <input
+                                                type="checkbox"
                                                 className="rounded border-gray-300 text-black focus:ring-black cursor-pointer"
                                                 checked={allFilteredSelected}
                                                 onChange={toggleAllSelection}
+                                                aria-label="Select all orders"
                                             />
                                         </th>
                                         <th className="px-6 py-4 font-bold">Order Details</th>
@@ -259,11 +260,12 @@ const AdminDashboard = () => {
                                             
                                             {/* Checkbox */}
                                             <td className="px-6 py-4">
-                                                <input 
-                                                    type="checkbox" 
+                                                <input
+                                                    type="checkbox"
                                                     className="rounded border-gray-300 text-black focus:ring-black cursor-pointer"
                                                     checked={selectedOrderIds.has(order.id)}
                                                     onChange={() => toggleOrderSelection(order.id)}
+                                                    aria-label={`Select order ${order.id}`}
                                                 />
                                             </td>
 

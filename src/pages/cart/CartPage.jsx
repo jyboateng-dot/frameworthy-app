@@ -93,9 +93,11 @@ const CartPage = () => {
 
                         return (
                             <div key={item.id} className="px-4 flex gap-3 group relative">
-                                <button 
+                                <button
                                     onClick={() => toggleItemSelection(item.id)}
                                     className={`w-5 h-5 mt-8 rounded-full border flex items-center justify-center flex-shrink-0 transition-colors ${item.isSelected ? 'bg-[#c9a84c] border-[#c9a84c]' : 'border-stone-300'}`}
+                                    aria-label={item.isSelected ? `Deselect ${fullDescription}` : `Select ${fullDescription}`}
+                                    aria-pressed={item.isSelected}
                                 >
                                     {item.isSelected && <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M10 3L4.5 8.5L2 6" stroke="#0a0a0a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>}
                                 </button>
@@ -154,12 +156,18 @@ const CartPage = () => {
 
             {/* Sticky Footer Checkout Bar */}
             <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-stone-200 px-4 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom,0px))] flex items-center justify-between z-50 shadow-[0_-4px_10px_rgba(0,0,0,0.05)]">
-                <div className="flex items-center gap-2 cursor-pointer" onClick={() => toggleAllSelection(!allSelected)}>
+                <button
+                    type="button"
+                    className="flex items-center gap-2 cursor-pointer"
+                    onClick={() => toggleAllSelection(!allSelected)}
+                    aria-pressed={allSelected}
+                    aria-label={allSelected ? 'Deselect all items' : 'Select all items'}
+                >
                     <div className={`w-5 h-5 rounded-full border flex items-center justify-center transition-colors ${allSelected ? 'bg-[#c9a84c] border-[#c9a84c]' : 'border-stone-300'}`}>
                         {allSelected && <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M10 3L4.5 8.5L2 6" stroke="#0a0a0a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>}
                     </div>
                     <span className="text-sm font-bold text-stone-800">All</span>
-                </div>
+                </button>
 
                 <div className="flex items-center gap-3">
                     <div className="flex flex-col items-end">
