@@ -1071,66 +1071,75 @@ const CustomizeFramePage = ({
     // is the aspect ratio itself, so among same-footprint sizes the more
     // square/standard one ranks first, ahead of an equally-tall but skinnier
     // alternative; area is the final tiebreaker for genuine ties.
-    const uniqueSizes = [];
-    const sizeSeen = new Set();
-    const sortedSizes = [...FRAME_SIZES].sort((a, b) => {
-        const aMax = Math.max(a.width, a.height), aMin = Math.min(a.width, a.height);
-        const bMax = Math.max(b.width, b.height), bMin = Math.min(b.width, b.height);
-        if (aMax !== bMax) return aMax - bMax;
-        const aRatio = aMax / aMin, bRatio = bMax / bMin;
-        if (Math.abs(aRatio - bRatio) > 0.001) return aRatio - bRatio;
-        return (a.width * a.height) - (b.width * b.height);
-    });
-    
-    // Check if the image is square
-    const isSquareArtwork = isAlbumArt || (imageNaturalSize && imageNaturalSize.w > 0 && Math.abs(imageNaturalSize.w - imageNaturalSize.h) <= 5);
-    
-    for (const size of sortedSizes) {
-        // If it's a square image (like album art), only allow square sizes
-        if (isSquareArtwork && size.width !== size.height) {
-            continue;
+    // This sort/filter/dedup runs over the entire FRAME_SIZES catalog, so it's
+    // memoized against just the flags/image data that actually change its
+    // output — without this it was recomputing from scratch on every render
+    // (every keystroke in the custom-size inputs, every unrelated state
+    // change), which is the single most render-heavy page in the app.
+    const { finalSizesList, leftColumnCollapsed, rightColumnCollapsed } = useMemo(() => {
+        const uniqueSizes = [];
+        const sizeSeen = new Set();
+        const sortedSizes = [...FRAME_SIZES].sort((a, b) => {
+            const aMax = Math.max(a.width, a.height), aMin = Math.min(a.width, a.height);
+            const bMax = Math.max(b.width, b.height), bMin = Math.min(b.width, b.height);
+            if (aMax !== bMax) return aMax - bMax;
+            const aRatio = aMax / aMin, bRatio = bMax / bMin;
+            if (Math.abs(aRatio - bRatio) > 0.001) return aRatio - bRatio;
+            return (a.width * a.height) - (b.width * b.height);
+        });
+
+        // Check if the image is square
+        const isSquareArtwork = isAlbumArt || (imageNaturalSize && imageNaturalSize.w > 0 && Math.abs(imageNaturalSize.w - imageNaturalSize.h) <= 5);
+
+        for (const size of sortedSizes) {
+            // If it's a square image (like album art), only allow square sizes
+            if (isSquareArtwork && size.width !== size.height) {
+                continue;
+            }
+
+            // Album posters and movie posters are portrait-or-square — a landscape
+            // canvas doesn't suit their tracklist/cast-list layout, but square
+            // (e.g. 20x20cm) is a valid alternate format alongside true portrait.
+            if ((isAlbumPoster || isMoviePoster || isMoviePosterPrint) && size.height < size.width) {
+                continue;
+            }
+
+            const key = `${size.width}x${size.height}`;
+            const isAlias = ['sm', 'md', 'lg', 'xl', 'lg-land', 'xl-land', 'Small', 'Medium', 'Large', 'Statement'].includes(size.id);
+            if (!sizeSeen.has(key) && !isAlias) {
+                sizeSeen.add(key);
+                uniqueSizes.push(size);
+            }
         }
 
-        // Album posters and movie posters are portrait-or-square — a landscape
-        // canvas doesn't suit their tracklist/cast-list layout, but square
-        // (e.g. 20x20cm) is a valid alternate format alongside true portrait.
-        if ((isAlbumPoster || isMoviePoster || isMoviePosterPrint) && size.height < size.width) {
-            continue;
-        }
+        // Sizes with an extreme, mismatched aspect ratio (17x60cm, 10x60cm, and
+        // similar panoramic/banner shapes) are niche next to standard photo/
+        // print/A-series ratios — there's a clean gap in the catalog between
+        // ~1.54:1 (standard) and 2:1 (niche), so 1.8 sits safely in between
+        // regardless of float precision. Dropped from the picker entirely
+        // (collapsed and expanded) rather than just demoted — anyone who
+        // actually wants one of these shapes can dial it in via Custom Size.
+        const NICHE_ASPECT_RATIO = 1.8;
+        const isNicheAspect = (size) => (Math.max(size.width, size.height) / Math.min(size.width, size.height)) > NICHE_ASPECT_RATIO;
+        const normalSizes = uniqueSizes.filter(s => !isNicheAspect(s));
 
-        const key = `${size.width}x${size.height}`;
-        const isAlias = ['sm', 'md', 'lg', 'xl', 'lg-land', 'xl-land', 'Small', 'Medium', 'Large', 'Statement'].includes(size.id);
-        if (!sizeSeen.has(key) && !isAlias) {
-            sizeSeen.add(key);
-            uniqueSizes.push(size);
-        }
-    }
+        const finalSizesList = normalSizes;
 
-    // Sizes with an extreme, mismatched aspect ratio (17x60cm, 10x60cm, and
-    // similar panoramic/banner shapes) are niche next to standard photo/
-    // print/A-series ratios — there's a clean gap in the catalog between
-    // ~1.54:1 (standard) and 2:1 (niche), so 1.8 sits safely in between
-    // regardless of float precision. Dropped from the picker entirely
-    // (collapsed and expanded) rather than just demoted — anyone who
-    // actually wants one of these shapes can dial it in via Custom Size.
-    const NICHE_ASPECT_RATIO = 1.8;
-    const isNicheAspect = (size) => (Math.max(size.width, size.height) / Math.min(size.width, size.height)) > NICHE_ASPECT_RATIO;
-    const normalSizes = uniqueSizes.filter(s => !isNicheAspect(s));
+        // Collapsed view is curated, not a slice of the full catalog: left column
+        // is the most popular small-to-medium sizes, right column the most
+        // popular large-to-very-large sizes, each ascending top to bottom. IDs
+        // are looked up against normalSizes so category filters (square-only
+        // album art, portrait-or-square posters) still apply — a popular ID that
+        // isn't available under the current filter is just skipped rather than
+        // leaving a gap.
+        const popularSmallIds = ['5x7', '8x10', 'a4', '11x14', '12x12', 'a3'];
+        const popularLargeIds = ['16x20', 'a2', '18x24', '20x30', '24x36', '100x100cm'];
+        const findPopular = (ids) => ids.map(id => normalSizes.find(s => s.id === id)).filter(Boolean);
+        const leftColumnCollapsed = findPopular(popularSmallIds);
+        const rightColumnCollapsed = findPopular(popularLargeIds);
 
-    let finalSizesList = normalSizes;
-
-    // Collapsed view is curated, not a slice of the full catalog: left column
-    // is the most popular small-to-medium sizes, right column the most
-    // popular large-to-very-large sizes, each ascending top to bottom. IDs
-    // are looked up against normalSizes so category filters (square-only
-    // album art, portrait-or-square posters) still apply — a popular ID that
-    // isn't available under the current filter is just skipped rather than
-    // leaving a gap.
-    const popularSmallIds = ['5x7', '8x10', 'a4', '11x14', '12x12', 'a3'];
-    const popularLargeIds = ['16x20', 'a2', '18x24', '20x30', '24x36', '100x100cm'];
-    const findPopular = (ids) => ids.map(id => normalSizes.find(s => s.id === id)).filter(Boolean);
-    const leftColumnCollapsed = findPopular(popularSmallIds);
-    const rightColumnCollapsed = findPopular(popularLargeIds);
+        return { finalSizesList, leftColumnCollapsed, rightColumnCollapsed };
+    }, [isAlbumArt, isAlbumPoster, isMoviePoster, isMoviePosterPrint, imageNaturalSize]);
 
     // A created custom size stays visible as the LAST option — same spot as
     // the "Custom Size" trigger button itself — even after the user selects
