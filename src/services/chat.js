@@ -1,6 +1,6 @@
 // Customer <-> Admin <-> AI Assistant chat service — Firestore-backed, real-time.
 import { db } from './firebase';
-import { collection, doc, addDoc, setDoc, getDoc, onSnapshot, query, orderBy, serverTimestamp, getDocs, limit } from 'firebase/firestore';
+import { collection, doc, addDoc, setDoc, onSnapshot, query, orderBy, serverTimestamp, getDocs, limit, runTransaction } from 'firebase/firestore';
 import { generateAiResponse, isHumanHandoffRequested } from './aiAgent';
 import emailjs from '@emailjs/browser';
 
@@ -107,23 +107,36 @@ export const sendMessage = async (uid, text, senderRole, userMeta = {}) => {
  */
 async function triggerAiResponse(uid, text, userMeta) {
     const threadRef = doc(db, 'chats', uid);
-    const threadSnap = await getDoc(threadRef);
-    const data = threadSnap.exists() ? threadSnap.data() : {};
-    
-    // Skip whenever the AI has been turned off for this thread, for any
-    // reason — an admin's own reply, the explicit AI-off toggle, or an
-    // automatic keyword-detected handoff all set aiEnabled: false, and any
-    // of them should keep the AI silent on this thread. The previous check
-    // also required humanRequested === true, but an admin reply and the
-    // manual toggle both set humanRequested: false, so that condition never
-    // matched and the AI would silently resume on the customer's very next
-    // message — talking over whoever had just taken the thread over.
-    if (data.aiEnabled === false) {
+
+    // Atomically claim the "AI is responding" slot inside a transaction —
+    // a plain read-then-write here (as this used to be) has a race: two
+    // customer messages sent close together both read isAiTyping/aiEnabled
+    // before either had written anything, so both would proceed, each
+    // calling Gemini and posting its own reply (duplicate bot messages,
+    // double the cost, replies answering only one of the two questions).
+    // The transaction makes "check and claim" a single atomic step —
+    // Firestore retries it under contention, so exactly one caller wins.
+    let claimed;
+    try {
+        claimed = await runTransaction(db, async (tx) => {
+            const snap = await tx.get(threadRef);
+            const data = snap.exists() ? snap.data() : {};
+            // Skip whenever the AI has been turned off for this thread, for
+            // any reason — an admin's own reply, the explicit AI-off toggle,
+            // or an automatic keyword-detected handoff all set
+            // aiEnabled: false, and any of them should keep the AI silent.
+            // Also skip if another concurrent call already claimed the slot.
+            if (data.aiEnabled === false || data.isAiTyping === true) {
+                return false;
+            }
+            tx.set(threadRef, { isAiTyping: true, aiEnabled: true }, { merge: true });
+            return true;
+        });
+    } catch (err) {
+        console.error('Failed to claim AI response slot:', err);
         return;
     }
-
-    // Mark AI as typing on thread
-    await setDoc(threadRef, { isAiTyping: true, aiEnabled: true }, { merge: true });
+    if (!claimed) return;
 
     try {
         const userWantsHuman = isHumanHandoffRequested(text);

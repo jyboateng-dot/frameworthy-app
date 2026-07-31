@@ -2,7 +2,14 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 // chat.js talks to Firestore through the modular SDK — mock just the calls
 // it makes, keyed by a fake in-memory "thread doc" so triggerAiResponse's
-// getDoc(threadRef) sees whatever state a test sets up.
+// runTransaction(threadRef) sees whatever state a test sets up. This mock
+// doesn't model real concurrent contention (there's no actual parallelism
+// in a single-threaded test) — that atomicity guarantee is Firestore's own
+// backend property, not something a unit test can exercise. What IS tested
+// here is that the claim logic itself (skip when isAiTyping/aiEnabled say
+// so, claim otherwise) is correct — a real race just means two callers
+// evaluate that same correct logic at slightly different times, and
+// Firestore's transaction retry ensures only one sees a not-yet-claimed slot.
 let threadState;
 
 vi.mock('../services/firebase', () => ({ db: {} }));
@@ -18,10 +25,18 @@ vi.mock('firebase/firestore', () => ({
         threadState = { ...threadState, ...data };
         return Promise.resolve();
     }),
-    getDoc: vi.fn(() => Promise.resolve({
-        exists: () => !!threadState,
-        data: () => threadState,
-    })),
+    runTransaction: vi.fn((_db, updateFn) => {
+        const tx = {
+            get: vi.fn(() => Promise.resolve({
+                exists: () => !!threadState,
+                data: () => threadState,
+            })),
+            set: vi.fn((_ref, data) => {
+                threadState = { ...threadState, ...data };
+            }),
+        };
+        return Promise.resolve(updateFn(tx));
+    }),
     onSnapshot: vi.fn(),
     query: vi.fn(),
     orderBy: vi.fn(),
@@ -83,5 +98,18 @@ describe('chat.js — AI takeover gating', () => {
 
         const assistantPosts = addDoc.mock.calls.filter(([, data]) => data?.senderRole === 'assistant');
         expect(assistantPosts).toHaveLength(1);
+    });
+
+    it('does not respond a second time while a response is already in flight (isAiTyping claimed)', async () => {
+        // Simulates the moment right after a first message already claimed
+        // the slot — a second concurrent trigger must see isAiTyping: true
+        // and back off rather than also proceeding.
+        threadState = { isAiTyping: true };
+
+        await sendMessage('uid1', 'second message while AI is still typing', 'customer');
+        await new Promise((r) => setTimeout(r, 850));
+
+        const assistantPosts = addDoc.mock.calls.filter(([, data]) => data?.senderRole === 'assistant');
+        expect(assistantPosts).toHaveLength(0);
     });
 });
