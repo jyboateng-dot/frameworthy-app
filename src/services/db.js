@@ -58,13 +58,17 @@ export const getOrders = async (afterDoc = null) => {
     }
 };
 
-export const getUserOrders = async (userId) => {
+// maxResults is optional so OrdersPage's "show my full history" call is
+// unaffected — only getUserDeliveryAddresses below passes one, since it
+// needs a handful of recent unique addresses, not the customer's entire
+// order history (a real "fetch more than the view needs" case: previously
+// every checkout page load re-read every past order, full items array
+// included, just to dedupe down to a few address strings).
+export const getUserOrders = async (userId, maxResults = null) => {
     try {
-        const q = query(
-            collection(db, "orders"),
-            where("userId", "==", userId),
-            orderBy("createdAt", "desc")
-        );
+        const constraints = [collection(db, "orders"), where("userId", "==", userId), orderBy("createdAt", "desc")];
+        if (maxResults) constraints.push(limit(maxResults));
+        const q = query(...constraints);
         const querySnapshot = await getDocs(q);
         const orders = [];
         querySnapshot.forEach((doc) => {
@@ -77,9 +81,13 @@ export const getUserOrders = async (userId) => {
     }
 };
 
+// Recent orders are more than enough to surface a handful of unique
+// addresses — no need to scan a customer's entire history for this.
+const RECENT_ORDERS_FOR_ADDRESSES = 20;
+
 export const getUserDeliveryAddresses = async (userId) => {
     try {
-        const orders = await getUserOrders(userId);
+        const orders = await getUserOrders(userId, RECENT_ORDERS_FOR_ADDRESSES);
         const addresses = [];
         const seen = new Set();
         
