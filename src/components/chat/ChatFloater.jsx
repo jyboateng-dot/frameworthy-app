@@ -34,10 +34,13 @@ const ChatFloater = ({ isOpen, setIsOpen }) => {
         e.preventDefault();
         const text = draft.trim();
         if (!text || isSending) return;
-        setDraft('');
         setIsSending(true);
         try {
             await sendMessage(user.uid, text, 'customer', { email: user.email, displayName: user.displayName });
+            // Only clear on confirmed success — clearing eagerly meant a
+            // failed send (offline, Firestore error) silently lost whatever
+            // the customer had just typed, with no way to recover it.
+            setDraft('');
         } catch (err) {
             console.error('Failed to send chat message:', err);
         } finally {

@@ -52,10 +52,13 @@ const AdminMessagesPage = () => {
         e.preventDefault();
         const text = draft.trim();
         if (!text || !selectedUid || isSending) return;
-        setDraft('');
         setIsSending(true);
         try {
             await sendMessage(selectedUid, text, 'admin');
+            // Only clear on confirmed success — clearing eagerly meant a
+            // failed send (offline, Firestore error) silently lost whatever
+            // the admin had just typed, with no way to recover it.
+            setDraft('');
         } catch (err) {
             console.error('Failed to send reply:', err);
         } finally {
