@@ -362,7 +362,9 @@ const AuthPage = ({ navigate }) => {
                                 <div className="space-y-1">
                                     <div className="relative">
                                         <User className="absolute left-4 top-3 text-stone-400" size={18} />
+                                        <label htmlFor="auth-name" className="sr-only">Full Name</label>
                                         <input
+                                            id="auth-name"
                                             type="text"
                                             placeholder="Full Name"
                                             className={`w-full pl-12 pr-4 py-3 rounded-xl border bg-white/70 backdrop-blur-sm text-stone-900 placeholder:text-stone-500 ${
@@ -379,7 +381,9 @@ const AuthPage = ({ navigate }) => {
                             <div className="space-y-1">
                                 <div className="relative">
                                     <Mail className="absolute left-4 top-3 text-stone-400" size={18} />
+                                    <label htmlFor="auth-email" className="sr-only">Email Address</label>
                                     <input
+                                        id="auth-email"
                                         type="email"
                                         placeholder="Email Address"
                                         className={`w-full pl-12 pr-4 py-3 rounded-xl border bg-white/70 backdrop-blur-sm text-stone-900 placeholder:text-stone-500 ${
@@ -395,7 +399,9 @@ const AuthPage = ({ navigate }) => {
                             <div className="space-y-1">
                                 <div className="relative">
                                     <Lock className="absolute left-4 top-3 text-stone-400" size={18} />
+                                    <label htmlFor="auth-password" className="sr-only">Password</label>
                                     <input
+                                        id="auth-password"
                                         type={showPassword ? "text" : "password"}
                                         placeholder="Password"
                                         className={`w-full pl-12 pr-12 py-3 rounded-xl border bg-white/70 backdrop-blur-sm text-stone-900 placeholder:text-stone-500 ${
@@ -404,10 +410,11 @@ const AuthPage = ({ navigate }) => {
                                         value={formData.password}
                                         onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                                     />
-                                    <button 
+                                    <button
                                         type="button"
                                         onClick={() => setShowPassword(!showPassword)}
                                         className="absolute right-4 top-3 text-stone-400 hover:text-stone-600 focus:outline-none"
+                                        aria-label={showPassword ? 'Hide password' : 'Show password'}
                                     >
                                         {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                                     </button>

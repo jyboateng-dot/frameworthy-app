@@ -431,7 +431,9 @@ const CheckoutPage = () => {
                                             </select>
                                         ) : null}
                                     </div>
+                                    <label htmlFor="checkout-fullname" className="sr-only">Full Name</label>
                                     <input
+                                        id="checkout-fullname"
                                         type="text"
                                         required
                                         placeholder="Full Name"
@@ -439,7 +441,9 @@ const CheckoutPage = () => {
                                         value={fullName}
                                         onChange={handleFieldChange(setFullName)}
                                     />
+                                    <label htmlFor="checkout-phone" className="sr-only">Phone Number</label>
                                     <input
+                                        id="checkout-phone"
                                         type="tel"
                                         required
                                         placeholder="Phone Number (e.g. 024 000 0000)"
@@ -447,7 +451,9 @@ const CheckoutPage = () => {
                                         value={phoneNumber}
                                         onChange={handleFieldChange(setPhoneNumber)}
                                     />
+                                    <label htmlFor="checkout-email" className="sr-only">Email Address</label>
                                     <input
+                                        id="checkout-email"
                                         type="email"
                                         required
                                         placeholder="Email Address"
@@ -457,7 +463,9 @@ const CheckoutPage = () => {
                                     />
                                 </div>
                                 <div>
+                                    <label htmlFor="checkout-city" className="sr-only">City</label>
                                     <input
+                                        id="checkout-city"
                                         type="text"
                                         required
                                         placeholder="City (e.g. Accra)"
@@ -467,7 +475,9 @@ const CheckoutPage = () => {
                                     />
                                 </div>
                                 <div>
+                                    <label htmlFor="checkout-address" className="sr-only">Delivery Address / Landmark</label>
                                     <textarea
+                                        id="checkout-address"
                                         required
                                         placeholder="Delivery Address / Landmark"
                                         className="w-full border-b border-stone-200 py-1.5 text-base focus:outline-none focus:border-stone-500 bg-transparent resize-none"

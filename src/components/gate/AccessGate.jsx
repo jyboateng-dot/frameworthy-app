@@ -54,7 +54,9 @@ const AccessGate = ({ onUnlock }) => {
                     </p>
 
                     <form onSubmit={handleSubmit}>
+                        <label htmlFor="access-gate-name" className="sr-only">Your name</label>
                         <input
+                            id="access-gate-name"
                             type="text"
                             value={name}
                             onChange={(e) => { setName(e.target.value); setError(null); }}
@@ -63,7 +65,9 @@ const AccessGate = ({ onUnlock }) => {
                             className="w-full bg-stone-50 border border-stone-200 rounded-lg px-4 py-3 text-base text-stone-900 placeholder:text-stone-400 focus:outline-none focus:ring-1 focus:ring-stone-900/30 focus:border-stone-900/40 transition mb-3"
                         />
 
+                        <label htmlFor="access-gate-pin" className="sr-only">One-time PIN</label>
                         <input
+                            id="access-gate-pin"
                             type="text"
                             value={pin}
                             onChange={(e) => { setPin(e.target.value); setError(null); }}
