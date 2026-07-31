@@ -342,13 +342,18 @@ const CheckoutPage = () => {
                                 state: { orderId, reference, email, total: finalTotal, isGuest: !user }
                             });
                         } else {
-                            setError('We couldn\'t confirm your payment. If you were charged, contact support with the reference below and we\'ll sort it out.');
+                            // Paystack also confirms successful charges directly to our
+                            // server independently of this call (see paystackWebhook), so
+                            // a charge that actually succeeded will still get marked paid
+                            // even though this particular confirmation attempt failed —
+                            // don't encourage paying a second time for the same order.
+                            setError('We couldn\'t confirm your payment right away. If you were charged, your order will be confirmed automatically within a few minutes — check its status with the reference below. Please don\'t pay again for this order.');
                             setFailedReference(reference);
                             setIsProcessing(false);
                         }
                     } catch (err) {
                         console.error('Payment verification failed:', err);
-                        setError('We couldn\'t confirm your payment. If you were charged, contact support with the reference below and we\'ll sort it out.');
+                        setError('We couldn\'t confirm your payment right away. If you were charged, your order will be confirmed automatically within a few minutes — check its status with the reference below. Please don\'t pay again for this order.');
                         setFailedReference(reference);
                         setIsProcessing(false);
                     }
