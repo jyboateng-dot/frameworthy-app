@@ -94,14 +94,29 @@ describe('orders collection', () => {
         });
 
         it('lets the admin read any order', async () => {
-            const admin = testEnv.authenticatedContext('admin-uid', { email: ADMIN_EMAIL }).firestore();
+            const admin = testEnv.authenticatedContext('admin-uid', { email: ADMIN_EMAIL, email_verified: true }).firestore();
             await assertSucceeds(getDoc(doc(admin, 'orders/alice-order')));
             await assertSucceeds(getDoc(doc(admin, 'orders/bob-order')));
         });
 
         it('lets the second admin address read any order too', async () => {
-            const admin = testEnv.authenticatedContext('admin-uid-2', { email: SECOND_ADMIN_EMAIL }).firestore();
+            const admin = testEnv.authenticatedContext('admin-uid-2', { email: SECOND_ADMIN_EMAIL, email_verified: true }).firestore();
             await assertSucceeds(getDoc(doc(admin, 'orders/alice-order')));
+        });
+
+        // Regression guard: without checking email_verified, self-registering
+        // an email/password account under admin@/info@frameworthyco.com
+        // (nothing stops that signup — the app never calls
+        // sendEmailVerification) would produce a token whose email claim
+        // matches the allowlist despite the mailbox never being proven.
+        it('blocks an unverified account whose email matches the admin allowlist (self-registration escalation)', async () => {
+            const impostor = testEnv.authenticatedContext('impostor-uid', { email: ADMIN_EMAIL, email_verified: false }).firestore();
+            await assertFails(getDoc(doc(impostor, 'orders/alice-order')));
+        });
+
+        it('blocks an admin-matching account with no email_verified claim at all', async () => {
+            const impostor = testEnv.authenticatedContext('impostor-uid', { email: ADMIN_EMAIL }).firestore();
+            await assertFails(getDoc(doc(impostor, 'orders/alice-order')));
         });
     });
 
@@ -118,7 +133,7 @@ describe('orders collection', () => {
         });
 
         it('lets the admin update an order', async () => {
-            const admin = testEnv.authenticatedContext('admin-uid', { email: ADMIN_EMAIL }).firestore();
+            const admin = testEnv.authenticatedContext('admin-uid', { email: ADMIN_EMAIL, email_verified: true }).firestore();
             await assertSucceeds(updateDoc(doc(admin, 'orders/alice-order'), { status: 'shipped' }));
         });
     });
@@ -131,7 +146,7 @@ describe('orders collection', () => {
         });
 
         it('is never allowed, even for the admin', async () => {
-            const admin = testEnv.authenticatedContext('admin-uid', { email: ADMIN_EMAIL }).firestore();
+            const admin = testEnv.authenticatedContext('admin-uid', { email: ADMIN_EMAIL, email_verified: true }).firestore();
             await assertFails(deleteDoc(doc(admin, 'orders/alice-order')));
         });
     });
@@ -183,7 +198,7 @@ describe('clientErrors collection', () => {
         await testEnv.withSecurityRulesDisabled(async (ctx) => {
             await setDoc(doc(ctx.firestore(), 'clientErrors/err1'), validError());
         });
-        const admin = testEnv.authenticatedContext('admin-uid', { email: ADMIN_EMAIL }).firestore();
+        const admin = testEnv.authenticatedContext('admin-uid', { email: ADMIN_EMAIL, email_verified: true }).firestore();
         await assertSucceeds(getDoc(doc(admin, 'clientErrors/err1')));
     });
 
@@ -191,7 +206,7 @@ describe('clientErrors collection', () => {
         await testEnv.withSecurityRulesDisabled(async (ctx) => {
             await setDoc(doc(ctx.firestore(), 'clientErrors/err1'), validError());
         });
-        const admin = testEnv.authenticatedContext('admin-uid', { email: ADMIN_EMAIL }).firestore();
+        const admin = testEnv.authenticatedContext('admin-uid', { email: ADMIN_EMAIL, email_verified: true }).firestore();
         await assertFails(updateDoc(doc(admin, 'clientErrors/err1'), { message: 'edited' }));
         await assertFails(deleteDoc(doc(admin, 'clientErrors/err1')));
     });
@@ -199,7 +214,7 @@ describe('clientErrors collection', () => {
 
 describe('default-deny collections', () => {
     it('blocks any client read/write to paystackReferences (Admin-SDK-only)', async () => {
-        const admin = testEnv.authenticatedContext('admin-uid', { email: ADMIN_EMAIL }).firestore();
+        const admin = testEnv.authenticatedContext('admin-uid', { email: ADMIN_EMAIL, email_verified: true }).firestore();
         await assertFails(setDoc(doc(admin, 'paystackReferences/ref1'), { orderId: 'order1' }));
 
         await testEnv.withSecurityRulesDisabled(async (ctx) => {

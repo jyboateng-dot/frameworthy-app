@@ -5,8 +5,18 @@ service cloud.firestore {
 
     // Hardcoded admin allowlist, matching src/constants/admin.js's
     // ADMIN_EMAILS — keep these two in sync if the admin emails ever change.
+    //
+    // email_verified is required as defense-in-depth: the app has no signup
+    // gate on these specific addresses, so without this check, anyone could
+    // self-register with admin@/info@frameworthyco.com via the email/password
+    // signup form and get an auth token whose email claim matches the
+    // allowlist — Firebase Auth's email claim reflects what an account was
+    // registered with, not a proven mailbox. Both real admin accounts sign in
+    // via Google, which always sets email_verified: true, so this has no
+    // effect on legitimate access.
     function isAdmin() {
       return request.auth != null &&
+        request.auth.token.email_verified == true &&
         request.auth.token.email in ['admin@frameworthyco.com', 'info@frameworthyco.com'];
     }
 
