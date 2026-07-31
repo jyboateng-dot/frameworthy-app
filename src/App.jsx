@@ -13,7 +13,6 @@ const CustomizeFramePage = lazy(() => import('./pages/framing/CustomizeFramePage
 const CheckoutPage = lazy(() => import('./pages/checkout/CheckoutPage'));
 const SuccessPage = lazy(() => import('./pages/SuccessPage'));
 const InspirationPage = lazy(() => import('./pages/InspirationPage'));
-// SizeGuidePage stashed for now — route/import removed below, file left on disk.
 const PrestigePaintingsPage = lazy(() => import('./pages/PrestigePaintingsPage'));
 const OriginalPaintingsPage = lazy(() => import('./pages/OriginalPaintingsPage'));
 const CanvasArtPage = lazy(() => import('./pages/CanvasArtPage'));
