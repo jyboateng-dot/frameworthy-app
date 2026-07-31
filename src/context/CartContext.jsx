@@ -52,9 +52,15 @@ export const CartProvider = ({ children }) => {
         setCartItems(prev => prev.filter(item => item.id !== id));
     };
 
+    // Mirrors functions/pricing.js's server-side bound exactly (integer,
+    // 1-100) — without this, a quantity set outside that range (only
+    // reachable via devtools/direct context calls, not the +/- buttons,
+    // which only ever pass quantity ± 1) would still let Paystack charge
+    // for it, but verifyPaystackPayment would then always reject the order
+    // as unpriceable, leaving it paid-for but stuck pending forever.
     const updateQuantity = (id, newQuantity) => {
-        if (newQuantity < 1) return;
-        setCartItems(prev => prev.map(item => 
+        if (!Number.isInteger(newQuantity) || newQuantity < 1 || newQuantity > 100) return;
+        setCartItems(prev => prev.map(item =>
             item.id === id ? { ...item, quantity: newQuantity } : item
         ));
     };

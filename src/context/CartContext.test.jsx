@@ -112,6 +112,46 @@ describe('CartContext', () => {
         expect(result.current.cartItems[0].quantity).toBe(1);
     });
 
+    it('updateQuantity ignores values above 100 (matches the server-side cap)', () => {
+        const { result } = renderHook(() => useCart(), { wrapper });
+        act(() => {
+            result.current.addToCart({ name: 'A' });
+        });
+        const id = result.current.cartItems[0].id;
+        act(() => {
+            result.current.updateQuantity(id, 101);
+        });
+        expect(result.current.cartItems[0].quantity).toBe(1);
+    });
+
+    it('updateQuantity ignores non-integer and NaN values', () => {
+        const { result } = renderHook(() => useCart(), { wrapper });
+        act(() => {
+            result.current.addToCart({ name: 'A' });
+        });
+        const id = result.current.cartItems[0].id;
+        act(() => {
+            result.current.updateQuantity(id, 2.5);
+        });
+        expect(result.current.cartItems[0].quantity).toBe(1);
+        act(() => {
+            result.current.updateQuantity(id, NaN);
+        });
+        expect(result.current.cartItems[0].quantity).toBe(1);
+    });
+
+    it('updateQuantity accepts a value at the boundary (100)', () => {
+        const { result } = renderHook(() => useCart(), { wrapper });
+        act(() => {
+            result.current.addToCart({ name: 'A' });
+        });
+        const id = result.current.cartItems[0].id;
+        act(() => {
+            result.current.updateQuantity(id, 100);
+        });
+        expect(result.current.cartItems[0].quantity).toBe(100);
+    });
+
     it('toggleItemSelection flips only the targeted item', () => {
         const { result } = renderHook(() => useCart(), { wrapper });
         act(() => {
