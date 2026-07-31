@@ -9,13 +9,18 @@
 import { httpsCallable } from 'firebase/functions';
 import { functions } from './firebase';
 
+const HANDOFF_KEYWORDS = ['human', 'agent', 'representative', 'real person', 'speak to staff', 'talk to staff', 'speak to someone', 'talk to someone', 'person', 'call me', 'staff member', 'manager', 'owner', 'operator'];
+// \b word-boundary anchors so e.g. 'person' doesn't match inside
+// 'personalized', or 'owner' inside 'homeowner' — a plain .includes() check
+// matched any of these keywords as a substring of a longer, unrelated word.
+const HANDOFF_PATTERNS = HANDOFF_KEYWORDS.map(k => new RegExp(`\\b${k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i'));
+
 /**
  * Detects if a customer is requesting a human agent / staff member.
  */
 export function isHumanHandoffRequested(userMessage) {
-    const text = (userMessage || '').toLowerCase();
-    const keywords = ['human', 'agent', 'representative', 'real person', 'speak to staff', 'talk to staff', 'speak to someone', 'talk to someone', 'person', 'call me', 'staff member', 'manager', 'owner', 'operator'];
-    return keywords.some(k => text.includes(k));
+    const text = userMessage || '';
+    return HANDOFF_PATTERNS.some(re => re.test(text));
 }
 
 /**
