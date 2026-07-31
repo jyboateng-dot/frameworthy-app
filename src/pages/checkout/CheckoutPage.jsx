@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { usePaystackPayment } from 'react-paystack';
 import { httpsCallable } from 'firebase/functions';
@@ -154,6 +154,13 @@ const CheckoutPage = () => {
     // be rendered as copyable text rather than buried in a sentence.
     const [failedReference, setFailedReference] = useState('');
     const [referenceCopied, setReferenceCopied] = useState(false);
+    // Tracks the still-pending order from the last submit attempt so that
+    // cancelling the Paystack popup and immediately retrying (a common
+    // pattern — open MoMo, back out, try card instead) reuses that same
+    // order instead of creating a new abandoned one each time. Only reused
+    // when the cart selection and promo are unchanged from when it was
+    // created; a ref (not state) since it shouldn't itself trigger a render.
+    const pendingOrderRef = useRef(null);
 
     const handleCopyReference = async () => {
         try {
@@ -258,11 +265,31 @@ const CheckoutPage = () => {
             paymentStatus: 'pending'
         };
 
+        // Everything actually baked into the order doc at creation time —
+        // items, promo, and contact/shipping details — has to be unchanged
+        // for reuse to be safe. Items/promo matter because verification
+        // recomputes price from the order's own stored data, not from what
+        // Paystack was told to charge. Contact/shipping matter because the
+        // client can never update an existing order afterward (firestore
+        // rules only allow admin updates) — reusing an order after editing
+        // the delivery address would ship to the stale one with no way to
+        // correct it.
+        const attemptKey = [
+            checkoutItems.map(i => i.id).sort().join(','),
+            appliedPromo?.code || '',
+            email, phoneNumber, city, deliveryAddress, fullName
+        ].join('|');
+
         (async () => {
             let orderId;
             try {
-                const created = await createOrder(orderPayload);
-                orderId = created.id;
+                if (pendingOrderRef.current && pendingOrderRef.current.key === attemptKey) {
+                    orderId = pendingOrderRef.current.orderId;
+                } else {
+                    const created = await createOrder(orderPayload);
+                    orderId = created.id;
+                    pendingOrderRef.current = { orderId, key: attemptKey };
+                }
             } catch (err) {
                 console.error('Order creation failed:', err);
                 setError('We had trouble starting your order. Please try again.');
