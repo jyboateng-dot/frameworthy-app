@@ -21,6 +21,25 @@ service cloud.firestore {
     }
 
     match /orders/{orderId} {
+      // Bounds only the fields that were previously unconstrained in shape
+      // or size — request.resource.data.paymentStatus/userId are still
+      // checked separately below since those gate identity, not shape.
+      // Real abuse-rate limiting for unauthenticated (guest) create isn't
+      // something Firestore rules can do at all (no state across requests
+      // to count against) — that's what App Check enforcement is for (see
+      // SECURITY_APPCHECK.md); this only stops a single request from being
+      // an oversized/malformed document.
+      function isValidOrderShape(order) {
+        // Ceiling sized for the real max: 50 items (this rule's own item-count
+        // cap) at the priciest single configuration (~GHS 2,465 for the
+        // largest statement size) is ~123k — 250k leaves comfortable headroom.
+        return order.totalPrice is number && order.totalPrice > 0 && order.totalPrice <= 250000
+          && order.currency is string
+          && order.items is list && order.items.size() > 0 && order.items.size() <= 50
+          && (!('customerName' in order) || (order.customerName is string && order.customerName.size() <= 200))
+          && (!('userEmail' in order) || (order.userEmail is string && order.userEmail.size() <= 200));
+      }
+
       // Guest checkout has no auth context (see CheckoutPage.jsx's
       // `userId: user ? user.uid : 'guest'`), so a created order can't be
       // tied to a verified identity in that case — this mirrors the app's
@@ -32,7 +51,8 @@ service cloud.firestore {
       // entirely) may flip it to 'paid', after checking with Paystack
       // server-side. Without this, a client could just create an order
       // with paymentStatus: 'paid' baked in and skip payment entirely.
-      allow create: if request.resource.data.paymentStatus == 'pending'
+      allow create: if isValidOrderShape(request.resource.data)
+                    && request.resource.data.paymentStatus == 'pending'
                     && ((request.resource.data.userId == 'guest' && request.auth == null)
                         || (request.auth != null && request.resource.data.userId == request.auth.uid));
 

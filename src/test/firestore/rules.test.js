@@ -35,6 +35,7 @@ const pendingOrder = (overrides = {}) => ({
     paymentStatus: 'pending',
     totalPrice: 100,
     currency: 'GHS',
+    items: [{ selectedFrame: { id: 'frame-canvas' }, selectedSize: { id: 'custom-60x100' }, quantity: 1 }],
     ...overrides,
 });
 
@@ -66,6 +67,51 @@ describe('orders collection', () => {
 
             const guest = testEnv.unauthenticatedContext().firestore();
             await assertFails(setDoc(doc(guest, 'orders/order2'), pendingOrder({ userId: 'guest', paymentStatus: 'paid' })));
+        });
+
+        it('blocks an order with no items', async () => {
+            const guest = testEnv.unauthenticatedContext().firestore();
+            await assertFails(setDoc(doc(guest, 'orders/order1'), pendingOrder({ userId: 'guest', items: [] })));
+        });
+
+        it('blocks an order with an absurd item count (spam/abuse doc)', async () => {
+            const guest = testEnv.unauthenticatedContext().firestore();
+            const manyItems = Array.from({ length: 51 }, () => ({ selectedFrame: { id: 'frame-canvas' } }));
+            await assertFails(setDoc(doc(guest, 'orders/order1'), pendingOrder({ userId: 'guest', items: manyItems })));
+        });
+
+        it('blocks a non-numeric or non-positive totalPrice', async () => {
+            const guest = testEnv.unauthenticatedContext().firestore();
+            await assertFails(setDoc(doc(guest, 'orders/order1'), pendingOrder({ userId: 'guest', totalPrice: '100' })));
+            await assertFails(setDoc(doc(guest, 'orders/order2'), pendingOrder({ userId: 'guest', totalPrice: 0 })));
+            await assertFails(setDoc(doc(guest, 'orders/order3'), pendingOrder({ userId: 'guest', totalPrice: -50 })));
+        });
+
+        it('blocks an absurdly large totalPrice', async () => {
+            const guest = testEnv.unauthenticatedContext().firestore();
+            await assertFails(setDoc(doc(guest, 'orders/order1'), pendingOrder({ userId: 'guest', totalPrice: 999999999 })));
+        });
+
+        it('blocks a totalPrice just over the ceiling', async () => {
+            const guest = testEnv.unauthenticatedContext().firestore();
+            await assertFails(setDoc(doc(guest, 'orders/order1'), pendingOrder({ userId: 'guest', totalPrice: 250001 })));
+        });
+
+        it('blocks an oversized customerName or userEmail', async () => {
+            const guest = testEnv.unauthenticatedContext().firestore();
+            await assertFails(setDoc(doc(guest, 'orders/order1'), pendingOrder({ userId: 'guest', customerName: 'x'.repeat(201) })));
+            await assertFails(setDoc(doc(guest, 'orders/order2'), pendingOrder({ userId: 'guest', userEmail: 'x'.repeat(201) })));
+        });
+
+        it('still allows a well-formed order at the boundary values', async () => {
+            const guest = testEnv.unauthenticatedContext().firestore();
+            await assertSucceeds(setDoc(doc(guest, 'orders/order1'), pendingOrder({
+                userId: 'guest',
+                totalPrice: 250000,
+                customerName: 'x'.repeat(200),
+                userEmail: 'x'.repeat(200),
+                items: Array.from({ length: 50 }, () => ({ selectedFrame: { id: 'frame-canvas' } })),
+            })));
         });
     });
 
