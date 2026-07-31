@@ -98,6 +98,7 @@ const MovieProductCard = ({ product, onGetThis }) => {
                 <button
                     onClick={e => { e.stopPropagation(); toggleWishlist(product); }}
                     className={`absolute top-3 right-3 p-2 bg-white/50 backdrop-blur-sm rounded-full transition-colors duration-200 z-10 ${liked ? 'text-red-500' : 'text-stone-600 hover:text-stone-900'}`}
+                    aria-label="Save"
                 >
                     <Heart size={14} fill={liked ? 'currentColor' : 'none'} strokeWidth={2} />
                 </button>

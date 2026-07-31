@@ -217,6 +217,7 @@ const Header = ({
                     <button
                         onClick={() => navigate('/cart')}
                         className="text-[#9a8e7d] p-1.5 sm:p-2 hover:bg-white/[0.05] rounded-full transition"
+                        aria-label="Cart"
                     >
                         <ShoppingCart size={20} className="sm:w-6 sm:h-6" />
                     </button>
@@ -232,6 +233,7 @@ const Header = ({
                     <button
                         onClick={() => setIsMenuOpen(!isMenuOpen)}
                         className="text-[#9a8e7d] p-1.5 sm:p-2 hover:bg-white/[0.05] rounded-full transition"
+                        aria-label="Menu"
                     >
                         <Menu size={20} className="sm:w-6 sm:h-6" />
                     </button>

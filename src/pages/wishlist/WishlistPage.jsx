@@ -118,9 +118,10 @@ const WishlistPage = () => {
                                         alt={product.title} 
                                         className="w-full h-full object-cover"
                                     />
-                                    <button 
+                                    <button
                                         onClick={() => removeFromWishlist(product.id)}
                                         className="absolute top-1 right-1 p-1 bg-white/80 rounded-full text-stone-500 hover:text-red-500 transition-colors"
+                                        aria-label={`Remove ${product.title} from wishlist`}
                                     >
                                         <Trash2 size={12} />
                                     </button>

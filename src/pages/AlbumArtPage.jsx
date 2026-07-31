@@ -39,6 +39,7 @@ const AlbumProductCard = ({ product, onGetThis }) => {
                 <button 
                     onClick={e => { e.stopPropagation(); toggleWishlist(product); }}
                     className={`absolute top-3 right-3 p-2 bg-white/50 backdrop-blur-sm rounded-full transition-colors duration-200 z-10 ${liked ? 'text-red-500' : 'text-stone-600 hover:text-stone-900'}`}
+                    aria-label="Save"
                 >
                     <Heart size={14} fill={liked ? 'currentColor' : 'none'} strokeWidth={2} />
                 </button>
@@ -408,6 +409,7 @@ const AlbumArtPage = ({ setProductMode, setSelectedFrame, setSelectedSize, navig
                         <button
                             onClick={() => setSelectedProduct(null)}
                             className="absolute top-4 right-4 p-2 text-stone-400 hover:text-stone-900 transition-colors"
+                            aria-label="Close"
                         >
                             ✕
                         </button>

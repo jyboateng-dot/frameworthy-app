@@ -27,7 +27,7 @@ export default function FrameSelectionModal({ isOpen, onClose, selectedFrame, on
         <div className="fixed inset-0 z-[200] flex flex-col bg-white">
             <div className="flex justify-between items-center p-4 pt-[calc(1rem+env(safe-area-inset-top,0px))] border-b border-gray-100 shrink-0">
                 <h2 className="text-xl font-bold tracking-tight text-stone-900">Select Frame Style</h2>
-                <button onClick={onClose} className="p-2 bg-gray-50 hover:bg-gray-100 rounded-full text-gray-500 transition-colors">
+                <button onClick={onClose} className="p-2 bg-gray-50 hover:bg-gray-100 rounded-full text-gray-500 transition-colors" aria-label="Close">
                     ✕
                 </button>
             </div>

@@ -550,6 +550,7 @@ const CheckoutPage = () => {
                                 type="button"
                                 onClick={handleRemovePromo}
                                 className="text-stone-400 hover:text-red-500 transition"
+                                aria-label="Remove promo code"
                             >
                                 <X size={16} />
                             </button>

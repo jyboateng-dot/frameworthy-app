@@ -50,6 +50,7 @@ const ProductCard = ({ product, onGetThis }) => {
                 <button 
                     onClick={e => { e.stopPropagation(); toggleWishlist(product); }}
                     className={`absolute top-2.5 right-2.5 p-1.5 transition-colors duration-200 z-10 ${liked ? 'text-stone-900' : 'text-stone-400 hover:text-stone-600'}`}
+                    aria-label="Save"
                 >
                     <Heart size={13} fill={liked ? 'currentColor' : 'none'} strokeWidth={1.5} />
                 </button>

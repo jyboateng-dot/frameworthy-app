@@ -185,9 +185,10 @@ const ShareOrdersModal = ({ orders, onClose }) => {
                 {/* Header */}
                 <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-white shrink-0">
                     <h2 className="text-lg font-bold text-gray-900">Share Orders ({orders.length})</h2>
-                    <button 
+                    <button
                         onClick={onClose}
                         className="p-2 text-gray-400 hover:text-black hover:bg-gray-100 rounded-full transition"
+                        aria-label="Close"
                     >
                         <X size={20} />
                     </button>
@@ -232,7 +233,7 @@ const ShareOrdersModal = ({ orders, onClose }) => {
                                 {recipients.map(email => (
                                     <span key={email} className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 text-gray-700 rounded-full text-xs font-bold">
                                         {email}
-                                        <button onClick={() => removeRecipient(email)} className="hover:text-red-600 transition">
+                                        <button onClick={() => removeRecipient(email)} className="hover:text-red-600 transition" aria-label={`Remove ${email}`}>
                                             <X size={12} />
                                         </button>
                                     </span>

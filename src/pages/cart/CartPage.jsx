@@ -60,7 +60,7 @@ const CartPage = () => {
                     Cart ({cartItems.reduce((acc, item) => acc + (item.quantity || 1), 0)})
                 </div>
                 <div className="flex items-center gap-4">
-                    <button onClick={() => navigate('/wishlist')} className="relative">
+                    <button onClick={() => navigate('/wishlist')} className="relative" aria-label="Wishlist">
                         <Heart size={22} className="text-stone-800 hover:text-[#c9a84c] transition-colors" />
                         {wishlistCount > 0 && (
                             <span className="absolute -top-1 -right-1 bg-[#c9a84c] text-[#0a0a0a] text-[9px] font-bold w-4 h-4 rounded-full flex items-center justify-center">
@@ -68,7 +68,7 @@ const CartPage = () => {
                             </span>
                         )}
                     </button>
-                    <button onClick={handleDeleteSelected} disabled={selectedCount === 0} className="disabled:opacity-30">
+                    <button onClick={handleDeleteSelected} disabled={selectedCount === 0} className="disabled:opacity-30" aria-label="Delete selected items">
                         <Trash2 size={22} className="text-stone-800 hover:text-[#c9a84c]" />
                     </button>
                 </div>
