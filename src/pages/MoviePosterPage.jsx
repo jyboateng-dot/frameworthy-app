@@ -144,6 +144,7 @@ const MoviePosterPage = ({ setProductMode, setSelectedFrame, setSelectedSize, na
         return saved ? JSON.parse(saved) : [];
     });
     const [isSearching, setIsSearching] = useState(false);
+    const [searchError, setSearchError] = useState(false);
 
     // Pagination
     const [currentPage, setCurrentPage] = useState(() => parseInt(sessionStorage.getItem('fw_movie_page') || '1', 10));
@@ -160,21 +161,34 @@ const MoviePosterPage = ({ setProductMode, setSelectedFrame, setSelectedSize, na
         if (!searchQuery.trim()) return;
 
         setIsSearching(true);
+        setSearchError(false);
         setCurrentPage(1);
 
         try {
             // OMDb caps at 10 results per page — fetch several pages in parallel
             // to get a result count comparable to the other Inspiration categories.
+            // Promise.allSettled (not Promise.all + a per-request .catch that
+            // swallows failures into {Search: []}) so a total API outage can be
+            // told apart from a legitimate "no movies match" response — the old
+            // per-request catch made every page request "succeed" with an empty
+            // result no matter what actually went wrong, so an outage silently
+            // looked identical to zero search results.
             const pageCount = 5;
-            const responses = await Promise.all(
+            const settled = await Promise.allSettled(
                 Array.from({ length: pageCount }, (_, i) =>
                     fetch(`https://www.omdbapi.com/?s=${encodeURIComponent(searchQuery)}&type=movie&page=${i + 1}&apikey=${OMDB_API_KEY}`)
-                        .then(r => r.json())
-                        .catch(() => ({ Search: [] }))
+                        .then(r => { if (!r.ok) throw new Error('OMDb request failed'); return r.json(); })
                 )
             );
 
-            const processed = responses
+            const fulfilled = settled.filter(r => r.status === 'fulfilled').map(r => r.value);
+            if (fulfilled.length === 0) {
+                setSearchResults([]);
+                setSearchError(true);
+                return;
+            }
+
+            const processed = fulfilled
                 .flatMap(data => data.Search || [])
                 .filter(item => item.Poster && item.Poster !== 'N/A')
                 .map(item => ({
@@ -195,6 +209,7 @@ const MoviePosterPage = ({ setProductMode, setSelectedFrame, setSelectedSize, na
             setSearchResults(unique);
         } catch (err) {
             console.error("Failed to search movies", err);
+            setSearchError(true);
         } finally {
             setIsSearching(false);
         }
@@ -374,7 +389,12 @@ const MoviePosterPage = ({ setProductMode, setSelectedFrame, setSelectedSize, na
             <main className="max-w-[2560px] mx-auto px-6 md:px-12 pt-8 pb-16">
                 {currentArtworks.length === 0 ? (
                     <div className="w-full flex flex-col items-center justify-center py-24 text-stone-400">
-                        {activeTab === 'Search' ? (
+                        {activeTab === 'Search' && searchError ? (
+                            <>
+                                <Search size={32} className="mb-4 text-stone-300" />
+                                <p className="text-sm font-medium">Couldn't reach the movie search right now — try again in a moment.</p>
+                            </>
+                        ) : activeTab === 'Search' ? (
                             <>
                                 <Search size={32} className="mb-4 text-stone-300" />
                                 <p className="text-sm font-medium">Search for a movie to begin</p>
