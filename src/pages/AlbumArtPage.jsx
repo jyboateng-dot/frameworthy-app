@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Heart, Search, ChevronLeft, ChevronRight, Loader2, Music } from 'lucide-react';
 import { FRAME_STYLES, FRAME_SIZES } from '../data/constants';
+import { useWishlist } from '../context/WishlistContext';
 import { fetchAlbumPosterData } from '../utils/albumPoster';
 
 // We'll import ALBUMS_LOCAL_COLLECTIONS but it might be empty initially until the background script finishes
@@ -10,8 +11,9 @@ import { getThumbnailUrl } from '../services/storage';
 const GENRES = ['Pop', 'HipHop', 'Rock', 'R&B', 'Blues', 'Jazz', 'Indie', 'Afro Pop', 'African', 'Reggae', 'Dancehall'];
 
 const AlbumProductCard = ({ product, onGetThis }) => {
+    const { toggleWishlist, isInWishlist } = useWishlist();
+    const liked = isInWishlist(product.id);
     const [hovered, setHovered] = useState(false);
-    const [liked, setLiked] = useState(false);
 
     return (
         <div 
@@ -35,7 +37,7 @@ const AlbumProductCard = ({ product, onGetThis }) => {
                     </button>
                 </div>
                 <button 
-                    onClick={e => { e.stopPropagation(); setLiked(l => !l); }} 
+                    onClick={e => { e.stopPropagation(); toggleWishlist(product); }}
                     className={`absolute top-3 right-3 p-2 bg-white/50 backdrop-blur-sm rounded-full transition-colors duration-200 z-10 ${liked ? 'text-red-500' : 'text-stone-600 hover:text-stone-900'}`}
                 >
                     <Heart size={14} fill={liked ? 'currentColor' : 'none'} strokeWidth={2} />

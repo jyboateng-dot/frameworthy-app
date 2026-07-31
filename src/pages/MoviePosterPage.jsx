@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Heart, Search, Loader2, Film } from 'lucide-react';
 import { FRAME_STYLES, FRAME_SIZES } from '../data/constants';
+import { useWishlist } from '../context/WishlistContext';
 import { fetchMoviePosterData } from '../utils/moviePoster';
 
 import { MOVIES_LOCAL_COLLECTIONS } from '../data/moviesLocal';
@@ -69,8 +70,9 @@ function pickBestFrameSize(naturalWidth, naturalHeight) {
 }
 
 const MovieProductCard = ({ product, onGetThis }) => {
+    const { toggleWishlist, isInWishlist } = useWishlist();
+    const liked = isInWishlist(product.id);
     const [hovered, setHovered] = useState(false);
-    const [liked, setLiked] = useState(false);
 
     return (
         <div
@@ -94,7 +96,7 @@ const MovieProductCard = ({ product, onGetThis }) => {
                     </button>
                 </div>
                 <button
-                    onClick={e => { e.stopPropagation(); setLiked(l => !l); }}
+                    onClick={e => { e.stopPropagation(); toggleWishlist(product); }}
                     className={`absolute top-3 right-3 p-2 bg-white/50 backdrop-blur-sm rounded-full transition-colors duration-200 z-10 ${liked ? 'text-red-500' : 'text-stone-600 hover:text-stone-900'}`}
                 >
                     <Heart size={14} fill={liked ? 'currentColor' : 'none'} strokeWidth={2} />

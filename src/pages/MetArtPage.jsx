@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Heart, RefreshCw, ChevronDown } from 'lucide-react';
 import { FRAME_STYLES, FRAME_SIZES, findSizeByDimension, formatDimensions } from '../data/constants';
 import { useUnit } from '../context/UnitContext';
+import { useWishlist } from '../context/WishlistContext';
 import { MET_LOCAL_COLLECTIONS } from '../data/metLocal';
 import WEB_MET_DIMS from '../data/web_met_dims.json';
 import { getThumbnailUrl } from '../services/storage';
@@ -23,8 +24,9 @@ const COLLECTION_LABELS = {
 
 const MetProductCard = ({ product, onGetThis }) => {
     const { unit } = useUnit();
+    const { toggleWishlist, isInWishlist } = useWishlist();
+    const liked = isInWishlist(product.id);
     const [hovered, setHovered] = useState(false);
-    const [liked, setLiked] = useState(false);
 
     const filename = product.image.split('/').pop();
     const dims = WEB_MET_DIMS[filename] || '40 x 50 cm';
@@ -51,7 +53,7 @@ const MetProductCard = ({ product, onGetThis }) => {
                     </button>
                 </div>
                 <button 
-                    onClick={e => { e.stopPropagation(); setLiked(l => !l); }} 
+                    onClick={e => { e.stopPropagation(); toggleWishlist(product); }}
                     className={`absolute top-2.5 right-2.5 p-1.5 transition-colors duration-200 z-10 ${liked ? 'text-stone-900' : 'text-stone-400 hover:text-stone-600'}`}
                 >
                     <Heart size={13} fill={liked ? 'currentColor' : 'none'} strokeWidth={1.5} />
