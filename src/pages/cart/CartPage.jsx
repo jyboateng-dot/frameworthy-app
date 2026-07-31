@@ -53,7 +53,7 @@ const CartPage = () => {
     }
 
     return (
-        <div className="min-h-screen bg-[#f5f5f5] pb-24 font-sans">
+        <div className="min-h-screen bg-[#faf9f8] pb-24 font-sans">
             {/* Top Navigation / Header */}
             <div className="bg-white sticky top-[60px] z-40 px-4 py-3 flex items-center justify-between border-b border-stone-100">
                 <div className="text-xl font-bold text-stone-900 tracking-tight">

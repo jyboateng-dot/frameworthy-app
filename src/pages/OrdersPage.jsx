@@ -102,7 +102,7 @@ const OrdersPage = () => {
     }
 
     return (
-        <div className="min-h-screen bg-[#f5f5f5] pb-24 font-sans">
+        <div className="min-h-screen bg-[#faf9f8] pb-24 font-sans">
             {/* Top Navigation / Header */}
             <div className="bg-white sticky top-0 z-40 px-4 py-3 flex items-center justify-between border-b border-stone-100">
                 <div className="flex items-center gap-2">

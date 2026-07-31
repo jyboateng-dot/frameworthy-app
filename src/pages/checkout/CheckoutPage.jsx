@@ -396,7 +396,7 @@ const CheckoutPage = () => {
     if (checkoutItems.length === 0) return null;
 
     return (
-        <div className="min-h-screen bg-[#f5f5f5] pb-24 font-sans text-stone-900">
+        <div className="min-h-screen bg-[#faf9f8] pb-24 font-sans text-stone-900">
             {/* Header */}
             <div className="bg-white sticky top-0 z-40 px-4 py-3 flex items-center gap-4 border-b border-stone-100 shadow-sm">
                 <div className="text-xl font-bold text-stone-900">Order confirmation</div>
