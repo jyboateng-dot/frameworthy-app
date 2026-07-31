@@ -130,18 +130,21 @@ const CartPage = () => {
 
                                         </div>
                                         
-                                        {/* Stepper */}
-                                        <div className="flex items-center border border-stone-200 rounded-full bg-white h-7">
-                                            <button 
+                                        {/* Stepper — buttons sized to the ~40px minimum
+                                            recommended touch target (was 28px). */}
+                                        <div className="flex items-center border border-stone-200 rounded-full bg-white h-10">
+                                            <button
                                                 onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                                                className="w-7 h-full flex items-center justify-center text-stone-500 hover:text-stone-800"
+                                                aria-label="Decrease quantity"
+                                                className="w-10 h-full flex items-center justify-center text-stone-500 hover:text-stone-800"
                                             >
                                                 <Minus size={12} strokeWidth={3} />
                                             </button>
                                             <span className="text-xs font-bold w-6 text-center text-stone-800">{item.quantity}</span>
-                                            <button 
+                                            <button
                                                 onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                                                className="w-7 h-full flex items-center justify-center text-stone-500 hover:text-stone-800"
+                                                aria-label="Increase quantity"
+                                                className="w-10 h-full flex items-center justify-center text-stone-500 hover:text-stone-800"
                                             >
                                                 <Plus size={12} strokeWidth={3} />
                                             </button>
