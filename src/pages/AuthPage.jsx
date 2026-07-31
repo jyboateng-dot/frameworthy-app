@@ -190,7 +190,15 @@ const AuthPage = ({ navigate }) => {
                 if (err.code === 'auth/invalid-credential' || err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password') {
                     msg = 'Invalid email or password';
                 } else if (err.code === 'auth/email-already-in-use') {
-                    msg = 'Email already in use';
+                    // Deliberately not "Email already in use" — that confirms
+                    // to whoever's typing that this exact address has an
+                    // account, the same enumeration risk the login path
+                    // already avoids by collapsing its errors into one
+                    // generic message. This softens the client-side signal;
+                    // it can't fully close the leak, since Firebase Auth's
+                    // own REST API returns a distinct EMAIL_EXISTS code
+                    // regardless of what this app's UI shows.
+                    msg = "Couldn't create your account with that email. If you already have one, try signing in instead.";
                 }
                 setErrors({ form: msg });
             } finally {
