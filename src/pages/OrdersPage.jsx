@@ -11,6 +11,7 @@ const OrdersPage = () => {
     const navigate = useNavigate();
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [fetchError, setFetchError] = useState(false);
 
     useEffect(() => {
         // Firebase's auth state resolves asynchronously — on a hard refresh
@@ -25,31 +26,38 @@ const OrdersPage = () => {
             return;
         }
 
-        const fetchOrders = async () => {
-            try {
-                const data = await getUserOrders(user.uid);
-                // Hide abandoned checkouts — an order row is written before
-                // the Paystack popup opens, so closing it leaves one behind
-                // that was never paid for.
-                //
-                // This must key off paymentStatus, not status: they're two
-                // separate axes. paymentStatus ('pending' -> 'paid') is set
-                // only by verifyPaystackPayment, while status
-                // ('pending'/'processing'/'shipped'/'delivered') is fulfilment
-                // progress that only the admin advances. A freshly paid order
-                // is paymentStatus 'paid' but status still 'pending', so
-                // filtering on status hid every order the customer had just
-                // successfully paid for until an admin manually touched it.
-                setOrders(data.filter(order => order.paymentStatus === 'paid'));
-            } catch (err) {
-                console.error('Failed to fetch orders:', err);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchOrders();
+        fetchOrders(user.uid);
     }, [user, authLoading, navigate]);
+
+    const fetchOrders = async (uid) => {
+        setLoading(true);
+        setFetchError(false);
+        try {
+            const data = await getUserOrders(uid);
+            // Hide abandoned checkouts — an order row is written before
+            // the Paystack popup opens, so closing it leaves one behind
+            // that was never paid for.
+            //
+            // This must key off paymentStatus, not status: they're two
+            // separate axes. paymentStatus ('pending' -> 'paid') is set
+            // only by verifyPaystackPayment, while status
+            // ('pending'/'processing'/'shipped'/'delivered') is fulfilment
+            // progress that only the admin advances. A freshly paid order
+            // is paymentStatus 'paid' but status still 'pending', so
+            // filtering on status hid every order the customer had just
+            // successfully paid for until an admin manually touched it.
+            setOrders(data.filter(order => order.paymentStatus === 'paid'));
+        } catch (err) {
+            // Previously silent (console.error only) — a failed fetch fell
+            // through to the same "No orders yet" empty state as a customer
+            // with genuinely zero orders, so a network/Firestore hiccup
+            // looked identical to "you've never ordered anything."
+            console.error('Failed to fetch orders:', err);
+            setFetchError(true);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     if (authLoading || loading) {
         return (
@@ -61,6 +69,22 @@ const OrdersPage = () => {
     }
 
     if (!user) return null;
+
+    if (fetchError) {
+        return (
+            <div className="min-h-screen bg-[#faf9f8] pt-24 pb-12 flex flex-col items-center justify-center px-6 text-center">
+                <Package size={64} className="text-stone-300 mb-4" />
+                <h2 className="text-xl font-bold text-stone-800 mb-2">Couldn't load your orders</h2>
+                <p className="text-sm text-stone-500 mb-4 max-w-sm">Something went wrong on our end. Your orders are still there — try again in a moment.</p>
+                <button
+                    onClick={() => fetchOrders(user.uid)}
+                    className="mt-2 px-8 py-3 bg-[#c9a84c] text-[#0a0a0a] font-bold rounded-full text-sm hover:bg-[#d4b55c] transition"
+                >
+                    Try Again
+                </button>
+            </div>
+        );
+    }
 
     if (orders.length === 0) {
         return (

@@ -13,6 +13,7 @@ const AdminDashboard = () => {
     const { user, isLoading: authLoading } = useAuth();
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [fetchError, setFetchError] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
     const [updatingId, setUpdatingId] = useState(null);
     // Unpaid (abandoned-checkout) orders are hidden by default so fulfillment
@@ -31,11 +32,17 @@ const AdminDashboard = () => {
 
     const fetchOrders = async () => {
         setLoading(true);
+        setFetchError(false);
         try {
             const data = await getOrders();
             setOrders(data);
         } catch (error) {
+            // Previously silent (console.error only) — a failed fetch fell
+            // through to the same "No orders found" empty state as a
+            // genuinely empty order book, so a transient error could read
+            // to an admin as "nothing to fulfill."
             console.error("Failed to fetch orders:", error);
+            setFetchError(true);
         } finally {
             setLoading(false);
         }
@@ -201,6 +208,18 @@ const AdminDashboard = () => {
                     {loading ? (
                         <div className="p-12 flex justify-center">
                             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-black"></div>
+                        </div>
+                    ) : fetchError ? (
+                        <div className="p-12 text-center text-gray-500">
+                            <AlertTriangle size={48} className="mx-auto mb-4 text-red-300" />
+                            <h3 className="text-lg font-bold text-gray-900 mb-1">Couldn't load orders</h3>
+                            <p className="mb-4">Something went wrong fetching orders. This isn't the same as having no orders — try again.</p>
+                            <button
+                                onClick={fetchOrders}
+                                className="px-6 py-2 bg-gray-900 text-white font-bold rounded-full text-sm hover:bg-gray-800 transition"
+                            >
+                                Try Again
+                            </button>
                         </div>
                     ) : filteredOrders.length === 0 ? (
                         <div className="p-12 text-center text-gray-500">
