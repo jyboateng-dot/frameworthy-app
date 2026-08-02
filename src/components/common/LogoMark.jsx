@@ -16,11 +16,14 @@ const LogoMark = ({ size = 32, ink = '#0a0a0a', gold = '#c9a84c', className = ''
         aria-hidden="true"
         focusable="false"
     >
+        {/* One unified silhouette rather than several abutting rects/polygons —
+            adjacent shapes each anti-alias independently against the background,
+            which leaves a faint seam at their shared edge once rendered large
+            (an app icon, not just a 24px nav mark). The gold triangle is then
+            painted on top of solid ink instead of next to it, so its edge blends
+            into opaque fill either way instead of ever meeting the background. */}
+        <path d="M22,18 L78,18 L78,36 L40,36 L40,48 L56,48 L56,65 L40,65 L40,82 L22,82 Z" fill={ink} />
         <polygon points="22,18 40,18 40,36" fill={gold} />
-        <polygon points="22,18 22,36 40,36" fill={ink} />
-        <rect x="22" y="36" width="18" height="46" fill={ink} />
-        <rect x="40" y="18" width="38" height="18" fill={ink} />
-        <rect x="22" y="48" width="34" height="17" fill={ink} />
     </svg>
 );
 
