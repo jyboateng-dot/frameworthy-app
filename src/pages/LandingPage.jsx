@@ -26,7 +26,8 @@ export default function LandingPage({ onStartFraming, navigate, setSelectedFrame
     // Pagination logic
     const filteredFrames = activeCategory === 'Most Popular'
         ? [
-            FRAME_STYLES.find(f => f.id === 'frame-10512'), // Black Contemporary (lead)
+            FRAME_STYLES.find(f => f.id === 'frame-canvas'), // Gallery Wrapped Canvas (lead) — also its own "Canvas" category, featured here too as a top pick
+            FRAME_STYLES.find(f => f.id === 'frame-10512'), // Black Contemporary
             FRAME_STYLES.find(f => f.id === 'frame-10728'), // Flat White Deep
             FRAME_STYLES.find(f => f.id === 'frame-8446'),  // Flat Black Wide
             FRAME_STYLES.find(f => f.id === 'frame-10487'), // Natural Flat
