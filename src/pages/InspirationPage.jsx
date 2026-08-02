@@ -191,7 +191,7 @@ const InspirationPage = ({ setProductMode, setSelectedFrame, setSelectedSize, na
         return (
             <>
                 <div className="pt-8 pb-2 px-6 md:px-12 max-w-[2560px] mx-auto">
-                    <h1 className="font-serif text-[1.6875rem] md:text-[2.0625rem] text-stone-900 font-light tracking-tight">Inspiration</h1>
+                    <h1 className="font-serif text-2xl md:text-3xl text-stone-900 font-light tracking-tight leading-none">Inspiration</h1>
                 </div>
                 <div className="bg-[#faf9f8]/95 backdrop-blur-sm border-b border-stone-200 sticky top-0 z-30 py-3">
                     <div className="max-w-[2560px] mx-auto px-6 md:px-12 flex items-center gap-2 overflow-x-auto no-scrollbar">

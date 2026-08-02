@@ -163,7 +163,7 @@ const WebImagesPage = ({ setProductMode, setSelectedFrame, setSelectedSize, navi
                     <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6">
                         <div>
                             <p className="text-[9px] uppercase tracking-[0.3em] text-stone-500 font-bold mb-1">Web Collection</p>
-                            <h1 className="font-serif font-light text-xl md:text-2xl text-stone-900 tracking-tight leading-none mb-2">
+                            <h1 className="font-serif font-light text-2xl md:text-3xl text-stone-900 tracking-tight leading-none mb-2">
                                 Web Images
                             </h1>
                             <p className="text-sm text-stone-500 font-light max-w-lg leading-relaxed">
