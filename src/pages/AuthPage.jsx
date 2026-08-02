@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Mail, Lock, User, ArrowRight, X, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useLocation } from 'react-router-dom';
+import LogoMark from '../components/common/LogoMark';
 
 const CAROUSEL_SLIDES = [
     { 
@@ -234,11 +235,9 @@ const AuthPage = ({ navigate }) => {
                 {/* Left Side - Narrative (Visible on LG) */}
                 <div className="hidden lg:flex w-1/2 p-12 xl:p-16 flex-col justify-between text-[#e8e2d9]">
                     {/* Logo */}
-                    <div className="flex items-center gap-0.5" onClick={() => navigate('/')}>
-                        <div className="w-8 h-8 border-4 border-double border-[#c9a84c] rounded-[1px] flex items-center justify-center cursor-pointer hover:scale-105 transition-transform">
-                            <span className="text-xl font-serif font-bold text-[#e8e2d9] leading-none pb-1">Fr</span>
-                        </div>
-                        <span className="text-xl font-serif font-bold tracking-tight text-[#e8e2d9] leading-none cursor-pointer drop-shadow-md">ameWorthy</span>
+                    <div className="flex items-center gap-2 cursor-pointer group" onClick={() => navigate('/')}>
+                        <LogoMark size={30} ink="#e8e2d9" className="group-hover:scale-105 transition-transform" />
+                        <span className="text-xl font-serif font-bold tracking-tight text-[#e8e2d9] leading-none drop-shadow-md">FrameWorthy</span>
                     </div>
 
                     {/* Narrative Text & Pagination */}
@@ -266,11 +265,9 @@ const AuthPage = ({ navigate }) => {
 
                 {/* Mobile Header (Hidden on LG) */}
                 <div className="lg:hidden p-6 flex justify-between items-center w-full">
-                    <div className="flex items-center gap-0.5" onClick={() => navigate('/')}>
-                        <div className="w-6 h-6 border-[3px] border-double border-[#c9a84c] rounded-[1px] flex items-center justify-center">
-                            <span className="text-sm font-serif font-bold text-white leading-none pb-0.5">Fr</span>
-                        </div>
-                        <span className="text-lg font-serif font-bold tracking-tight text-white leading-none drop-shadow-md">ameWorthy</span>
+                    <div className="flex items-center gap-1.5" onClick={() => navigate('/')}>
+                        <LogoMark size={20} ink="#ffffff" />
+                        <span className="text-lg font-serif font-bold tracking-tight text-white leading-none drop-shadow-md">FrameWorthy</span>
                     </div>
                     <button onClick={() => navigate('/')} className="p-2 rounded-full bg-black/20 backdrop-blur-md text-white hover:bg-black/40 transition">
                         <X size={20} />
