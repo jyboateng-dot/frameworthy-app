@@ -8,7 +8,14 @@ export default {
         extend: {
             fontFamily: {
                 sans: ['Outfit', 'sans-serif'],
-                serif: ['Playfair Display', 'serif'],
+                // Fraunces over Playfair Display: Playfair's thin, high-contrast
+                // strokes read as a generic "premium web template" serif and sit
+                // at odds with the logo mark's confident, geometric, flat-shaded
+                // letterform. Fraunces carries real weight and a handmade
+                // character at bold/black weights — closer kin to something
+                // drawn than typed — while still reading as an editorial,
+                // gallery-catalogue serif that fits a framing/art brand.
+                serif: ['Fraunces', 'serif'],
             },
             colors: {
                 charcoal: '#1a1a1a',

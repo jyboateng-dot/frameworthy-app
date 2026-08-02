@@ -175,7 +175,7 @@ const MetArtPage = ({ setProductMode, setSelectedFrame, setSelectedSize, navigat
                     <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6">
                         <div>
                             <p className="text-[9px] uppercase tracking-[0.3em] text-stone-500 font-bold mb-1">Met Museum Archive</p>
-                            <h1 className="font-serif font-light text-xl md:text-2xl text-stone-900 tracking-tight leading-none mb-2">
+                            <h1 className="font-serif font-light text-2xl md:text-3xl text-stone-900 tracking-tight leading-none mb-2">
                                 Met Museum Collection
                             </h1>
                             <p className="text-sm text-stone-500 font-light max-w-lg leading-relaxed">

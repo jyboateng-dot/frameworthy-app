@@ -61,7 +61,7 @@ const OrderStatusPage = () => {
     return (
         <div className="min-h-screen bg-[#faf9f8] text-stone-900 font-sans">
             <div className="max-w-lg mx-auto px-6 pt-16 md:pt-24 pb-24">
-                <h1 className="font-serif text-3xl font-light mb-2">Order Status</h1>
+                <h1 className="font-serif text-2xl md:text-3xl font-light tracking-tight leading-none mb-2">Order Status</h1>
                 <p className="text-sm text-stone-500 mb-8">
                     Enter your order ID and the email you used at checkout. Your order ID is on the
                     confirmation screen and in your confirmation email.

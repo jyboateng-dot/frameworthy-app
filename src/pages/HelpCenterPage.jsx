@@ -186,7 +186,7 @@ const HelpCenterPage = ({ navigate, onOpenChat }) => {
                 </button>
 
                 {/* TITLE HEADER */}
-                <h1 className="font-serif text-3xl md:text-4xl font-light text-stone-900 mb-2">Help Centre</h1>
+                <h1 className="font-serif text-2xl md:text-3xl font-light text-stone-900 tracking-tight leading-none mb-2">Help Centre</h1>
                 <p className="text-xs text-stone-400 uppercase tracking-wider mb-8">Customer Support &amp; FAQ Hub</p>
 
                 {/* SEARCH BAR */}
