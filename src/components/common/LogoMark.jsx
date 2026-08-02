@@ -7,11 +7,18 @@ import React from 'react';
 // typed in a stock serif. `gold` defaults to the brand accent but can be
 // overridden to match `ink` for single-color contexts (e.g. a flat badge)
 // where a gold-on-gold accent would otherwise disappear.
-const LogoMark = ({ size = 32, ink = '#0a0a0a', gold = '#c9a84c', className = '' }) => (
+//
+// `tight` swaps the padded 0-100 "badge" viewBox (favicon, chat avatar —
+// contexts where the F sits alone and reads better with breathing room)
+// for one cropped exactly to the glyph's own bounds. Wordmark contexts pass
+// this so the drawn F can sit flush against the "rameWorthy" that follows
+// it — as the actual first letter of the word, not an icon beside it —
+// without the badge padding throwing off the baseline.
+const LogoMark = ({ size = 32, ink = '#0a0a0a', gold = '#c9a84c', className = '', tight = false }) => (
     <svg
         width={size}
         height={size}
-        viewBox="0 0 100 100"
+        viewBox={tight ? '22 18 56 64' : '0 0 100 100'}
         className={className}
         aria-hidden="true"
         focusable="false"

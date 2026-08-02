@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Mail, Lock, User, ArrowRight, X, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useLocation } from 'react-router-dom';
-import LogoMark from '../components/common/LogoMark';
+import Wordmark from '../components/common/Wordmark';
 
 const CAROUSEL_SLIDES = [
     { 
@@ -235,9 +235,13 @@ const AuthPage = ({ navigate }) => {
                 {/* Left Side - Narrative (Visible on LG) */}
                 <div className="hidden lg:flex w-1/2 p-12 xl:p-16 flex-col justify-between text-[#e8e2d9]">
                     {/* Logo */}
-                    <div className="flex items-center gap-2 cursor-pointer group" onClick={() => navigate('/')}>
-                        <LogoMark size={30} ink="#e8e2d9" className="group-hover:scale-105 transition-transform" />
-                        <span className="text-xl font-serif font-bold tracking-tight text-[#e8e2d9] leading-none drop-shadow-md">FrameWorthy</span>
+                    <div className="cursor-pointer group" onClick={() => navigate('/')}>
+                        <Wordmark
+                            size={20}
+                            ink="#e8e2d9"
+                            markClassName="group-hover:scale-105 transition-transform drop-shadow-md"
+                            textClassName="text-xl drop-shadow-md"
+                        />
                     </div>
 
                     {/* Narrative Text & Pagination */}
@@ -265,9 +269,8 @@ const AuthPage = ({ navigate }) => {
 
                 {/* Mobile Header (Hidden on LG) */}
                 <div className="lg:hidden p-6 flex justify-between items-center w-full">
-                    <div className="flex items-center gap-1.5" onClick={() => navigate('/')}>
-                        <LogoMark size={20} ink="#ffffff" />
-                        <span className="text-lg font-serif font-bold tracking-tight text-white leading-none drop-shadow-md">FrameWorthy</span>
+                    <div onClick={() => navigate('/')}>
+                        <Wordmark size={18} ink="#ffffff" markClassName="drop-shadow-md" textClassName="text-lg drop-shadow-md" />
                     </div>
                     <button onClick={() => navigate('/')} className="p-2 rounded-full bg-black/20 backdrop-blur-md text-white hover:bg-black/40 transition">
                         <X size={20} />
