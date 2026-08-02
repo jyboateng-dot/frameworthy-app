@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { X, Send, Bot, Sparkles } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { subscribeToMessages, subscribeToThread, sendMessage, markThreadRead } from '../../services/chat';
+import LogoMark from '../common/LogoMark';
 
 // Instant Messaging Floater Component with AI Assistant & Real-time Typing
 const ChatFloater = ({ isOpen, setIsOpen }) => {
@@ -54,8 +55,8 @@ const ChatFloater = ({ isOpen, setIsOpen }) => {
             <div className="bg-[#0a0a0a] text-white px-5 py-4 pt-[calc(1rem+env(safe-area-inset-top,0px))] sm:pt-4 flex items-center justify-between shrink-0 shadow-md">
                 <div className="flex items-center gap-3">
                     <div className="relative">
-                        <div className="w-9 h-9 rounded-full bg-[#c9a84c] text-stone-950 font-bold flex items-center justify-center text-sm shadow">
-                            FW
+                        <div className="w-9 h-9 rounded-full bg-[#c9a84c] flex items-center justify-center shadow">
+                            <LogoMark size={20} ink="#0a0a0a" gold="#0a0a0a" />
                         </div>
                         <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-500 border-2 border-[#0a0a0a]"></span>
                     </div>

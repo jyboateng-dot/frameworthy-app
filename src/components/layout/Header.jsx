@@ -4,6 +4,7 @@ import { useAuth } from '../../context/AuthContext'; // Import Auth Context
 import { useCart } from '../../context/CartContext'; // Import Cart Context
 import { subscribeToAllThreads } from '../../services/chat';
 import { isAdminEmail } from '../../constants/admin';
+import LogoMark from '../common/LogoMark';
 
 // Same address used everywhere else in the app for a direct customer-facing
 // contact (LandingPage footer, Terms/Privacy/Refund pages).
@@ -67,14 +68,9 @@ const Header = ({
                     </button>
                 )}
 
-                <div className="flex items-center cursor-pointer gap-0.5 min-w-0" onClick={() => navigate('/')} title="Go to home">
-                    {/* LOGO: Double Border Frame Version */}
-                    <div className="w-7 h-7 sm:w-8 sm:h-8 border-4 border-double border-[#c9a84c] rounded-[1px] flex items-center justify-center shrink-0">
-                        <span className="text-base sm:text-xl font-serif font-bold text-[#e8e2d9] leading-none pb-1">Fr</span>
-                    </div>
-
-                    {/* Part 2: ameWorthy */}
-                    <span className="text-base sm:text-xl font-serif font-bold tracking-tight text-[#e8e2d9] leading-none truncate">ameWorthy</span>
+                <div className="flex items-center cursor-pointer gap-1.5 sm:gap-2 min-w-0" onClick={() => navigate('/')} title="Go to home">
+                    <LogoMark size={24} ink="#e8e2d9" className="shrink-0 sm:w-[28px] sm:h-[28px]" />
+                    <span className="text-base sm:text-xl font-serif font-bold tracking-tight text-[#e8e2d9] leading-none truncate">FrameWorthy</span>
                 </div>
             </div>
 
