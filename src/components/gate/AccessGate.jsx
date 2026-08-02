@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { httpsCallable } from 'firebase/functions';
 import { functions } from '../../services/firebase';
-import LogoMark from '../common/LogoMark';
+import Wordmark from '../common/Wordmark';
 
 const redeemTesterPin = httpsCallable(functions, 'redeemTesterPin');
 
@@ -41,9 +41,8 @@ const AccessGate = ({ onUnlock }) => {
     return (
         <div className="min-h-screen bg-[#faf9f8] text-stone-900 flex items-center justify-center px-4">
             <div className="w-full max-w-sm">
-                <div className="flex items-center justify-center gap-2 mb-8">
-                    <LogoMark size={36} ink="#1c1917" />
-                    <span className="text-2xl font-serif font-bold tracking-tight text-stone-900 leading-none">FrameWorthy</span>
+                <div className="flex justify-center mb-8">
+                    <Wordmark size={24} ink="#1c1917" textClassName="text-2xl" />
                 </div>
 
                 <div className="bg-white border border-stone-200 rounded-xl shadow-sm p-6 sm:p-8">
