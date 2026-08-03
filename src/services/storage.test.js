@@ -68,6 +68,15 @@ describe('getPrintQualityJpegUrl', () => {
         );
     });
 
+    it('scales dimensions down and drops quality when 300 DPI would exceed Cloudinary\'s 25MP output cap', () => {
+        const url = 'https://res.cloudinary.com/demo/image/upload/v1/photo.jpg';
+        // 24in * 300dpi = 7200, 36in * 300dpi = 10800 -> 77.76MP, over the cap
+        const item = { selectedSize: { width: 24, height: 36 }, orientation: 'portrait' };
+        expect(getPrintQualityJpegUrl(url, item)).toBe(
+            'https://res.cloudinary.com/demo/image/upload/if_iw_lt_2000_and_ih_lt_2000/if_iw_lt_4074_or_ih_lt_6111/e_upscale/if_end/if_end/w_4074,h_6111,c_fill,g_auto,e_improve/f_jpg,q_90/v1/photo.jpg'
+        );
+    });
+
     describe('non-Cloudinary URLs', () => {
         afterEach(() => {
             vi.unstubAllEnvs();

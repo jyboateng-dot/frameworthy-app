@@ -78,8 +78,27 @@ export const getPrintQualityJpegUrl = (url, item = null) => {
 
         // Adjust for orientation
         const isLandscape = item.orientation === 'landscape';
-        const finalW = isLandscape ? Math.max(targetW, targetH) : Math.min(targetW, targetH);
-        const finalH = isLandscape ? Math.min(targetW, targetH) : Math.max(targetW, targetH);
+        let finalW = isLandscape ? Math.max(targetW, targetH) : Math.min(targetW, targetH);
+        let finalH = isLandscape ? Math.min(targetW, targetH) : Math.max(targetW, targetH);
+
+        // Cloudinary hard-caps any derived image at 25 megapixels total, which
+        // a flat 300 DPI blows past for large formats (e.g. 24x36in = 77.8MP)
+        // and would otherwise make Cloudinary reject the whole transformation.
+        // Scale the DPI down uniformly (preserving aspect ratio) so the
+        // request stays under that ceiling — still the highest resolution
+        // Cloudinary can actually deliver for that physical size.
+        const MAX_OUTPUT_PIXELS = 24_900_000;
+        const requestedPixels = finalW * finalH;
+        let quality = 'q_100';
+        if (requestedPixels > MAX_OUTPUT_PIXELS) {
+            const scale = Math.sqrt(MAX_OUTPUT_PIXELS / requestedPixels);
+            finalW = Math.floor(finalW * scale);
+            finalH = Math.floor(finalH * scale);
+            // At this pixel count, a q_100 JPEG is big enough in bytes to trip
+            // Cloudinary's separate 10MB-per-derived-file cap. q_90 is still
+            // effectively lossless for print and stays comfortably under it.
+            quality = 'q_90';
+        }
 
         // e_upscale only accepts source images under ~4.2 megapixels, and
         // Cloudinary silently drops it (no error, no effect) when it's
@@ -98,7 +117,7 @@ export const getPrintQualityJpegUrl = (url, item = null) => {
             'if_end',
             'if_end',
             `w_${finalW},h_${finalH},c_fill,g_auto,e_improve`,
-            ...steps
+            `f_jpg,${quality}`
         ];
     }
 
