@@ -68,31 +68,34 @@ export const getPrintQualityJpegUrl = (url, item = null) => {
         return url;
     }
 
-    let transformations = ['f_jpg', 'q_100'];
+    // Each entry is a separate Cloudinary transformation step, chained with "/".
+    let steps = ['f_jpg,q_100'];
 
     if (item && item.selectedSize && item.selectedSize.width && item.selectedSize.height) {
         // Calculate exact pixel dimensions at 300 DPI
         const targetW = Math.round(item.selectedSize.width * 300);
         const targetH = Math.round(item.selectedSize.height * 300);
-        
+
         // Adjust for orientation
         const isLandscape = item.orientation === 'landscape';
         const finalW = isLandscape ? Math.max(targetW, targetH) : Math.min(targetW, targetH);
         const finalH = isLandscape ? Math.min(targetW, targetH) : Math.max(targetW, targetH);
 
-        // Prepend dimension and optimization transformations
-        transformations = [
-            `w_${finalW}`,
-            `h_${finalH}`,
-            'c_fill',
-            'g_auto',
+        // e_upscale only accepts source images under ~4.2 megapixels, and
+        // Cloudinary silently drops it (no error, no effect) when it's
+        // chained in the same step as another effect like e_improve — so it
+        // has to run alone, as its own step, directly against the untouched
+        // original, gated to skip sources already too large for it.
+        steps = [
+            'if_iw_lt_2000_and_ih_lt_2000',
             'e_upscale',
-            'e_improve',
-            ...transformations
+            'if_end',
+            `w_${finalW},h_${finalH},c_fill,g_auto,e_improve`,
+            ...steps
         ];
     }
 
-    const transformString = transformations.join(',');
+    const transformString = steps.join('/');
 
     // If it's already a Cloudinary upload URL
     if (url.includes('res.cloudinary.com/') && url.includes('/upload/')) {
