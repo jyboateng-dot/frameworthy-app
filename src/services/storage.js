@@ -85,10 +85,17 @@ export const getPrintQualityJpegUrl = (url, item = null) => {
         // Cloudinary silently drops it (no error, no effect) when it's
         // chained in the same step as another effect like e_improve — so it
         // has to run alone, as its own step, directly against the untouched
-        // original, gated to skip sources already too large for it.
+        // original. Nested conditionals gate it twice: the outer check skips
+        // sources already too large for the effect to accept, and the inner
+        // check skips sources that already meet or exceed the customer's
+        // chosen print dimensions — an image that's already high enough
+        // resolution for the target size doesn't need (or benefit from) AI
+        // upscaling.
         steps = [
             'if_iw_lt_2000_and_ih_lt_2000',
+            `if_iw_lt_${finalW}_or_ih_lt_${finalH}`,
             'e_upscale',
+            'if_end',
             'if_end',
             `w_${finalW},h_${finalH},c_fill,g_auto,e_improve`,
             ...steps
