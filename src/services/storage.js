@@ -68,6 +68,14 @@ export const getPrintQualityJpegUrl = (url, item = null) => {
         return url;
     }
 
+    // Large formats where a flat 300 DPI would exceed Cloudinary's 25MP
+    // output cap get a server-generated file once the order is paid (see
+    // functions/hiResPrintFile.js) that isn't limited by that cap — prefer it
+    // outright once it exists instead of re-deriving the capped version here.
+    if (item && item.hiResPrintUrl) {
+        return item.hiResPrintUrl;
+    }
+
     // Each entry is a separate Cloudinary transformation step, chained with "/".
     let steps = ['f_jpg,q_100'];
 

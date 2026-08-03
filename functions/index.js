@@ -1,16 +1,25 @@
 const { onCall, onRequest, HttpsError } = require('firebase-functions/v2/https');
+const { onDocumentUpdated } = require('firebase-functions/v2/firestore');
 const { defineSecret } = require('firebase-functions/params');
 const { logger } = require('firebase-functions');
 const admin = require('firebase-admin');
 const crypto = require('crypto');
 const { recomputeOrderTotal } = require('./pricing');
 const { FRAMEWORTHY_KNOWLEDGE_BASE } = require('./supportKnowledge');
+const { processOrderForHiResPrints } = require('./hiResPrintFile');
 
 admin.initializeApp();
 
 // Stored in Secret Manager via `firebase functions:secrets:set PAYSTACK_SECRET_KEY`
 // — never committed to source, never sent to the client.
 const paystackSecretKey = defineSecret('PAYSTACK_SECRET_KEY');
+
+// Stored in Secret Manager via `firebase functions:secrets:set CLOUDINARY_API_KEY`
+// and `firebase functions:secrets:set CLOUDINARY_API_SECRET`. Only needed for
+// the signed server-side re-upload in generateHiResPrintFiles below — the
+// client's own uploads stay unsigned (services/storage.js) and never see these.
+const cloudinaryApiKey = defineSecret('CLOUDINARY_API_KEY');
+const cloudinaryApiSecret = defineSecret('CLOUDINARY_API_SECRET');
 
 // Shared by verifyPaystackPayment (client-triggered) and paystackWebhook
 // (Paystack-triggered) — both end up with the same three facts (orderId,
@@ -669,4 +678,43 @@ exports.askSupportAgent = onCall({ secrets: [geminiApiKey], region: 'us-central1
     }
 
     return { text };
+});
+
+// Large-format prints (see needsHiResEscalation in ./hiResPrintFile) need more
+// resolution than Cloudinary's own 25MP-capped transform can deliver at a
+// flat 300 DPI. This runs once, right when an order is confirmed paid — kept
+// separate from verifyPaystackPayment/paystackWebhook (both timeoutSeconds:
+// 30) because generating and re-uploading full-resolution files for several
+// large items can take far longer than that, and a slow image pipeline has no
+// business being on the critical path of confirming a payment.
+exports.generateHiResPrintFiles = onDocumentUpdated({
+    document: 'orders/{orderId}',
+    region: 'us-central1',
+    timeoutSeconds: 540,
+    memory: '2GiB',
+    secrets: [cloudinaryApiKey, cloudinaryApiSecret]
+}, async (event) => {
+    const before = event.data.before.data();
+    const after = event.data.after.data();
+
+    // Only the pending->paid transition, exactly once — the write below
+    // (which leaves paymentStatus unchanged at 'paid') would otherwise
+    // retrigger this function on itself indefinitely.
+    if (after.paymentStatus !== 'paid' || before.paymentStatus === 'paid') {
+        return;
+    }
+
+    const orderId = event.params.orderId;
+    const results = await processOrderForHiResPrints(orderId, after, {
+        cloudName: process.env.CLOUDINARY_CLOUD_NAME || 'uucoqdzr',
+        apiKey: cloudinaryApiKey.value(),
+        apiSecret: cloudinaryApiSecret.value()
+    });
+
+    if (Object.keys(results).length === 0) return;
+
+    const updatedItems = (after.items || []).map((item, i) =>
+        results[i] ? { ...item, hiResPrintUrl: results[i] } : item
+    );
+    await admin.firestore().collection('orders').doc(orderId).update({ items: updatedItems });
 });

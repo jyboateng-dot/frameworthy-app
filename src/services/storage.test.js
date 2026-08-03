@@ -44,6 +44,18 @@ describe('getPrintQualityJpegUrl', () => {
         expect(getPrintQualityJpegUrl('data:image/png;base64,AAAA')).toBe('data:image/png;base64,AAAA');
     });
 
+    it('returns the pre-generated hi-res print URL directly when present, skipping the on-the-fly transform', () => {
+        const url = 'https://res.cloudinary.com/demo/image/upload/v1/photo.jpg';
+        const item = {
+            selectedSize: { width: 48, height: 48 },
+            orientation: 'portrait',
+            hiResPrintUrl: 'https://res.cloudinary.com/demo/image/upload/hi_res_prints/order123_0.jpg'
+        };
+        expect(getPrintQualityJpegUrl(url, item)).toBe(
+            'https://res.cloudinary.com/demo/image/upload/hi_res_prints/order123_0.jpg'
+        );
+    });
+
     it('rewrites a Cloudinary upload URL with jpg/quality transforms when no size is given', () => {
         const url = 'https://res.cloudinary.com/demo/image/upload/v1/photo.jpg';
         expect(getPrintQualityJpegUrl(url)).toBe(
