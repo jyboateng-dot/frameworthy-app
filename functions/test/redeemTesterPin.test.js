@@ -49,8 +49,24 @@ describe('redeemTesterPin', () => {
         const first = await redeemTesterPin.run({ data: { pin: 'ABCDE', name: 'Ama' } });
         expect(first).toEqual({ success: true });
 
+        // This test is about the Firestore-level "used" guard, not the
+        // anti-enumeration throttle (covered separately below) — reset the
+        // throttle doc so back-to-back calls here don't collide with it.
+        await db().collection('testerPinThrottle').doc('global').delete();
+
         const second = await redeemTesterPin.run({ data: { pin: 'ABCDE', name: 'Kofi' } });
         expect(second).toEqual({ success: false, reason: 'used' });
+    });
+
+    it('throttles a second one-time-code redemption attempt within the cooldown window', async () => {
+        await db().collection('testerPins').doc('ABCDE').set({ used: false });
+        await db().collection('testerPins').doc('FGHIJ').set({ used: false });
+
+        const first = await redeemTesterPin.run({ data: { pin: 'ABCDE', name: 'Ama' } });
+        expect(first).toEqual({ success: true });
+
+        await expect(redeemTesterPin.run({ data: { pin: 'FGHIJ', name: 'Kofi' } }))
+            .rejects.toMatchObject({ code: 'resource-exhausted' });
     });
 
     it('truncates an overlong name to 80 characters', async () => {

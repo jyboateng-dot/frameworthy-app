@@ -467,6 +467,18 @@ exports.redeemTesterPin = onCall({ secrets: [masterTesterPin], region: 'us-centr
 
     const trimmedName = name.trim().slice(0, 80);
     const normalizedPin = pin.trim().toUpperCase();
+    const db = admin.firestore();
+
+    // Checked before the throttle below, not after: the master pin is
+    // deliberately reusable/unlimited (unlike the one-time codes), so a
+    // legitimate repeated redemption should never get rate-limited. It's
+    // also not what a brute-force script is actually targeting — guessing
+    // this exact string by chance is astronomically unlikely — so nothing
+    // is lost by exempting this path from the throttle.
+    if (normalizedPin === masterTesterPin.value()) {
+        logger.info('Master tester PIN redeemed', { name: trimmedName });
+        return { success: true };
+    }
 
     // Abuse guard: this callable is unauthenticated (it's the onboarding
     // step before signup), so there's no uid to throttle by like
@@ -474,8 +486,10 @@ exports.redeemTesterPin = onCall({ secrets: [masterTesterPin], region: 'us-centr
     // the available mitigation without App Check/IP infra — it caps a
     // brute-force PIN-enumeration script to a few guesses per second
     // instead of unlimited, at the cost of a small delay if two real
-    // testers redeem within the same window (rare in practice).
-    const db = admin.firestore();
+    // testers happen to redeem a one-time code within the same window
+    // (rare in practice). Only applies past this point, i.e. to one-time
+    // code lookups — see the master-pin check above for why that path is
+    // exempt.
     const globalThrottleRef = db.collection('testerPinThrottle').doc('global');
     const GLOBAL_COOLDOWN_MS = 1_500;
     try {
@@ -500,11 +514,6 @@ exports.redeemTesterPin = onCall({ secrets: [masterTesterPin], region: 'us-centr
         // forcing the transaction to error.
         logger.error('redeemTesterPin throttle check failed', err);
         throw new HttpsError('unavailable', 'Please try again in a moment');
-    }
-
-    if (normalizedPin === masterTesterPin.value()) {
-        logger.info('Master tester PIN redeemed', { name: trimmedName });
-        return { success: true };
     }
 
     const pinRef = db.collection('testerPins').doc(normalizedPin);
