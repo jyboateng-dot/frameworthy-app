@@ -475,7 +475,12 @@ exports.redeemTesterPin = onCall({ secrets: [masterTesterPin], region: 'us-centr
     // also not what a brute-force script is actually targeting — guessing
     // this exact string by chance is astronomically unlikely — so nothing
     // is lost by exempting this path from the throttle.
-    if (normalizedPin === masterTesterPin.value()) {
+    //
+    // .trim() on the secret's own value, not just the user's input: secrets
+    // set via `echo "X" | firebase functions:secrets:set` pick up a trailing
+    // newline from echo, which Secret Manager stores verbatim — an untrimmed
+    // comparison then never matches even the correct PIN.
+    if (normalizedPin === masterTesterPin.value().trim()) {
         logger.info('Master tester PIN redeemed', { name: trimmedName });
         return { success: true };
     }
