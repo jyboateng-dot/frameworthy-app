@@ -387,9 +387,11 @@ const CustomizeFramePage = ({
             // 4096x4096) and silently produce a blank canvas past it. A flat 300 DPI already
             // blows past that for common poster sizes (24x36in @ 300 DPI = 7200x10800 =
             // 77.76M px), so DPI must scale down with physical size, not stay fixed. This is
-            // safe for the final print too: getPrintQualityJpegUrl re-upscales via Cloudinary
-            // (e_upscale) to the true 300 DPI print target regardless of the source's actual
-            // resolution, so this only affects the on-screen preview / local-render fallback.
+            // safe for the final print too: getPrintQualityJpegUrl always requests the true
+            // 300 DPI print target dimensions from Cloudinary regardless of this canvas's
+            // resolution, so this only affects the on-screen preview / local-render fallback —
+            // actual print sharpness is a catalogue-level DPI-floor concern (and the print
+            // house's own upscaling), not something this render path controls.
             //
             // The 16M cap only exists to protect the memory-constrained mobile case — on a
             // real desktop browser there's no such ceiling, and capping there too was leaving

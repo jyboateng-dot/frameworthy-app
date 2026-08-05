@@ -39,8 +39,12 @@ export const uploadImageToCloud = async (file) => {
  * Returns a high-quality JPEG rendition of a Cloudinary-hosted image for
  * physical printing. If size and orientation data are provided, it dynamically
  * calculates the exact pixel dimensions for a 300 DPI print and instructs
- * Cloudinary to AI-upscale (e_upscale), smart crop (c_fill,g_auto), and
- * auto-enhance (e_improve) the image on the fly.
+ * Cloudinary to smart crop (c_fill,g_auto) and auto-enhance (e_improve) the
+ * image on the fly. Deliberately NOT AI-upscaling (e_upscale) here — the
+ * print house runs its own Topaz Labs/Adobe Super Resolution upscaling
+ * downstream, so doing it again client-side would just double-process the
+ * image for no quality gain. Print quality is instead enforced upstream, at
+ * the catalogue level, via a DPI floor on what gets listed at all.
  * @param {string} url - The stored image URL (order item's `image` field)
  * @param {object} item - Optional. The order item containing size and orientation.
  * @returns {string} A print-ready JPEG URL, or the original URL if it isn't a Cloudinary asset
@@ -80,13 +84,13 @@ export const getPrintQualityJpegUrl = (url, item = null) => {
         const finalW = isLandscape ? Math.max(targetW, targetH) : Math.min(targetW, targetH);
         const finalH = isLandscape ? Math.min(targetW, targetH) : Math.max(targetW, targetH);
 
-        // Prepend dimension and optimization transformations
+        // Prepend dimension and optimization transformations. No e_upscale —
+        // see the doc comment above: the print house handles upscaling.
         transformations = [
             `w_${finalW}`,
             `h_${finalH}`,
             'c_fill',
             'g_auto',
-            'e_upscale',
             'e_improve',
             ...transformations
         ];

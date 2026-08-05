@@ -56,7 +56,7 @@ describe('getPrintQualityJpegUrl', () => {
         const item = { selectedSize: { width: 8, height: 10 }, orientation: 'portrait' };
         // 8in * 300dpi = 2400, 10in * 300dpi = 3000 -> portrait keeps width < height
         expect(getPrintQualityJpegUrl(url, item)).toBe(
-            'https://res.cloudinary.com/demo/image/upload/w_2400,h_3000,c_fill,g_auto,e_upscale,e_improve,f_jpg,q_100/v1/photo.jpg'
+            'https://res.cloudinary.com/demo/image/upload/w_2400,h_3000,c_fill,g_auto,e_improve,f_jpg,q_100/v1/photo.jpg'
         );
     });
 
@@ -64,7 +64,7 @@ describe('getPrintQualityJpegUrl', () => {
         const url = 'https://res.cloudinary.com/demo/image/upload/v1/photo.jpg';
         const item = { selectedSize: { width: 8, height: 10 }, orientation: 'landscape' };
         expect(getPrintQualityJpegUrl(url, item)).toBe(
-            'https://res.cloudinary.com/demo/image/upload/w_3000,h_2400,c_fill,g_auto,e_upscale,e_improve,f_jpg,q_100/v1/photo.jpg'
+            'https://res.cloudinary.com/demo/image/upload/w_3000,h_2400,c_fill,g_auto,e_improve,f_jpg,q_100/v1/photo.jpg'
         );
     });
 
