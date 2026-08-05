@@ -66,3 +66,33 @@ frameworthy_codebase.zip
 
 # Stray pre-Cloudinary-migration backup copy of Met Museum images, not source content
 /met_collection/
+
+# Museum Art / Artists & Masterpieces data pipeline — one-off scripts and
+# the large intermediate artifacts they produce (checkpoints, reports,
+# scrape dumps, pre-filter backups). The actual served data lives in
+# public/museum-data/ and is tracked separately; everything here is working
+# material from building it, not source content. build_museum_search_index.mjs
+# is kept tracked since it's a real re-run-when-the-data-changes utility,
+# not a throwaway.
+/audit_inspiration_*.mjs
+/build_museum_taxonomy.mjs
+/bymuseum.html
+/bymuseum_scrape_failures.json
+/check_artists_masterpieces_dpi.mjs
+/explore_bymuseum_pagination.mjs
+/filter_artists_masterpieces_by_resolution.mjs
+/filter_other_categories_by_resolution.mjs
+/find_masterpiece_highres.mjs
+/replace_masterpiece_highres.mjs
+/replace_other_categories_highres.mjs
+/scrape_bymuseum_*.mjs
+/scrape_bymuseum_*.py
+/masterpiece_highres_checkpoint.json
+/masterpiece_highres_replace_report.json
+/masterpiece_highres_validation_report.json
+/other_categories_highres_replace_report.json
+/other_categories_resolution_checkpoint.json
+/artists_masterpieces_dpi_checkpoint.json
+/artists_and_masterpieces_all.json
+/artists_and_masterpieces_prefilter_backup.json
+/museum_other_categories_backup/

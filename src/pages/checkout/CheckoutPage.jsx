@@ -97,25 +97,34 @@ const CheckoutPage = () => {
     const [isFetchingAddresses, setIsFetchingAddresses] = useState(false);
 
     useEffect(() => {
-        if (user) {
-            // eslint-disable-next-line react-hooks/set-state-in-effect -- standard "flip on loading before the fetch starts" idiom
-            setIsFetchingAddresses(true);
-            getUserDeliveryAddresses(user.uid).then(addresses => {
-                setSavedAddresses(addresses);
-                if (addresses.length > 0) {
-                    const latest = addresses[0];
-                    setSelectedAddressId(latest.id);
-                    setFullName(latest.fullName);
-                    setPhoneNumber(latest.phoneNumber);
-                    setCity(latest.city);
-                    setDeliveryAddress(latest.deliveryAddress);
-                }
-                setIsFetchingAddresses(false);
-            }).catch(e => {
-                console.error("Failed to load addresses", e);
-                setIsFetchingAddresses(false);
-            });
-        }
+        if (!user) return;
+        // Without the `cancelled` guard, a slow fetch for a user who signs
+        // out mid-request (and is replaced by a different signed-in user on
+        // this same mounted page) can resolve AFTER the new user's own
+        // fetch and overwrite the form with the PREVIOUS user's saved
+        // name/phone/city/address right as the new user is about to place
+        // an order under their own account.
+        let cancelled = false;
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- standard "flip on loading before the fetch starts" idiom
+        setIsFetchingAddresses(true);
+        getUserDeliveryAddresses(user.uid).then(addresses => {
+            if (cancelled) return;
+            setSavedAddresses(addresses);
+            if (addresses.length > 0) {
+                const latest = addresses[0];
+                setSelectedAddressId(latest.id);
+                setFullName(latest.fullName);
+                setPhoneNumber(latest.phoneNumber);
+                setCity(latest.city);
+                setDeliveryAddress(latest.deliveryAddress);
+            }
+            setIsFetchingAddresses(false);
+        }).catch(e => {
+            if (cancelled) return;
+            console.error("Failed to load addresses", e);
+            setIsFetchingAddresses(false);
+        });
+        return () => { cancelled = true; };
     }, [user]);
 
     const handleAddressSelect = (e) => {

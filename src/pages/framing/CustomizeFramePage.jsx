@@ -15,6 +15,9 @@ import {
     X
 } from 'lucide-react';
 import { FRAME_STYLES, FRAME_SIZES, MAT_COLORS, formatDimensions, findSizeByDimension, parseCustomSize, DEFAULT_DEMO_IMAGE } from '../../data/constants';
+import { ROOM_SCENES, computeRoomPlacement } from '../../data/roomScenes';
+import StudioLoftScene from '../../components/framing/StudioLoftScene';
+import { getFrameTextureAnchor, TEXTURE_ZOOM_PCT } from '../../utils/frameTexture';
 import WEB_MET_DIMS from '../../data/web_met_dims.json';
 import { useUnit } from '../../context/UnitContext';
 import { useCart } from '../../context/CartContext';
@@ -58,8 +61,49 @@ const getSideBackground = (side, frame) => {
     if (side === 'bottom') return `linear-gradient(to top, ${gradientStr})`;
     if (side === 'left') return `linear-gradient(to right, ${gradientStr})`;
     if (side === 'right') return `linear-gradient(to left, ${gradientStr})`;
-    
+
     return hex;
+};
+
+// Directional bevel shading, as an `overlay`-blended gradient over a texture
+// photo rather than baked into a flat colour — mid-grey (#808080) is the
+// identity colour for `overlay`, so this sweeps from a highlight through
+// true no-op to a shadow without needing alpha transparency, and applies the
+// same regardless of the photo's own material colour underneath.
+const BEVEL_SHADE_STOPS = '#e8e8e8 0%, #808080 45%, #282828 100%';
+const BEVEL_SHADE_DIR = { top: 'to bottom', bottom: 'to top', left: 'to right', right: 'to left' };
+
+// The catalogue's corner photos are 3D product shots — most show the front-
+// facing moulding profile ("face") AND, along the outer edge, a sliver of
+// the frame's side wall, which is very often a plain, different colour (a
+// glossy near-black edge on an otherwise wood-grain face is typical). The
+// live visualizer is a flat frontal view — only the face is ever real — so
+// a crop that reaches the side band is wrong regardless of how good it
+// looks in isolation. Zoom alone doesn't fully solve this (swept up to
+// 3000% across the catalogue and dozens of anchors were still too close to
+// a seam for any window size to avoid it), so utils/frameTexture.js checks
+// the actual crop each anchor will render at THIS_ZOOM and rejects any
+// anchor whose crop spans two distinct surfaces, falling back to the
+// gradient for that frame — see that file for the full history of what was
+// tried and why it wasn't enough on its own. TEXTURE_ZOOM_PCT is imported
+// rather than redefined here so detection and rendering can't drift apart.
+
+// Fills a moulding side with the frame's actual corner photo — cropped and
+// zoomed to a texture-detail view around a verified on-material point, see
+// utils/frameTexture.js — with the same directional bevel shading the
+// gradient fallback below uses, composited via `overlay` blend mode. Returns
+// null (not a style) when no confident anchor exists yet or detection
+// failed, so the caller falls back to the synthesized-gradient rendering —
+// this never produces a broken/misaligned result, only "not upgraded yet."
+const getSideTextureStyle = (side, frame, anchor) => {
+    if (!anchor || !frame?.previewImg) return null;
+    return {
+        backgroundImage: `linear-gradient(${BEVEL_SHADE_DIR[side]}, ${BEVEL_SHADE_STOPS}), url(${frame.previewImg})`,
+        backgroundBlendMode: 'overlay',
+        backgroundSize: `${TEXTURE_ZOOM_PCT}% ${TEXTURE_ZOOM_PCT}%, ${TEXTURE_ZOOM_PCT}% ${TEXTURE_ZOOM_PCT}%`,
+        backgroundPosition: `${anchor.xPct}% ${anchor.yPct}%, ${anchor.xPct}% ${anchor.yPct}%`,
+        backgroundRepeat: 'no-repeat, no-repeat',
+    };
 };
 
 // Wall Paint Colors
@@ -141,6 +185,14 @@ const CustomizeFramePage = ({
     const [isMoviePosterPrint, setIsMoviePosterPrint] = useState(false);
     const [posterData, setPosterData] = useState(null);
     const [wallColor, setWallColor] = useState(WALL_COLORS[0]);
+    // null = the plain wall-colour backdrop with the sofa scale cue. Set to a
+    // ROOM_SCENES id to swap in a full room, where the artwork is sized
+    // against the room's own real-world wall span instead of the sofa.
+    const [roomSceneId, setRoomSceneId] = useState(null);
+    // Resolved async per selectedFrame — see utils/frameTexture.js. Stays
+    // null (falls back to the synthesized-gradient moulding) until/unless a
+    // confident on-material anchor is found for this frame's corner photo.
+    const [frameTextureAnchor, setFrameTextureAnchor] = useState(null);
     const [showDimensions, setShowDimensions] = useState(true);
     const [isUploading, setIsUploading] = useState(false);
     // True while the background Cloudinary upload for the current image is
@@ -400,6 +452,22 @@ const CustomizeFramePage = ({
         }
     }, [selectedFrame, isPreset]);
 
+    // Resolve a real-texture anchor for the selected frame's corner photo —
+    // see utils/frameTexture.js. Guarded against races: if the user flips
+    // through frame styles quickly, only the response matching the frame
+    // that's still selected when it resolves gets applied.
+    useEffect(() => {
+        if (!selectedFrame?.previewImg || selectedFrame.id === 'frame-canvas') return;
+        let cancelled = false;
+        getFrameTextureAnchor(selectedFrame.previewImg).then((anchor) => {
+            if (!cancelled) setFrameTextureAnchor(anchor);
+        });
+        return () => {
+            cancelled = true;
+            setFrameTextureAnchor(null);
+        };
+    }, [selectedFrame]);
+
     // Real-time ResizeObserver for the Frame Positioning Zone to guarantee no overlap/clipping on zoom
     useEffect(() => {
         if (!zoneRef.current) return;
@@ -573,8 +641,12 @@ const CustomizeFramePage = ({
         if (!selectedSize || !selectedFrame) return;
         let base = Math.round(selectedSize.price * (selectedFrame.priceMod || 1));
         if (selectedFrame.id !== 'frame-canvas' && glassType !== 'canvas-floater' && glassType !== 'canvas-traditional' && matWidth !== 'none') base += (matColor.price || 75);
-        if (glassType === 'non-glare') base += 100;
-        if (glassType === 'museum') base += 200;
+        // Guarded behind frame-canvas the same way buildCartItem/the footer
+        // total are — this copy previously wasn't, so switching to a canvas
+        // frame after selecting non-glare/museum glazing silently kept
+        // charging for glazing a canvas frame doesn't have.
+        if (selectedFrame.id !== 'frame-canvas' && glassType === 'non-glare') base += 100;
+        if (selectedFrame.id !== 'frame-canvas' && glassType === 'museum') base += 200;
         if (glassType === 'canvas-floater') base += 400;
         if (glassType === 'canvas-traditional') base += 350;
         if (hardwareType === 'french-cleat') base += 50;
@@ -1263,6 +1335,15 @@ const CustomizeFramePage = ({
     // near-black instead of standing out. Once the wall is dark enough that
     // treatment stops working, switch to plain light text with no blend
     // mode, which stays legible against any solid color.
+    const activeRoom = roomSceneId ? ROOM_SCENES.find((s) => s.id === roomSceneId) : null;
+
+    // Real photo texture when a confident anchor was found for this frame's
+    // corner photo, else the synthesized gradient — see getSideTextureStyle
+    // and utils/frameTexture.js for why this can legitimately stay on the
+    // gradient fallback for some frames rather than force a texture fit.
+    const sideBackgroundStyle = (side) =>
+        getSideTextureStyle(side, selectedFrame, frameTextureAnchor) || { backgroundImage: getSideBackground(side, selectedFrame) };
+
     const wallLuminance = (() => {
         const hex = wallColor.hex.replace('#', '');
         const r = parseInt(hex.substring(0, 2), 16);
@@ -1345,6 +1426,36 @@ const CustomizeFramePage = ({
                                 />
                             ))}
                         </div>
+
+                        {/* Scene picker. The wall colour above still applies in a room
+                            scene — the scene's wall repaints with it — so these are
+                            complementary choices, not alternatives, and belong in the
+                            same popover. */}
+                        <div className="w-full mt-2.5 pt-2.5 border-t border-stone-200">
+                            <p className="text-[10px] font-bold tracking-wider text-stone-500 mb-1.5 text-center w-full whitespace-nowrap [font-variant:small-caps]">scene</p>
+                            <div className="flex flex-col gap-1">
+                                <button
+                                    onClick={() => { setRoomSceneId(null); setIsWallPickerOpen(false); }}
+                                    className={`w-full px-1.5 py-1 rounded-md text-[9px] font-semibold leading-tight transition-colors ${
+                                        !activeRoom ? 'bg-stone-900 text-white' : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
+                                    }`}
+                                >
+                                    Plain wall
+                                </button>
+                                {ROOM_SCENES.map((scene) => (
+                                    <button
+                                        key={scene.id}
+                                        onClick={() => { setRoomSceneId(scene.id); setIsWallPickerOpen(false); }}
+                                        title={`${scene.name} — ${scene.wallSpanCm}cm wall`}
+                                        className={`w-full px-1.5 py-1 rounded-md text-[9px] font-semibold leading-tight transition-colors ${
+                                            roomSceneId === scene.id ? 'bg-stone-900 text-white' : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
+                                        }`}
+                                    >
+                                        {scene.name}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -1418,6 +1529,53 @@ const CustomizeFramePage = ({
                         }`}
                     >
 
+                        {/* ── ROOM SCENE BACKDROP ──
+                            Sized so its wall span is exactly the zone's width, which is
+                            what lets the frame's own width percentage (computed against
+                            this same zone) be a direct cm ratio — see the frame's scale
+                            block below. Then it's offset so the scene's hang point lands
+                            on the zone's centre, where the frame is already flex-centred.
+                            Offsetting the scene rather than the frame keeps the entire
+                            existing frame layout — zoom, overflow correction, dimension
+                            labels — untouched. */}
+                        {activeRoom && (() => {
+                            const sceneW = zoneSize.width;
+                            const sceneH = sceneW * (activeRoom.sceneHeightCm / activeRoom.wallSpanCm);
+                            const sceneLeft = sceneW * (0.5 - activeRoom.hang.x / 100);
+                            const sceneTop = (zoneSize.height / 2) - (activeRoom.hang.y / 100) * sceneH;
+                            return (
+                                <div
+                                    className={`absolute pointer-events-none z-0 transition-opacity duration-500 ${
+                                        // Matches the sofa cue's own fade condition, and for the same
+                                        // reason: all three of these states zoom the frame past its
+                                        // true size (frameWidthPct * zoomScale) while the scene stays
+                                        // put, so leaving the room visible would show the artwork at a
+                                        // scale it isn't. Fading out drops the scale claim rather than
+                                        // making a false one.
+                                        isHovered || isMaxZoom || isFullScreen ? 'opacity-0' : 'opacity-100'
+                                    }`}
+                                    style={{ left: sceneLeft, top: sceneTop, width: sceneW, height: sceneH }}
+                                    aria-hidden="true"
+                                >
+                                    {activeRoom.tintable ? (
+                                        <StudioLoftScene wallHex={wallColor.hex} isDarkWall={isDarkWall} />
+                                    ) : (
+                                        <img src={activeRoom.image} alt="" className="w-full h-full object-fill" />
+                                    )}
+                                    {/* Continues the floor to the bottom of the panel so the
+                                        scene reads as full-bleed instead of a letterboxed
+                                        picture. Above the scene the panel's own wall colour
+                                        already matches, so only the floor needs this. */}
+                                    {activeRoom.floorHex && (
+                                        <div
+                                            className="absolute left-0 w-full"
+                                            style={{ top: '100%', height: '100vh', backgroundColor: activeRoom.floorHex }}
+                                        />
+                                    )}
+                                </div>
+                            );
+                        })()}
+
                         {/* ── THE FRAME ── */}
                         {(() => {
                             // ─── PHYSICAL SCALE MATH (from scratch) ───
@@ -1430,7 +1588,18 @@ const CustomizeFramePage = ({
                             const SOFA_BODY_PCT = 42; // sofa body occupies 42% of the parent container
                             const innerWidthCm = wInch * 2.54;
                             const innerHeightCm = hInch * 2.54;
-                            const frameWidthPct = (innerWidthCm / SOFA_CM) * SOFA_BODY_PCT;
+                            // Both branches are the same conversion — physical cm to a
+                            // percentage of this zone's width — differing only in what the
+                            // zone represents. Against the sofa cue, the zone is scaled so
+                            // 160cm spans SOFA_BODY_PCT of it; in a room scene, the zone
+                            // width IS the room's wall span (the backdrop below is sized to
+                            // exactly fill it), so the conversion is a direct ratio.
+                            const roomPlacement = activeRoom
+                                ? computeRoomPlacement(activeRoom, innerWidthCm, innerHeightCm)
+                                : null;
+                            const frameWidthPct = roomPlacement
+                                ? roomPlacement.widthPct
+                                : (innerWidthCm / SOFA_CM) * SOFA_BODY_PCT;
                             
                             // Moulding: Dynamic visual thickness
                             // We determine if a frame is narrow, standard, or wide based on its catalogue data.
@@ -1691,38 +1860,38 @@ const CustomizeFramePage = ({
                                                 {/* Outer Frame Edge — 4 Mitered 3D Borders */}
                                                 <div className="absolute inset-0 transition-all duration-300">
                                                     {/* Top */}
-                                                    <div 
+                                                    <div
                                                         className="absolute top-0 left-0 right-0 z-10"
                                                         style={{
                                                             height: `${mouldingPctH}%`,
-                                                            backgroundImage: getSideBackground('top', selectedFrame),
+                                                            ...sideBackgroundStyle('top'),
                                                             clipPath: `polygon(0 0, 100% 0, ${100 - mouldingPctW}% 100%, ${mouldingPctW}% 100%)`
                                                         }}
                                                     />
                                                     {/* Bottom */}
-                                                    <div 
+                                                    <div
                                                         className="absolute bottom-0 left-0 right-0 z-10"
                                                         style={{
                                                             height: `${mouldingPctH}%`,
-                                                            backgroundImage: getSideBackground('bottom', selectedFrame),
+                                                            ...sideBackgroundStyle('bottom'),
                                                             clipPath: `polygon(${mouldingPctW}% 0, ${100 - mouldingPctW}% 0, 100% 100%, 0 100%)`
                                                         }}
                                                     />
                                                     {/* Left */}
-                                                    <div 
+                                                    <div
                                                         className="absolute top-0 bottom-0 left-0 z-10"
                                                         style={{
                                                             width: `${mouldingPctW}%`,
-                                                            backgroundImage: getSideBackground('left', selectedFrame),
+                                                            ...sideBackgroundStyle('left'),
                                                             clipPath: `polygon(0 0, 100% ${mouldingPctH}%, 100% ${100 - mouldingPctH}%, 0 100%)`
                                                         }}
                                                     />
                                                     {/* Right */}
-                                                    <div 
+                                                    <div
                                                         className="absolute top-0 bottom-0 right-0 z-10"
                                                         style={{
                                                             width: `${mouldingPctW}%`,
-                                                            backgroundImage: getSideBackground('right', selectedFrame),
+                                                            ...sideBackgroundStyle('right'),
                                                             clipPath: `polygon(0 ${mouldingPctH}%, 100% 0, 100% 100%, 0 ${100 - mouldingPctH}%)`
                                                         }}
                                                     />
@@ -1896,7 +2065,10 @@ const CustomizeFramePage = ({
                         rest-state frame math the zoom system uses, so it
                         stays correct across every size/viewport combination
                         rather than assuming a percentage split holds up. */}
-                    {(() => {
+                    {/* Suppressed in room-scene mode: the scene draws its own 160cm sofa
+                        in situ, so this floating reference would be a second, redundant
+                        sofa at a different scale. */}
+                    {!activeRoom && (() => {
                         const SOFA_CM_REF = 160;
                         const SOFA_BODY_PCT_REF = 42;
                         const restFrameWidthPct = (wInch && hInch) ? ((wInch * 2.54) / SOFA_CM_REF) * SOFA_BODY_PCT_REF : 0;

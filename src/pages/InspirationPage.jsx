@@ -17,6 +17,7 @@ const MetArtPage = lazy(() => import('./MetArtPage'));
 const AlbumArtPage = lazy(() => import('./AlbumArtPage'));
 const MoviePosterPage = lazy(() => import('./MoviePosterPage'));
 const SearchPage = lazy(() => import('./SearchPage'));
+const MuseumArtPage = lazy(() => import('./MuseumArtPage'));
 
 import { PRODUCTS } from '../data/framed_prints';
 import { getThumbnailUrl } from '../services/storage';
@@ -123,19 +124,21 @@ const InspirationPage = ({ setProductMode, setSelectedFrame, setSelectedSize, na
         return () => window.removeEventListener('scroll', handleScroll);
     }, [isModal]);
 
+    // Resolves once and both applies the studio's own selected-frame/size
+    // state AND returns the same values, so callers building `navigate`
+    // state don't need to recompute the identical lookup a second time.
     const _loadFrameAndSize = (product) => {
         setProductMode('frame');
         const frame = FRAME_STYLES.find(f => f.id === product.frameStyleId) || FRAME_STYLES.find(f => f.id === 'frame-10512');
         if (frame) setSelectedFrame(frame);
         const size = parseCustomSize(product.dims) || findSizeByDimension(product.dims) || FRAME_SIZES.find(s => s.id === product.sizeId);
         if (size) setSelectedSize(size);
+        return { frame, size };
     };
 
     const handleGetThis = (product) => {
-        _loadFrameAndSize(product);
-        const frameObj = FRAME_STYLES.find(f => f.id === product.frameStyleId) || FRAME_STYLES.find(f => f.id === 'frame-10512');
-        const sizeObj = parseCustomSize(product.dims) || findSizeByDimension(product.dims) || FRAME_SIZES.find(s => s.id === product.sizeId);
-        
+        const { frame: frameObj, size: sizeObj } = _loadFrameAndSize(product);
+
         let orientation = 'portrait';
         if (product.dims) {
             const nums = product.dims.match(/\d+(?:\.\d+)?/g);
@@ -184,6 +187,7 @@ const InspirationPage = ({ setProductMode, setSelectedFrame, setSelectedSize, na
             { id: 'glossy', label: 'Glossy Art' },
             { id: 'albums', label: 'Album Artwork' },
             { id: 'met', label: 'Met Museum Collection' },
+            { id: 'museum', label: 'Artists & Masterpieces' },
             { id: 'web', label: 'Web Images' },
             { id: 'movies', label: 'Movie Posters' },
             { id: 'inspiration', label: 'Framed Prints' },
@@ -191,7 +195,7 @@ const InspirationPage = ({ setProductMode, setSelectedFrame, setSelectedSize, na
         return (
             <>
                 <div className="pt-8 pb-2 px-6 md:px-12 max-w-[2560px] mx-auto">
-                    <h1 className="font-serif text-2xl md:text-3xl text-stone-900 font-light tracking-tight leading-none">Inspiration</h1>
+                    <h1 className="font-serif font-light text-3xl md:text-4xl text-stone-900 tracking-tight leading-none">Inspiration</h1>
                 </div>
                 <div className="bg-[#faf9f8]/95 backdrop-blur-sm border-b border-stone-200 sticky top-0 z-30 py-3">
                     <div className="max-w-[2560px] mx-auto px-6 md:px-12 flex items-center gap-2 overflow-x-auto no-scrollbar">
@@ -274,6 +278,13 @@ const InspirationPage = ({ setProductMode, setSelectedFrame, setSelectedSize, na
                 <div className="max-w-[2560px] mx-auto py-8">
                     <Suspense fallback={<TabLoadingFallback />}>
                     <MetArtPage setProductMode={setProductMode} setSelectedFrame={setSelectedFrame} setSelectedSize={setSelectedSize} navigate={navigate} isSubPage={true} disableWindowScroll={isModal} />
+                    </Suspense>
+                </div>
+            )}
+            {currentSection === 'museum' && (
+                <div className="max-w-[2560px] mx-auto py-8">
+                    <Suspense fallback={<TabLoadingFallback />}>
+                    <MuseumArtPage setProductMode={setProductMode} setSelectedFrame={setSelectedFrame} setSelectedSize={setSelectedSize} navigate={navigate} isSubPage={true} disableWindowScroll={isModal} />
                     </Suspense>
                 </div>
             )}

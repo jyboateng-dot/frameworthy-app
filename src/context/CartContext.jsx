@@ -35,6 +35,26 @@ export const CartProvider = ({ children }) => {
         }
     }, [cartItems]);
 
+    // Without this, two open tabs each hold their own stale in-memory copy —
+    // an add in tab A never reaches tab B's state, so if tab B later adds
+    // its own item, its persistence effect above overwrites localStorage
+    // using ITS stale copy plus its new item, silently erasing whatever tab
+    // A added. The 'storage' event only fires in tabs OTHER than the one
+    // that wrote it, which is exactly what's needed here: re-sync this
+    // tab's state from localStorage whenever another tab changes it.
+    useEffect(() => {
+        const handleStorage = (e) => {
+            if (e.key !== CART_STORAGE_KEY) return;
+            try {
+                setCartItems(e.newValue ? JSON.parse(e.newValue) : []);
+            } catch (error) {
+                console.warn('Failed to sync cart from another tab:', error);
+            }
+        };
+        window.addEventListener('storage', handleStorage);
+        return () => window.removeEventListener('storage', handleStorage);
+    }, []);
+
     const addToCart = (item) => {
         // Find if identical item exists to just increment quantity
         // For custom frames, this is tricky, so we'll just treat every addition as a unique item for now

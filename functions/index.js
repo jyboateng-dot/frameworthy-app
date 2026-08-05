@@ -450,13 +450,16 @@ exports.notifyAdminOfChatMessage = onCall({ secrets: [emailjsPrivateKey], region
 
 // Standing PIN that never gets consumed — unlike the generated one-time
 // codes below, it isn't backed by a testerPins doc, so there's nothing for
-// a transaction to mark "used" and it keeps working indefinitely.
-const MASTER_PIN = 'JYB187';
+// a transaction to mark "used" and it keeps working indefinitely. Kept in
+// Secret Manager rather than hardcoded so it isn't sitting in plaintext in
+// version-controlled source (set via
+// `firebase functions:secrets:set MASTER_TESTER_PIN`).
+const masterTesterPin = defineSecret('MASTER_TESTER_PIN');
 
 // Validates a tester's one-time PIN and records who redeemed it. A Firestore
 // transaction makes the used-check-and-claim atomic, so two people racing to
 // redeem the same PIN can't both succeed.
-exports.redeemTesterPin = onCall({ region: 'us-central1', timeoutSeconds: 30, maxInstances: 5 }, async (request) => {
+exports.redeemTesterPin = onCall({ secrets: [masterTesterPin], region: 'us-central1', timeoutSeconds: 30, maxInstances: 5 }, async (request) => {
     const { pin, name } = request.data || {};
     if (!pin || typeof pin !== 'string' || !name || typeof name !== 'string' || !name.trim()) {
         throw new HttpsError('invalid-argument', 'name and pin are required');
@@ -465,12 +468,45 @@ exports.redeemTesterPin = onCall({ region: 'us-central1', timeoutSeconds: 30, ma
     const trimmedName = name.trim().slice(0, 80);
     const normalizedPin = pin.trim().toUpperCase();
 
-    if (normalizedPin === MASTER_PIN) {
+    // Abuse guard: this callable is unauthenticated (it's the onboarding
+    // step before signup), so there's no uid to throttle by like
+    // askSupportAgent does. A single shared cooldown across all callers is
+    // the available mitigation without App Check/IP infra — it caps a
+    // brute-force PIN-enumeration script to a few guesses per second
+    // instead of unlimited, at the cost of a small delay if two real
+    // testers redeem within the same window (rare in practice).
+    const db = admin.firestore();
+    const globalThrottleRef = db.collection('testerPinThrottle').doc('global');
+    const GLOBAL_COOLDOWN_MS = 1_500;
+    try {
+        const allowed = await db.runTransaction(async (tx) => {
+            const snap = await tx.get(globalThrottleRef);
+            const now = Date.now();
+            if (snap.exists) {
+                const last = snap.data().lastCallMs || 0;
+                if (now - last < GLOBAL_COOLDOWN_MS) {
+                    return false;
+                }
+            }
+            tx.set(globalThrottleRef, { lastCallMs: now });
+            return true;
+        });
+        if (!allowed) {
+            throw new HttpsError('resource-exhausted', 'Please wait a moment and try again');
+        }
+    } catch (err) {
+        if (err instanceof HttpsError) throw err;
+        // Fail closed on throttle-store errors so this can't be bypassed by
+        // forcing the transaction to error.
+        logger.error('redeemTesterPin throttle check failed', err);
+        throw new HttpsError('unavailable', 'Please try again in a moment');
+    }
+
+    if (normalizedPin === masterTesterPin.value()) {
         logger.info('Master tester PIN redeemed', { name: trimmedName });
         return { success: true };
     }
 
-    const db = admin.firestore();
     const pinRef = db.collection('testerPins').doc(normalizedPin);
 
     return db.runTransaction(async (tx) => {
@@ -515,13 +551,50 @@ exports.lookupGuestOrder = onCall({ region: 'us-central1', timeoutSeconds: 30, m
     }
 
     const normalizedEmail = email.trim().toLowerCase();
+    const trimmedOrderId = orderId.trim();
     // Firestore auto-ids are exactly 20 chars of [A-Za-z0-9] — reject anything
     // else before touching the database.
-    if (!/^[A-Za-z0-9]{20}$/.test(orderId.trim()) || !normalizedEmail.includes('@')) {
+    if (!/^[A-Za-z0-9]{20}$/.test(trimmedOrderId) || !normalizedEmail.includes('@')) {
         throw new HttpsError('not-found', 'No matching order found');
     }
 
-    const snap = await admin.firestore().collection('orders').doc(orderId.trim()).get();
+    const db = admin.firestore();
+
+    // Abuse guard: the id+email pair is only a safe access control if
+    // checking it is slow to brute-force. Without this, someone who
+    // legitimately obtained ONE valid order id (a shared screenshot, a
+    // forwarded email) could script unlimited email guesses against that
+    // fixed id until one stops returning 'not-found'. Throttled here per
+    // orderId — legitimate lookups of different orders are unaffected —
+    // and, critically, throttled attempts get the exact same 'not-found'
+    // error as every other failure path, so a throttled caller still learns
+    // nothing about whether the id exists.
+    const throttleRef = db.collection('guestOrderLookupThrottle').doc(trimmedOrderId);
+    const COOLDOWN_MS = 3_000;
+    try {
+        const allowed = await db.runTransaction(async (tx) => {
+            const snap = await tx.get(throttleRef);
+            const now = Date.now();
+            if (snap.exists) {
+                const last = snap.data().lastCallMs || 0;
+                if (now - last < COOLDOWN_MS) {
+                    return false;
+                }
+            }
+            tx.set(throttleRef, { lastCallMs: now });
+            return true;
+        });
+        if (!allowed) {
+            throw new HttpsError('not-found', 'No matching order found');
+        }
+    } catch (err) {
+        if (err instanceof HttpsError) throw err;
+        // Fail closed (deny) on throttle-store errors, same generic error.
+        logger.error('lookupGuestOrder throttle check failed', err);
+        throw new HttpsError('not-found', 'No matching order found');
+    }
+
+    const snap = await db.collection('orders').doc(trimmedOrderId).get();
     if (!snap.exists) {
         throw new HttpsError('not-found', 'No matching order found');
     }

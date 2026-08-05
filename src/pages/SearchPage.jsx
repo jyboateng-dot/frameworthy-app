@@ -24,8 +24,16 @@ const CATEGORY_LABELS = {
     web: 'Web Image',
     met: 'Met Museum',
     albums: 'Album Artwork',
-    movies: 'Movie Poster'
+    movies: 'Movie Poster',
+    museum: 'Artists & Masterpieces'
 };
+
+// Unlike every other bucket below (small static arrays bundled into the
+// app), Artists & Masterpieces' ~6,940 products live in public/museum-data/
+// and are fetched at runtime — see build_museum_search_index.mjs for why a
+// search-specific index exists separately from the category file
+// MuseumArtPage uses. Fetched once, lazily, only when the Search tab is
+// actually visited.
 
 // Cap per-category so no single huge local collection (Met, Albums, Movies)
 // drowns out the rest of the grid — a handful of the best-matching results
@@ -125,8 +133,21 @@ const SearchPage = ({ setProductMode, setSelectedFrame, setSelectedSize, navigat
     const [webError, setWebError] = useState(false);
     const [webPage, setWebPage] = useState(1);
     const [hasMoreWeb, setHasMoreWeb] = useState(false);
+    const [museumIndex, setMuseumIndex] = useState(null); // null = not yet loaded
 
     useEffect(() => { sessionStorage.setItem('fw_search_query', query); }, [query]);
+
+    // Loaded once, on first mount of the Search tab — not gated behind a
+    // query, since the fetch takes a moment and shouldn't add latency to the
+    // user's first keystroke.
+    useEffect(() => {
+        let cancelled = false;
+        fetch('/museum-data/search-index.json')
+            .then(res => { if (!res.ok) throw new Error(`HTTP ${res.status}`); return res.json(); })
+            .then(data => { if (!cancelled) setMuseumIndex(Array.isArray(data) ? data : []); })
+            .catch(() => { if (!cancelled) setMuseumIndex([]); });
+        return () => { cancelled = true; };
+    }, []);
 
     // Debounce so local filtering + the live web request don't fire on every keystroke.
     useEffect(() => {
@@ -156,6 +177,7 @@ const SearchPage = ({ setProductMode, setSelectedFrame, setSelectedSize, navigat
         buckets.push(['met', FLAT_MET.filter(p => matches(p.title, q) || matches(p.artist, q))]);
         buckets.push(['albums', FLAT_ALBUMS.filter(p => matches(p.title, q) || matches(p.artist, q))]);
         buckets.push(['movies', FLAT_MOVIES.filter(p => matches(p.title, q))]);
+        buckets.push(['museum', (museumIndex || []).filter(p => matches(p.title, q) || matches(p.artist, q))]);
 
         const results = [];
         buckets.forEach(([category, items]) => {
@@ -174,6 +196,9 @@ const SearchPage = ({ setProductMode, setSelectedFrame, setSelectedSize, navigat
                     case 'movies':
                         title = raw.title; subtitle = raw.year; image = raw.image;
                         break;
+                    case 'museum':
+                        title = raw.title; subtitle = raw.artist; image = raw.image;
+                        break;
                     default:
                         title = raw.title; subtitle = raw.dims; image = raw.image;
                 }
@@ -188,7 +213,7 @@ const SearchPage = ({ setProductMode, setSelectedFrame, setSelectedSize, navigat
         });
 
         return results.slice(0, TOTAL_LOCAL_LIMIT);
-    }, [debouncedQuery]);
+    }, [debouncedQuery, museumIndex]);
 
     // Live web fallback via Openverse — a free, keyless, CC-licensed image
     // search API. Only images cleared for commercial use/modification are
@@ -318,6 +343,28 @@ const SearchPage = ({ setProductMode, setSelectedFrame, setSelectedSize, navigat
                         initialFrame: frameObj || null,
                         initialSize: sizeObj || null,
                         orientation: p.orientation || sizeObj?.orientation
+                    }
+                });
+                return;
+            }
+            case 'museum': {
+                const p = result.raw;
+                // Matches MuseumArtPage's own handleGetThis — Museum Art
+                // products don't carry per-item dimensions (scraped from
+                // bymuseum.com's generic product photos), so this is the
+                // same fixed default that page uses.
+                const dims = '40 x 50 cm';
+                const museumFrameObj = FRAME_STYLES.find(f => f.id === 'frame-10512') || FRAME_STYLES[0];
+                const sizeObj = resolveSizeFromDims(dims) || FRAME_SIZES.find(s => s.id === '16x20') || FRAME_SIZES[0];
+                if (museumFrameObj) setSelectedFrame(museumFrameObj);
+                if (sizeObj) setSelectedSize(sizeObj);
+                navigate('/frame/customize', {
+                    state: {
+                        presetImage: p.image,
+                        presetTitle: p.artist ? `${p.title} — ${p.artist}` : p.title,
+                        initialFrame: museumFrameObj || null,
+                        initialSize: sizeObj || null,
+                        orientation: sizeObj?.orientation || 'portrait'
                     }
                 });
                 return;
