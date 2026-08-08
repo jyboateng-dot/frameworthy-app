@@ -380,13 +380,6 @@ const CustomizeFramePage = ({
     const hoverTimeoutRef = useRef(null);
     const lastTapRef = useRef(0);
     const zoneRef = useRef(null);
-    // Measures the actual rendered height of the full-screen disclaimer
-    // caption so the frame's zoom-fit height cap (below) can reserve exactly
-    // that much room — a fixed percentage guess can't account for real
-    // per-device font rendering/wrapping, so it can't fully eliminate the
-    // overlap risk the way a live measurement can.
-    const fullScreenCaptionRef = useRef(null);
-    const [fullScreenCaptionHeight, setFullScreenCaptionHeight] = useState(0);
     const [loadingAction, setLoadingAction] = useState(null);
     const [wasAddedToCart, setWasAddedToCart] = useState(false);
     // Always holds the uploadedImage value from the most recent render, updated
@@ -672,22 +665,6 @@ const CustomizeFramePage = ({
         observer.observe(zoneRef.current);
         return () => observer.disconnect();
     }, []);
-
-    // The full-screen disclaimer caption only exists in the DOM while
-    // isFullScreen is true (see its conditional render below), so the ref
-    // is null until then — re-run whenever isFullScreen flips to attach/
-    // detach the observer accordingly.
-    useEffect(() => {
-        if (!isFullScreen || !fullScreenCaptionRef.current) {
-            setFullScreenCaptionHeight(0);
-            return;
-        }
-        const observer = new ResizeObserver((entries) => {
-            if (entries[0]) setFullScreenCaptionHeight(entries[0].contentRect.height);
-        });
-        observer.observe(fullScreenCaptionRef.current);
-        return () => observer.disconnect();
-    }, [isFullScreen]);
 
     // Full-screen visualizer: reset hover/max-zoom on every transition so
     // zoom state computed against one container size (pane vs. viewport)
@@ -1707,7 +1684,9 @@ const CustomizeFramePage = ({
                         ref={zoneRef}
                         className={`absolute left-0 w-full flex flex-col items-center justify-center transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] ${
                             isFullScreen
-                                ? 'top-0 h-full'
+                                // In full-screen mobile the note is a real footer below
+                                // this zone, not an overlay on top of the rendering.
+                                ? 'top-0 bottom-[calc(env(safe-area-inset-bottom)+4.5rem)] h-auto sm:bottom-0 sm:h-full'
                                 : 'top-12 sm:top-14 h-[calc(65%-3rem)] sm:h-[calc(65%-3.5rem)]'
                         }`}
                         onClick={(e) => {
@@ -1843,18 +1822,11 @@ const CustomizeFramePage = ({
                                 const baseHeightPx = baseWidthPx * (hInch / wInch);
 
                                 // Safe zoom boundaries: never exceed 90% of zone height or 85% of
-                                // zone width — except in full screen, which reserves room at the
-                                // bottom for the disclaimer caption instead. That reservation is
-                                // based on the caption's actual MEASURED height (fullScreenCaptionHeight,
-                                // via ResizeObserver), not a fixed percentage guess — a guess can't
-                                // account for real per-device font wrapping/rendering, so it can't
-                                // truly eliminate the overlap risk the way a live measurement can.
-                                // The frame is centered in the zone, so guaranteeing R px of
-                                // clearance at the bottom means reserving 2×R (R above + R below).
+                                // zone width. On mobile full-screen the zone itself stops above the
+                                // note footer, so the frame and its note can never overlap.
                                 const maxZoomWidthPx = zoneSize.width * 0.85;
-                                const fullScreenCaptionReservePx = Math.max(fullScreenCaptionHeight, 40) + 24 /* bottom offset */ + 16 /* breathing room */;
                                 const maxZoomHeightPx = isFullScreen
-                                    ? Math.max(80, zoneSize.height - fullScreenCaptionReservePx * 2)
+                                    ? Math.max(80, zoneSize.height * 0.90)
                                     : zoneSize.height * 0.90;
 
                                 const safeBaseW = baseWidthPx > 0 ? baseWidthPx : 1;
@@ -2330,17 +2302,12 @@ const CustomizeFramePage = ({
 
                 </div>
 
-                {/* Full-Screen Disclaimer Caption — the sofa reference (and
-                    its own copy of this note) is hidden in full screen, so
-                    this is the only place the disclaimer still appears there.
-                    Reserved its own space at the bottom via the zoomScale
-                    height cap above rather than overlaying the frame, and
-                    centered above the toggle button rather than sharing its
-                    corner so the two never crowd each other. */}
+                {/* Full-Screen Disclaimer Caption — a dedicated mobile footer
+                    beneath the rendering zone, with the desktop placement
+                    retained on wider screens. */}
                 {isFullScreen && (
                     <div
-                        ref={fullScreenCaptionRef}
-                        className={`absolute bottom-4 sm:bottom-6 left-1/2 -translate-x-1/2 w-[92%] sm:w-[70%] text-center text-[8px] sm:text-[11px] lg:text-[14px] ${isDarkWall ? 'text-stone-100/90' : 'text-stone-600/80'} select-none pointer-events-none font-medium ${wallNoteBlend} px-2 leading-relaxed tracking-wide z-20 transition-opacity duration-500 ${
+                        className={`absolute bottom-[max(1rem,env(safe-area-inset-bottom))] sm:bottom-6 left-1/2 -translate-x-1/2 w-[92%] sm:w-[70%] text-center text-[8px] sm:text-[11px] lg:text-[14px] ${isDarkWall ? 'text-stone-100/90' : 'text-stone-600/80'} select-none pointer-events-none font-medium ${wallNoteBlend} px-2 leading-relaxed tracking-wide z-20 transition-opacity duration-500 ${
                             paneVisible ? 'opacity-100' : 'opacity-0'
                         }`}
                     >
@@ -2367,7 +2334,9 @@ const CustomizeFramePage = ({
                     </div>
                 )}
 
-                {/* Full-Screen Toggle - Floating Bottom Right (YouTube-style).
+                {/* Full-Screen Toggle — stays bottom-right in every layout;
+                    mobile full-screen gets a larger safe-area inset so it is
+                    easy to reach without sitting against the phone corner.
                     Both icons stay mounted and crossfade/rotate via opacity —
                     an instant swap here would be a small but noticeable
                     jarring flicker right at the start of an otherwise smooth
@@ -2379,7 +2348,7 @@ const CustomizeFramePage = ({
                     itself, since it's the only way to exit. */}
                 <button
                     onClick={() => (isFullScreen ? exitFullScreen() : enterFullScreen())}
-                    className={`absolute bottom-3 right-3 sm:bottom-6 sm:right-6 z-30 w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center rounded-full border border-stone-200 shadow-sm hover:shadow-md transition-all bg-white/95 backdrop-blur text-stone-700 ${
+                    className={`absolute ${isFullScreen ? 'bottom-[max(1.5rem,env(safe-area-inset-bottom))] right-5 sm:bottom-6 sm:right-6' : 'bottom-3 right-3 sm:bottom-6 sm:right-6'} z-30 w-10 h-10 flex items-center justify-center rounded-full border border-stone-200 shadow-sm hover:shadow-md transition-all bg-white/95 backdrop-blur text-stone-700 ${
                         isMaxZoom && !isFullScreen ? 'opacity-0 scale-75 pointer-events-none' : 'opacity-100 scale-100'
                     }`}
                     title={isFullScreen ? 'Exit full screen' : 'Full screen'}
