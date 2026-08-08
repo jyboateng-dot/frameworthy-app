@@ -23,6 +23,7 @@ import { useUnit } from '../../context/UnitContext';
 import { useCart } from '../../context/CartContext';
 import { uploadImageToCloud, getThumbnailUrl } from '../../services/storage';
 import FrameSelectionModal from '../../components/FrameSelectionModal';
+import SizeGuidePanel from '../../components/framing/SizeGuidePanel';
 import MetArtSelectionModal from '../../components/MetArtSelectionModal';
 import { renderAlbumPoster } from '../../utils/albumPoster';
 import { renderMoviePoster } from '../../utils/moviePoster';
@@ -200,6 +201,7 @@ const CustomizeFramePage = ({
     // won't survive a page reload, so Add to Cart/Buy Now must wait for it.
     const [isCloudUploadPending, setIsCloudUploadPending] = useState(false);
     const [isFrameModalOpen, setIsFrameModalOpen] = useState(false);
+    const [isSizeGuideOpen, setIsSizeGuideOpen] = useState(false);
     const [isWallPickerOpen, setIsWallPickerOpen] = useState(false);
     const [isMetModalOpen, setIsMetModalOpen] = useState(false);
     const [isHovered, setIsHovered] = useState(false);
@@ -1529,6 +1531,19 @@ const CustomizeFramePage = ({
                                 ? 'top-0 h-full'
                                 : 'top-12 sm:top-14 h-[calc(65%-3rem)] sm:h-[calc(65%-3.5rem)]'
                         }`}
+                        onClick={(e) => {
+                            // This zone (not the outer visualizer pane) is
+                            // what actually receives clicks in the empty
+                            // margin around the frame — the room-scene
+                            // backdrop behind it is pointer-events-none, so
+                            // clicking the wall bubbles straight through to
+                            // here as e.target === e.currentTarget, while
+                            // clicking the frame itself (or the wall-color/
+                            // exit-fullscreen buttons, which sit outside
+                            // this zone) leaves e.target pointing at that
+                            // child instead and this is a no-op for it.
+                            if (isFullScreen && e.target === e.currentTarget) exitFullScreen();
+                        }}
                     >
 
                         {/* ── ROOM SCENE BACKDROP ──
@@ -2261,14 +2276,31 @@ const CustomizeFramePage = ({
                     </section>
 
                     {/* 3. Dimensions */}
-                    <section className={isPreset ? 'opacity-50 pointer-events-none' : ''}>
-                        <h2 className="text-xs font-bold uppercase tracking-wider text-stone-900 mb-3 flex items-center gap-2">
-                            <span className="bg-stone-100 text-stone-500 w-5 h-5 rounded-full flex items-center justify-center text-[10px]">{stepDimensions}</span>
-                            <span>
-                                Dimensions
-                                <InfoTooltip text="Dimensions show the inner opening size. Every frame is built custom to fit." />
+                    <section className={`relative ${isPreset ? 'opacity-50 pointer-events-none' : ''}`}>
+                        <h2 className="text-xs font-bold uppercase tracking-wider text-stone-900 mb-3 flex items-center justify-between gap-2">
+                            <span className="flex items-center gap-2">
+                                <span className="bg-stone-100 text-stone-500 w-5 h-5 rounded-full flex items-center justify-center text-[10px]">{stepDimensions}</span>
+                                <span>
+                                    Dimensions
+                                    <InfoTooltip text="Dimensions show the inner opening size. Every frame is built custom to fit." />
+                                </span>
                             </span>
+                            <button
+                                type="button"
+                                onClick={() => setIsSizeGuideOpen(v => !v)}
+                                className="normal-case tracking-normal font-semibold text-[11px] text-[#c9a84c] hover:text-[#b3924a] underline transition-colors"
+                            >
+                                Size guide
+                            </button>
                         </h2>
+                        {isSizeGuideOpen && (
+                            <SizeGuidePanel
+                                currentSize={selectedSize}
+                                onSelect={(entry) => { setSelectedSize(entry); }}
+                                unit={unit}
+                                onClose={() => setIsSizeGuideOpen(false)}
+                            />
+                        )}
                         <div className="grid grid-cols-2 gap-2">
                             {(!showAllSizes && !isAlbumArt && finalSizesList.length > 6) ? (
                                 <>

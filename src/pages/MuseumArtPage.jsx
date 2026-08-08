@@ -13,7 +13,20 @@ import { getThumbnailUrl } from '../services/storage';
 // artists as quick pills, everyone else in a searchable "More" dropdown —
 // same primary/secondary pattern the old category picker used before
 // Artists & Masterpieces was promoted to its own tab.
-const PRIMARY_ARTIST_COUNT = 8;
+//
+// Curated by hand rather than sorted by count — these are the artists
+// worth surfacing as a first impression, not necessarily the ones with the
+// most pieces in the catalogue. Exact spelling/casing must match the
+// `artist` string in artists_and_masterpieces.json (e.g. "Leonardo da
+// Vinci", lowercase "da") or the pill silently filters to zero results.
+const CURATED_PRIMARY_ARTISTS = [
+    'Leonardo da Vinci',
+    'Vincent Van Gogh',
+    'Rembrandt',
+    'Gustav Klimt',
+    'Claude Monet',
+    'Wassily Kandinsky',
+];
 
 // Artists & Masterpieces — a standalone Inspiration category, not a
 // sub-picker inside a broader "Museum Art" section anymore. It used to sit
@@ -112,15 +125,17 @@ const MuseumArtPage = ({ setProductMode, setSelectedFrame, setSelectedSize, navi
     // coverage, since only genuine Wikimedia matches survived the DPI
     // filter), so there's nothing extra to fetch or keep in sync.
     const { primaryArtists, secondaryArtists } = useMemo(() => {
-        const counts = new Map();
+        const allArtists = new Set();
         for (const p of (products || [])) {
-            if (!p.artist) continue;
-            counts.set(p.artist, (counts.get(p.artist) || 0) + 1);
+            if (p.artist) allArtists.add(p.artist);
         }
-        const byCount = Array.from(counts.entries()).sort((a, b) => b[1] - a[1]);
-        const primary = byCount.slice(0, PRIMARY_ARTIST_COUNT).map(([name]) => name);
-        const secondary = byCount.slice(PRIMARY_ARTIST_COUNT)
-            .map(([name]) => name)
+        // Curated list first, in the exact order specified — only artists
+        // actually present in the loaded data, so a typo/rename upstream
+        // degrades to "fewer pills" rather than a broken empty pill.
+        const primary = CURATED_PRIMARY_ARTISTS.filter(name => allArtists.has(name));
+        const primarySet = new Set(primary);
+        const secondary = Array.from(allArtists)
+            .filter(name => !primarySet.has(name))
             .sort((a, b) => a.localeCompare(b));
         return { primaryArtists: primary, secondaryArtists: secondary };
     }, [products]);
