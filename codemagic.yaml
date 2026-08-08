@@ -35,6 +35,54 @@ workflows:
           success: true
           failure: true
 
+  android-release:
+    name: Android Release Build (Play Store AAB)
+    max_build_duration: 45
+    instance_type: linux_x2
+    environment:
+      groups:
+        - production
+      node: 22
+      java: 21
+      vars:
+        PACKAGE_NAME: "com.frameworthyco.app"
+    triggering:
+      # Manual/tag-triggered only. This produces a signed release bundle for
+      # Google Play, so it should not run on every push to master.
+      events:
+        - tag
+      tag_patterns:
+        - pattern: 'android-*'
+          include: true
+    scripts:
+      - name: Install npm dependencies
+        script: npm install --legacy-peer-deps
+      - name: Sync Capacitor Android project
+        script: npx cap sync android
+      - name: Decode Android release keystore
+        script: |
+          if [ -z "$CM_KEYSTORE" ]; then
+            echo "CM_KEYSTORE is not set. Add a base64-encoded release keystore to the Codemagic production environment group."
+            exit 1
+          fi
+          echo "$CM_KEYSTORE" | base64 --decode > "$CM_BUILD_DIR/android-release.keystore"
+          echo "CM_KEYSTORE_PATH=$CM_BUILD_DIR/android-release.keystore" >> "$CM_ENV"
+      - name: Build signed Android App Bundle
+        script: |
+          cd android
+          chmod +x ./gradlew
+          ./gradlew bundleRelease
+    artifacts:
+      - android/app/build/outputs/**/*.aab
+      - android/app/build/outputs/**/mapping.txt
+    publishing:
+      email:
+        recipients:
+          - jyboateng@gmail.com
+        notify:
+          success: true
+          failure: true
+
   ios-simulator-build:
     name: iOS Simulator Build (no signing)
     max_build_duration: 30
