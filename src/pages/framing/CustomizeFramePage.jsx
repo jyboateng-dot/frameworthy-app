@@ -32,6 +32,8 @@ import { useAuth } from '../../context/AuthContext';
 import AuthModal from '../../components/AuthModal';
 import Price from '../../components/common/Price';
 import { visualizerFullScreenState } from '../../utils/visualizerFullScreenState';
+import { firebaseProjectId } from '../../services/firebase';
+import { createAndroidSceneViewerIntent, createArPreviewUrls, getArPlatform } from '../../utils/arPreview';
 
 // High-fidelity 3D side gradients for the frame
 const getSideBackground = (side, frame) => {
@@ -363,6 +365,9 @@ const CustomizeFramePage = ({
     const [isHovered, setIsHovered] = useState(false);
     const [isMaxZoom, setIsMaxZoom] = useState(false);
     const [isFullScreen, setIsFullScreen] = useState(false);
+    const [arPreviewUrls, setArPreviewUrls] = useState(null);
+    const [arPreviewMessage, setArPreviewMessage] = useState('');
+    const arPlatform = getArPlatform({ capacitorPlatform: Capacitor.getPlatform() });
     // Decoupled from isFullScreen so entering/exiting can crossfade instead
     // of hard-cutting: isFullScreen controls which layout (docked vs.
     // full-screen) is mounted, paneVisible controls that pane's own
@@ -437,6 +442,31 @@ const CustomizeFramePage = ({
         width: typeof window !== 'undefined' ? window.innerWidth : 1200,
         height: typeof window !== 'undefined' ? window.innerHeight : 800,
     });
+
+    const prepareArPreview = () => {
+        const sourceImage = productionImage || uploadedImage;
+        const previewUrls = createArPreviewUrls({
+            projectId: firebaseProjectId,
+            frame: selectedFrame,
+            size: selectedSize,
+            orientation,
+            artworkUrl: sourceImage,
+        });
+        if (!previewUrls) {
+            setArPreviewMessage('Finish uploading an image before preparing an AR preview.');
+            return;
+        }
+        setArPreviewUrls(previewUrls);
+        setArPreviewMessage('Preview ready. Open it to place the frame on a wall.');
+    };
+
+    // The generated Quick Look URL represents one exact configuration. Clear
+    // it as soon as any physical or visual property changes so customers can
+    // never open a stale AR object after changing their frame or dimensions.
+    useEffect(() => {
+        setArPreviewUrls(null);
+        setArPreviewMessage('');
+    }, [selectedFrame?.id, selectedSize?.width, selectedSize?.height, orientation, productionImage, uploadedImage]);
 
     useEffect(() => {
         const handleResize = () => setWindowSize({
@@ -2360,6 +2390,37 @@ const CustomizeFramePage = ({
                         <X size={18} className={`absolute transition-all duration-300 ${isFullScreen ? 'opacity-100 rotate-0 scale-100' : 'opacity-0 -rotate-45 scale-75'}`} />
                     </span>
                 </button>
+
+                {!isFullScreen && arPlatform && (
+                    <div className="absolute bottom-3 left-3 sm:bottom-6 sm:left-6 z-30 flex flex-col items-start gap-1.5">
+                        {arPreviewUrls ? (
+                            <a
+                                rel={arPlatform === 'ios' ? 'ar' : undefined}
+                                href={arPlatform === 'android'
+                                    ? createAndroidSceneViewerIntent(arPreviewUrls.android)
+                                    : arPreviewUrls.ios}
+                                aria-label="View this frame in augmented reality"
+                                title="View in AR"
+                                className="relative grid h-10 w-10 place-items-center rounded-full border border-[#a6824c]/60 bg-white/95 text-[11px] font-bold tracking-[-0.08em] text-[#8d6c38] shadow-md backdrop-blur transition hover:border-[#8d6c38] hover:bg-[#f8f3e8]"
+                            >
+                                {/* Quick Look requires an image inside its rel=ar link. */}
+                                <img src={getThumbnailUrl(productionImage || uploadedImage, 40)} alt="" className="absolute h-px w-px opacity-0" />
+                                <span aria-hidden="true">AR</span>
+                            </a>
+                        ) : (
+                            <button
+                                type="button"
+                                onClick={prepareArPreview}
+                                aria-label="Prepare this frame for augmented reality"
+                                title="View in AR"
+                                className="grid h-10 w-10 place-items-center rounded-full border border-[#a6824c]/60 bg-white/95 text-[11px] font-bold tracking-[-0.08em] text-[#8d6c38] shadow-md backdrop-blur transition hover:border-[#8d6c38] hover:bg-[#f8f3e8]"
+                            >
+                                <span aria-hidden="true">AR</span>
+                            </button>
+                        )}
+                        {arPreviewMessage && <p aria-live="polite" className="max-w-[190px] rounded bg-white/80 px-1.5 py-1 text-[9px] leading-snug text-stone-600 shadow-sm backdrop-blur">{arPreviewMessage}</p>}
+                    </div>
+                )}
             </div>
 
             {/* RIGHT: CONFIGURATION DASHBOARD — fades in with the same

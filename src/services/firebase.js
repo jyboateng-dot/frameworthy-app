@@ -45,6 +45,7 @@ export const auth = getAuth(app);
 export const db = getFirestore(app);
 // Region matches where verifyPaystackPayment was deployed (functions/index.js).
 export const functions = getFunctions(app, 'us-central1');
+export const firebaseProjectId = firebaseConfig.projectId;
 // Image storage is handled by Cloudinary (see src/services/storage.js), not
 // Firebase Storage — this avoids requiring the Blaze billing plan, which
 // Firebase now mandates for Cloud Storage on new projects.

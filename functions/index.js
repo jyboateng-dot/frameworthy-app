@@ -5,8 +5,35 @@ const admin = require('firebase-admin');
 const crypto = require('crypto');
 const { recomputeOrderTotal } = require('./pricing');
 const { FRAMEWORTHY_KNOWLEDGE_BASE } = require('./supportKnowledge');
+const { buildArPreviewGlb, buildArPreviewUsdz } = require('./arPreview');
 
 admin.initializeApp();
+
+// Safari's AR Quick Look needs a URL to a USDZ file, rather than an in-page
+// canvas. The model is generated on request from the active framing config:
+// its outer dimensions are real metres, while the depth/profile are the
+// documented generic first-release values until measured moulding profiles
+// are supplied per SKU.
+exports.createArPreview = onRequest({ region: 'us-central1', timeoutSeconds: 30, maxInstances: 5 }, async (req, res) => {
+    if (req.method !== 'GET') {
+        res.status(405).send('Method not allowed');
+        return;
+    }
+    try {
+        const isAndroid = req.query.format === 'glb';
+        const archive = isAndroid ? await buildArPreviewGlb(req.query.d) : await buildArPreviewUsdz(req.query.d);
+        res.set({
+            'Content-Type': isAndroid ? 'model/gltf-binary' : 'model/vnd.usdz+zip',
+            'Content-Disposition': `inline; filename="frameworthy-preview.${isAndroid ? 'glb' : 'usdz'}"`,
+            'Cache-Control': 'private, max-age=300',
+            'X-Content-Type-Options': 'nosniff',
+        });
+        res.status(200).send(archive);
+    } catch (error) {
+        logger.warn('Could not create AR Quick Look preview', { message: error.message });
+        res.status(400).json({ error: error.message || 'Could not create AR preview' });
+    }
+});
 
 // Stored in Secret Manager via `firebase functions:secrets:set PAYSTACK_SECRET_KEY`
 // — never committed to source, never sent to the client.
