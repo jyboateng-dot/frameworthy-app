@@ -1,0 +1,18 @@
+{
+  "models": [
+    {
+      "title": "Ollama Gemma4",
+      "provider": "openai",
+      "model": "gemma4:e4b",
+      "apiKey": "ollama",
+      "apiBase": "http://localhost:11434/v1"
+    }
+  ],
+  "tabAutocompleteModel": {
+      "title": "Ollama Gemma4",
+      "provider": "openai",
+      "model": "gemma4:e4b",
+      "apiKey": "ollama",
+      "apiBase": "http://localhost:11434/v1"
+  }
+}

@@ -17,7 +17,8 @@ import {
 import { FRAME_STYLES, FRAME_SIZES, MAT_COLORS, formatDimensions, findSizeByDimension, parseCustomSize, DEFAULT_DEMO_IMAGE } from '../../data/constants';
 import { ROOM_SCENES, computeRoomPlacement } from '../../data/roomScenes';
 import StudioLoftScene from '../../components/framing/StudioLoftScene';
-import { getFrameTextureAnchor, TEXTURE_ZOOM_PCT } from '../../utils/frameTexture';
+import { getFrameTextureAnchor, TEXTURE_ZOOM_PCT, basenameOf } from '../../utils/frameTexture';
+import FRAME_STRIP_MANIFEST from '../../data/frameStrips.json';
 import WEB_MET_DIMS from '../../data/web_met_dims.json';
 import { useUnit } from '../../context/UnitContext';
 import { useCart } from '../../context/CartContext';
@@ -71,7 +72,6 @@ const getSideBackground = (side, frame) => {
 // identity colour for `overlay`, so this sweeps from a highlight through
 // true no-op to a shadow without needing alpha transparency, and applies the
 // same regardless of the photo's own material colour underneath.
-const BEVEL_SHADE_STOPS = '#e8e8e8 0%, #808080 45%, #282828 100%';
 const BEVEL_SHADE_DIR = { top: 'to bottom', bottom: 'to top', left: 'to right', right: 'to left' };
 
 // The catalogue's corner photos are 3D product shots — most show the front-
@@ -89,22 +89,178 @@ const BEVEL_SHADE_DIR = { top: 'to bottom', bottom: 'to top', left: 'to right', 
 // tried and why it wasn't enough on its own. TEXTURE_ZOOM_PCT is imported
 // rather than redefined here so detection and rendering can't drift apart.
 
-// Fills a moulding side with the frame's actual corner photo — cropped and
-// zoomed to a texture-detail view around a verified on-material point, see
-// utils/frameTexture.js — with the same directional bevel shading the
-// gradient fallback below uses, composited via `overlay` blend mode. Returns
-// null (not a style) when no confident anchor exists yet or detection
-// failed, so the caller falls back to the synthesized-gradient rendering —
-// this never produces a broken/misaligned result, only "not upgraded yet."
-const getSideTextureStyle = (side, frame, anchor) => {
+// Returns a tightly cropped sample of real moulding material. A raw corner
+// photo is deliberately treated as non-directional: its grain/profile has
+// not been rectified into a reliable strip, so rotating it would invent
+// seams. A reviewed strip can opt in through `textureOrientation` later.
+const getFrameFaceTextureStyle = (frame, anchor) => {
     if (!anchor || !frame?.previewImg) return null;
     return {
-        backgroundImage: `linear-gradient(${BEVEL_SHADE_DIR[side]}, ${BEVEL_SHADE_STOPS}), url(${frame.previewImg})`,
-        backgroundBlendMode: 'overlay',
-        backgroundSize: `${TEXTURE_ZOOM_PCT}% ${TEXTURE_ZOOM_PCT}%, ${TEXTURE_ZOOM_PCT}% ${TEXTURE_ZOOM_PCT}%`,
-        backgroundPosition: `${anchor.xPct}% ${anchor.yPct}%, ${anchor.xPct}% ${anchor.yPct}%`,
-        backgroundRepeat: 'no-repeat, no-repeat',
+        backgroundImage: `url(${frame.previewImg})`,
+        backgroundSize: `${TEXTURE_ZOOM_PCT}% ${TEXTURE_ZOOM_PCT}%`,
+        backgroundPosition: `${anchor.xPct}% ${anchor.yPct}%`,
+        backgroundRepeat: 'no-repeat',
     };
+};
+
+// Real tileable moulding strips (see scripts/generate-frame-strips.mjs and
+// src/data/frameStrips.json) for the subset of the catalogue — mostly the
+// ornate/carved frames — where they've been generated AND manually
+// reviewed. Everything else keeps the single-patch anchor crop below,
+// which is the only honest option for a frame with no strip: repeating a
+// motif that was never verified to tile would risk the exact silent-defect
+// failure the strip pipeline's review process exists to catch.
+const getFrameStripEntry = (frame) => {
+    if (!frame?.previewImg) return null;
+    return FRAME_STRIP_MANIFEST[basenameOf(frame.previewImg)] || null;
+};
+
+// Unlike the anchor crop (one static patch, `no-repeat`), a strip is built
+// to repeat: `-h.webp` for top/bottom, pre-rotated `-v.webp` for left/right
+// (rotated at generation time with sharp, not via a CSS transform — a real
+// rotated image needs no overscan hack to hide a transformed bounding box,
+// unlike the raw-crop rotation path below). `auto <axis>` keeps the
+// strip's own aspect ratio while its other axis fills the moulding's
+// actual rendered thickness, so it tiles correctly at any frame size.
+const getFrameStripTextureStyle = (side, stripEntry) => {
+    if (!stripEntry) return null;
+    const isHorizontal = side === 'top' || side === 'bottom';
+    const file = isHorizontal ? stripEntry.h : stripEntry.v;
+    if (!file) return null;
+    return {
+        backgroundImage: `url(/frames/strips/${file})`,
+        backgroundRepeat: isHorizontal ? 'repeat-x' : 'repeat-y',
+        backgroundSize: isHorizontal ? 'auto 100%' : '100% auto',
+        backgroundPosition: 'center',
+    };
+};
+
+// Catalogue styling is intentionally inferred from a frame's own name and
+// description rather than from its broad browsing category. That lets every
+// existing SKU participate immediately, while an eventual measured profile
+// (for example `renderProfile: 'scoop'`) can override the inference without
+// changing the renderer.
+const getFrameVisualProfile = (frame) => {
+    const label = `${frame?.name || ''} ${frame?.desc || ''}`.toLowerCase();
+    const explicitProfile = frame?.renderProfile;
+    const profile = explicitProfile || (
+        /floater|float frame/.test(label) ? 'floater' :
+        /scoop|reverse/.test(label) ? 'scoop' :
+        /deep|shadow/.test(label) ? 'deep' :
+        /bevel|angled|lip/.test(label) ? 'bevel' :
+        /ornate|renaissance|embossed|carved|bamboo/.test(label) ? 'raised' :
+        'flat'
+    );
+    const finish = /gold|silver|pewter|metallic|chrome|bronze|copper|rose gold/.test(label)
+        ? 'metallic'
+        : /glossy|lacquer/.test(label)
+            ? 'gloss'
+            : 'matte';
+
+    return { profile, finish };
+};
+
+const getProfileLightOverlay = (side, visualProfile) => {
+    const direction = BEVEL_SHADE_DIR[side];
+    const stops = {
+        // Scoop and deep mouldings need the highlight to fall away then return
+        // toward the inside edge. Raised/ornate mouldings retain a gentler
+        // highlight so their real captured detail remains the focal point.
+        scoop: 'rgba(255,255,255,0.34) 0%, rgba(30,30,30,0.18) 28%, rgba(255,255,255,0.12) 57%, rgba(0,0,0,0.48) 100%',
+        deep: 'rgba(255,255,255,0.24) 0%, rgba(0,0,0,0.06) 35%, rgba(0,0,0,0.60) 100%',
+        bevel: 'rgba(255,255,255,0.36) 0%, rgba(255,255,255,0.04) 42%, rgba(0,0,0,0.46) 100%',
+        raised: 'rgba(255,255,255,0.24) 0%, rgba(255,255,255,0) 38%, rgba(0,0,0,0.32) 100%',
+        floater: 'rgba(255,255,255,0.16) 0%, rgba(0,0,0,0.38) 100%',
+        flat: 'rgba(255,255,255,0.18) 0%, rgba(0,0,0,0.26) 100%',
+    }[visualProfile.profile] || 'rgba(255,255,255,0.18) 0%, rgba(0,0,0,0.26) 100%';
+
+    const sheen = visualProfile.finish === 'metallic'
+        ? `, linear-gradient(${direction}, rgba(255,255,255,0.34) 0%, rgba(255,255,255,0) 24%, rgba(255,255,255,0.18) 52%, rgba(0,0,0,0.14) 100%)`
+        : visualProfile.finish === 'gloss'
+            ? `, linear-gradient(${direction}, rgba(255,255,255,0.28) 0%, rgba(255,255,255,0) 32%)`
+            : '';
+
+    return `linear-gradient(${direction}, ${stops})${sheen}`;
+};
+
+// A single physical moulding side. The parent supplies the computed visual
+// geometry and mitre clip; this component handles the material/lighting
+// layers. Keeping texture and bevel as separate layers is important: the
+// photograph supplies the finish, while the side determines where light
+// catches the profile.
+//
+// Two different texture sources, in preference order:
+//   1. A reviewed tileable strip (getFrameStripEntry) — real repeating
+//      material, pre-rotated per side at generation time, so it needs
+//      neither a CSS rotation transform nor overscan.
+//   2. The single-patch anchor crop (getFrameFaceTextureStyle) — the
+//      fallback for every frame without a strip. `textureOrientation`
+//      controls ITS rotation only: a raw catalogue crop was never
+//      verified to survive rotation without exposing its own mitre or
+//      studio background (see the module comment above), so nothing
+//      currently sets that field and this path stays unrotated in
+//      practice — kept for a future per-frame override, not dead code to
+//      remove.
+const FrameMouldingSide = ({ side, frame, textureAnchor, style }) => {
+    const stripEntry = getFrameStripEntry(frame);
+    const stripStyle = getFrameStripTextureStyle(side, stripEntry);
+    const textureStyle = stripStyle || getFrameFaceTextureStyle(frame, textureAnchor);
+    const visualProfile = getFrameVisualProfile(frame);
+    const hasDirectionalTexture = !stripStyle && frame?.textureOrientation === 'along-frame';
+    const rotation = hasDirectionalTexture && side === 'left'
+        ? 'rotate(-90deg)'
+        : hasDirectionalTexture && side === 'right'
+            ? 'rotate(90deg)'
+            : 'none';
+
+    return (
+        <div
+            className="absolute z-10 overflow-hidden transition-all duration-300"
+            style={{
+                ...style,
+                backgroundImage: getSideBackground(side, frame),
+                isolation: 'isolate',
+            }}
+        >
+            {textureStyle && (
+                <div
+                    className="absolute pointer-events-none"
+                    style={{
+                        // Overscan is only valid for the raw-crop rotation path.
+                        // A strip is already correctly oriented per side, and
+                        // applying this would just crop most of the tiling away.
+                        inset: hasDirectionalTexture && (side === 'left' || side === 'right') ? '-65%' : '0',
+                        ...textureStyle,
+                        transform: rotation,
+                        transformOrigin: 'center',
+                    }}
+                />
+            )}
+            {textureStyle && (
+                <div
+                    className="absolute inset-0 pointer-events-none"
+                    style={{
+                        backgroundImage: getProfileLightOverlay(side, visualProfile),
+                        backgroundBlendMode: visualProfile.finish === 'metallic' ? 'screen, overlay' : 'normal',
+                        mixBlendMode: visualProfile.finish === 'matte' ? 'overlay' : 'soft-light',
+                    }}
+                />
+            )}
+            {!textureStyle && (
+                <div
+                    className="absolute inset-0 pointer-events-none"
+                    style={{
+                        backgroundImage: getProfileLightOverlay(side, visualProfile),
+                        opacity: 0.72,
+                    }}
+                />
+            )}
+            {/* A restrained inner falloff makes a flat material crop read as
+                a real face receding into the rabbet, without inventing a new
+                profile that isn't present in the selected moulding. */}
+            <div className="absolute inset-0 pointer-events-none shadow-[inset_0_1px_1px_rgba(255,255,255,0.14),inset_0_-2px_3px_rgba(0,0,0,0.18)]" />
+        </div>
+    );
 };
 
 // Wall Paint Colors
@@ -1341,13 +1497,6 @@ const CustomizeFramePage = ({
     // mode, which stays legible against any solid color.
     const activeRoom = roomSceneId ? ROOM_SCENES.find((s) => s.id === roomSceneId) : null;
 
-    // Real photo texture when a confident anchor was found for this frame's
-    // corner photo, else the synthesized gradient — see getSideTextureStyle
-    // and utils/frameTexture.js for why this can legitimately stay on the
-    // gradient fallback for some frames rather than force a texture fit.
-    const sideBackgroundStyle = (side) =>
-        getSideTextureStyle(side, selectedFrame, frameTextureAnchor) || { backgroundImage: getSideBackground(side, selectedFrame) };
-
     const wallLuminance = (() => {
         const hex = wallColor.hex.replace('#', '');
         const r = parseInt(hex.substring(0, 2), 16);
@@ -1877,38 +2026,54 @@ const CustomizeFramePage = ({
                                                 {/* Outer Frame Edge — 4 Mitered 3D Borders */}
                                                 <div className="absolute inset-0 transition-all duration-300">
                                                     {/* Top */}
-                                                    <div
-                                                        className="absolute top-0 left-0 right-0 z-10"
+                                                    <FrameMouldingSide
+                                                        side="top"
+                                                        frame={selectedFrame}
+                                                        textureAnchor={frameTextureAnchor}
                                                         style={{
+                                                            top: 0,
+                                                            left: 0,
+                                                            right: 0,
                                                             height: `${mouldingPctH}%`,
-                                                            ...sideBackgroundStyle('top'),
                                                             clipPath: `polygon(0 0, 100% 0, ${100 - mouldingPctW}% 100%, ${mouldingPctW}% 100%)`
                                                         }}
                                                     />
                                                     {/* Bottom */}
-                                                    <div
-                                                        className="absolute bottom-0 left-0 right-0 z-10"
+                                                    <FrameMouldingSide
+                                                        side="bottom"
+                                                        frame={selectedFrame}
+                                                        textureAnchor={frameTextureAnchor}
                                                         style={{
+                                                            bottom: 0,
+                                                            left: 0,
+                                                            right: 0,
                                                             height: `${mouldingPctH}%`,
-                                                            ...sideBackgroundStyle('bottom'),
                                                             clipPath: `polygon(${mouldingPctW}% 0, ${100 - mouldingPctW}% 0, 100% 100%, 0 100%)`
                                                         }}
                                                     />
                                                     {/* Left */}
-                                                    <div
-                                                        className="absolute top-0 bottom-0 left-0 z-10"
+                                                    <FrameMouldingSide
+                                                        side="left"
+                                                        frame={selectedFrame}
+                                                        textureAnchor={frameTextureAnchor}
                                                         style={{
+                                                            top: 0,
+                                                            bottom: 0,
+                                                            left: 0,
                                                             width: `${mouldingPctW}%`,
-                                                            ...sideBackgroundStyle('left'),
                                                             clipPath: `polygon(0 0, 100% ${mouldingPctH}%, 100% ${100 - mouldingPctH}%, 0 100%)`
                                                         }}
                                                     />
                                                     {/* Right */}
-                                                    <div
-                                                        className="absolute top-0 bottom-0 right-0 z-10"
+                                                    <FrameMouldingSide
+                                                        side="right"
+                                                        frame={selectedFrame}
+                                                        textureAnchor={frameTextureAnchor}
                                                         style={{
+                                                            top: 0,
+                                                            bottom: 0,
+                                                            right: 0,
                                                             width: `${mouldingPctW}%`,
-                                                            ...sideBackgroundStyle('right'),
                                                             clipPath: `polygon(0 ${mouldingPctH}%, 100% 0, 100% 100%, 0 ${100 - mouldingPctH}%)`
                                                         }}
                                                     />

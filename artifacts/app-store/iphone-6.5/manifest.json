@@ -1,0 +1,88 @@
+{
+  "target": {
+    "width": 1284,
+    "height": 2778
+  },
+  "screenshots": [
+    {
+      "file": "01-welcome-to-frameworthy.jpg",
+      "source": "IMG_0553.PNG",
+      "dimensions": "1284x2778",
+      "format": "jpeg",
+      "alpha": false,
+      "paddedBottomPixels": 153
+    },
+    {
+      "file": "02-upload-your-art.jpg",
+      "source": "IMG_0554.PNG",
+      "dimensions": "1284x2778",
+      "format": "jpeg",
+      "alpha": false,
+      "paddedBottomPixels": 217
+    },
+    {
+      "file": "03-curate-your-hallways.jpg",
+      "source": "IMG_0555.PNG",
+      "dimensions": "1284x2778",
+      "format": "jpeg",
+      "alpha": false,
+      "paddedBottomPixels": 192
+    },
+    {
+      "file": "04-browse-frame-styles.jpg",
+      "source": "IMG_0552.PNG",
+      "dimensions": "1284x2778",
+      "format": "jpeg",
+      "alpha": false,
+      "paddedBottomPixels": 146
+    },
+    {
+      "file": "05-customize-your-frame.jpg",
+      "source": "IMG_0563.PNG",
+      "dimensions": "1284x2778",
+      "format": "jpeg",
+      "alpha": false,
+      "paddedBottomPixels": 426
+    },
+    {
+      "file": "06-refine-every-detail.jpg",
+      "source": "IMG_0564.PNG",
+      "dimensions": "1284x2778",
+      "format": "jpeg",
+      "alpha": false,
+      "paddedBottomPixels": 409
+    },
+    {
+      "file": "07-discover-curated-art.jpg",
+      "source": "IMG_0557.PNG",
+      "dimensions": "1284x2778",
+      "format": "jpeg",
+      "alpha": false,
+      "paddedBottomPixels": 601
+    },
+    {
+      "file": "08-explore-museum-masterpieces.jpg",
+      "source": "IMG_0558.PNG",
+      "dimensions": "1284x2778",
+      "format": "jpeg",
+      "alpha": false,
+      "paddedBottomPixels": 369
+    },
+    {
+      "file": "09-create-your-gallery.jpg",
+      "source": "IMG_0560.PNG",
+      "dimensions": "1284x2778",
+      "format": "jpeg",
+      "alpha": false,
+      "paddedBottomPixels": 597
+    },
+    {
+      "file": "10-showcase-the-best.jpg",
+      "source": "IMG_0561.PNG",
+      "dimensions": "1284x2778",
+      "format": "jpeg",
+      "alpha": false,
+      "paddedBottomPixels": 555
+    }
+  ]
+}

@@ -1,26 +1,59 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { FRAME_STYLES, CATEGORIES } from '../data/constants';
 
+// A frame's real category (e.g. "Ornate & Antique") and its possible spot in
+// the curated "Most Popular" tab are independent — extracted once so both
+// the grid filter and the modal's initial-tab guess (below) read the same
+// list instead of two copies drifting apart.
+const MOST_POPULAR_IDS = [
+    'frame-canvas',  // Gallery Wrapped Canvas
+    'frame-10512',   // Black Contemporary (lead)
+    'frame-10728',   // Flat White Deep
+    'frame-8446',    // Flat Black Wide
+    'frame-10487',   // Natural Flat
+    'frame-10729',   // Flat Brown Deep
+    'frame-10592',   // Contemporary Walnut
+    'frame-11169',   // Gold Flat
+    'frame-10484',   // Cherry Flat
+    'frame-8752',    // Flat Walnut Wide
+    'frame-8753',    // Flat Mahogany Wide
+    'frame-10779',   // Glossy Black
+];
+
+// The parent only mounts this modal while it's open (`{isFrameModalOpen &&
+// <FrameSelectionModal/>}`), so every close is a real unmount — activeCategory
+// living in plain useState(CATEGORIES[0]) forgot which tab you'd drilled
+// into the instant you closed the picker to go do anything else in the
+// customization journey (pick a size, adjust matting, ...) and come back.
+// Since the currently selected frame is the one piece of state that DOES
+// survive that round trip (it lives in the parent), deriving the initial
+// tab from it — rather than always defaulting to the first tab — is what
+// makes reopening the picker land back where the current selection
+// actually lives.
+const initialCategoryFor = (selectedFrame) => {
+    if (!selectedFrame) return CATEGORIES[0];
+    if (MOST_POPULAR_IDS.includes(selectedFrame.id)) return 'Most Popular';
+    return selectedFrame.category || CATEGORIES[0];
+};
+
 export default function FrameSelectionModal({ isOpen, onClose, selectedFrame, onSelect }) {
-    const [activeCategory, setActiveCategory] = useState(CATEGORIES[0]);
+    const [activeCategory, setActiveCategory] = useState(() => initialCategoryFor(selectedFrame));
+    const selectedCardRef = useRef(null);
+
+    // Scrolls the current selection into view once, right after the grid for
+    // its category has rendered — same "return to where you were" intent as
+    // the category fix above, one level more precise. Empty deps: this
+    // should fire once per mount (i.e. once per time the picker opens), not
+    // re-fire on every render as the user browses other frames afterward.
+    useEffect(() => {
+        selectedCardRef.current?.scrollIntoView({ block: 'center' });
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     if (!isOpen) return null;
 
     const filteredFrames = activeCategory === 'Most Popular'
-        ? [
-            FRAME_STYLES.find(f => f.id === 'frame-canvas'), // Gallery Wrapped Canvas
-            FRAME_STYLES.find(f => f.id === 'frame-10512'), // Black Contemporary (lead)
-            FRAME_STYLES.find(f => f.id === 'frame-10728'), // Flat White Deep
-            FRAME_STYLES.find(f => f.id === 'frame-8446'),  // Flat Black Wide
-            FRAME_STYLES.find(f => f.id === 'frame-10487'), // Natural Flat
-            FRAME_STYLES.find(f => f.id === 'frame-10729'), // Flat Brown Deep
-            FRAME_STYLES.find(f => f.id === 'frame-10592'), // Contemporary Walnut
-            FRAME_STYLES.find(f => f.id === 'frame-11169'), // Gold Flat
-            FRAME_STYLES.find(f => f.id === 'frame-10484'), // Cherry Flat
-            FRAME_STYLES.find(f => f.id === 'frame-8752'),  // Flat Walnut Wide
-            FRAME_STYLES.find(f => f.id === 'frame-8753'),  // Flat Mahogany Wide
-            FRAME_STYLES.find(f => f.id === 'frame-10779'), // Glossy Black
-          ].filter(Boolean)
+        ? MOST_POPULAR_IDS.map(id => FRAME_STYLES.find(f => f.id === id)).filter(Boolean)
         : FRAME_STYLES.filter(f => f.category === activeCategory);
 
     return (
@@ -51,6 +84,7 @@ export default function FrameSelectionModal({ isOpen, onClose, selectedFrame, on
                     {filteredFrames.map(f => (
                         <button
                             key={f.id}
+                            ref={selectedFrame?.id === f.id ? selectedCardRef : null}
                             onClick={() => { onSelect(f); onClose(); }}
                             className={`group flex flex-col bg-white rounded-lg overflow-hidden border transition-all ${selectedFrame?.id === f.id ? 'border-black ring-2 ring-black ring-offset-1 shadow-md' : 'border-gray-200 hover:border-gray-300 hover:shadow-sm'}`}
                         >

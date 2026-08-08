@@ -1,0 +1,48 @@
+{
+  "target": {
+    "width": 1320,
+    "height": 2868
+  },
+  "screenshots": [
+    {
+      "file": "curate-your-hallways.jpg",
+      "source": "IMG_0555.PNG",
+      "dimensions": "1320x2868",
+      "format": "jpeg",
+      "alpha": false,
+      "paddedBottomPixels": 210
+    },
+    {
+      "file": "frame-your-favorite-album-covers.jpg",
+      "source": "IMG_0556.PNG",
+      "dimensions": "1320x2868",
+      "format": "jpeg",
+      "alpha": false,
+      "paddedBottomPixels": 319
+    },
+    {
+      "file": "original-paintings.jpg",
+      "source": "IMG_0565.PNG",
+      "dimensions": "1320x2868",
+      "format": "jpeg",
+      "alpha": false,
+      "paddedBottomPixels": 351
+    },
+    {
+      "file": "artists-and-masterpieces.jpg",
+      "source": "IMG_0566.PNG",
+      "dimensions": "1320x2868",
+      "format": "jpeg",
+      "alpha": false,
+      "paddedBottomPixels": 186
+    },
+    {
+      "file": "album-artwork.jpg",
+      "source": "IMG_0567.PNG",
+      "dimensions": "1320x2868",
+      "format": "jpeg",
+      "alpha": false,
+      "paddedBottomPixels": 210
+    }
+  ]
+}

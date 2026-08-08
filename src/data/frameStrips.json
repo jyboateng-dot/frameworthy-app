@@ -1,0 +1,2571 @@
+{
+  "10065_corner_a_1_2.jpg": {
+    "h": "10065_corner_a_1_2-h.webp",
+    "v": "10065_corner_a_1_2-v.webp",
+    "tileLength": 558,
+    "thickness": 171,
+    "confidence": 1.477
+  },
+  "10066_a_1.jpg": {
+    "h": "10066_a_1-h.webp",
+    "v": "10066_a_1-v.webp",
+    "tileLength": 370,
+    "thickness": 296,
+    "confidence": 1.126
+  },
+  "10101_a.jpg": {
+    "h": "10101_a-h.webp",
+    "v": "10101_a-v.webp",
+    "tileLength": 630,
+    "thickness": 164,
+    "confidence": 1.193
+  },
+  "10136-a_2.jpg": {
+    "h": "10136-a_2-h.webp",
+    "v": "10136-a_2-v.webp",
+    "tileLength": 558,
+    "thickness": 140,
+    "confidence": 1.277
+  },
+  "10165_a_1.jpg": {
+    "h": "10165_a_1-h.webp",
+    "v": "10165_a_1-v.webp",
+    "tileLength": 444,
+    "thickness": 194,
+    "confidence": 1.146
+  },
+  "10166_a_1.jpg": {
+    "h": "10166_a_1-h.webp",
+    "v": "10166_a_1-v.webp",
+    "tileLength": 404,
+    "thickness": 180,
+    "confidence": 1.158
+  },
+  "10167_a_1.jpg": {
+    "h": "10167_a_1-h.webp",
+    "v": "10167_a_1-v.webp",
+    "tileLength": 408,
+    "thickness": 198,
+    "confidence": 1.144
+  },
+  "10168_a_1.jpg": {
+    "h": "10168_a_1-h.webp",
+    "v": "10168_a_1-v.webp",
+    "tileLength": 518,
+    "thickness": 157,
+    "confidence": 1.235
+  },
+  "10169_a_1.jpg": {
+    "h": "10169_a_1-h.webp",
+    "v": "10169_a_1-v.webp",
+    "tileLength": 546,
+    "thickness": 177,
+    "confidence": 1.107
+  },
+  "10171_a.jpg": {
+    "h": "10171_a-h.webp",
+    "v": "10171_a-v.webp",
+    "tileLength": 534,
+    "thickness": 175,
+    "confidence": 1.177
+  },
+  "10235_a_1.jpg": {
+    "h": "10235_a_1-h.webp",
+    "v": "10235_a_1-v.webp",
+    "tileLength": 446,
+    "thickness": 205,
+    "confidence": 1.187
+  },
+  "10236_a.jpg": {
+    "h": "10236_a-h.webp",
+    "v": "10236_a-v.webp",
+    "tileLength": 426,
+    "thickness": 206,
+    "confidence": 1.13
+  },
+  "10254_a_1_1.jpg": {
+    "h": "10254_a_1_1-h.webp",
+    "v": "10254_a_1_1-v.webp",
+    "tileLength": 568,
+    "thickness": 170,
+    "confidence": 1.187
+  },
+  "10272_corner_a_1.jpg": {
+    "h": "10272_corner_a_1-h.webp",
+    "v": "10272_corner_a_1-v.webp",
+    "tileLength": 430,
+    "thickness": 252,
+    "confidence": 1.249
+  },
+  "10319a.jpg": {
+    "h": "10319a-h.webp",
+    "v": "10319a-v.webp",
+    "tileLength": 560,
+    "thickness": 189,
+    "confidence": 1.24
+  },
+  "10325_corner_a_1.jpg": {
+    "h": "10325_corner_a_1-h.webp",
+    "v": "10325_corner_a_1-v.webp",
+    "tileLength": 566,
+    "thickness": 165,
+    "confidence": 1.455
+  },
+  "10326_a.jpg": {
+    "h": "10326_a-h.webp",
+    "v": "10326_a-v.webp",
+    "tileLength": 460,
+    "thickness": 241,
+    "confidence": 1.13
+  },
+  "10327_corner_a_1.jpg": {
+    "h": "10327_corner_a_1-h.webp",
+    "v": "10327_corner_a_1-v.webp",
+    "tileLength": 566,
+    "thickness": 166,
+    "confidence": 1.464
+  },
+  "10397_a.jpg": {
+    "h": "10397_a-h.webp",
+    "v": "10397_a-v.webp",
+    "tileLength": 548,
+    "thickness": 169,
+    "confidence": 1.165
+  },
+  "10439_a_1.jpg": {
+    "h": "10439_a_1-h.webp",
+    "v": "10439_a_1-v.webp",
+    "tileLength": 398,
+    "thickness": 317,
+    "confidence": 1.156
+  },
+  "10459_a.jpg": {
+    "h": "10459_a-h.webp",
+    "v": "10459_a-v.webp",
+    "tileLength": 408,
+    "thickness": 333,
+    "confidence": 1.138
+  },
+  "10484_a.jpg": {
+    "h": "10484_a-h.webp",
+    "v": "10484_a-v.webp",
+    "tileLength": 598,
+    "thickness": 117,
+    "confidence": 1.347
+  },
+  "10485b_corner_a_1.jpg": {
+    "h": "10485b_corner_a_1-h.webp",
+    "v": "10485b_corner_a_1-v.webp",
+    "tileLength": 638,
+    "thickness": 15,
+    "confidence": 6.141
+  },
+  "10486_corner_a_1.jpg": {
+    "h": "10486_corner_a_1-h.webp",
+    "v": "10486_corner_a_1-v.webp",
+    "tileLength": 690,
+    "thickness": 96,
+    "confidence": 1.905
+  },
+  "10487_corner_a_1.jpg": {
+    "h": "10487_corner_a_1-h.webp",
+    "v": "10487_corner_a_1-v.webp",
+    "tileLength": 704,
+    "thickness": 81,
+    "confidence": 2.152
+  },
+  "10501_corner_a_1.jpg": {
+    "h": "10501_corner_a_1-h.webp",
+    "v": "10501_corner_a_1-v.webp",
+    "tileLength": 570,
+    "thickness": 155,
+    "confidence": 1.502
+  },
+  "10512_corner_a_1.jpg": {
+    "h": "10512_corner_a_1-h.webp",
+    "v": "10512_corner_a_1-v.webp",
+    "tileLength": 556,
+    "thickness": 163,
+    "confidence": 1.419
+  },
+  "10569_corner_a_1.jpg": {
+    "h": "10569_corner_a_1-h.webp",
+    "v": "10569_corner_a_1-v.webp",
+    "tileLength": 610,
+    "thickness": 138,
+    "confidence": 1.601
+  },
+  "10570_corner_a_1.jpg": {
+    "h": "10570_corner_a_1-h.webp",
+    "v": "10570_corner_a_1-v.webp",
+    "tileLength": 618,
+    "thickness": 129,
+    "confidence": 1.639
+  },
+  "10574_corner_a_1.jpg": {
+    "h": "10574_corner_a_1-h.webp",
+    "v": "10574_corner_a_1-v.webp",
+    "tileLength": 674,
+    "thickness": 95,
+    "confidence": 1.96
+  },
+  "10587_corner_a_1.jpg": {
+    "h": "10587_corner_a_1-h.webp",
+    "v": "10587_corner_a_1-v.webp",
+    "tileLength": 608,
+    "thickness": 130,
+    "confidence": 1.609
+  },
+  "10588_corner_a_1.jpg": {
+    "h": "10588_corner_a_1-h.webp",
+    "v": "10588_corner_a_1-v.webp",
+    "tileLength": 620,
+    "thickness": 131,
+    "confidence": 1.609
+  },
+  "10590a.jpg": {
+    "h": "10590a-h.webp",
+    "v": "10590a-v.webp",
+    "tileLength": 494,
+    "thickness": 271,
+    "confidence": 1.157
+  },
+  "10592_corner_a_1_1.jpg": {
+    "h": "10592_corner_a_1_1-h.webp",
+    "v": "10592_corner_a_1_1-v.webp",
+    "tileLength": 688,
+    "thickness": 84,
+    "confidence": 2.109
+  },
+  "10595_b_1.jpg": {
+    "h": "10595_b_1-h.webp",
+    "v": "10595_b_1-v.webp",
+    "tileLength": 516,
+    "thickness": 188,
+    "confidence": 1.348
+  },
+  "10602_b.jpg": {
+    "h": "10602_b-h.webp",
+    "v": "10602_b-v.webp",
+    "tileLength": 620,
+    "thickness": 129,
+    "confidence": 1.585
+  },
+  "10604_b_1.jpg": {
+    "h": "10604_b_1-h.webp",
+    "v": "10604_b_1-v.webp",
+    "tileLength": 552,
+    "thickness": 179,
+    "confidence": 1.402
+  },
+  "10618a.jpg": {
+    "h": "10618a-h.webp",
+    "v": "10618a-v.webp",
+    "tileLength": 576,
+    "thickness": 192,
+    "confidence": 1.171
+  },
+  "10623_b_1.jpg": {
+    "h": "10623_b_1-h.webp",
+    "v": "10623_b_1-v.webp",
+    "tileLength": 430,
+    "thickness": 260,
+    "confidence": 1.197
+  },
+  "10624_b_1.jpg": {
+    "h": "10624_b_1-h.webp",
+    "v": "10624_b_1-v.webp",
+    "tileLength": 428,
+    "thickness": 261,
+    "confidence": 1.169
+  },
+  "10643_corner_a_1.jpg": {
+    "h": "10643_corner_a_1-h.webp",
+    "v": "10643_corner_a_1-v.webp",
+    "tileLength": 642,
+    "thickness": 117,
+    "confidence": 1.685
+  },
+  "10649_corner_a_1.jpg": {
+    "h": "10649_corner_a_1-h.webp",
+    "v": "10649_corner_a_1-v.webp",
+    "tileLength": 534,
+    "thickness": 179,
+    "confidence": 1.379
+  },
+  "10650_corner_a_1.jpg": {
+    "h": "10650_corner_a_1-h.webp",
+    "v": "10650_corner_a_1-v.webp",
+    "tileLength": 516,
+    "thickness": 180,
+    "confidence": 1.335
+  },
+  "10651_corner_a_1_1.jpg": {
+    "h": "10651_corner_a_1_1-h.webp",
+    "v": "10651_corner_a_1_1-v.webp",
+    "tileLength": 630,
+    "thickness": 116,
+    "confidence": 1.722
+  },
+  "10652_b.jpg": {
+    "h": "10652_b-h.webp",
+    "v": "10652_b-v.webp",
+    "tileLength": 586,
+    "thickness": 143,
+    "confidence": 1.507
+  },
+  "10671_corner_a_1.jpg": {
+    "h": "10671_corner_a_1-h.webp",
+    "v": "10671_corner_a_1-v.webp",
+    "tileLength": 586,
+    "thickness": 152,
+    "confidence": 1.538
+  },
+  "10672_corner_a_1.jpg": {
+    "h": "10672_corner_a_1-h.webp",
+    "v": "10672_corner_a_1-v.webp",
+    "tileLength": 584,
+    "thickness": 147,
+    "confidence": 1.585
+  },
+  "10683_b.jpg": {
+    "h": "10683_b-h.webp",
+    "v": "10683_b-v.webp",
+    "tileLength": 520,
+    "thickness": 184,
+    "confidence": 1.374
+  },
+  "10684_corner_a_1.jpg": {
+    "h": "10684_corner_a_1-h.webp",
+    "v": "10684_corner_a_1-v.webp",
+    "tileLength": 560,
+    "thickness": 166,
+    "confidence": 1.463
+  },
+  "10685_corner_a_1.jpg": {
+    "h": "10685_corner_a_1-h.webp",
+    "v": "10685_corner_a_1-v.webp",
+    "tileLength": 568,
+    "thickness": 161,
+    "confidence": 1.504
+  },
+  "10688_corner_a_1.jpg": {
+    "h": "10688_corner_a_1-h.webp",
+    "v": "10688_corner_a_1-v.webp",
+    "tileLength": 534,
+    "thickness": 178,
+    "confidence": 1.385
+  },
+  "10689_corner_a_1.jpg": {
+    "h": "10689_corner_a_1-h.webp",
+    "v": "10689_corner_a_1-v.webp",
+    "tileLength": 514,
+    "thickness": 33,
+    "confidence": 3.097
+  },
+  "10703_corner_a_1_1.jpg": {
+    "h": "10703_corner_a_1_1-h.webp",
+    "v": "10703_corner_a_1_1-v.webp",
+    "tileLength": 654,
+    "thickness": 115,
+    "confidence": 1.776
+  },
+  "10712_corner_a_1.jpg": {
+    "h": "10712_corner_a_1-h.webp",
+    "v": "10712_corner_a_1-v.webp",
+    "tileLength": 634,
+    "thickness": 116,
+    "confidence": 1.689
+  },
+  "10713_b.jpg": {
+    "h": "10713_b-h.webp",
+    "v": "10713_b-v.webp",
+    "tileLength": 620,
+    "thickness": 118,
+    "confidence": 1.675
+  },
+  "10714_b.jpg": {
+    "h": "10714_b-h.webp",
+    "v": "10714_b-v.webp",
+    "tileLength": 648,
+    "thickness": 121,
+    "confidence": 1.713
+  },
+  "10715_b.jpg": {
+    "h": "10715_b-h.webp",
+    "v": "10715_b-v.webp",
+    "tileLength": 534,
+    "thickness": 178,
+    "confidence": 1.352
+  },
+  "10716_corner_a_1.jpg": {
+    "h": "10716_corner_a_1-h.webp",
+    "v": "10716_corner_a_1-v.webp",
+    "tileLength": 532,
+    "thickness": 178,
+    "confidence": 1.397
+  },
+  "10717_b.jpg": {
+    "h": "10717_b-h.webp",
+    "v": "10717_b-v.webp",
+    "tileLength": 528,
+    "thickness": 179,
+    "confidence": 1.386
+  },
+  "10718_b.jpg": {
+    "h": "10718_b-h.webp",
+    "v": "10718_b-v.webp",
+    "tileLength": 532,
+    "thickness": 179,
+    "confidence": 1.344
+  },
+  "10727_corner_a_1_1.jpg": {
+    "h": "10727_corner_a_1_1-h.webp",
+    "v": "10727_corner_a_1_1-v.webp",
+    "tileLength": 654,
+    "thickness": 106,
+    "confidence": 1.831
+  },
+  "10728_corner_a_1_1.jpg": {
+    "h": "10728_corner_a_1_1-h.webp",
+    "v": "10728_corner_a_1_1-v.webp",
+    "tileLength": 626,
+    "thickness": 32,
+    "confidence": 3.784
+  },
+  "10729_corner_a_9.jpg": {
+    "h": "10729_corner_a_9-h.webp",
+    "v": "10729_corner_a_9-v.webp",
+    "tileLength": 572,
+    "thickness": 148,
+    "confidence": 1.468
+  },
+  "10732_corner_a_1.jpg": {
+    "h": "10732_corner_a_1-h.webp",
+    "v": "10732_corner_a_1-v.webp",
+    "tileLength": 548,
+    "thickness": 172,
+    "confidence": 1.498
+  },
+  "10733_b.jpg": {
+    "h": "10733_b-h.webp",
+    "v": "10733_b-v.webp",
+    "tileLength": 550,
+    "thickness": 177,
+    "confidence": 1.39
+  },
+  "10738_corner_a_1.jpg": {
+    "h": "10738_corner_a_1-h.webp",
+    "v": "10738_corner_a_1-v.webp",
+    "tileLength": 502,
+    "thickness": 193,
+    "confidence": 1.32
+  },
+  "10739_corner_a_1.jpg": {
+    "h": "10739_corner_a_1-h.webp",
+    "v": "10739_corner_a_1-v.webp",
+    "tileLength": 500,
+    "thickness": 196,
+    "confidence": 1.333
+  },
+  "10768_corner_a_1.jpg": {
+    "h": "10768_corner_a_1-h.webp",
+    "v": "10768_corner_a_1-v.webp",
+    "tileLength": 616,
+    "thickness": 121,
+    "confidence": 1.646
+  },
+  "10772_corner_a_1_1.jpg": {
+    "h": "10772_corner_a_1_1-h.webp",
+    "v": "10772_corner_a_1_1-v.webp",
+    "tileLength": 242,
+    "thickness": 26,
+    "confidence": 2.536
+  },
+  "10779_b_1.jpg": {
+    "h": "10779_b_1-h.webp",
+    "v": "10779_b_1-v.webp",
+    "tileLength": 552,
+    "thickness": 164,
+    "confidence": 1.416
+  },
+  "10782_b.jpg": {
+    "h": "10782_b-h.webp",
+    "v": "10782_b-v.webp",
+    "tileLength": 520,
+    "thickness": 200,
+    "confidence": 1.317
+  },
+  "10783_b.jpg": {
+    "h": "10783_b-h.webp",
+    "v": "10783_b-v.webp",
+    "tileLength": 518,
+    "thickness": 203,
+    "confidence": 1.295
+  },
+  "10786_corner_a_1_1.jpg": {
+    "h": "10786_corner_a_1_1-h.webp",
+    "v": "10786_corner_a_1_1-v.webp",
+    "tileLength": 592,
+    "thickness": 130,
+    "confidence": 1.521
+  },
+  "10793_b.jpg": {
+    "h": "10793_b-h.webp",
+    "v": "10793_b-v.webp",
+    "tileLength": 588,
+    "thickness": 144,
+    "confidence": 1.501
+  },
+  "10794_b.jpg": {
+    "h": "10794_b-h.webp",
+    "v": "10794_b-v.webp",
+    "tileLength": 576,
+    "thickness": 157,
+    "confidence": 1.437
+  },
+  "10811_corner_a_1.jpg": {
+    "h": "10811_corner_a_1-h.webp",
+    "v": "10811_corner_a_1-v.webp",
+    "tileLength": 618,
+    "thickness": 121,
+    "confidence": 1.652
+  },
+  "10813_corner_a_1.jpg": {
+    "h": "10813_corner_a_1-h.webp",
+    "v": "10813_corner_a_1-v.webp",
+    "tileLength": 652,
+    "thickness": 105,
+    "confidence": 1.799
+  },
+  "10814_a.jpg": {
+    "h": "10814_a-h.webp",
+    "v": "10814_a-v.webp",
+    "tileLength": 570,
+    "thickness": 137,
+    "confidence": 1.319
+  },
+  "10827_corner_a_1.jpg": {
+    "h": "10827_corner_a_1-h.webp",
+    "v": "10827_corner_a_1-v.webp",
+    "tileLength": 692,
+    "thickness": 86,
+    "confidence": 2.023
+  },
+  "10829_corner_a_1.jpg": {
+    "h": "10829_corner_a_1-h.webp",
+    "v": "10829_corner_a_1-v.webp",
+    "tileLength": 696,
+    "thickness": 84,
+    "confidence": 2.019
+  },
+  "10831_corner_a_1_1.jpg": {
+    "h": "10831_corner_a_1_1-h.webp",
+    "v": "10831_corner_a_1_1-v.webp",
+    "tileLength": 696,
+    "thickness": 82,
+    "confidence": 2.098
+  },
+  "10832_corner_a_1.jpg": {
+    "h": "10832_corner_a_1-h.webp",
+    "v": "10832_corner_a_1-v.webp",
+    "tileLength": 676,
+    "thickness": 85,
+    "confidence": 2.087
+  },
+  "10833_corner_a_1.jpg": {
+    "h": "10833_corner_a_1-h.webp",
+    "v": "10833_corner_a_1-v.webp",
+    "tileLength": 684,
+    "thickness": 83,
+    "confidence": 1.989
+  },
+  "10834_corner_a_1.jpg": {
+    "h": "10834_corner_a_1-h.webp",
+    "v": "10834_corner_a_1-v.webp",
+    "tileLength": 572,
+    "thickness": 160,
+    "confidence": 1.493
+  },
+  "10836_a.jpg": {
+    "h": "10836_a-h.webp",
+    "v": "10836_a-v.webp",
+    "tileLength": 432,
+    "thickness": 209,
+    "confidence": 1.113
+  },
+  "10837_corner_a_1.jpg": {
+    "h": "10837_corner_a_1-h.webp",
+    "v": "10837_corner_a_1-v.webp",
+    "tileLength": 582,
+    "thickness": 154,
+    "confidence": 1.524
+  },
+  "10838-a_1.jpg": {
+    "h": "10838-a_1-h.webp",
+    "v": "10838-a_1-v.webp",
+    "tileLength": 444,
+    "thickness": 236,
+    "confidence": 1.228
+  },
+  "10839_corner_a_1.jpg": {
+    "h": "10839_corner_a_1-h.webp",
+    "v": "10839_corner_a_1-v.webp",
+    "tileLength": 574,
+    "thickness": 157,
+    "confidence": 1.465
+  },
+  "10840_corner_a_1.jpg": {
+    "h": "10840_corner_a_1-h.webp",
+    "v": "10840_corner_a_1-v.webp",
+    "tileLength": 578,
+    "thickness": 152,
+    "confidence": 1.482
+  },
+  "10871_b.jpg": {
+    "h": "10871_b-h.webp",
+    "v": "10871_b-v.webp",
+    "tileLength": 594,
+    "thickness": 140,
+    "confidence": 1.532
+  },
+  "10872a.jpg": {
+    "h": "10872a-h.webp",
+    "v": "10872a-v.webp",
+    "tileLength": 600,
+    "thickness": 254,
+    "confidence": 1.176
+  },
+  "10874_b.jpg": {
+    "h": "10874_b-h.webp",
+    "v": "10874_b-v.webp",
+    "tileLength": 594,
+    "thickness": 139,
+    "confidence": 1.54
+  },
+  "10875_b.jpg": {
+    "h": "10875_b-h.webp",
+    "v": "10875_b-v.webp",
+    "tileLength": 602,
+    "thickness": 133,
+    "confidence": 1.523
+  },
+  "10876a.jpg": {
+    "h": "10876a-h.webp",
+    "v": "10876a-v.webp",
+    "tileLength": 584,
+    "thickness": 260,
+    "confidence": 1.173
+  },
+  "10879_b.jpg": {
+    "h": "10879_b-h.webp",
+    "v": "10879_b-v.webp",
+    "tileLength": 586,
+    "thickness": 146,
+    "confidence": 1.498
+  },
+  "1087_a.jpg": {
+    "h": "1087_a-h.webp",
+    "v": "1087_a-v.webp",
+    "tileLength": 432,
+    "thickness": 323,
+    "confidence": 1.139
+  },
+  "10880_corner_a_1.jpg": {
+    "h": "10880_corner_a_1-h.webp",
+    "v": "10880_corner_a_1-v.webp",
+    "tileLength": 632,
+    "thickness": 116,
+    "confidence": 1.719
+  },
+  "10881_b.jpg": {
+    "h": "10881_b-h.webp",
+    "v": "10881_b-v.webp",
+    "tileLength": 592,
+    "thickness": 140,
+    "confidence": 1.533
+  },
+  "10882_b.jpg": {
+    "h": "10882_b-h.webp",
+    "v": "10882_b-v.webp",
+    "tileLength": 574,
+    "thickness": 160,
+    "confidence": 1.457
+  },
+  "10896_corner_a_1_2.jpg": {
+    "h": "10896_corner_a_1_2-h.webp",
+    "v": "10896_corner_a_1_2-v.webp",
+    "tileLength": 640,
+    "thickness": 118,
+    "confidence": 1.751
+  },
+  "10897_corner_a_1_2.jpg": {
+    "h": "10897_corner_a_1_2-h.webp",
+    "v": "10897_corner_a_1_2-v.webp",
+    "tileLength": 626,
+    "thickness": 124,
+    "confidence": 1.689
+  },
+  "10901_corner_a_1.jpg": {
+    "h": "10901_corner_a_1-h.webp",
+    "v": "10901_corner_a_1-v.webp",
+    "tileLength": 622,
+    "thickness": 128,
+    "confidence": 1.686
+  },
+  "10926_b.jpg": {
+    "h": "10926_b-h.webp",
+    "v": "10926_b-v.webp",
+    "tileLength": 542,
+    "thickness": 170,
+    "confidence": 1.393
+  },
+  "10927_b.jpg": {
+    "h": "10927_b-h.webp",
+    "v": "10927_b-v.webp",
+    "tileLength": 542,
+    "thickness": 173,
+    "confidence": 1.407
+  },
+  "10928_b.jpg": {
+    "h": "10928_b-h.webp",
+    "v": "10928_b-v.webp",
+    "tileLength": 544,
+    "thickness": 171,
+    "confidence": 1.39
+  },
+  "10929_b.jpg": {
+    "h": "10929_b-h.webp",
+    "v": "10929_b-v.webp",
+    "tileLength": 558,
+    "thickness": 170,
+    "confidence": 1.406
+  },
+  "10936_corner_a_1_1.jpg": {
+    "h": "10936_corner_a_1_1-h.webp",
+    "v": "10936_corner_a_1_1-v.webp",
+    "tileLength": 590,
+    "thickness": 148,
+    "confidence": 1.533
+  },
+  "10937_b.jpg": {
+    "h": "10937_b-h.webp",
+    "v": "10937_b-v.webp",
+    "tileLength": 506,
+    "thickness": 179,
+    "confidence": 1.4
+  },
+  "10939_b.jpg": {
+    "h": "10939_b-h.webp",
+    "v": "10939_b-v.webp",
+    "tileLength": 558,
+    "thickness": 171,
+    "confidence": 1.433
+  },
+  "10952_b_1.jpg": {
+    "h": "10952_b_1-h.webp",
+    "v": "10952_b_1-v.webp",
+    "tileLength": 506,
+    "thickness": 187,
+    "confidence": 1.398
+  },
+  "10953_b_1.jpg": {
+    "h": "10953_b_1-h.webp",
+    "v": "10953_b_1-v.webp",
+    "tileLength": 514,
+    "thickness": 175,
+    "confidence": 1.401
+  },
+  "10964_corner_a_1.jpg": {
+    "h": "10964_corner_a_1-h.webp",
+    "v": "10964_corner_a_1-v.webp",
+    "tileLength": 632,
+    "thickness": 122,
+    "confidence": 1.712
+  },
+  "10995a_1.jpg": {
+    "h": "10995a_1-h.webp",
+    "v": "10995a_1-v.webp",
+    "tileLength": 542,
+    "thickness": 334,
+    "confidence": 1.187
+  },
+  "10998a_1.jpg": {
+    "h": "10998a_1-h.webp",
+    "v": "10998a_1-v.webp",
+    "tileLength": 450,
+    "thickness": 351,
+    "confidence": 1.171
+  },
+  "11000a_1.jpg": {
+    "h": "11000a_1-h.webp",
+    "v": "11000a_1-v.webp",
+    "tileLength": 402,
+    "thickness": 391,
+    "confidence": 1.143
+  },
+  "11001a_1.jpg": {
+    "h": "11001a_1-h.webp",
+    "v": "11001a_1-v.webp",
+    "tileLength": 388,
+    "thickness": 585,
+    "confidence": 1.138
+  },
+  "11002a_1.jpg": {
+    "h": "11002a_1-h.webp",
+    "v": "11002a_1-v.webp",
+    "tileLength": 366,
+    "thickness": 442,
+    "confidence": 1.129
+  },
+  "11004a_1.jpg": {
+    "h": "11004a_1-h.webp",
+    "v": "11004a_1-v.webp",
+    "tileLength": 268,
+    "thickness": 438,
+    "confidence": 1.308
+  },
+  "11005_corner_a_1_1.jpg": {
+    "h": "11005_corner_a_1_1-h.webp",
+    "v": "11005_corner_a_1_1-v.webp",
+    "tileLength": 410,
+    "thickness": 263,
+    "confidence": 1.266
+  },
+  "11114_a_2.jpg": {
+    "h": "11114_a_2-h.webp",
+    "v": "11114_a_2-v.webp",
+    "tileLength": 428,
+    "thickness": 182,
+    "confidence": 1.227
+  },
+  "11131_corner_a_1.jpg": {
+    "h": "11131_corner_a_1-h.webp",
+    "v": "11131_corner_a_1-v.webp",
+    "tileLength": 604,
+    "thickness": 137,
+    "confidence": 1.604
+  },
+  "11136_corner_a_1_1.jpg": {
+    "h": "11136_corner_a_1_1-h.webp",
+    "v": "11136_corner_a_1_1-v.webp",
+    "tileLength": 632,
+    "thickness": 113,
+    "confidence": 1.684
+  },
+  "11139_corner_a_1_1.jpg": {
+    "h": "11139_corner_a_1_1-h.webp",
+    "v": "11139_corner_a_1_1-v.webp",
+    "tileLength": 640,
+    "thickness": 111,
+    "confidence": 1.749
+  },
+  "11140_a_2.jpg": {
+    "h": "11140_a_2-h.webp",
+    "v": "11140_a_2-v.webp",
+    "tileLength": 486,
+    "thickness": 156,
+    "confidence": 1.22
+  },
+  "11147_a_1.jpg": {
+    "h": "11147_a_1-h.webp",
+    "v": "11147_a_1-v.webp",
+    "tileLength": 518,
+    "thickness": 267,
+    "confidence": 1.12
+  },
+  "11151_corner_a_1_1.jpg": {
+    "h": "11151_corner_a_1_1-h.webp",
+    "v": "11151_corner_a_1_1-v.webp",
+    "tileLength": 640,
+    "thickness": 113,
+    "confidence": 1.679
+  },
+  "11153_corner_a_1_1.jpg": {
+    "h": "11153_corner_a_1_1-h.webp",
+    "v": "11153_corner_a_1_1-v.webp",
+    "tileLength": 640,
+    "thickness": 110,
+    "confidence": 1.807
+  },
+  "11155_corner_a_1_1.jpg": {
+    "h": "11155_corner_a_1_1-h.webp",
+    "v": "11155_corner_a_1_1-v.webp",
+    "tileLength": 658,
+    "thickness": 106,
+    "confidence": 1.876
+  },
+  "11169_a_1.jpg": {
+    "h": "11169_a_1-h.webp",
+    "v": "11169_a_1-v.webp",
+    "tileLength": 566,
+    "thickness": 144,
+    "confidence": 1.286
+  },
+  "11192_a_1.jpg": {
+    "h": "11192_a_1-h.webp",
+    "v": "11192_a_1-v.webp",
+    "tileLength": 640,
+    "thickness": 158,
+    "confidence": 1.409
+  },
+  "11193_a_1.jpg": {
+    "h": "11193_a_1-h.webp",
+    "v": "11193_a_1-v.webp",
+    "tileLength": 576,
+    "thickness": 161,
+    "confidence": 1.367
+  },
+  "11194_a_1.jpg": {
+    "h": "11194_a_1-h.webp",
+    "v": "11194_a_1-v.webp",
+    "tileLength": 408,
+    "thickness": 139,
+    "confidence": 1.309
+  },
+  "11196-a.jpg": {
+    "h": "11196-a-h.webp",
+    "v": "11196-a-v.webp",
+    "tileLength": 348,
+    "thickness": 234,
+    "confidence": 1.289
+  },
+  "11197-a.jpg": {
+    "h": "11197-a-h.webp",
+    "v": "11197-a-v.webp",
+    "tileLength": 474,
+    "thickness": 121,
+    "confidence": 1.643
+  },
+  "11198_a.jpg": {
+    "h": "11198_a-h.webp",
+    "v": "11198_a-v.webp",
+    "tileLength": 256,
+    "thickness": 217,
+    "confidence": 1.172
+  },
+  "11199_corner_a_1.jpg": {
+    "h": "11199_corner_a_1-h.webp",
+    "v": "11199_corner_a_1-v.webp",
+    "tileLength": 608,
+    "thickness": 134,
+    "confidence": 1.587
+  },
+  "11200_corner_a_1_1.jpg": {
+    "h": "11200_corner_a_1_1-h.webp",
+    "v": "11200_corner_a_1_1-v.webp",
+    "tileLength": 626,
+    "thickness": 131,
+    "confidence": 1.661
+  },
+  "11201_corner_a_1.jpg": {
+    "h": "11201_corner_a_1-h.webp",
+    "v": "11201_corner_a_1-v.webp",
+    "tileLength": 614,
+    "thickness": 136,
+    "confidence": 1.601
+  },
+  "11202_corner_a_1_1.jpg": {
+    "h": "11202_corner_a_1_1-h.webp",
+    "v": "11202_corner_a_1_1-v.webp",
+    "tileLength": 600,
+    "thickness": 135,
+    "confidence": 1.552
+  },
+  "11203_a_1.jpg": {
+    "h": "11203_a_1-h.webp",
+    "v": "11203_a_1-v.webp",
+    "tileLength": 262,
+    "thickness": 231,
+    "confidence": 1.155
+  },
+  "11204_a_1.jpg": {
+    "h": "11204_a_1-h.webp",
+    "v": "11204_a_1-v.webp",
+    "tileLength": 268,
+    "thickness": 278,
+    "confidence": 1.124
+  },
+  "11210_corner_a_1.jpg": {
+    "h": "11210_corner_a_1-h.webp",
+    "v": "11210_corner_a_1-v.webp",
+    "tileLength": 450,
+    "thickness": 227,
+    "confidence": 1.324
+  },
+  "11211_a_1.jpg": {
+    "h": "11211_a_1-h.webp",
+    "v": "11211_a_1-v.webp",
+    "tileLength": 262,
+    "thickness": 367,
+    "confidence": 1.076
+  },
+  "11234-a.jpg": {
+    "h": "11234-a-h.webp",
+    "v": "11234-a-v.webp",
+    "tileLength": 606,
+    "thickness": 139,
+    "confidence": 1.591
+  },
+  "11235_a_1.jpg": {
+    "h": "11235_a_1-h.webp",
+    "v": "11235_a_1-v.webp",
+    "tileLength": 370,
+    "thickness": 137,
+    "confidence": 1.278
+  },
+  "11239_corner_a_1.jpg": {
+    "h": "11239_corner_a_1-h.webp",
+    "v": "11239_corner_a_1-v.webp",
+    "tileLength": 664,
+    "thickness": 102,
+    "confidence": 1.865
+  },
+  "11240_corner_a_1.jpg": {
+    "h": "11240_corner_a_1-h.webp",
+    "v": "11240_corner_a_1-v.webp",
+    "tileLength": 674,
+    "thickness": 97,
+    "confidence": 1.967
+  },
+  "11241_corner_a_1_1.jpg": {
+    "h": "11241_corner_a_1_1-h.webp",
+    "v": "11241_corner_a_1_1-v.webp",
+    "tileLength": 570,
+    "thickness": 161,
+    "confidence": 1.473
+  },
+  "11242_a_1.jpg": {
+    "h": "11242_a_1-h.webp",
+    "v": "11242_a_1-v.webp",
+    "tileLength": 484,
+    "thickness": 201,
+    "confidence": 1.176
+  },
+  "11250_corner_a_1_1.jpg": {
+    "h": "11250_corner_a_1_1-h.webp",
+    "v": "11250_corner_a_1_1-v.webp",
+    "tileLength": 646,
+    "thickness": 102,
+    "confidence": 1.835
+  },
+  "11251_corner_a_1_1.jpg": {
+    "h": "11251_corner_a_1_1-h.webp",
+    "v": "11251_corner_a_1_1-v.webp",
+    "tileLength": 672,
+    "thickness": 95,
+    "confidence": 1.938
+  },
+  "11252_corner_a_1_1.jpg": {
+    "h": "11252_corner_a_1_1-h.webp",
+    "v": "11252_corner_a_1_1-v.webp",
+    "tileLength": 678,
+    "thickness": 96,
+    "confidence": 2.011
+  },
+  "11253_corner_a_1_1.jpg": {
+    "h": "11253_corner_a_1_1-h.webp",
+    "v": "11253_corner_a_1_1-v.webp",
+    "tileLength": 684,
+    "thickness": 91,
+    "confidence": 2.01
+  },
+  "11254_a.jpg": {
+    "h": "11254_a-h.webp",
+    "v": "11254_a-v.webp",
+    "tileLength": 346,
+    "thickness": 352,
+    "confidence": 1.061
+  },
+  "11255_a_1.jpg": {
+    "h": "11255_a_1-h.webp",
+    "v": "11255_a_1-v.webp",
+    "tileLength": 416,
+    "thickness": 254,
+    "confidence": 1.12
+  },
+  "11257_a_1.jpg": {
+    "h": "11257_a_1-h.webp",
+    "v": "11257_a_1-v.webp",
+    "tileLength": 350,
+    "thickness": 203,
+    "confidence": 1.224
+  },
+  "11258_a_1.jpg": {
+    "h": "11258_a_1-h.webp",
+    "v": "11258_a_1-v.webp",
+    "tileLength": 294,
+    "thickness": 307,
+    "confidence": 1.1
+  },
+  "11259_corner_a_1_1.jpg": {
+    "h": "11259_corner_a_1_1-h.webp",
+    "v": "11259_corner_a_1_1-v.webp",
+    "tileLength": 666,
+    "thickness": 94,
+    "confidence": 1.865
+  },
+  "1222_a.jpg": {
+    "h": "1222_a-h.webp",
+    "v": "1222_a-v.webp",
+    "tileLength": 430,
+    "thickness": 327,
+    "confidence": 1.143
+  },
+  "202_corner_a_3.jpg": {
+    "h": "202_corner_a_3-h.webp",
+    "v": "202_corner_a_3-v.webp",
+    "tileLength": 684,
+    "thickness": 90,
+    "confidence": 2.071
+  },
+  "203_corner_a.jpg": {
+    "h": "203_corner_a-h.webp",
+    "v": "203_corner_a-v.webp",
+    "tileLength": 268,
+    "thickness": 56,
+    "confidence": 1.994
+  },
+  "204_corner_a_1.jpg": {
+    "h": "204_corner_a_1-h.webp",
+    "v": "204_corner_a_1-v.webp",
+    "tileLength": 686,
+    "thickness": 88,
+    "confidence": 2.077
+  },
+  "206_corner_a_1.jpg": {
+    "h": "206_corner_a_1-h.webp",
+    "v": "206_corner_a_1-v.webp",
+    "tileLength": 678,
+    "thickness": 95,
+    "confidence": 1.96
+  },
+  "5031_a.jpg": {
+    "h": "5031_a-h.webp",
+    "v": "5031_a-v.webp",
+    "tileLength": 418,
+    "thickness": 250,
+    "confidence": 1.136
+  },
+  "5837bl_a.jpg": {
+    "h": "5837bl_a-h.webp",
+    "v": "5837bl_a-v.webp",
+    "tileLength": 484,
+    "thickness": 206,
+    "confidence": 1.186
+  },
+  "5838bl_a.jpg": {
+    "h": "5838bl_a-h.webp",
+    "v": "5838bl_a-v.webp",
+    "tileLength": 512,
+    "thickness": 219,
+    "confidence": 1.154
+  },
+  "6301_corner_a_1_1.jpg": {
+    "h": "6301_corner_a_1_1-h.webp",
+    "v": "6301_corner_a_1_1-v.webp",
+    "tileLength": 550,
+    "thickness": 174,
+    "confidence": 1.373
+  },
+  "6525_corner_a_1.jpg": {
+    "h": "6525_corner_a_1-h.webp",
+    "v": "6525_corner_a_1-v.webp",
+    "tileLength": 602,
+    "thickness": 143,
+    "confidence": 1.56
+  },
+  "6526a.jpg": {
+    "h": "6526a-h.webp",
+    "v": "6526a-v.webp",
+    "tileLength": 544,
+    "thickness": 198,
+    "confidence": 1.218
+  },
+  "6538-a_1.jpg": {
+    "h": "6538-a_1-h.webp",
+    "v": "6538-a_1-v.webp",
+    "tileLength": 544,
+    "thickness": 106,
+    "confidence": 1.672
+  },
+  "6711_a.jpg": {
+    "h": "6711_a-h.webp",
+    "v": "6711_a-v.webp",
+    "tileLength": 524,
+    "thickness": 180,
+    "confidence": 1.131
+  },
+  "7111bl_a_1.jpg": {
+    "h": "7111bl_a_1-h.webp",
+    "v": "7111bl_a_1-v.webp",
+    "tileLength": 640,
+    "thickness": 140,
+    "confidence": 1.339
+  },
+  "7169si_a.jpg": {
+    "h": "7169si_a-h.webp",
+    "v": "7169si_a-v.webp",
+    "tileLength": 372,
+    "thickness": 198,
+    "confidence": 1.138
+  },
+  "79635a.jpg": {
+    "h": "79635a-h.webp",
+    "v": "79635a-v.webp",
+    "tileLength": 572,
+    "thickness": 163,
+    "confidence": 1.241
+  },
+  "79651a.jpg": {
+    "h": "79651a-h.webp",
+    "v": "79651a-v.webp",
+    "tileLength": 548,
+    "thickness": 191,
+    "confidence": 1.233
+  },
+  "79668a.jpg": {
+    "h": "79668a-h.webp",
+    "v": "79668a-v.webp",
+    "tileLength": 558,
+    "thickness": 222,
+    "confidence": 1.136
+  },
+  "80298_a.jpg": {
+    "h": "80298_a-h.webp",
+    "v": "80298_a-v.webp",
+    "tileLength": 708,
+    "thickness": 120,
+    "confidence": 1.51
+  },
+  "80299_a.jpg": {
+    "h": "80299_a-h.webp",
+    "v": "80299_a-v.webp",
+    "tileLength": 698,
+    "thickness": 119,
+    "confidence": 1.513
+  },
+  "80301_a.jpg": {
+    "h": "80301_a-h.webp",
+    "v": "80301_a-v.webp",
+    "tileLength": 670,
+    "thickness": 118,
+    "confidence": 1.503
+  },
+  "80302_a.jpg": {
+    "h": "80302_a-h.webp",
+    "v": "80302_a-v.webp",
+    "tileLength": 718,
+    "thickness": 121,
+    "confidence": 1.495
+  },
+  "80864-a_1.jpg": {
+    "h": "80864-a_1-h.webp",
+    "v": "80864-a_1-v.webp",
+    "tileLength": 460,
+    "thickness": 206,
+    "confidence": 1.273
+  },
+  "80868-a_1.jpg": {
+    "h": "80868-a_1-h.webp",
+    "v": "80868-a_1-v.webp",
+    "tileLength": 982,
+    "thickness": 670,
+    "confidence": 2.253
+  },
+  "80984_a.jpg": {
+    "h": "80984_a-h.webp",
+    "v": "80984_a-v.webp",
+    "tileLength": 556,
+    "thickness": 161,
+    "confidence": 1.178
+  },
+  "80997a.jpg": {
+    "h": "80997a-h.webp",
+    "v": "80997a-v.webp",
+    "tileLength": 376,
+    "thickness": 313,
+    "confidence": 1.159
+  },
+  "81045a.jpg": {
+    "h": "81045a-h.webp",
+    "v": "81045a-v.webp",
+    "tileLength": 434,
+    "thickness": 296,
+    "confidence": 1.18
+  },
+  "81047a.jpg": {
+    "h": "81047a-h.webp",
+    "v": "81047a-v.webp",
+    "tileLength": 436,
+    "thickness": 272,
+    "confidence": 1.135
+  },
+  "83351a.jpg": {
+    "h": "83351a-h.webp",
+    "v": "83351a-v.webp",
+    "tileLength": 400,
+    "thickness": 245,
+    "confidence": 1.133
+  },
+  "83632a.jpg": {
+    "h": "83632a-h.webp",
+    "v": "83632a-v.webp",
+    "tileLength": 464,
+    "thickness": 181,
+    "confidence": 1.216
+  },
+  "83711a.jpg": {
+    "h": "83711a-h.webp",
+    "v": "83711a-v.webp",
+    "tileLength": 448,
+    "thickness": 233,
+    "confidence": 1.125
+  },
+  "83712a.jpg": {
+    "h": "83712a-h.webp",
+    "v": "83712a-v.webp",
+    "tileLength": 430,
+    "thickness": 248,
+    "confidence": 1.138
+  },
+  "83726_a.jpg": {
+    "h": "83726_a-h.webp",
+    "v": "83726_a-v.webp",
+    "tileLength": 508,
+    "thickness": 165,
+    "confidence": 1.234
+  },
+  "83727_a.jpg": {
+    "h": "83727_a-h.webp",
+    "v": "83727_a-v.webp",
+    "tileLength": 558,
+    "thickness": 164,
+    "confidence": 1.232
+  },
+  "83728_a.jpg": {
+    "h": "83728_a-h.webp",
+    "v": "83728_a-v.webp",
+    "tileLength": 536,
+    "thickness": 160,
+    "confidence": 1.243
+  },
+  "83729_a.jpg": {
+    "h": "83729_a-h.webp",
+    "v": "83729_a-v.webp",
+    "tileLength": 498,
+    "thickness": 163,
+    "confidence": 1.236
+  },
+  "83730_a.jpg": {
+    "h": "83730_a-h.webp",
+    "v": "83730_a-v.webp",
+    "tileLength": 546,
+    "thickness": 159,
+    "confidence": 1.238
+  },
+  "83731_a.jpg": {
+    "h": "83731_a-h.webp",
+    "v": "83731_a-v.webp",
+    "tileLength": 536,
+    "thickness": 161,
+    "confidence": 1.245
+  },
+  "83732_a.jpg": {
+    "h": "83732_a-h.webp",
+    "v": "83732_a-v.webp",
+    "tileLength": 492,
+    "thickness": 213,
+    "confidence": 1.244
+  },
+  "83733_a.jpg": {
+    "h": "83733_a-h.webp",
+    "v": "83733_a-v.webp",
+    "tileLength": 410,
+    "thickness": 219,
+    "confidence": 1.254
+  },
+  "83734_a.jpg": {
+    "h": "83734_a-h.webp",
+    "v": "83734_a-v.webp",
+    "tileLength": 474,
+    "thickness": 216,
+    "confidence": 1.24
+  },
+  "83735_a.jpg": {
+    "h": "83735_a-h.webp",
+    "v": "83735_a-v.webp",
+    "tileLength": 456,
+    "thickness": 229,
+    "confidence": 1.207
+  },
+  "83736_a.jpg": {
+    "h": "83736_a-h.webp",
+    "v": "83736_a-v.webp",
+    "tileLength": 450,
+    "thickness": 216,
+    "confidence": 1.25
+  },
+  "83753a.jpg": {
+    "h": "83753a-h.webp",
+    "v": "83753a-v.webp",
+    "tileLength": 472,
+    "thickness": 276,
+    "confidence": 1.17
+  },
+  "83812_a.jpg": {
+    "h": "83812_a-h.webp",
+    "v": "83812_a-v.webp",
+    "tileLength": 400,
+    "thickness": 253,
+    "confidence": 1.085
+  },
+  "83878_a_1.jpg": {
+    "h": "83878_a_1-h.webp",
+    "v": "83878_a_1-v.webp",
+    "tileLength": 308,
+    "thickness": 383,
+    "confidence": 1.258
+  },
+  "83879_a_2.jpg": {
+    "h": "83879_a_2-h.webp",
+    "v": "83879_a_2-v.webp",
+    "tileLength": 280,
+    "thickness": 277,
+    "confidence": 1.154
+  },
+  "83880_a_2.jpg": {
+    "h": "83880_a_2-h.webp",
+    "v": "83880_a_2-v.webp",
+    "tileLength": 388,
+    "thickness": 176,
+    "confidence": 1.174
+  },
+  "83881_a_3.jpg": {
+    "h": "83881_a_3-h.webp",
+    "v": "83881_a_3-v.webp",
+    "tileLength": 448,
+    "thickness": 175,
+    "confidence": 1.197
+  },
+  "83883-a_3.jpg": {
+    "h": "83883-a_3-h.webp",
+    "v": "83883-a_3-v.webp",
+    "tileLength": 376,
+    "thickness": 203,
+    "confidence": 1.29
+  },
+  "83885_a_1.jpg": {
+    "h": "83885_a_1-h.webp",
+    "v": "83885_a_1-v.webp",
+    "tileLength": 366,
+    "thickness": 180,
+    "confidence": 1.178
+  },
+  "83886_a_1.jpg": {
+    "h": "83886_a_1-h.webp",
+    "v": "83886_a_1-v.webp",
+    "tileLength": 474,
+    "thickness": 109,
+    "confidence": 1.5
+  },
+  "83887a.jpg": {
+    "h": "83887a-h.webp",
+    "v": "83887a-v.webp",
+    "tileLength": 504,
+    "thickness": 217,
+    "confidence": 1.125
+  },
+  "83909_a_1.jpg": {
+    "h": "83909_a_1-h.webp",
+    "v": "83909_a_1-v.webp",
+    "tileLength": 418,
+    "thickness": 337,
+    "confidence": 1.137
+  },
+  "83961_a.jpg": {
+    "h": "83961_a-h.webp",
+    "v": "83961_a-v.webp",
+    "tileLength": 544,
+    "thickness": 150,
+    "confidence": 1.267
+  },
+  "83997_a_2.jpg": {
+    "h": "83997_a_2-h.webp",
+    "v": "83997_a_2-v.webp",
+    "tileLength": 594,
+    "thickness": 100,
+    "confidence": 1.45
+  },
+  "84002_a_1.jpg": {
+    "h": "84002_a_1-h.webp",
+    "v": "84002_a_1-v.webp",
+    "tileLength": 398,
+    "thickness": 189,
+    "confidence": 1.153
+  },
+  "84003_a_1.jpg": {
+    "h": "84003_a_1-h.webp",
+    "v": "84003_a_1-v.webp",
+    "tileLength": 454,
+    "thickness": 203,
+    "confidence": 1.108
+  },
+  "84004_a.jpg": {
+    "h": "84004_a-h.webp",
+    "v": "84004_a-v.webp",
+    "tileLength": 368,
+    "thickness": 268,
+    "confidence": 1.126
+  },
+  "84007_a_2.jpg": {
+    "h": "84007_a_2-h.webp",
+    "v": "84007_a_2-v.webp",
+    "tileLength": 496,
+    "thickness": 108,
+    "confidence": 1.318
+  },
+  "84026_a.jpg": {
+    "h": "84026_a-h.webp",
+    "v": "84026_a-v.webp",
+    "tileLength": 480,
+    "thickness": 151,
+    "confidence": 1.261
+  },
+  "84038_a_1.jpg": {
+    "h": "84038_a_1-h.webp",
+    "v": "84038_a_1-v.webp",
+    "tileLength": 432,
+    "thickness": 132,
+    "confidence": 1.391
+  },
+  "84039_a_1.jpg": {
+    "h": "84039_a_1-h.webp",
+    "v": "84039_a_1-v.webp",
+    "tileLength": 364,
+    "thickness": 113,
+    "confidence": 1.414
+  },
+  "84040_a_1.jpg": {
+    "h": "84040_a_1-h.webp",
+    "v": "84040_a_1-v.webp",
+    "tileLength": 430,
+    "thickness": 136,
+    "confidence": 1.354
+  },
+  "84048-a_2.jpg": {
+    "h": "84048-a_2-h.webp",
+    "v": "84048-a_2-v.webp",
+    "tileLength": 416,
+    "thickness": 201,
+    "confidence": 1.278
+  },
+  "84051_a_1.jpg": {
+    "h": "84051_a_1-h.webp",
+    "v": "84051_a_1-v.webp",
+    "tileLength": 306,
+    "thickness": 228,
+    "confidence": 1.179
+  },
+  "84068_a_1.jpg": {
+    "h": "84068_a_1-h.webp",
+    "v": "84068_a_1-v.webp",
+    "tileLength": 326,
+    "thickness": 159,
+    "confidence": 1.252
+  },
+  "84069_a_1.jpg": {
+    "h": "84069_a_1-h.webp",
+    "v": "84069_a_1-v.webp",
+    "tileLength": 258,
+    "thickness": 132,
+    "confidence": 1.453
+  },
+  "84074-a_2.jpg": {
+    "h": "84074-a_2-h.webp",
+    "v": "84074-a_2-v.webp",
+    "tileLength": 376,
+    "thickness": 127,
+    "confidence": 1.319
+  },
+  "84081_a_1.jpg": {
+    "h": "84081_a_1-h.webp",
+    "v": "84081_a_1-v.webp",
+    "tileLength": 442,
+    "thickness": 84,
+    "confidence": 1.781
+  },
+  "84082_a_1.jpg": {
+    "h": "84082_a_1-h.webp",
+    "v": "84082_a_1-v.webp",
+    "tileLength": 536,
+    "thickness": 111,
+    "confidence": 1.52
+  },
+  "84089_a_1.jpg": {
+    "h": "84089_a_1-h.webp",
+    "v": "84089_a_1-v.webp",
+    "tileLength": 284,
+    "thickness": 168,
+    "confidence": 1.17
+  },
+  "84103_a_1.jpg": {
+    "h": "84103_a_1-h.webp",
+    "v": "84103_a_1-v.webp",
+    "tileLength": 240,
+    "thickness": 115,
+    "confidence": 1.515
+  },
+  "84132-a_1.jpg": {
+    "h": "84132-a_1-h.webp",
+    "v": "84132-a_1-v.webp",
+    "tileLength": 534,
+    "thickness": 159,
+    "confidence": 1.395
+  },
+  "84134_a_1.jpg": {
+    "h": "84134_a_1-h.webp",
+    "v": "84134_a_1-v.webp",
+    "tileLength": 600,
+    "thickness": 151,
+    "confidence": 1.35
+  },
+  "84135_a_1.jpg": {
+    "h": "84135_a_1-h.webp",
+    "v": "84135_a_1-v.webp",
+    "tileLength": 476,
+    "thickness": 363,
+    "confidence": 1.166
+  },
+  "84137_a_1.jpg": {
+    "h": "84137_a_1-h.webp",
+    "v": "84137_a_1-v.webp",
+    "tileLength": 202,
+    "thickness": 239,
+    "confidence": 1.127
+  },
+  "84154_a_2.jpg": {
+    "h": "84154_a_2-h.webp",
+    "v": "84154_a_2-v.webp",
+    "tileLength": 458,
+    "thickness": 122,
+    "confidence": 1.287
+  },
+  "84161_a_1.jpg": {
+    "h": "84161_a_1-h.webp",
+    "v": "84161_a_1-v.webp",
+    "tileLength": 314,
+    "thickness": 113,
+    "confidence": 1.363
+  },
+  "84162_a_1.jpg": {
+    "h": "84162_a_1-h.webp",
+    "v": "84162_a_1-v.webp",
+    "tileLength": 430,
+    "thickness": 89,
+    "confidence": 1.503
+  },
+  "84164_a_1.jpg": {
+    "h": "84164_a_1-h.webp",
+    "v": "84164_a_1-v.webp",
+    "tileLength": 446,
+    "thickness": 112,
+    "confidence": 1.453
+  },
+  "84165_a_1.jpg": {
+    "h": "84165_a_1-h.webp",
+    "v": "84165_a_1-v.webp",
+    "tileLength": 506,
+    "thickness": 107,
+    "confidence": 1.464
+  },
+  "84166_a_1.jpg": {
+    "h": "84166_a_1-h.webp",
+    "v": "84166_a_1-v.webp",
+    "tileLength": 480,
+    "thickness": 108,
+    "confidence": 1.488
+  },
+  "84167_a_1.jpg": {
+    "h": "84167_a_1-h.webp",
+    "v": "84167_a_1-v.webp",
+    "tileLength": 376,
+    "thickness": 122,
+    "confidence": 1.356
+  },
+  "84168-a_1.jpg": {
+    "h": "84168-a_1-h.webp",
+    "v": "84168-a_1-v.webp",
+    "tileLength": 420,
+    "thickness": 135,
+    "confidence": 1.318
+  },
+  "84183_a_1.jpg": {
+    "h": "84183_a_1-h.webp",
+    "v": "84183_a_1-v.webp",
+    "tileLength": 346,
+    "thickness": 246,
+    "confidence": 1.156
+  },
+  "84185_a_1.jpg": {
+    "h": "84185_a_1-h.webp",
+    "v": "84185_a_1-v.webp",
+    "tileLength": 592,
+    "thickness": 167,
+    "confidence": 1.21
+  },
+  "8446-a.jpg": {
+    "h": "8446-a-h.webp",
+    "v": "8446-a-v.webp",
+    "tileLength": 218,
+    "thickness": 184,
+    "confidence": 1.24
+  },
+  "8575_a.jpg": {
+    "h": "8575_a-h.webp",
+    "v": "8575_a-v.webp",
+    "tileLength": 750,
+    "thickness": 100,
+    "confidence": 1.534
+  },
+  "8579_corner_a_1.jpg": {
+    "h": "8579_corner_a_1-h.webp",
+    "v": "8579_corner_a_1-v.webp",
+    "tileLength": 670,
+    "thickness": 101,
+    "confidence": 1.869
+  },
+  "8607_corner_a_1_1.jpg": {
+    "h": "8607_corner_a_1_1-h.webp",
+    "v": "8607_corner_a_1_1-v.webp",
+    "tileLength": 626,
+    "thickness": 129,
+    "confidence": 1.63
+  },
+  "8613-a_1.jpg": {
+    "h": "8613-a_1-h.webp",
+    "v": "8613-a_1-v.webp",
+    "tileLength": 522,
+    "thickness": 141,
+    "confidence": 1.419
+  },
+  "8694_corner_a_1.jpg": {
+    "h": "8694_corner_a_1-h.webp",
+    "v": "8694_corner_a_1-v.webp",
+    "tileLength": 690,
+    "thickness": 84,
+    "confidence": 2.014
+  },
+  "8708_a.jpg": {
+    "h": "8708_a-h.webp",
+    "v": "8708_a-v.webp",
+    "tileLength": 376,
+    "thickness": 199,
+    "confidence": 1.195
+  },
+  "8709_a.jpg": {
+    "h": "8709_a-h.webp",
+    "v": "8709_a-v.webp",
+    "tileLength": 556,
+    "thickness": 155,
+    "confidence": 1.241
+  },
+  "8744_corner_a_1.jpg": {
+    "h": "8744_corner_a_1-h.webp",
+    "v": "8744_corner_a_1-v.webp",
+    "tileLength": 690,
+    "thickness": 79,
+    "confidence": 2.19
+  },
+  "8745_corner_a_1.jpg": {
+    "h": "8745_corner_a_1-h.webp",
+    "v": "8745_corner_a_1-v.webp",
+    "tileLength": 698,
+    "thickness": 82,
+    "confidence": 2.154
+  },
+  "8752a.jpg": {
+    "h": "8752a-h.webp",
+    "v": "8752a-v.webp",
+    "tileLength": 580,
+    "thickness": 164,
+    "confidence": 1.159
+  },
+  "8753a.jpg": {
+    "h": "8753a-h.webp",
+    "v": "8753a-v.webp",
+    "tileLength": 516,
+    "thickness": 187,
+    "confidence": 1.117
+  },
+  "8756-a_1.jpg": {
+    "h": "8756-a_1-h.webp",
+    "v": "8756-a_1-v.webp",
+    "tileLength": 568,
+    "thickness": 173,
+    "confidence": 1.288
+  },
+  "8837_a.jpg": {
+    "h": "8837_a-h.webp",
+    "v": "8837_a-v.webp",
+    "tileLength": 220,
+    "thickness": 350,
+    "confidence": 1.143
+  },
+  "8838_corner_a_1.jpg": {
+    "h": "8838_corner_a_1-h.webp",
+    "v": "8838_corner_a_1-v.webp",
+    "tileLength": 476,
+    "thickness": 227,
+    "confidence": 1.322
+  },
+  "8971_a.jpg": {
+    "h": "8971_a-h.webp",
+    "v": "8971_a-v.webp",
+    "tileLength": 370,
+    "thickness": 262,
+    "confidence": 1.106
+  },
+  "8981-a_1.jpg": {
+    "h": "8981-a_1-h.webp",
+    "v": "8981-a_1-v.webp",
+    "tileLength": 704,
+    "thickness": 161,
+    "confidence": 1.315
+  },
+  "8991_corner_a_1.jpg": {
+    "h": "8991_corner_a_1-h.webp",
+    "v": "8991_corner_a_1-v.webp",
+    "tileLength": 250,
+    "thickness": 151,
+    "confidence": 1.316
+  },
+  "9073_a.jpg": {
+    "h": "9073_a-h.webp",
+    "v": "9073_a-v.webp",
+    "tileLength": 604,
+    "thickness": 117,
+    "confidence": 1.316
+  },
+  "9135_corner_a_1.jpg": {
+    "h": "9135_corner_a_1-h.webp",
+    "v": "9135_corner_a_1-v.webp",
+    "tileLength": 688,
+    "thickness": 85,
+    "confidence": 2.022
+  },
+  "9136_a.jpg": {
+    "h": "9136_a-h.webp",
+    "v": "9136_a-v.webp",
+    "tileLength": 608,
+    "thickness": 130,
+    "confidence": 1.276
+  },
+  "9163-a.jpg": {
+    "h": "9163-a-h.webp",
+    "v": "9163-a-v.webp",
+    "tileLength": 758,
+    "thickness": 138,
+    "confidence": 1.417
+  },
+  "9169_a.jpg": {
+    "h": "9169_a-h.webp",
+    "v": "9169_a-v.webp",
+    "tileLength": 470,
+    "thickness": 124,
+    "confidence": 1.264
+  },
+  "9172_a.jpg": {
+    "h": "9172_a-h.webp",
+    "v": "9172_a-v.webp",
+    "tileLength": 496,
+    "thickness": 178,
+    "confidence": 1.103
+  },
+  "9174_a.jpg": {
+    "h": "9174_a-h.webp",
+    "v": "9174_a-v.webp",
+    "tileLength": 200,
+    "thickness": 285,
+    "confidence": 1.141
+  },
+  "9202_a.jpg": {
+    "h": "9202_a-h.webp",
+    "v": "9202_a-v.webp",
+    "tileLength": 408,
+    "thickness": 232,
+    "confidence": 1.148
+  },
+  "9213_a.jpg": {
+    "h": "9213_a-h.webp",
+    "v": "9213_a-v.webp",
+    "tileLength": 646,
+    "thickness": 142,
+    "confidence": 1.306
+  },
+  "9240_corner_a_1_1.jpg": {
+    "h": "9240_corner_a_1_1-h.webp",
+    "v": "9240_corner_a_1_1-v.webp",
+    "tileLength": 532,
+    "thickness": 186,
+    "confidence": 1.366
+  },
+  "9448_corner_a_1_2.jpg": {
+    "h": "9448_corner_a_1_2-h.webp",
+    "v": "9448_corner_a_1_2-v.webp",
+    "tileLength": 662,
+    "thickness": 103,
+    "confidence": 1.912
+  },
+  "9479a.jpg": {
+    "h": "9479a-h.webp",
+    "v": "9479a-v.webp",
+    "tileLength": 500,
+    "thickness": 245,
+    "confidence": 1.202
+  },
+  "9535_a.jpg": {
+    "h": "9535_a-h.webp",
+    "v": "9535_a-v.webp",
+    "tileLength": 490,
+    "thickness": 211,
+    "confidence": 1.122
+  },
+  "9565-a_1.jpg": {
+    "h": "9565-a_1-h.webp",
+    "v": "9565-a_1-v.webp",
+    "tileLength": 340,
+    "thickness": 197,
+    "confidence": 1.32
+  },
+  "9582a.jpg": {
+    "h": "9582a-h.webp",
+    "v": "9582a-v.webp",
+    "tileLength": 264,
+    "thickness": 139,
+    "confidence": 1.22
+  },
+  "9583_a.jpg": {
+    "h": "9583_a-h.webp",
+    "v": "9583_a-v.webp",
+    "tileLength": 636,
+    "thickness": 157,
+    "confidence": 1.222
+  },
+  "9599_a.jpg": {
+    "h": "9599_a-h.webp",
+    "v": "9599_a-v.webp",
+    "tileLength": 412,
+    "thickness": 253,
+    "confidence": 1.13
+  },
+  "9600_a.jpg": {
+    "h": "9600_a-h.webp",
+    "v": "9600_a-v.webp",
+    "tileLength": 474,
+    "thickness": 237,
+    "confidence": 1.191
+  },
+  "9654a.jpg": {
+    "h": "9654a-h.webp",
+    "v": "9654a-v.webp",
+    "tileLength": 222,
+    "thickness": 253,
+    "confidence": 1.145
+  },
+  "9658a.jpg": {
+    "h": "9658a-h.webp",
+    "v": "9658a-v.webp",
+    "tileLength": 498,
+    "thickness": 306,
+    "confidence": 1.159
+  },
+  "9665_a.jpg": {
+    "h": "9665_a-h.webp",
+    "v": "9665_a-v.webp",
+    "tileLength": 244,
+    "thickness": 230,
+    "confidence": 1.129
+  },
+  "9666_a.jpg": {
+    "h": "9666_a-h.webp",
+    "v": "9666_a-v.webp",
+    "tileLength": 448,
+    "thickness": 231,
+    "confidence": 1.119
+  },
+  "9667_a.jpg": {
+    "h": "9667_a-h.webp",
+    "v": "9667_a-v.webp",
+    "tileLength": 434,
+    "thickness": 231,
+    "confidence": 1.156
+  },
+  "9669_a.jpg": {
+    "h": "9669_a-h.webp",
+    "v": "9669_a-v.webp",
+    "tileLength": 432,
+    "thickness": 229,
+    "confidence": 1.124
+  },
+  "9684_a.jpg": {
+    "h": "9684_a-h.webp",
+    "v": "9684_a-v.webp",
+    "tileLength": 378,
+    "thickness": 232,
+    "confidence": 1.169
+  },
+  "9729_a.jpg": {
+    "h": "9729_a-h.webp",
+    "v": "9729_a-v.webp",
+    "tileLength": 458,
+    "thickness": 303,
+    "confidence": 1.089
+  },
+  "9732_a_1_1.jpg": {
+    "h": "9732_a_1_1-h.webp",
+    "v": "9732_a_1_1-v.webp",
+    "tileLength": 406,
+    "thickness": 264,
+    "confidence": 1.108
+  },
+  "9733_a_1.jpg": {
+    "h": "9733_a_1-h.webp",
+    "v": "9733_a_1-v.webp",
+    "tileLength": 394,
+    "thickness": 275,
+    "confidence": 1.076
+  },
+  "9878_a.jpg": {
+    "h": "9878_a-h.webp",
+    "v": "9878_a-v.webp",
+    "tileLength": 422,
+    "thickness": 200,
+    "confidence": 1.142
+  },
+  "9879_a.jpg": {
+    "h": "9879_a-h.webp",
+    "v": "9879_a-v.webp",
+    "tileLength": 452,
+    "thickness": 197,
+    "confidence": 1.134
+  },
+  "9885_a.jpg": {
+    "h": "9885_a-h.webp",
+    "v": "9885_a-v.webp",
+    "tileLength": 568,
+    "thickness": 147,
+    "confidence": 1.183
+  },
+  "9911_a_1.jpg": {
+    "h": "9911_a_1-h.webp",
+    "v": "9911_a_1-v.webp",
+    "tileLength": 514,
+    "thickness": 182,
+    "confidence": 1.187
+  },
+  "9912_a_1.jpg": {
+    "h": "9912_a_1-h.webp",
+    "v": "9912_a_1-v.webp",
+    "tileLength": 412,
+    "thickness": 189,
+    "confidence": 1.152
+  },
+  "9932_corner_a_1.jpg": {
+    "h": "9932_corner_a_1-h.webp",
+    "v": "9932_corner_a_1-v.webp",
+    "tileLength": 680,
+    "thickness": 81,
+    "confidence": 2.033
+  },
+  "9935_corner_a_1.jpg": {
+    "h": "9935_corner_a_1-h.webp",
+    "v": "9935_corner_a_1-v.webp",
+    "tileLength": 580,
+    "thickness": 80,
+    "confidence": 2.029
+  },
+  "9942_a_1.jpg": {
+    "h": "9942_a_1-h.webp",
+    "v": "9942_a_1-v.webp",
+    "tileLength": 382,
+    "thickness": 259,
+    "confidence": 1.131
+  },
+  "9945_corner_a_1.jpg": {
+    "h": "9945_corner_a_1-h.webp",
+    "v": "9945_corner_a_1-v.webp",
+    "tileLength": 350,
+    "thickness": 142,
+    "confidence": 1.424
+  },
+  "antique-gold-deep-shadow.png": {
+    "h": "antique-gold-deep-shadow-h.webp",
+    "v": "antique-gold-deep-shadow-v.webp",
+    "tileLength": 336,
+    "thickness": 423,
+    "confidence": 1.117
+  },
+  "antique-gold-ornate.png": {
+    "h": "antique-gold-ornate-h.webp",
+    "v": "antique-gold-ornate-v.webp",
+    "tileLength": 528,
+    "thickness": 249,
+    "confidence": 1.337
+  },
+  "black-flat-shadow.png": {
+    "h": "black-flat-shadow-h.webp",
+    "v": "black-flat-shadow-v.webp",
+    "tileLength": 662,
+    "thickness": 189,
+    "confidence": 1.288
+  },
+  "black-ps.png": {
+    "h": "black-ps-h.webp",
+    "v": "black-ps-v.webp",
+    "tileLength": 374,
+    "thickness": 756,
+    "confidence": 2.421
+  },
+  "black-walnut-shadow.png": {
+    "h": "black-walnut-shadow-h.webp",
+    "v": "black-walnut-shadow-v.webp",
+    "tileLength": 472,
+    "thickness": 98,
+    "confidence": 1.524
+  },
+  "brown-barnwood-shadow.png": {
+    "h": "brown-barnwood-shadow-h.webp",
+    "v": "brown-barnwood-shadow-v.webp",
+    "tileLength": 478,
+    "thickness": 137,
+    "confidence": 1.291
+  },
+  "brushed-gold.png": {
+    "h": "brushed-gold-h.webp",
+    "v": "brushed-gold-v.webp",
+    "tileLength": 1450,
+    "thickness": 982,
+    "confidence": 1.593
+  },
+  "canvas-back.jpg": {
+    "h": "canvas-back-h.webp",
+    "v": "canvas-back-v.webp",
+    "tileLength": 1514,
+    "thickness": 673,
+    "confidence": 1.217
+  },
+  "canvas-placeholder.jpg": {
+    "h": "canvas-placeholder-h.webp",
+    "v": "canvas-placeholder-v.webp",
+    "tileLength": 722,
+    "thickness": 106,
+    "confidence": 1.816
+  },
+  "flat-black-contemporary.png": {
+    "h": "flat-black-contemporary-h.webp",
+    "v": "flat-black-contemporary-v.webp",
+    "tileLength": 722,
+    "thickness": 117,
+    "confidence": 1.827
+  },
+  "flat-bronze.png": {
+    "h": "flat-bronze-h.webp",
+    "v": "flat-bronze-v.webp",
+    "tileLength": 702,
+    "thickness": 129,
+    "confidence": 1.705
+  },
+  "flat-brown-deep.png": {
+    "h": "flat-brown-deep-h.webp",
+    "v": "flat-brown-deep-v.webp",
+    "tileLength": 628,
+    "thickness": 163,
+    "confidence": 1.456
+  },
+  "flat-gold.png": {
+    "h": "flat-gold-h.webp",
+    "v": "flat-gold-v.webp",
+    "tileLength": 688,
+    "thickness": 136,
+    "confidence": 1.675
+  },
+  "flat-mahogany.png": {
+    "h": "flat-mahogany-h.webp",
+    "v": "flat-mahogany-v.webp",
+    "tileLength": 650,
+    "thickness": 142,
+    "confidence": 1.515
+  },
+  "flat-silver.png": {
+    "h": "flat-silver-h.webp",
+    "v": "flat-silver-v.webp",
+    "tileLength": 202,
+    "thickness": 28,
+    "confidence": 1.908
+  },
+  "flat-white-deep.png": {
+    "h": "flat-white-deep-h.webp",
+    "v": "flat-white-deep-v.webp",
+    "tileLength": 688,
+    "thickness": 36,
+    "confidence": 3.777
+  },
+  "floating-natural.png": {
+    "h": "floating-natural-h.webp",
+    "v": "floating-natural-v.webp",
+    "tileLength": 1438,
+    "thickness": 978,
+    "confidence": 1.322
+  },
+  "frame-10065.jpg": {
+    "h": "frame-10065-h.webp",
+    "v": "frame-10065-v.webp",
+    "tileLength": 618,
+    "thickness": 188,
+    "confidence": 1.483
+  },
+  "frame-10683.jpg": {
+    "h": "frame-10683-h.webp",
+    "v": "frame-10683-v.webp",
+    "tileLength": 574,
+    "thickness": 204,
+    "confidence": 1.369
+  },
+  "frame-10684.webp": {
+    "h": "frame-10684-h.webp",
+    "v": "frame-10684-v.webp",
+    "tileLength": 620,
+    "thickness": 182,
+    "confidence": 1.446
+  },
+  "frame-10685.jpg": {
+    "h": "frame-10685-h.webp",
+    "v": "frame-10685-v.webp",
+    "tileLength": 626,
+    "thickness": 178,
+    "confidence": 1.517
+  },
+  "frame-10716.jpg": {
+    "h": "frame-10716-h.webp",
+    "v": "frame-10716-v.webp",
+    "tileLength": 584,
+    "thickness": 196,
+    "confidence": 1.397
+  },
+  "frame-10995.jpg": {
+    "h": "frame-10995-h.webp",
+    "v": "frame-10995-v.webp",
+    "tileLength": 598,
+    "thickness": 369,
+    "confidence": 1.151
+  },
+  "frame-11000.jpg": {
+    "h": "frame-11000-h.webp",
+    "v": "frame-11000-v.webp",
+    "tileLength": 444,
+    "thickness": 432,
+    "confidence": 1.157
+  },
+  "frame-11001.jpg": {
+    "h": "frame-11001-h.webp",
+    "v": "frame-11001-v.webp",
+    "tileLength": 376,
+    "thickness": 437,
+    "confidence": 1.128
+  },
+  "frame-11004.jpg": {
+    "h": "frame-11004-h.webp",
+    "v": "frame-11004-v.webp",
+    "tileLength": 300,
+    "thickness": 497,
+    "confidence": 1.273
+  },
+  "frame-11114.jpg": {
+    "h": "frame-11114-h.webp",
+    "v": "frame-11114-v.webp",
+    "tileLength": 470,
+    "thickness": 200,
+    "confidence": 1.172
+  },
+  "frame-11131.jpg": {
+    "h": "frame-11131-h.webp",
+    "v": "frame-11131-v.webp",
+    "tileLength": 666,
+    "thickness": 151,
+    "confidence": 1.609
+  },
+  "frame-11147.jpg": {
+    "h": "frame-11147-h.webp",
+    "v": "frame-11147-v.webp",
+    "tileLength": 590,
+    "thickness": 293,
+    "confidence": 1.144
+  },
+  "frame-11151.jpg": {
+    "h": "frame-11151-h.webp",
+    "v": "frame-11151-v.webp",
+    "tileLength": 704,
+    "thickness": 125,
+    "confidence": 1.751
+  },
+  "frame-11153.jpg": {
+    "h": "frame-11153-h.webp",
+    "v": "frame-11153-v.webp",
+    "tileLength": 704,
+    "thickness": 121,
+    "confidence": 1.838
+  },
+  "frame-11196.jpg": {
+    "h": "frame-11196-h.webp",
+    "v": "frame-11196-v.webp",
+    "tileLength": 408,
+    "thickness": 256,
+    "confidence": 1.284
+  },
+  "frame-11204.jpg": {
+    "h": "frame-11204-h.webp",
+    "v": "frame-11204-v.webp",
+    "tileLength": 518,
+    "thickness": 312,
+    "confidence": 1.141
+  },
+  "frame-6526.jpg": {
+    "h": "frame-6526-h.webp",
+    "v": "frame-6526-v.webp",
+    "tileLength": 552,
+    "thickness": 221,
+    "confidence": 1.244
+  },
+  "frame-83999.jpg": {
+    "h": "frame-83999-h.webp",
+    "v": "frame-83999-v.webp",
+    "tileLength": 474,
+    "thickness": 562,
+    "confidence": 1.147
+  },
+  "frame-84007.jpg": {
+    "h": "frame-84007-h.webp",
+    "v": "frame-84007-v.webp",
+    "tileLength": 548,
+    "thickness": 118,
+    "confidence": 1.319
+  },
+  "frame-84068.jpg": {
+    "h": "frame-84068-h.webp",
+    "v": "frame-84068-v.webp",
+    "tileLength": 330,
+    "thickness": 175,
+    "confidence": 1.267
+  },
+  "frame-84161.jpg": {
+    "h": "frame-84161-h.webp",
+    "v": "frame-84161-v.webp",
+    "tileLength": 240,
+    "thickness": 123,
+    "confidence": 1.368
+  },
+  "frame-84162.jpg": {
+    "h": "frame-84162-h.webp",
+    "v": "frame-84162-v.webp",
+    "tileLength": 476,
+    "thickness": 98,
+    "confidence": 1.499
+  },
+  "frame-8837.jpg": {
+    "h": "frame-8837-h.webp",
+    "v": "frame-8837-v.webp",
+    "tileLength": 242,
+    "thickness": 384,
+    "confidence": 1.113
+  },
+  "frame-9135.jpg": {
+    "h": "frame-9135-h.webp",
+    "v": "frame-9135-v.webp",
+    "tileLength": 758,
+    "thickness": 93,
+    "confidence": 2.034
+  },
+  "frame-9136.jpg": {
+    "h": "frame-9136-h.webp",
+    "v": "frame-9136-v.webp",
+    "tileLength": 672,
+    "thickness": 142,
+    "confidence": 1.288
+  },
+  "frame-9599.jpg": {
+    "h": "frame-9599-h.webp",
+    "v": "frame-9599-v.webp",
+    "tileLength": 456,
+    "thickness": 278,
+    "confidence": 1.116
+  },
+  "frame-9600.jpg": {
+    "h": "frame-9600-h.webp",
+    "v": "frame-9600-v.webp",
+    "tileLength": 514,
+    "thickness": 261,
+    "confidence": 1.182
+  },
+  "gallery-white.png": {
+    "h": "gallery-white-h.webp",
+    "v": "gallery-white-v.webp",
+    "tileLength": 850,
+    "thickness": 835,
+    "confidence": 1.437
+  },
+  "glossy-black.png": {
+    "h": "glossy-black-h.webp",
+    "v": "glossy-black-v.webp",
+    "tileLength": 756,
+    "thickness": 535,
+    "confidence": 1.433
+  },
+  "grey-barnwood-shadow.png": {
+    "h": "grey-barnwood-shadow-h.webp",
+    "v": "grey-barnwood-shadow-v.webp",
+    "tileLength": 726,
+    "thickness": 107,
+    "confidence": 1.914
+  },
+  "mahogany-shadow.png": {
+    "h": "mahogany-shadow-h.webp",
+    "v": "mahogany-shadow-v.webp",
+    "tileLength": 650,
+    "thickness": 142,
+    "confidence": 1.515
+  },
+  "matte-black.png": {
+    "h": "matte-black-h.webp",
+    "v": "matte-black-v.webp",
+    "tileLength": 1122,
+    "thickness": 948,
+    "confidence": 1.388
+  },
+  "metallic-black.png": {
+    "h": "metallic-black-h.webp",
+    "v": "metallic-black-v.webp",
+    "tileLength": 756,
+    "thickness": 97,
+    "confidence": 2.077
+  },
+  "metallic-pearl-white.png": {
+    "h": "metallic-pearl-white-h.webp",
+    "v": "metallic-pearl-white-v.webp",
+    "tileLength": 222,
+    "thickness": 63,
+    "confidence": 1.984
+  },
+  "metallic-pewter.png": {
+    "h": "metallic-pewter-h.webp",
+    "v": "metallic-pewter-v.webp",
+    "tileLength": 754,
+    "thickness": 98,
+    "confidence": 2.063
+  },
+  "metallic-pink.png": {
+    "h": "metallic-pink-h.webp",
+    "v": "metallic-pink-v.webp",
+    "tileLength": 746,
+    "thickness": 104,
+    "confidence": 1.964
+  },
+  "modern-black.png": {
+    "h": "modern-black-h.webp",
+    "v": "modern-black-v.webp",
+    "tileLength": 1372,
+    "thickness": 950,
+    "confidence": 1.497
+  },
+  "modern-silver.png": {
+    "h": "modern-silver-h.webp",
+    "v": "modern-silver-v.webp",
+    "tileLength": 1696,
+    "thickness": 1020,
+    "confidence": 1.142
+  },
+  "ornate-black.png": {
+    "h": "ornate-black-h.webp",
+    "v": "ornate-black-v.webp",
+    "tileLength": 624,
+    "thickness": 182,
+    "confidence": 1.462
+  },
+  "ornate-classic-gold.jpg": {
+    "h": "ornate-classic-gold-h.webp",
+    "v": "ornate-classic-gold-v.webp",
+    "tileLength": 452,
+    "thickness": 249,
+    "confidence": 1.16
+  },
+  "ornate-silver.png": {
+    "h": "ornate-silver-h.webp",
+    "v": "ornate-silver-v.webp",
+    "tileLength": 740,
+    "thickness": 107,
+    "confidence": 1.967
+  },
+  "ornate-vintage-gold.jpg": {
+    "h": "ornate-vintage-gold-h.webp",
+    "v": "ornate-vintage-gold-v.webp",
+    "tileLength": 602,
+    "thickness": 192,
+    "confidence": 1.395
+  },
+  "reclaimed-wood.png": {
+    "h": "reclaimed-wood-h.webp",
+    "v": "reclaimed-wood-v.webp",
+    "tileLength": 1276,
+    "thickness": 861,
+    "confidence": 1.228
+  },
+  "rose-gold-metallic.png": {
+    "h": "rose-gold-metallic-h.webp",
+    "v": "rose-gold-metallic-v.webp",
+    "tileLength": 726,
+    "thickness": 100,
+    "confidence": 1.826
+  },
+  "slate-grey-shadow.png": {
+    "h": "slate-grey-shadow-h.webp",
+    "v": "slate-grey-shadow-v.webp",
+    "tileLength": 414,
+    "thickness": 224,
+    "confidence": 1.3
+  },
+  "vintage-gold.png": {
+    "h": "vintage-gold-h.webp",
+    "v": "vintage-gold-v.webp",
+    "tileLength": 1450,
+    "thickness": 982,
+    "confidence": 1.611
+  },
+  "walnut-dark.png": {
+    "h": "walnut-dark-h.webp",
+    "v": "walnut-dark-v.webp",
+    "tileLength": 1328,
+    "thickness": 949,
+    "confidence": 1.725
+  },
+  "walnut-square-shadow.png": {
+    "h": "walnut-square-shadow-h.webp",
+    "v": "walnut-square-shadow-v.webp",
+    "tileLength": 514,
+    "thickness": 134,
+    "confidence": 1.287
+  },
+  "white-washed-ornate.png": {
+    "h": "white-washed-ornate-h.webp",
+    "v": "white-washed-ornate-v.webp",
+    "tileLength": 666,
+    "thickness": 153,
+    "confidence": 1.564
+  },
+  "wide-silver-traditional.jpg": {
+    "h": "wide-silver-traditional-h.webp",
+    "v": "wide-silver-traditional-v.webp",
+    "tileLength": 496,
+    "thickness": 387,
+    "confidence": 1.172
+  }
+}
