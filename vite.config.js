@@ -36,6 +36,6 @@ export default defineConfig({
     // `npm run test:rules`) and would hang here without one running.
     // functions/ is its own package with its own emulator-backed test run
     // (`npm --prefix functions test`) — not part of this project's suite.
-    exclude: [...configDefaults.exclude, 'src/test/firestore/**', 'functions/**'],
+    exclude: [...configDefaults.exclude, 'src/test/firestore/**', 'functions/**', 'tests/e2e/**'],
   },
 })
