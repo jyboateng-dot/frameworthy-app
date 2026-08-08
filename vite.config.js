@@ -8,6 +8,26 @@ export default defineConfig({
   server: {
     port: process.env.PORT ? Number(process.env.PORT) : 5173,
   },
+  build: {
+    // FrameWorthy intentionally ships several large, static catalogue datasets
+    // (album artwork, Met archive, movie posters, and frame-strip metadata).
+    // Keep them out of route UI chunks so they cache independently and so a
+    // change to one catalogue doesn't invalidate the whole app shell.
+    chunkSizeWarningLimit: 2500,
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          const normalized = id.replace(/\\/g, '/');
+          if (normalized.includes('/src/data/albumsLocal.js')) return 'catalog-albums';
+          if (normalized.includes('/src/data/metLocal.js')) return 'catalog-met';
+          if (normalized.includes('/src/data/moviesLocal.js')) return 'catalog-movies';
+          if (normalized.includes('/src/data/web_met_dims.json')) return 'catalog-met-dimensions';
+          if (normalized.includes('/src/data/source_dims.json')) return 'catalog-source-dimensions';
+          if (normalized.includes('/src/data/frameStrips.json')) return 'catalog-frame-strips';
+        },
+      },
+    },
+  },
   test: {
     environment: 'jsdom',
     setupFiles: ['./src/test/setup.js'],
