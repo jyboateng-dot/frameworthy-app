@@ -12,6 +12,7 @@ import {
     Info,
     Loader,
     Maximize2,
+    View,
     X
 } from 'lucide-react';
 import { FRAME_STYLES, FRAME_SIZES, MAT_COLORS, formatDimensions, findSizeByDimension, parseCustomSize, DEFAULT_DEMO_IMAGE } from '../../data/constants';
@@ -25,6 +26,7 @@ import { useCart } from '../../context/CartContext';
 import { uploadImageToCloud, getThumbnailUrl } from '../../services/storage';
 import FrameSelectionModal from '../../components/FrameSelectionModal';
 import SizeGuidePanel from '../../components/framing/SizeGuidePanel';
+import ArPreviewModal from '../../components/framing/ArPreviewModal';
 import MetArtSelectionModal from '../../components/MetArtSelectionModal';
 import { renderAlbumPoster } from '../../utils/albumPoster';
 import { renderMoviePoster } from '../../utils/moviePoster';
@@ -32,8 +34,6 @@ import { useAuth } from '../../context/AuthContext';
 import AuthModal from '../../components/AuthModal';
 import Price from '../../components/common/Price';
 import { visualizerFullScreenState } from '../../utils/visualizerFullScreenState';
-import { firebaseProjectId } from '../../services/firebase';
-import { createAndroidSceneViewerIntent, createArPreviewUrls, getArPlatform } from '../../utils/arPreview';
 
 // High-fidelity 3D side gradients for the frame
 const getSideBackground = (side, frame) => {
@@ -68,16 +68,6 @@ const getSideBackground = (side, frame) => {
 
     return hex;
 };
-
-const ArGlyph = () => (
-    <svg viewBox="0 0 24 24" aria-hidden="true" className="h-[21px] w-[21px]" fill="none" stroke="currentColor" strokeWidth="1.65" strokeLinecap="round" strokeLinejoin="round">
-        {/* Isometric placement cube: deliberately close to the recognised AR
-            mark, without borrowing the reference image itself. */}
-        <path d="M12 2.8 19.1 6.9v8.2L12 19.2 4.9 15.1V6.9L12 2.8Z" />
-        <path d="M12 2.8v8.3m0 0 7.1-4.2M12 11.1 4.9 6.9M12 11.1v8.1" />
-        <path d="M6.5 13.6 12 16.8l5.5-3.2" opacity=".82" />
-    </svg>
-);
 
 // Directional bevel shading, as an `overlay`-blended gradient over a texture
 // photo rather than baked into a flat colour — mid-grey (#808080) is the
@@ -372,10 +362,10 @@ const CustomizeFramePage = ({
     const [isSizeGuideOpen, setIsSizeGuideOpen] = useState(false);
     const [isWallPickerOpen, setIsWallPickerOpen] = useState(false);
     const [isMetModalOpen, setIsMetModalOpen] = useState(false);
+    const [isArOpen, setIsArOpen] = useState(false);
     const [isHovered, setIsHovered] = useState(false);
     const [isMaxZoom, setIsMaxZoom] = useState(false);
     const [isFullScreen, setIsFullScreen] = useState(false);
-    const arPlatform = getArPlatform({ capacitorPlatform: Capacitor.getPlatform() });
     // Decoupled from isFullScreen so entering/exiting can crossfade instead
     // of hard-cutting: isFullScreen controls which layout (docked vs.
     // full-screen) is mounted, paneVisible controls that pane's own
@@ -443,22 +433,6 @@ const CustomizeFramePage = ({
         width: typeof window !== 'undefined' ? window.innerWidth : 1200,
         height: typeof window !== 'undefined' ? window.innerHeight : 800,
     });
-
-    // Creating this URL is pure client-side configuration; the USDZ/GLB is
-    // generated only once the customer opens it. Keeping the iOS href in the
-    // rendered anchor lets Safari intercept the *actual tap* for Quick Look.
-    const arPreviewUrls = useMemo(() => createArPreviewUrls({
-            projectId: firebaseProjectId,
-            frame: selectedFrame,
-            size: selectedSize,
-            orientation,
-            artworkUrl: productionImage || uploadedImage,
-        }), [selectedFrame, selectedSize, orientation, productionImage, uploadedImage]);
-
-    const launchAndroidArPreview = () => {
-        if (!arPreviewUrls?.android) return;
-        window.location.assign(createAndroidSceneViewerIntent(arPreviewUrls.android));
-    };
 
     useEffect(() => {
         const handleResize = () => setWindowSize({
@@ -2359,33 +2333,24 @@ const CustomizeFramePage = ({
                     </span>
                 </button>
 
-                {!isFullScreen && arPlatform && (
-                    <div className="absolute bottom-3 left-3 sm:bottom-6 sm:left-6 z-30">
-                        {arPlatform === 'ios' && arPreviewUrls?.ios ? (
-                            <a
-                                rel="ar"
-                                href={arPreviewUrls.ios}
-                                aria-label="View this frame in augmented reality"
-                                title="View in AR"
-                                className="relative grid h-10 w-10 place-items-center rounded-full border border-[#a6824c]/60 bg-white/95 text-[11px] font-bold tracking-[-0.08em] text-[#8d6c38] shadow-md backdrop-blur transition hover:border-[#8d6c38] hover:bg-[#f8f3e8]"
-                            >
-                                {/* Required direct child for Safari AR Quick Look. */}
-                                <img src={getThumbnailUrl(productionImage || uploadedImage, 40)} alt="" className="absolute h-px w-px opacity-0" />
-                                <ArGlyph />
-                            </a>
-                        ) : (
-                            <button
-                                type="button"
-                                onClick={launchAndroidArPreview}
-                                disabled={!arPreviewUrls?.android}
-                                aria-label="View this frame in augmented reality"
-                                title="View in AR"
-                                className="grid h-10 w-10 place-items-center rounded-full border border-[#a6824c]/60 bg-white/95 text-[11px] font-bold tracking-[-0.08em] text-[#8d6c38] shadow-md backdrop-blur transition hover:border-[#8d6c38] hover:bg-[#f8f3e8] disabled:cursor-not-allowed disabled:opacity-45"
-                            >
-                                <ArGlyph />
-                            </button>
-                        )}
-                    </div>
+                {/* AR Toggle — mirrors the full-screen button's own
+                    positioning/visibility rules (opposite corner, hidden
+                    during full-screen and max-zoom for the same reasons:
+                    nothing useful to do from either state, just clutter).
+                    Whether AR actually works on this device is decided
+                    inside ArPreviewModal itself once opened (model-viewer's
+                    own capability probe) — this button always opens the
+                    modal, which is also where the "AR isn't available
+                    here, but here's a 3D look" fallback message lives. */}
+                {!isFullScreen && !isMaxZoom && selectedFrame?.id !== 'frame-canvas' && (
+                    <button
+                        onClick={() => setIsArOpen(true)}
+                        className="absolute bottom-3 left-3 sm:bottom-6 sm:left-6 z-30 w-10 h-10 flex items-center justify-center rounded-full border border-stone-200 shadow-sm hover:shadow-md transition-all bg-white/95 backdrop-blur text-stone-700"
+                        title="View on your wall"
+                        aria-label="View this frame on your wall in AR"
+                    >
+                        <View size={18} />
+                    </button>
                 )}
             </div>
 
@@ -2864,10 +2829,21 @@ const CustomizeFramePage = ({
             />
 
             {/* Auth Modal */}
-            <AuthModal 
-                isOpen={showAuthModal} 
-                onClose={() => setShowAuthModal(false)} 
+            <AuthModal
+                isOpen={showAuthModal}
+                onClose={() => setShowAuthModal(false)}
                 returnTo="/checkout"
+            />
+
+            <ArPreviewModal
+                isOpen={isArOpen}
+                onClose={() => setIsArOpen(false)}
+                frame={selectedFrame}
+                widthIn={wInch}
+                heightIn={hInch}
+                matInches={matWidth !== 'none' ? currentMatInches : 0}
+                matColorHex={matColor?.hex}
+                artworkUrl={productionImage || uploadedImage}
             />
         </div>
     );
