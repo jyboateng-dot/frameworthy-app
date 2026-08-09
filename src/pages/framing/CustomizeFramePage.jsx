@@ -444,39 +444,20 @@ const CustomizeFramePage = ({
         height: typeof window !== 'undefined' ? window.innerHeight : 800,
     });
 
-    const launchArPreview = () => {
-        const sourceImage = productionImage || uploadedImage;
-        const previewUrls = createArPreviewUrls({
+    // Creating this URL is pure client-side configuration; the USDZ/GLB is
+    // generated only once the customer opens it. Keeping the iOS href in the
+    // rendered anchor lets Safari intercept the *actual tap* for Quick Look.
+    const arPreviewUrls = useMemo(() => createArPreviewUrls({
             projectId: firebaseProjectId,
             frame: selectedFrame,
             size: selectedSize,
             orientation,
-            artworkUrl: sourceImage,
-        });
-        if (!previewUrls) return;
+            artworkUrl: productionImage || uploadedImage,
+        }), [selectedFrame, selectedSize, orientation, productionImage, uploadedImage]);
 
-        const href = arPlatform === 'android'
-            ? createAndroidSceneViewerIntent(previewUrls.android)
-            : previewUrls.ios;
-
-        // Quick Look recognizes a user-activated <a rel="ar"> with an image
-        // child. Creating it only for this click preserves that contract while
-        // taking the customer directly into placement, with no staging state.
-        if (arPlatform === 'ios') {
-            const link = document.createElement('a');
-            const image = document.createElement('img');
-            link.rel = 'ar';
-            link.href = href;
-            image.src = getThumbnailUrl(sourceImage, 40) || '';
-            image.alt = '';
-            link.appendChild(image);
-            document.body.appendChild(link);
-            link.click();
-            link.remove();
-            return;
-        }
-
-        window.location.assign(href);
+    const launchAndroidArPreview = () => {
+        if (!arPreviewUrls?.android) return;
+        window.location.assign(createAndroidSceneViewerIntent(arPreviewUrls.android));
     };
 
     useEffect(() => {
@@ -2380,15 +2361,30 @@ const CustomizeFramePage = ({
 
                 {!isFullScreen && arPlatform && (
                     <div className="absolute bottom-3 left-3 sm:bottom-6 sm:left-6 z-30">
-                        <button
-                            type="button"
-                            onClick={launchArPreview}
-                            aria-label="View this frame in augmented reality"
-                            title="View in AR"
-                            className="grid h-10 w-10 place-items-center rounded-full border border-[#a6824c]/60 bg-white/95 text-[11px] font-bold tracking-[-0.08em] text-[#8d6c38] shadow-md backdrop-blur transition hover:border-[#8d6c38] hover:bg-[#f8f3e8]"
-                        >
-                            <ArGlyph />
-                        </button>
+                        {arPlatform === 'ios' && arPreviewUrls?.ios ? (
+                            <a
+                                rel="ar"
+                                href={arPreviewUrls.ios}
+                                aria-label="View this frame in augmented reality"
+                                title="View in AR"
+                                className="relative grid h-10 w-10 place-items-center rounded-full border border-[#a6824c]/60 bg-white/95 text-[11px] font-bold tracking-[-0.08em] text-[#8d6c38] shadow-md backdrop-blur transition hover:border-[#8d6c38] hover:bg-[#f8f3e8]"
+                            >
+                                {/* Required direct child for Safari AR Quick Look. */}
+                                <img src={getThumbnailUrl(productionImage || uploadedImage, 40)} alt="" className="absolute h-px w-px opacity-0" />
+                                <ArGlyph />
+                            </a>
+                        ) : (
+                            <button
+                                type="button"
+                                onClick={launchAndroidArPreview}
+                                disabled={!arPreviewUrls?.android}
+                                aria-label="View this frame in augmented reality"
+                                title="View in AR"
+                                className="grid h-10 w-10 place-items-center rounded-full border border-[#a6824c]/60 bg-white/95 text-[11px] font-bold tracking-[-0.08em] text-[#8d6c38] shadow-md backdrop-blur transition hover:border-[#8d6c38] hover:bg-[#f8f3e8] disabled:cursor-not-allowed disabled:opacity-45"
+                            >
+                                <ArGlyph />
+                            </button>
+                        )}
                     </div>
                 )}
             </div>
