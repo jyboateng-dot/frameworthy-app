@@ -70,10 +70,12 @@ const getSideBackground = (side, frame) => {
 };
 
 const ArGlyph = () => (
-    <svg viewBox="0 0 24 24" aria-hidden="true" className="h-[19px] w-[19px]" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M8 3H5a2 2 0 0 0-2 2v3M16 3h3a2 2 0 0 1 2 2v3M3 16v3a2 2 0 0 0 2 2h3M21 16v3a2 2 0 0 1-2 2h-3" />
-        <path d="m12 7 4 2.2v5.6L12 17l-4-2.2V9.2L12 7Z" />
-        <path d="m8 9.2 4 2.2 4-2.2M12 11.4V17" />
+    <svg viewBox="0 0 24 24" aria-hidden="true" className="h-[21px] w-[21px]" fill="none" stroke="currentColor" strokeWidth="1.65" strokeLinecap="round" strokeLinejoin="round">
+        {/* Isometric placement cube: deliberately close to the recognised AR
+            mark, without borrowing the reference image itself. */}
+        <path d="M12 2.8 19.1 6.9v8.2L12 19.2 4.9 15.1V6.9L12 2.8Z" />
+        <path d="M12 2.8v8.3m0 0 7.1-4.2M12 11.1 4.9 6.9M12 11.1v8.1" />
+        <path d="M6.5 13.6 12 16.8l5.5-3.2" opacity=".82" />
     </svg>
 );
 
@@ -373,8 +375,6 @@ const CustomizeFramePage = ({
     const [isHovered, setIsHovered] = useState(false);
     const [isMaxZoom, setIsMaxZoom] = useState(false);
     const [isFullScreen, setIsFullScreen] = useState(false);
-    const [arPreviewUrls, setArPreviewUrls] = useState(null);
-    const [arPreviewMessage, setArPreviewMessage] = useState('');
     const arPlatform = getArPlatform({ capacitorPlatform: Capacitor.getPlatform() });
     // Decoupled from isFullScreen so entering/exiting can crossfade instead
     // of hard-cutting: isFullScreen controls which layout (docked vs.
@@ -444,7 +444,7 @@ const CustomizeFramePage = ({
         height: typeof window !== 'undefined' ? window.innerHeight : 800,
     });
 
-    const prepareArPreview = () => {
+    const launchArPreview = () => {
         const sourceImage = productionImage || uploadedImage;
         const previewUrls = createArPreviewUrls({
             projectId: firebaseProjectId,
@@ -453,21 +453,31 @@ const CustomizeFramePage = ({
             orientation,
             artworkUrl: sourceImage,
         });
-        if (!previewUrls) {
-            setArPreviewMessage('Finish uploading an image before preparing an AR preview.');
+        if (!previewUrls) return;
+
+        const href = arPlatform === 'android'
+            ? createAndroidSceneViewerIntent(previewUrls.android)
+            : previewUrls.ios;
+
+        // Quick Look recognizes a user-activated <a rel="ar"> with an image
+        // child. Creating it only for this click preserves that contract while
+        // taking the customer directly into placement, with no staging state.
+        if (arPlatform === 'ios') {
+            const link = document.createElement('a');
+            const image = document.createElement('img');
+            link.rel = 'ar';
+            link.href = href;
+            image.src = getThumbnailUrl(sourceImage, 40) || '';
+            image.alt = '';
+            link.appendChild(image);
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
             return;
         }
-        setArPreviewUrls(previewUrls);
-        setArPreviewMessage('Preview ready. Open it to place the frame on a wall.');
-    };
 
-    // The generated Quick Look URL represents one exact configuration. Clear
-    // it as soon as any physical or visual property changes so customers can
-    // never open a stale AR object after changing their frame or dimensions.
-    useEffect(() => {
-        setArPreviewUrls(null);
-        setArPreviewMessage('');
-    }, [selectedFrame?.id, selectedSize?.width, selectedSize?.height, orientation, productionImage, uploadedImage]);
+        window.location.assign(href);
+    };
 
     useEffect(() => {
         const handleResize = () => setWindowSize({
@@ -2369,33 +2379,16 @@ const CustomizeFramePage = ({
                 </button>
 
                 {!isFullScreen && arPlatform && (
-                    <div className="absolute bottom-3 left-3 sm:bottom-6 sm:left-6 z-30 flex flex-col items-start gap-1.5">
-                        {arPreviewUrls ? (
-                            <a
-                                rel={arPlatform === 'ios' ? 'ar' : undefined}
-                                href={arPlatform === 'android'
-                                    ? createAndroidSceneViewerIntent(arPreviewUrls.android)
-                                    : arPreviewUrls.ios}
-                                aria-label="View this frame in augmented reality"
-                                title="View in AR"
-                                className="relative grid h-10 w-10 place-items-center rounded-full border border-[#a6824c]/60 bg-white/95 text-[11px] font-bold tracking-[-0.08em] text-[#8d6c38] shadow-md backdrop-blur transition hover:border-[#8d6c38] hover:bg-[#f8f3e8]"
-                            >
-                                {/* Quick Look requires an image inside its rel=ar link. */}
-                                <img src={getThumbnailUrl(productionImage || uploadedImage, 40)} alt="" className="absolute h-px w-px opacity-0" />
-                                <ArGlyph />
-                            </a>
-                        ) : (
-                            <button
-                                type="button"
-                                onClick={prepareArPreview}
-                                aria-label="Prepare this frame for augmented reality"
-                                title="View in AR"
-                                className="grid h-10 w-10 place-items-center rounded-full border border-[#a6824c]/60 bg-white/95 text-[11px] font-bold tracking-[-0.08em] text-[#8d6c38] shadow-md backdrop-blur transition hover:border-[#8d6c38] hover:bg-[#f8f3e8]"
-                            >
-                                <ArGlyph />
-                            </button>
-                        )}
-                        {arPreviewMessage && <p aria-live="polite" className="max-w-[190px] rounded bg-white/80 px-1.5 py-1 text-[9px] leading-snug text-stone-600 shadow-sm backdrop-blur">{arPreviewMessage}</p>}
+                    <div className="absolute bottom-3 left-3 sm:bottom-6 sm:left-6 z-30">
+                        <button
+                            type="button"
+                            onClick={launchArPreview}
+                            aria-label="View this frame in augmented reality"
+                            title="View in AR"
+                            className="grid h-10 w-10 place-items-center rounded-full border border-[#a6824c]/60 bg-white/95 text-[11px] font-bold tracking-[-0.08em] text-[#8d6c38] shadow-md backdrop-blur transition hover:border-[#8d6c38] hover:bg-[#f8f3e8]"
+                        >
+                            <ArGlyph />
+                        </button>
                     </div>
                 )}
             </div>
