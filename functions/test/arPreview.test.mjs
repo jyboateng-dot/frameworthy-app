@@ -40,7 +40,7 @@ describe('AR Quick Look preview generator', () => {
             frameDepthM: 0.028,
             frameColor: '0.6510, 0.5098, 0.2980',
             isMetallic: false,
-        }, { bytes: Buffer.from([0xff, 0xd8, 0xff, 0xd9]), extension: 'jpg' });
+        }, { bytes: Buffer.from([0xff, 0xd8, 0xff, 0xd9]), extension: 'jpg' }, { bytes: Buffer.from([0xff, 0xd8, 0xff, 0xd9]), extension: 'jpg' });
         const jsonLength = glb.readUInt32LE(12);
         const json = JSON.parse(glb.subarray(20, 20 + jsonLength).toString('utf8').trim());
 
@@ -49,6 +49,7 @@ describe('AR Quick Look preview generator', () => {
         expect(glb.readUInt32LE(8)).toBe(glb.length);
         expect(json.asset.version).toBe('2.0');
         expect(json.nodes).toHaveLength(5);
-        expect(json.images[0].mimeType).toBe('image/jpeg');
+        expect(json.images).toHaveLength(2);
+        expect(json.images[1].mimeType).toBe('image/jpeg');
     });
 });

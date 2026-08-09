@@ -1,5 +1,5 @@
 const MAX_ARTWORK_BYTES = 5 * 1024 * 1024;
-const ALLOWED_ARTWORK_HOSTS = new Set(['res.cloudinary.com', 'images.unsplash.com']);
+const ALLOWED_IMAGE_HOSTS = new Set(['res.cloudinary.com', 'images.unsplash.com', 'frameworthyco.com', 'www.frameworthyco.com', 'frameworthyco-9c78c.web.app']);
 
 const clamp = (value, min, max, field) => {
     const number = Number(value);
@@ -84,7 +84,7 @@ function cube(name, width, height, depth, x, y, z, material) {
     return `\n    def Cube "${name}"\n    {\n        double size = 2\n        double3 xformOp:translate = (${x}, ${y}, ${z})\n        double3 xformOp:scale = (${width / 2}, ${height / 2}, ${depth / 2})\n        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:scale"]\n        rel material:binding = <${material}>\n    }`;
 }
 
-function makeScene(config, artworkName) {
+function makeScene(config, artworkName, frameTextureName) {
     const openingWidth = config.openingWidthM;
     const openingHeight = config.openingHeightM;
     const face = config.frameFaceM;
@@ -112,11 +112,25 @@ def Material "FrameMaterial"
     def Shader "Surface"
     {
         uniform token info:id = "UsdPreviewSurface"
-        color3f inputs:diffuseColor = (${config.frameColor})
+        ${frameTextureName ? `color3f inputs:diffuseColor.connect = </FrameMaterial/FrameTexture.outputs:rgb>` : `color3f inputs:diffuseColor = (${config.frameColor})`}
         float inputs:roughness = 0.42
         float inputs:metallic = ${config.isMetallic ? '0.45' : '0.0'}
         token outputs:surface
     }
+    ${frameTextureName ? `def Shader "Primvar"
+    {
+        uniform token info:id = "UsdPrimvarReader_float2"
+        token inputs:varname = "st"
+        float2 outputs:result
+    }
+    def Shader "FrameTexture"
+    {
+        uniform token info:id = "UsdUVTexture"
+        asset inputs:file = @${frameTextureName}@
+        token inputs:sourceColorSpace = "sRGB"
+        float2 inputs:st.connect = </FrameMaterial/Primvar.outputs:result>
+        float3 outputs:rgb
+    }` : ''}
 }
 
 def Material "ArtworkMaterial"
@@ -160,12 +174,17 @@ function parsePreviewConfig(encoded) {
         throw new Error('Invalid preview request');
     }
     const artworkUrl = new URL(data.artworkUrl);
-    if (artworkUrl.protocol !== 'https:' || !ALLOWED_ARTWORK_HOSTS.has(artworkUrl.hostname)) {
+    if (artworkUrl.protocol !== 'https:' || !ALLOWED_IMAGE_HOSTS.has(artworkUrl.hostname)) {
         throw new Error('Artwork source is not supported for AR preview');
+    }
+    const frameTextureUrl = data.frameTextureUrl ? new URL(data.frameTextureUrl) : null;
+    if (frameTextureUrl && (frameTextureUrl.protocol !== 'https:' || !ALLOWED_IMAGE_HOSTS.has(frameTextureUrl.hostname))) {
+        throw new Error('Frame source is not supported for AR preview');
     }
     const frameHex = normaliseHex(data.frameColor, '#342e2b');
     return {
         artworkUrl: artworkUrl.toString(),
+        frameTextureUrl: frameTextureUrl?.toString() || null,
         openingWidthM: clamp(data.openingWidthM, 0.1, 2.5, 'opening width'),
         openingHeightM: clamp(data.openingHeightM, 0.1, 2.5, 'opening height'),
         frameFaceM: clamp(data.frameFaceM, 0.015, 0.12, 'frame face'),
@@ -179,26 +198,29 @@ function parsePreviewConfig(encoded) {
     };
 }
 
-async function fetchArtwork(url) {
+async function fetchImage(url, label) {
     const response = await fetch(url, { signal: AbortSignal.timeout(12_000) });
-    if (!response.ok) throw new Error('Could not load artwork for AR preview');
+    if (!response.ok) throw new Error(`Could not load ${label} for AR preview`);
     const contentType = response.headers.get('content-type')?.split(';')[0]?.toLowerCase();
-    if (!['image/jpeg', 'image/png'].includes(contentType)) throw new Error('Artwork format is not supported for AR preview');
+    if (!['image/jpeg', 'image/png'].includes(contentType)) throw new Error(`${label} format is not supported for AR preview`);
     const length = Number(response.headers.get('content-length') || 0);
-    if (length > MAX_ARTWORK_BYTES) throw new Error('Artwork is too large for AR preview');
+    if (length > MAX_ARTWORK_BYTES) throw new Error(`${label} is too large for AR preview`);
     const bytes = Buffer.from(await response.arrayBuffer());
-    if (!bytes.length || bytes.length > MAX_ARTWORK_BYTES) throw new Error('Artwork is too large for AR preview');
+    if (!bytes.length || bytes.length > MAX_ARTWORK_BYTES) throw new Error(`${label} is too large for AR preview`);
     return { bytes, extension: contentType === 'image/png' ? 'png' : 'jpg' };
 }
 
 async function buildArPreviewUsdz(encoded) {
     const config = parsePreviewConfig(encoded);
-    const artwork = await fetchArtwork(config.artworkUrl);
+    const artwork = await fetchImage(config.artworkUrl, 'artwork');
+    const frameTexture = config.frameTextureUrl ? await fetchImage(config.frameTextureUrl, 'frame texture') : null;
     const artworkName = `artwork.${artwork.extension}`;
-    const scene = makeScene(config, artworkName);
+    const frameTextureName = frameTexture ? `frame-texture.${frameTexture.extension}` : null;
+    const scene = makeScene(config, artworkName, frameTextureName);
     return makeUsdz([
         { name: 'frameworthy.usda', data: Buffer.from(scene, 'utf8') },
         { name: artworkName, data: artwork.bytes },
+        ...(frameTexture ? [{ name: frameTextureName, data: frameTexture.bytes }] : []),
     ]);
 }
 
@@ -211,18 +233,25 @@ function pad4(buffer, byte = 0x20) {
     return padding ? Buffer.concat([buffer, Buffer.alloc(padding, byte)]) : buffer;
 }
 
-function makeGlb(config, artwork) {
+function makeGlb(config, artwork, frameTexture = null) {
+    // Each face owns its four vertices. Sharing the eight cube corners makes
+    // it impossible to give every face a coherent UV island, which was the
+    // source of stretched/smeared moulding imagery in Scene Viewer.
     const positions = new Float32Array([
-        -1, -1, 1, 1, -1, 1, 1, 1, 1, -1, 1, 1, -1, -1, -1, 1, -1, -1, 1, 1, -1, -1, 1, -1,
+        -1,-1, 1,  1,-1, 1,  1, 1, 1, -1, 1, 1,  1,-1,-1, -1,-1,-1, -1, 1,-1,  1, 1,-1,
+        -1,-1,-1, -1,-1, 1, -1, 1, 1, -1, 1,-1,  1,-1, 1,  1,-1,-1,  1, 1,-1,  1, 1, 1,
+        -1, 1, 1,  1, 1, 1,  1, 1,-1, -1, 1,-1, -1,-1,-1,  1,-1,-1,  1,-1, 1, -1,-1, 1,
     ]);
     const normals = new Float32Array([
-        0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, -1, 0, 0, -1, 0, 0, -1, 0, 0, -1,
+        ...Array(4).fill([0,0,1]).flat(), ...Array(4).fill([0,0,-1]).flat(),
+        ...Array(4).fill([-1,0,0]).flat(), ...Array(4).fill([1,0,0]).flat(),
+        ...Array(4).fill([0,1,0]).flat(), ...Array(4).fill([0,-1,0]).flat(),
     ]);
-    const uvs = new Float32Array([0, 0, 1, 0, 1, 1, 0, 1, 1, 0, 0, 0, 0, 1, 1, 1]);
-    const indices = new Uint16Array([
-        0, 1, 2, 0, 2, 3, 5, 4, 7, 5, 7, 6, 4, 0, 3, 4, 3, 7,
-        1, 5, 6, 1, 6, 2, 3, 2, 6, 3, 6, 7, 4, 5, 1, 4, 1, 0,
-    ]);
+    const uvs = new Float32Array(Array.from({ length: 6 }, () => [0, 0, 1, 0, 1, 1, 0, 1]).flat());
+    const indices = new Uint16Array(Array.from({ length: 6 }, (_, face) => {
+        const base = face * 4;
+        return [base, base + 1, base + 2, base, base + 2, base + 3];
+    }).flat());
     const parts = [];
     let offset = 0;
     const append = (data) => {
@@ -236,7 +265,8 @@ function makeGlb(config, artwork) {
     const normalView = append(Buffer.from(normals.buffer));
     const uvView = append(Buffer.from(uvs.buffer));
     const indexView = append(Buffer.from(indices.buffer));
-    const imageView = append(artwork.bytes);
+    const artworkImageView = append(artwork.bytes);
+    const frameImageView = frameTexture ? append(frameTexture.bytes) : null;
     const openingWidth = config.openingWidthM;
     const openingHeight = config.openingHeightM;
     const face = config.frameFaceM;
@@ -261,17 +291,20 @@ function makeGlb(config, artwork) {
             { name: 'Artwork', primitives: [{ attributes: { POSITION: 0, NORMAL: 1, TEXCOORD_0: 2 }, indices: 3, material: 1 }] },
         ],
         materials: [
-            { name: 'Frame finish', pbrMetallicRoughness: { baseColorFactor: config.frameColor.split(', ').map(Number).concat(1), metallicFactor: config.isMetallic ? 0.45 : 0, roughnessFactor: 0.42 } },
+            { name: 'Frame finish', pbrMetallicRoughness: { baseColorFactor: config.frameColor.split(', ').map(Number).concat(1), ...(frameTexture ? { baseColorTexture: { index: 1 } } : {}), metallicFactor: config.isMetallic ? 0.45 : 0, roughnessFactor: 0.42 } },
             { name: 'Artwork', pbrMetallicRoughness: { baseColorTexture: { index: 0 }, metallicFactor: 0, roughnessFactor: 0.7 } },
         ],
-        textures: [{ source: 0 }],
-        images: [{ bufferView: 4, mimeType: artwork.extension === 'png' ? 'image/png' : 'image/jpeg' }],
+        textures: [{ source: 0 }, ...(frameTexture ? [{ source: 1 }] : [])],
+        images: [
+            { bufferView: 4, mimeType: artwork.extension === 'png' ? 'image/png' : 'image/jpeg' },
+            ...(frameTexture ? [{ bufferView: 5, mimeType: frameTexture.extension === 'png' ? 'image/png' : 'image/jpeg' }] : []),
+        ],
         buffers: [{ byteLength: offset }],
-        bufferViews: [positionView, normalView, uvView, { ...indexView, target: 34963 }, imageView],
+        bufferViews: [positionView, normalView, uvView, { ...indexView, target: 34963 }, artworkImageView, ...(frameImageView ? [frameImageView] : [])],
         accessors: [
-            { bufferView: 0, componentType: 5126, count: 8, type: 'VEC3', min: [-1, -1, -1], max: [1, 1, 1] },
-            { bufferView: 1, componentType: 5126, count: 8, type: 'VEC3' },
-            { bufferView: 2, componentType: 5126, count: 8, type: 'VEC2' },
+            { bufferView: 0, componentType: 5126, count: 24, type: 'VEC3', min: [-1, -1, -1], max: [1, 1, 1] },
+            { bufferView: 1, componentType: 5126, count: 24, type: 'VEC3' },
+            { bufferView: 2, componentType: 5126, count: 24, type: 'VEC2' },
             { bufferView: 3, componentType: 5123, count: 36, type: 'SCALAR' },
         ],
     };
@@ -293,8 +326,9 @@ function makeGlb(config, artwork) {
 
 async function buildArPreviewGlb(encoded) {
     const config = parsePreviewConfig(encoded);
-    const artwork = await fetchArtwork(config.artworkUrl);
-    return makeGlb(config, artwork);
+    const artwork = await fetchImage(config.artworkUrl, 'artwork');
+    const frameTexture = config.frameTextureUrl ? await fetchImage(config.frameTextureUrl, 'frame texture') : null;
+    return makeGlb(config, artwork, frameTexture);
 }
 
 module.exports = { buildArPreviewGlb, buildArPreviewUsdz, makeGlb, makeUsdz, parsePreviewConfig };

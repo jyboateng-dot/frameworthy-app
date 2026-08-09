@@ -69,6 +69,14 @@ const getSideBackground = (side, frame) => {
     return hex;
 };
 
+const ArGlyph = () => (
+    <svg viewBox="0 0 24 24" aria-hidden="true" className="h-[19px] w-[19px]" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M8 3H5a2 2 0 0 0-2 2v3M16 3h3a2 2 0 0 1 2 2v3M3 16v3a2 2 0 0 0 2 2h3M21 16v3a2 2 0 0 1-2 2h-3" />
+        <path d="m12 7 4 2.2v5.6L12 17l-4-2.2V9.2L12 7Z" />
+        <path d="m8 9.2 4 2.2 4-2.2M12 11.4V17" />
+    </svg>
+);
+
 // Directional bevel shading, as an `overlay`-blended gradient over a texture
 // photo rather than baked into a flat colour — mid-grey (#808080) is the
 // identity colour for `overlay`, so this sweeps from a highlight through
@@ -2374,7 +2382,7 @@ const CustomizeFramePage = ({
                             >
                                 {/* Quick Look requires an image inside its rel=ar link. */}
                                 <img src={getThumbnailUrl(productionImage || uploadedImage, 40)} alt="" className="absolute h-px w-px opacity-0" />
-                                <span aria-hidden="true">AR</span>
+                                <ArGlyph />
                             </a>
                         ) : (
                             <button
@@ -2384,7 +2392,7 @@ const CustomizeFramePage = ({
                                 title="View in AR"
                                 className="grid h-10 w-10 place-items-center rounded-full border border-[#a6824c]/60 bg-white/95 text-[11px] font-bold tracking-[-0.08em] text-[#8d6c38] shadow-md backdrop-blur transition hover:border-[#8d6c38] hover:bg-[#f8f3e8]"
                             >
-                                <span aria-hidden="true">AR</span>
+                                <ArGlyph />
                             </button>
                         )}
                         {arPreviewMessage && <p aria-live="polite" className="max-w-[190px] rounded bg-white/80 px-1.5 py-1 text-[9px] leading-snug text-stone-600 shadow-sm backdrop-blur">{arPreviewMessage}</p>}

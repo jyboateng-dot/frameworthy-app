@@ -24,6 +24,15 @@ const arSafeArtworkUrl = (url) => {
     return null;
 };
 
+const arSafeFrameTextureUrl = (url) => {
+    if (!url || url.startsWith('blob:') || url.startsWith('data:')) return null;
+    try {
+        return new URL(url, window.location.origin).toString();
+    } catch {
+        return null;
+    }
+};
+
 export function createArPreviewUrls({ projectId, frame, size, orientation, artworkUrl }) {
     const source = arSafeArtworkUrl(artworkUrl);
     if (!projectId || !source) return null;
@@ -38,6 +47,7 @@ export function createArPreviewUrls({ projectId, frame, size, orientation, artwo
         frameFaceM: profile.face,
         frameDepthM: profile.depth,
         frameColor: frame?.baseColor,
+        frameTextureUrl: arSafeFrameTextureUrl(frame?.previewImg),
         isMetallic: isMetallicFrame(frame),
     };
     const encoded = btoa(JSON.stringify(payload)).replaceAll('+', '-').replaceAll('/', '_').replaceAll('=', '');
