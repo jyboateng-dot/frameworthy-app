@@ -26,6 +26,12 @@ const SOFA_H = 80;
 const SOFA_X = (420 - SOFA_W) / 2;
 const SOFA_TOP = FLOOR_Y - SOFA_H;
 
+// The drawn geometry, published so roomScenes.js's calibration for this scene
+// can be checked against the drawing instead of restating it from memory —
+// a `wallSpanCm` that has drifted from the viewBox silently breaks the scale
+// honesty the whole module is built on.
+export const GEOMETRY = { widthCm: 420, heightCm: 280, floorLineCm: FLOOR_Y };
+
 const StudioLoftScene = ({ wallHex = '#f4f4f4', isDarkWall = false }) => {
     // Furniture keeps its own palette rather than deriving from the wall, so
     // it stays readable against both a near-white and a near-black wall. Only

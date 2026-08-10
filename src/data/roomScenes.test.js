@@ -1,5 +1,23 @@
 import { describe, it, expect } from 'vitest';
 import { ROOM_SCENES, computeRoomPlacement } from './roomScenes';
+import { ROOM_SCENE_COMPONENTS } from '../components/framing/roomSceneComponents';
+import { GEOMETRY as LOFT } from '../components/framing/StudioLoftScene';
+import { GEOMETRY as DINING } from '../components/framing/DiningRoomScene';
+import { GEOMETRY as BEDROOM } from '../components/framing/BedroomScene';
+import { GEOMETRY as ENTRY } from '../components/framing/EntrywayScene';
+import { GEOMETRY as OFFICE } from '../components/framing/HomeOfficeScene';
+
+// The drawn geometry each scene id is calibrated against. Nothing renders
+// here — these are the components' own viewBox constants, so the assertions
+// below compare the data to the drawing rather than to a number retyped from
+// memory, which is the failure mode that would silently un-honest the preview.
+const DRAWN_GEOMETRY = {
+    'studio-loft': LOFT,
+    'dining-room': DINING,
+    bedroom: BEDROOM,
+    entryway: ENTRY,
+    'home-office': OFFICE,
+};
 
 const scene = { id: 'test', wallSpanCm: 400, hang: { x: 50, y: 40 } };
 
@@ -84,5 +102,46 @@ describe('ROOM_SCENES data', () => {
         const hangFromTopCm = (loft.hang.y / 100) * 280;
         const heightAboveFloorCm = 245 - hangFromTopCm;
         expect(heightAboveFloorCm).toBeCloseTo(140, 0);
+    });
+
+    it('every drawn scene has a component to draw it', () => {
+        // A tintable scene with no component renders as an empty box rather
+        // than throwing, so nothing else would catch this.
+        for (const s of ROOM_SCENES.filter((x) => x.tintable)) {
+            expect(ROOM_SCENE_COMPONENTS[s.id]).toBeTypeOf('function');
+        }
+    });
+
+    it('calibrates each drawn scene to the geometry its component actually draws', () => {
+        // wallSpanCm is only exact-by-construction while it equals the
+        // component's viewBox width. If someone widens a scene's drawing and
+        // forgets this entry, every preview in that room silently reports the
+        // wrong physical size — which is the one thing this module exists to
+        // get right.
+        for (const [id, geometry] of Object.entries(DRAWN_GEOMETRY)) {
+            const scene = ROOM_SCENES.find((s) => s.id === id);
+            expect(scene, `no ROOM_SCENES entry for ${id}`).toBeTruthy();
+            expect(scene.wallSpanCm).toBe(geometry.widthCm);
+            expect(scene.sceneHeightCm).toBe(geometry.heightCm);
+            expect(scene.floorLineCm).toBe(geometry.floorLineCm);
+        }
+    });
+
+    it('hangs every scene at gallery height above its own floor line', () => {
+        // 145cm to the centre of the piece is the gallery standard. The
+        // bedroom is the deliberate exception at 150cm — above-bed pieces
+        // clear the headboard — so the band is 140-150 rather than a point.
+        for (const s of ROOM_SCENES) {
+            const heightAboveFloorCm = s.floorLineCm - (s.hang.y / 100) * s.sceneHeightCm;
+            expect(heightAboveFloorCm, `${s.id} hangs at ${heightAboveFloorCm}cm`).toBeGreaterThanOrEqual(139.5);
+            expect(heightAboveFloorCm, `${s.id} hangs at ${heightAboveFloorCm}cm`).toBeLessThanOrEqual(150.5);
+        }
+    });
+
+    it('spans a range of wall widths, so the scene choice actually changes the answer', () => {
+        // Five rooms that all happened to be 420cm wide would be five
+        // different pictures of one identical judgement.
+        const spans = ROOM_SCENES.map((s) => s.wallSpanCm);
+        expect(Math.max(...spans) - Math.min(...spans)).toBeGreaterThanOrEqual(50);
     });
 });

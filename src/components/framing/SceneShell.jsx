@@ -1,0 +1,119 @@
+import React from 'react';
+
+/**
+ * The backdrop every drawn room scene repeats: a lit wall, a plank/tile floor,
+ * the skirting between them, and the shared fills furniture is drawn with.
+ *
+ * StudioLoftScene came first and stays hand-authored as the worked example of
+ * the conventions; this factors them out so the scenes added after it don't
+ * each re-derive the lighting and end up subtly different rooms.
+ *
+ * THE CENTIMETRE RULE CARRIES OVER, and it is the whole point: `widthCm` and
+ * `heightCm` become the viewBox verbatim, so every coordinate a scene draws is
+ * a real-world centimetre and roomScenes.js's `wallSpanCm` is exact by
+ * construction rather than measured off a reference object. A scene that
+ * fudges its furniture sizes silently makes the "honest scale" preview lie.
+ *
+ * Drawn dead-on (no perspective skew across the wall plane) so hung artwork
+ * stays a plain axis-aligned rectangle — see roomScenes.js for why that
+ * matters.
+ *
+ * Gradient ids are namespaced by `id` because two scenes mounted at once would
+ * otherwise share one <defs>, and the first one's floor colour would silently
+ * win in both.
+ */
+const SceneShell = ({
+    id,
+    widthCm,
+    heightCm,
+    floorLineCm,
+    skirtingCm = 8,
+    // Seam spacing for the floor — plank width for wood, tile pitch for stone.
+    seamSpacingCm = 70,
+    floorTopHex = '#8a6a4a',
+    // Must match the scene's `floorHex` in roomScenes.js: that's the colour the
+    // floor is continued in below the scene box, and a mismatch shows up as a
+    // hard line across the panel.
+    floorBottomHex = '#6f5238',
+    wallHex = '#f4f4f4',
+    isDarkWall = false,
+    children,
+}) => {
+    // Furniture keeps its own palette rather than deriving from the wall, so it
+    // stays readable against both a near-white and a near-black wall. Only the
+    // ambient shading flips, since a dark wall bounces far less light.
+    const shadow = isDarkWall ? 'rgba(0,0,0,0.55)' : 'rgba(28,26,23,0.16)';
+    const skirting = isDarkWall ? 'rgba(255,255,255,0.10)' : 'rgba(28,26,23,0.10)';
+    const seamCount = Math.ceil(widthCm / seamSpacingCm);
+
+    return (
+        // The caller sizes the scene box to this viewBox's exact aspect ratio,
+        // so `meet` neither crops nor letterboxes — which is what keeps one cm
+        // in the viewBox mapping to a fixed fraction of the rendered box, and
+        // therefore keeps the artwork placement math a direct ratio.
+        <svg
+            viewBox={`0 0 ${widthCm} ${heightCm}`}
+            preserveAspectRatio="xMidYMid meet"
+            className="w-full h-full"
+            xmlns="http://www.w3.org/2000/svg"
+            aria-hidden="true"
+        >
+            <defs>
+                {/* Light falls off toward the floor and corners — without this
+                    the flat fill reads as a colour swatch, not a wall. */}
+                <radialGradient id={`${id}-wall-light`} cx="50%" cy="34%" r="78%">
+                    <stop offset="0%" stopColor="#fff" stopOpacity={isDarkWall ? 0.16 : 0.55} />
+                    <stop offset="60%" stopColor="#fff" stopOpacity={isDarkWall ? 0.05 : 0.16} />
+                    <stop offset="100%" stopColor="#000" stopOpacity={isDarkWall ? 0.28 : 0.10} />
+                </radialGradient>
+                <linearGradient id={`${id}-floor`} x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor={floorTopHex} />
+                    <stop offset="100%" stopColor={floorBottomHex} />
+                </linearGradient>
+                {/* Contact shadow beneath furniture. */}
+                <radialGradient id={`${id}-contact`} cx="50%" cy="50%" r="50%">
+                    <stop offset="0%" stopColor="#000" stopOpacity="0.38" />
+                    <stop offset="100%" stopColor="#000" stopOpacity="0" />
+                </radialGradient>
+            </defs>
+
+            {/* ── WALL ── */}
+            <rect x="0" y="0" width={widthCm} height={floorLineCm} fill={wallHex} />
+            <rect x="0" y="0" width={widthCm} height={floorLineCm} fill={`url(#${id}-wall-light)`} />
+
+            {/* ── FLOOR ── */}
+            <rect x="0" y={floorLineCm} width={widthCm} height={heightCm - floorLineCm} fill={`url(#${id}-floor)`} />
+            {/* Seams stay parallel: a receding/converging floor would contradict
+                the flat wall plane the artwork placement depends on. */}
+            {Array.from({ length: seamCount }, (_, i) => i * seamSpacingCm).map((x) => (
+                <rect
+                    key={x}
+                    x={x}
+                    y={floorLineCm + skirtingCm}
+                    width="1"
+                    height={heightCm - floorLineCm - skirtingCm}
+                    fill="#000"
+                    opacity="0.13"
+                />
+            ))}
+            <rect x="0" y={floorLineCm} width={widthCm} height={skirtingCm} fill={skirting} />
+
+            {/* Furniture sits between the floor and the ambient occlusion below,
+                so the wall/floor junction darkens over the bottom of it. */}
+            {children}
+
+            {/* Ambient occlusion where wall meets floor — grounds the room. */}
+            <rect
+                x="0"
+                y={floorLineCm - 14}
+                width={widthCm}
+                height="14"
+                fill={shadow}
+                opacity="0.35"
+                style={{ filter: 'blur(4px)' }}
+            />
+        </svg>
+    );
+};
+
+export default SceneShell;
