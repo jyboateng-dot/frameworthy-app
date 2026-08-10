@@ -17,7 +17,8 @@ import {
 } from 'lucide-react';
 import { FRAME_STYLES, FRAME_SIZES, MAT_COLORS, formatDimensions, findSizeByDimension, parseCustomSize, DEFAULT_DEMO_IMAGE } from '../../data/constants';
 import { ROOM_SCENES, computeRoomPlacement } from '../../data/roomScenes';
-import StudioLoftScene from '../../components/framing/StudioLoftScene';
+import { ROOM_SCENE_COMPONENTS } from '../../components/framing/roomSceneComponents';
+import ScenePicker from '../../components/framing/ScenePicker';
 import { getFrameRail, getRailTextureStyle, getRailShading } from '../../utils/frameRail';
 import WEB_MET_DIMS from '../../data/web_met_dims.json';
 import { useUnit } from '../../context/UnitContext';
@@ -279,6 +280,11 @@ const CustomizeFramePage = ({
     // ROOM_SCENES id to swap in a full room, where the artwork is sized
     // against the room's own real-world wall span instead of the sofa.
     const [roomSceneId, setRoomSceneId] = useState(null);
+    // TEMPORARY: which scene-picker treatment to render, so the three
+    // candidates can be compared in place — ?scenePicker=icons|chips|thumbs.
+    // Collapses to the chosen one (and this line goes) once picked.
+    const scenePickerVariant =
+        new URLSearchParams(window.location.search).get('scenePicker') || 'dropdown';
     // Resolved async per selectedFrame — see utils/frameTexture.js. Stays
     // null (falls back to the synthesized-gradient moulding) until/unless a
     // confident on-material anchor is found for this frame's corner photo.
@@ -557,13 +563,28 @@ const CustomizeFramePage = ({
     // Full-screen visualizer: reset hover/max-zoom on every transition so
     // zoom state computed against one container size (pane vs. viewport)
     // never carries over into the other.
-    // Deliberately quicker than the frame's own hover-zoom (duration-700) —
-    // entering/exiting full screen is a mode switch the user wants to
-    // happen right away, not a leisurely hover effect, so it uses a
-    // brisker pace. Must match the pane's own duration-300 transition class
+    // Entering/exiting full screen is a mode switch the user wants to happen
+    // right away. Must match the pane's own duration-300 transition class
     // below (and the dashboard's), since this is also how long enter/exit
     // waits before actually swapping the docked/full-screen layout.
     const FULL_SCREEN_TRANSITION_MS = 300;
+
+    // ── ZOOM MOTION ──
+    // One duration and one curve for everything that moves when the frame
+    // zooms, because they all move together: the frame used to scale over
+    // 700ms while the room backdrop faded over 500ms and the chrome over
+    // 300ms, so a single gesture appeared to finish three separate times.
+    // That staggering, not the speed, is most of what read as unpolished.
+    //
+    // 260ms on an ease-out quint — quick enough to feel like a direct
+    // response to the pointer, with enough tail that the frame settles
+    // rather than snapping. The old curve (0.16,1,0.3,1) is very nearly a
+    // step function; stretched over 700ms it spent most of that time
+    // almost-arrived, which is the worst of both.
+    const ZOOM_MOTION = 'duration-[260ms] ease-[cubic-bezier(0.22,1,0.36,1)]';
+    // Controls leave faster than the piece grows, so they're gone before it
+    // reaches full size instead of dissolving behind it.
+    const CHROME_MOTION = 'duration-[160ms] ease-out';
 
     const enterFullScreen = () => {
         if (fullScreenCloseTimeoutRef.current) {
@@ -720,9 +741,17 @@ const CustomizeFramePage = ({
         const innerWidthCm = wInch * 2.54;
         
         const containerWidth = isSideBySide ? windowSize.width * 0.70 : windowSize.width;
-        
-        // Calculate frame width in pixels
-        const frameWidthPct = (innerWidthCm / SOFA_CM) * SOFA_BODY_PCT;
+
+        // Calculate frame width in pixels. A room scene measures the piece
+        // against its own wall span rather than the sofa, and the two don't
+        // agree — 90cm on the Entryway's 340cm wall renders ~12% larger than
+        // the sofa formula predicts. Using the sofa number here regardless
+        // would leave this whole block under-estimating the piece in exactly
+        // the scenes where it comes closest to the controls.
+        const activeSceneForMetrics = roomSceneId ? ROOM_SCENES.find((s) => s.id === roomSceneId) : null;
+        const frameWidthPct = activeSceneForMetrics
+            ? (innerWidthCm / activeSceneForMetrics.wallSpanCm) * 100
+            : (innerWidthCm / SOFA_CM) * SOFA_BODY_PCT;
         const frameWidthPx = (frameWidthPct / 100) * containerWidth;
         const frameHeightPx = frameWidthPx * (hInch / wInch);
         
@@ -759,9 +788,33 @@ const CustomizeFramePage = ({
         const maxHeight = isSideBySide ? windowSize.height * 0.80 : windowSize.height * 0.65;
         const finalHeight = Math.max(180, Math.min(calculatedHeight, maxHeight));
         
-        const scale = calculatedHeight > maxHeight ? finalHeight / calculatedHeight : 1;
-        
-        return { height: finalHeight, scale };
+        const heightScale = calculatedHeight > maxHeight ? finalHeight / calculatedHeight : 1;
+
+        // ── CLEARANCE ──
+        // The piece must never touch a control, not merely avoid overlapping
+        // one. Measured before this existed, a 90x120 in the Entryway cleared
+        // the dimensions pill by 1px: technically passing, visually collided.
+        //
+        // Two things make the piece bigger than its own box. Its dimension
+        // labels hang outside it (`-top-4`/`-right-4` plus the label's own
+        // height), and at large sizes the piece nearly fills — sometimes
+        // overflows — the zone it's centred in.
+        //
+        // Shrinking the stage is the honest lever. `scale` drives the
+        // container's width, and BOTH the piece and the room scene derive
+        // from that same zone width, so they shrink together and the piece
+        // stays true to the wall it's measured against. Capping the piece
+        // alone would make it read small against an unchanged room, which is
+        // the one thing this visualizer must not do.
+        const ZONE_HEIGHT_PX = ZONE_HEIGHT_PCT * finalHeight - ZONE_TOP_PX;
+        const LABEL_ALLOWANCE_PX = 22;  // tick + label hanging above/right of the piece
+        const CLEARANCE_PX = 16;        // air required between the piece and any control
+        const budgetPx = ZONE_HEIGHT_PX - 2 * (LABEL_ALLOWANCE_PX + CLEARANCE_PX);
+        const frameHeightAtHeightScale = frameHeightPx * heightScale;
+        const clearanceScale =
+            budgetPx > 0 && frameHeightAtHeightScale > budgetPx ? budgetPx / frameHeightAtHeightScale : 1;
+
+        return { height: finalHeight, scale: heightScale * clearanceScale };
     })();
 
     // Dynamically calculate the actual physical inch size of the mat based on the qualitative choice and frame size
@@ -1392,6 +1445,15 @@ const CustomizeFramePage = ({
     // mode, which stays legible against any solid color.
     const activeRoom = roomSceneId ? ROOM_SCENES.find((s) => s.id === roomSceneId) : null;
 
+    // Computed once and shared: the piece is flex-centred in the zone and the
+    // SCENE is offset so the hang point lands on that centre. If the backdrop
+    // used the scene's default `hang.y` while the placement raised a tall
+    // piece, the two would disagree and the lift would have no visible effect
+    // — the piece would sit in the same spot with the room unmoved under it.
+    const roomPlacement = activeRoom
+        ? computeRoomPlacement(activeRoom, wInch * 2.54, hInch * 2.54)
+        : null;
+
     const wallLuminance = (() => {
         const hex = wallColor.hex.replace('#', '');
         const r = parseInt(hex.substring(0, 2), 16);
@@ -1412,17 +1474,35 @@ const CustomizeFramePage = ({
     return (
         <div className={`flex ${isSideBySide ? 'flex-row h-[calc(100dvh-56px)] overflow-hidden' : 'flex-col min-h-[calc(100dvh-56px)]'} bg-[#faf9f8]`}>
             
-            {/* LEFT: IMMERSIVE VISUALIZER */}
+            {/* LEFT COLUMN: the visualizer, with the approximation note beneath it.
+                The note used to sit inside the pane, floating over the wall
+                alongside the piece. Out here it stops competing with the render
+                for the same space — no overlap to police, no fading in and out
+                of the zoomed states, and it reads as a caption about the tool
+                rather than something hanging on the wall.
+                The sizing/sticky/border that used to be on the pane lives on
+                this column now, so the note travels with it.
+                `contents` in full screen: the pane goes `fixed inset-0` and
+                escapes anyway, and this wrapper would otherwise linger as an
+                empty flex child. */}
             <div
-                className={`flex items-center justify-center transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${isMaxZoom ? 'overflow-auto' : 'overflow-hidden'} [scrollbar-gutter:stable] ${paneVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-95'} ${
+                className={
                     isFullScreen
-                        ? 'fixed inset-0 z-[250]'
+                        ? 'contents'
                         // Stacked mobile/narrow layout: pin the visualizer just below the
                         // header instead of letting it scroll away with the page, so it
                         // stays in view while the customization panel underneath scrolls.
                         // Desktop side-by-side already keeps it in view (fixed-height row,
                         // panel scrolls in its own container), so sticky is a no-op there.
-                        : `shrink-0 relative border-r border-stone-200 ${isSideBySide ? 'w-[70%] h-auto shrink' : 'w-full sticky top-[60px] z-30'}`
+                        : `shrink-0 flex flex-col border-r border-stone-200 ${isSideBySide ? 'w-[70%] h-full' : 'w-full sticky top-[60px] z-30'}`
+                }
+            >
+            <div
+                data-testid="visualizer-pane"
+                className={`flex items-center justify-center transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${isMaxZoom ? 'overflow-auto' : 'overflow-hidden'} [scrollbar-gutter:stable] ${paneVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-95'} ${
+                    isFullScreen
+                        ? 'fixed inset-0 z-[250]'
+                        : `relative w-full ${isSideBySide ? 'flex-1 min-h-0' : ''}`
                 }`}
                 style={{
                     backgroundColor: wallColor.hex,
@@ -1431,14 +1511,85 @@ const CustomizeFramePage = ({
             >
 
                 
-                {/* Wall Color Palette - Floating Top Right (fades out in the
-                    full-screen enhanced view — chrome-free by design — and
-                    also while double-tap/double-click max-zoom is active,
-                    since that's its own immersive "get in close" mode where
-                    this chrome would just clutter the zoomed frame — rather
-                    than hard-unmounting, so it's a smooth part of the same
-                    transition instead of an instant pop) */}
-                <div className={`absolute top-3 right-3 sm:top-6 sm:right-6 z-20 transition-opacity duration-300 ${(isFullScreen || isMaxZoom) ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
+                {/* ── TOP TOOLBAR ──  [dimensions] [scene] [wall colour]
+                    One flex row rather than three independently-positioned
+                    floats. They used to be absolutely pinned to their own
+                    corners, which was fine while there were two of them and
+                    broke the moment a third had to sit between: centring the
+                    scene picker in the pane isn't the same as centring it in
+                    the space left over, because the dimensions pill is twice
+                    the width of the wall swatch, and it clipped.
+
+                    Now the row owns the spacing. The picker takes the slack
+                    with flex-1 and scrolls inside it, so it can't reach into
+                    either neighbour at any width.
+
+                    The whole row fades in every zoomed state — hover-to-zoom,
+                    double-tap max-zoom, and the full-screen enhanced view. All
+                    three scale the frame past its true size to be looked at
+                    closely, and the only things that earn their place then are
+                    the piece itself and the approximation note. Faded rather
+                    than unmounted so it's a smooth part of the same transition
+                    instead of an instant pop. */}
+                <div
+                    data-testid="visualizer-chrome"
+                    className={`absolute top-3 left-3 right-3 sm:top-6 sm:left-6 sm:right-6 z-20 flex items-start gap-2 sm:gap-3 transition-opacity ${CHROME_MOTION} ${
+                        (isHovered || isFullScreen || isMaxZoom) ? 'opacity-0 pointer-events-none' : 'opacity-100'
+                    }`}
+                >
+
+                {/* Dimension toggle + unit selector — first slot. */}
+                <div className="shrink-0 flex items-stretch bg-white/95 backdrop-blur border border-stone-200 rounded-full shadow-sm hover:shadow-md transition-all overflow-hidden h-8 sm:h-9 duration-300">
+                    <button
+                        onClick={() => setShowDimensions(!showDimensions)}
+                        className={`flex items-center gap-1.5 px-3 h-full text-xs font-semibold transition-colors ${
+                            showDimensions ? 'bg-stone-100 text-stone-900 border-r border-stone-200' : 'text-stone-600 hover:text-stone-900 bg-white'
+                        }`}
+                        title="Toggle Dimensions"
+                    >
+                        <Ruler size={14} className="shrink-0" />
+                    </button>
+
+                    {/* Unit Toggles (Slide in/out) */}
+                    <div
+                        className={`flex items-stretch transition-all duration-300 ease-out origin-left bg-white ${
+                            showDimensions ? 'w-[72px] opacity-100' : 'w-0 opacity-0 overflow-hidden border-none'
+                        }`}
+                    >
+                        <button
+                            onClick={() => setUnit('in')}
+                            className={`flex-1 h-full flex items-center justify-center text-[10px] font-bold uppercase tracking-wider transition-colors ${
+                                unit === 'in' ? 'text-stone-900 bg-stone-50' : 'text-stone-400 hover:text-stone-600 hover:bg-stone-50/50'
+                            }`}
+                        >
+                            in
+                        </button>
+                        <div className="w-px h-full bg-stone-200"></div>
+                        <button
+                            onClick={() => setUnit('cm')}
+                            className={`flex-1 h-full flex items-center justify-center text-[10px] font-bold uppercase tracking-wider transition-colors ${
+                                unit === 'cm' ? 'text-stone-900 bg-stone-50' : 'text-stone-400 hover:text-stone-600 hover:bg-stone-50/50'
+                            }`}
+                        >
+                            cm
+                        </button>
+                    </div>
+                </div>
+
+                {/* BACKDROP CONTROLS — wall colour, and the scene beneath it.
+                    Both change what's behind the piece, so they stack in one
+                    corner instead of bracketing the row.
+
+                    That stacking is the point: as a strip across the middle the
+                    scene picker made the toolbar 49px tall, whose bottom edge
+                    landed 5px INSIDE the frame zone. Collapsed to a pill it's
+                    36px and clears the zone, and more usefully the whole centre
+                    of the top is empty — which is the band a tall portrait
+                    render grows into. */}
+                <div className="ml-auto shrink-0 flex flex-col items-end gap-2">
+
+                {/* Wall Colour. `relative` anchors its popover. */}
+                <div className="relative">
                     <button
                         onClick={() => setIsWallPickerOpen(!isWallPickerOpen)}
                         className="flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1.5 rounded-full border border-stone-200 shadow-sm hover:shadow-md transition-all bg-white/95 backdrop-blur text-stone-700 font-semibold text-xs ml-auto"
@@ -1475,76 +1626,25 @@ const CustomizeFramePage = ({
                             ))}
                         </div>
 
-                        {/* Scene picker. The wall colour above still applies in a room
-                            scene — the scene's wall repaints with it — so these are
-                            complementary choices, not alternatives, and belong in the
-                            same popover. */}
-                        <div className="w-full mt-2.5 pt-2.5 border-t border-stone-200">
-                            <p className="text-[10px] font-bold tracking-wider text-stone-500 mb-1.5 text-center w-full whitespace-nowrap [font-variant:small-caps]">scene</p>
-                            <div className="flex flex-col gap-1">
-                                <button
-                                    onClick={() => { setRoomSceneId(null); setIsWallPickerOpen(false); }}
-                                    className={`w-full px-1.5 py-1 rounded-md text-[9px] font-semibold leading-tight transition-colors ${
-                                        !activeRoom ? 'bg-stone-900 text-white' : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
-                                    }`}
-                                >
-                                    Plain wall
-                                </button>
-                                {ROOM_SCENES.map((scene) => (
-                                    <button
-                                        key={scene.id}
-                                        onClick={() => { setRoomSceneId(scene.id); setIsWallPickerOpen(false); }}
-                                        title={`${scene.name} — ${scene.wallSpanCm}cm wall`}
-                                        className={`w-full px-1.5 py-1 rounded-md text-[9px] font-semibold leading-tight transition-colors ${
-                                            roomSceneId === scene.id ? 'bg-stone-900 text-white' : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
-                                        }`}
-                                    >
-                                        {scene.name}
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
+                        {/* The scene list used to be nested in here, under the
+                            wall swatches. It's its own pill below this one now:
+                            burying the biggest change you can make to the
+                            preview inside a popover labelled "wall colour" made
+                            it two clicks deep and invisible. */}
                     </div>
                 </div>
 
-                {/* Dimension Toggle & Unit Selector - Dynamic Pill (fades out
-                    in the full-screen enhanced view and during max-zoom,
-                    same treatment as the Wall Color palette above) */}
-                <div className={`absolute top-3 left-3 sm:top-6 sm:left-6 z-20 flex items-stretch bg-white/95 backdrop-blur border border-stone-200 rounded-full shadow-sm hover:shadow-md transition-all overflow-hidden h-8 sm:h-9 duration-300 ${(isFullScreen || isMaxZoom) ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
-                    <button
-                        onClick={() => setShowDimensions(!showDimensions)}
-                        className={`flex items-center gap-1.5 px-3 h-full text-xs font-semibold transition-colors ${
-                            showDimensions ? 'bg-stone-100 text-stone-900 border-r border-stone-200' : 'text-stone-600 hover:text-stone-900 bg-white'
-                        }`}
-                        title="Toggle Dimensions"
-                    >
-                        <Ruler size={14} className="shrink-0" />
-                    </button>
-                    
-                    {/* Unit Toggles (Slide in/out) */}
-                    <div 
-                        className={`flex items-stretch transition-all duration-300 ease-out origin-left bg-white ${
-                            showDimensions ? 'w-[72px] opacity-100' : 'w-0 opacity-0 overflow-hidden border-none'
-                        }`}
-                    >
-                        <button
-                            onClick={() => setUnit('in')}
-                            className={`flex-1 h-full flex items-center justify-center text-[10px] font-bold uppercase tracking-wider transition-colors ${
-                                unit === 'in' ? 'text-stone-900 bg-stone-50' : 'text-stone-400 hover:text-stone-600 hover:bg-stone-50/50'
-                            }`}
-                        >
-                            in
-                        </button>
-                        <div className="w-px h-full bg-stone-200"></div>
-                        <button
-                            onClick={() => setUnit('cm')}
-                            className={`flex-1 h-full flex items-center justify-center text-[10px] font-bold uppercase tracking-wider transition-colors ${
-                                unit === 'cm' ? 'text-stone-900 bg-stone-50' : 'text-stone-400 hover:text-stone-600 hover:bg-stone-50/50'
-                            }`}
-                        >
-                            cm
-                        </button>
-                    </div>
+                {/* Scene — its own dropdown pill, directly beneath wall colour. */}
+                <ScenePicker
+                    variant={scenePickerVariant}
+                    activeId={roomSceneId}
+                    onSelect={setRoomSceneId}
+                    wallHex={wallColor.hex}
+                    isDarkWall={isDarkWall}
+                />
+
+                </div>
+
                 </div>
 
                 {/* ═══════════════════════════════════════════════════════════════
@@ -1570,7 +1670,7 @@ const CustomizeFramePage = ({
                     {/* ── FRAME POSITIONING ZONE ── */}
                     <div
                         ref={zoneRef}
-                        className={`absolute left-0 w-full flex flex-col items-center justify-center transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+                        className={`absolute left-0 w-full flex flex-col items-center justify-center transition-all ${ZOOM_MOTION} ${
                             isFullScreen
                                 // In full-screen mobile the note is a real footer below
                                 // this zone, not an overlay on top of the rendering.
@@ -1602,13 +1702,16 @@ const CustomizeFramePage = ({
                             existing frame layout — zoom, overflow correction, dimension
                             labels — untouched. */}
                         {activeRoom && (() => {
+                            // Drawn scenes are looked up by id; a photographic
+                            // one has no component and falls through to <img>.
+                            const DrawnScene = activeRoom.tintable ? ROOM_SCENE_COMPONENTS[activeRoom.id] : null;
                             const sceneW = zoneSize.width;
                             const sceneH = sceneW * (activeRoom.sceneHeightCm / activeRoom.wallSpanCm);
                             const sceneLeft = sceneW * (0.5 - activeRoom.hang.x / 100);
-                            const sceneTop = (zoneSize.height / 2) - (activeRoom.hang.y / 100) * sceneH;
+                            const sceneTop = (zoneSize.height / 2) - ((roomPlacement?.topPct ?? activeRoom.hang.y) / 100) * sceneH;
                             return (
                                 <div
-                                    className={`absolute pointer-events-none z-0 transition-opacity duration-500 ${
+                                    className={`absolute pointer-events-none z-0 transition-opacity ${CHROME_MOTION} ${
                                         // Matches the sofa cue's own fade condition, and for the same
                                         // reason: all three of these states zoom the frame past its
                                         // true size (frameWidthPct * zoomScale) while the scene stays
@@ -1620,8 +1723,8 @@ const CustomizeFramePage = ({
                                     style={{ left: sceneLeft, top: sceneTop, width: sceneW, height: sceneH }}
                                     aria-hidden="true"
                                 >
-                                    {activeRoom.tintable ? (
-                                        <StudioLoftScene wallHex={wallColor.hex} isDarkWall={isDarkWall} />
+                                    {DrawnScene ? (
+                                        <DrawnScene wallHex={wallColor.hex} isDarkWall={isDarkWall} />
                                     ) : (
                                         <img src={activeRoom.image} alt="" className="w-full h-full object-fill" />
                                     )}
@@ -1657,9 +1760,8 @@ const CustomizeFramePage = ({
                             // 160cm spans SOFA_BODY_PCT of it; in a room scene, the zone
                             // width IS the room's wall span (the backdrop below is sized to
                             // exactly fill it), so the conversion is a direct ratio.
-                            const roomPlacement = activeRoom
-                                ? computeRoomPlacement(activeRoom, innerWidthCm, innerHeightCm)
-                                : null;
+                            // (roomPlacement is computed once at component scope so the
+                            // backdrop's offset and this share one hang height.)
                             const frameWidthPct = roomPlacement
                                 ? roomPlacement.widthPct
                                 : (innerWidthCm / SOFA_CM) * SOFA_BODY_PCT;
@@ -1835,7 +1937,16 @@ const CustomizeFramePage = ({
                                     onDoubleClick={() => {
                                         if (isHovered) setIsMaxZoom(!isMaxZoom);
                                     }}
-                                    className={`relative shadow-[0_25px_50px_rgba(0,0,0,0.3)] select-none transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+                                    // The rendered piece itself. tests/e2e/visualizer-overlap.spec.js
+                                    // asserts nothing in the pane covers this.
+                                    data-testid="frame-render"
+                                    // Only the properties that actually change on
+                                    // zoom. `transition-all` also animated every
+                                    // inherited paint property on a subtree that
+                                    // already relayouts each frame from the width
+                                    // change — the one place here worth being
+                                    // specific about.
+                                    className={`relative shadow-[0_25px_50px_rgba(0,0,0,0.3)] select-none transition-[width,margin,box-shadow] ${ZOOM_MOTION} ${
                                         isMaxZoom && !isFullScreen ? 'cursor-zoom-out' : isFullScreen ? '' : 'cursor-zoom-in'
                                     } ${
                                         isHovered || isMaxZoom || isFullScreen
@@ -1877,12 +1988,12 @@ const CustomizeFramePage = ({
                                         by design — instead of hard-unmounting) */}
                                     {showDimensions && (
                                         <>
-                                            <div style={{ fontSize: `${dimFontSizePx}px` }} className={`absolute ${dimTopClass} left-0 w-full flex items-center justify-center ${wallInkClass} font-mono border-t ${wallInkBorderClass} pt-1 ${wallInkBlend} ${isFullScreen ? 'opacity-0' : 'opacity-80'} transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] whitespace-nowrap overflow-visible pointer-events-none`}>
+                                            <div style={{ fontSize: `${dimFontSizePx}px` }} className={`absolute ${dimTopClass} left-0 w-full flex items-center justify-center ${wallInkClass} font-mono border-t ${wallInkBorderClass} pt-1 ${wallInkBlend} ${isFullScreen ? 'opacity-0' : 'opacity-80'} transition-all ${ZOOM_MOTION} whitespace-nowrap overflow-visible pointer-events-none`}>
                                                 <div className={`absolute left-0 top-0 h-1.5 sm:h-2 w-px ${wallInkBgClass}`} />
                                                 <div className={`absolute right-0 top-0 h-1.5 sm:h-2 w-px ${wallInkBgClass}`} />
                                                 {unit === 'in' ? wInch.toFixed(1) : innerWidthCm.toFixed(1)} {unit === 'in' ? 'in' : 'cm'}
                                             </div>
-                                            <div style={{ fontSize: `${dimFontSizePx}px` }} className={`absolute ${dimRightClass} top-0 h-full flex flex-col items-center justify-center ${wallInkClass} font-mono border-r ${wallInkBorderClass} pr-1 ${wallInkBlend} ${isFullScreen ? 'opacity-0' : 'opacity-80'} transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] whitespace-nowrap overflow-visible pointer-events-none`}>
+                                            <div style={{ fontSize: `${dimFontSizePx}px` }} className={`absolute ${dimRightClass} top-0 h-full flex flex-col items-center justify-center ${wallInkClass} font-mono border-r ${wallInkBorderClass} pr-1 ${wallInkBlend} ${isFullScreen ? 'opacity-0' : 'opacity-80'} transition-all ${ZOOM_MOTION} whitespace-nowrap overflow-visible pointer-events-none`}>
                                                 <div className={`absolute right-0 top-0 w-1.5 sm:w-2 h-px ${wallInkBgClass}`} />
                                                 <div className={`absolute right-0 bottom-0 w-1.5 sm:w-2 h-px ${wallInkBgClass}`} />
                                                 <span style={{ writingMode: 'vertical-rl' }}>{unit === 'in' ? hInch.toFixed(1) : innerHeightCm.toFixed(1)} {unit === 'in' ? 'in' : 'cm'}</span>
@@ -2113,32 +2224,11 @@ const CustomizeFramePage = ({
                         );
                     })()}
                         
-                        {/* Zoomed-In Disclaimer (flows below frame on hover —
-                            reuses this same hover-driven fade to also hide in
-                            the full-screen enhanced view, rather than a
-                            separate hard-unmount). Same wrapping approach as
-                            the full-screen caption below — a width-constrained,
-                            text-balanced, line-clamped paragraph instead of two
-                            hardcoded nowrap lines — but NOT the same font-size
-                            scale: this lives in the normal (non-full-screen)
-                            pane, which on desktop (isSideBySide, >=1024px) is
-                            narrowed to ~70% width by the side-by-side
-                            customization panel, unlike full-screen's use of the
-                            entire viewport. Verified live: at exactly 1024px
-                            (the isSideBySide threshold — the narrowest point
-                            once the side panel appears) 11px is the max that
-                            still wraps to 2 lines; 14px (safe for full-screen at
-                            that width) truncates to 3 here. 640-1023px is still
-                            full-width (isSideBySide only kicks in at 1024),
-                            confirmed safe up to 17px there, but capped at the
-                            same 11px for one consistent sm:+ value. */}
-                        <div
-                            className={`w-[92%] sm:w-[70%] text-[8px] sm:text-[11px] ${wallNoteClass} select-none pointer-events-none text-center font-medium ${wallNoteBlend} px-2 leading-relaxed tracking-wide transition-all duration-500 mt-6 z-20 ${
-                                (isHovered || isMaxZoom) && !isFullScreen ? 'opacity-100 scale-100 translate-y-0' : 'opacity-0 scale-95 translate-y-2 h-0 overflow-hidden mt-0'
-                            }`}
-                        >
-                            <p className="w-full line-clamp-2 text-balance">Note: Visualizer renderings are digital approximations. Finished products will feature the exact physical moulding profiles, textures, and details shown in our catalogue.</p>
-                        </div>
+                        {/* The zoomed-in disclaimer that used to fade in here is
+                            gone: with the note pinned under the pane it's on
+                            screen in every non-full-screen state already, so
+                            fading a second copy in over the wall would have
+                            been two notes at once. */}
                     </div>
 
                     {/* ── SCALE REFERENCE: 160cm Sofa ── (the "reference
@@ -2180,7 +2270,7 @@ const CustomizeFramePage = ({
 
                         return (
                     <div
-                        className={`absolute left-1/2 -translate-x-1/2 w-[48%] pointer-events-none flex flex-col items-center justify-end transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+                        className={`absolute left-1/2 -translate-x-1/2 w-[48%] pointer-events-none flex flex-col items-center justify-end transition-all ${ZOOM_MOTION} ${
                             isHovered || isMaxZoom || isFullScreen ? 'opacity-0 scale-75 translate-y-10' : 'opacity-100 scale-100 translate-y-0'
                         }`}
                         style={{ top: `${sofaTopPx}px` }}
@@ -2201,10 +2291,8 @@ const CustomizeFramePage = ({
                                 Standard 2-Seater Sofa - {unit === 'in' ? (160 / 2.54).toFixed(1) : '160.0'} {unit === 'in' ? 'in' : 'cm'}
                             </div>
                         )}
-                        <div className={`text-[7px] sm:text-[9px] ${wallNoteClass} select-none text-center font-medium ${wallNoteBlend} px-2 leading-tight tracking-wide mt-1 translate-y-1.5 flex flex-col items-center`}>
-                            <span className="whitespace-nowrap">Note: Visualizer renderings are digital approximations. Finished products will feature</span>
-                            <span className="whitespace-nowrap">the exact physical moulding profiles, textures, and details shown in our catalogue.</span>
-                        </div>
+                        {/* The note that used to sit here is now a caption under
+                            the whole pane — see the left column's wrapper. */}
                     </div>
                         );
                     })()}
@@ -2257,8 +2345,9 @@ const CustomizeFramePage = ({
                     itself, since it's the only way to exit. */}
                 <button
                     onClick={() => (isFullScreen ? exitFullScreen() : enterFullScreen())}
-                    className={`absolute ${isFullScreen ? 'bottom-[max(1.5rem,env(safe-area-inset-bottom))] right-5 sm:bottom-6 sm:right-6' : 'bottom-3 right-3 sm:bottom-6 sm:right-6'} z-30 w-10 h-10 flex items-center justify-center rounded-full border border-stone-200 shadow-sm hover:shadow-md transition-all bg-white/95 backdrop-blur text-stone-700 ${
-                        isMaxZoom && !isFullScreen ? 'opacity-0 scale-75 pointer-events-none' : 'opacity-100 scale-100'
+                    data-testid="visualizer-chrome"
+                    className={`absolute ${isFullScreen ? 'bottom-[max(1.5rem,env(safe-area-inset-bottom))] right-5 sm:bottom-6 sm:right-6' : 'bottom-3 right-3 sm:bottom-6 sm:right-6'} z-30 w-10 h-10 flex items-center justify-center rounded-full border border-stone-200 shadow-sm hover:shadow-md transition-all ${CHROME_MOTION} bg-white/95 backdrop-blur text-stone-700 ${
+                        (isHovered || isMaxZoom) && !isFullScreen ? 'opacity-0 scale-75 pointer-events-none' : 'opacity-100 scale-100'
                     }`}
                     title={isFullScreen ? 'Exit full screen' : 'Full screen'}
                     aria-label={isFullScreen ? 'Exit full screen' : 'Full screen'}
@@ -2278,16 +2367,43 @@ const CustomizeFramePage = ({
                     own capability probe) — this button always opens the
                     modal, which is also where the "AR isn't available
                     here, but here's a 3D look" fallback message lives. */}
-                {!isFullScreen && !isMaxZoom && selectedFrame?.id !== 'frame-canvas' && (
+                {/* Faded rather than unmounted while zoomed, matching the
+                    full-screen button opposite it. Unmounting made it vanish
+                    on the same frame the piece started growing — a hard cut
+                    against a 260ms move, which is exactly the kind of
+                    mismatch that reads as a glitch rather than a transition. */}
+                {!isFullScreen && selectedFrame?.id !== 'frame-canvas' && (
                     <button
                         onClick={() => setIsArOpen(true)}
-                        className="absolute bottom-3 left-3 sm:bottom-6 sm:left-6 z-30 w-10 h-10 flex items-center justify-center rounded-full border border-stone-200 shadow-sm hover:shadow-md transition-all bg-white/95 backdrop-blur text-stone-700"
+                        data-testid="visualizer-chrome"
+                        className={`absolute bottom-3 left-3 sm:bottom-6 sm:left-6 z-30 w-10 h-10 flex items-center justify-center rounded-full border border-stone-200 shadow-sm hover:shadow-md transition-all ${CHROME_MOTION} bg-white/95 backdrop-blur text-stone-700 ${
+                            (isHovered || isMaxZoom) ? 'opacity-0 scale-75 pointer-events-none' : 'opacity-100 scale-100'
+                        }`}
                         title="View on your wall"
                         aria-label="View this frame on your wall in AR"
                     >
                         <View size={18} />
                     </button>
                 )}
+
+            </div>
+
+            {/* The approximation note, now a caption under the port rather than
+                an overlay inside it. Full screen has its own footer note, so
+                this stands down there to avoid two of them. */}
+            {!isFullScreen && (
+                <p
+                    data-testid="visualizer-caption"
+                    // A notch up from the 9/11px it inherited from its life as an
+                    // overlay. Inside the pane it had to stay small to avoid
+                    // competing with the piece; down here it has its own band and
+                    // reads as a caption, so it can be sized to be read.
+                    className="shrink-0 select-none px-5 py-2.5 text-center text-[10px] sm:text-[12px] leading-relaxed tracking-wide text-stone-500 bg-[#faf9f8]"
+                >
+                    Note: Visualizer renderings are digital approximations. Finished products will
+                    feature the exact physical moulding profiles, textures, and details shown in our catalogue.
+                </p>
+            )}
             </div>
 
             {/* RIGHT: CONFIGURATION DASHBOARD — fades in with the same
