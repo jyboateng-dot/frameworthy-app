@@ -7,7 +7,7 @@ import { useCart } from '../../context/CartContext';
 import { useAuth } from '../../context/AuthContext';
 import { createOrder, getUserDeliveryAddresses } from '../../services/db';
 import { functions } from '../../services/firebase';
-import { MapPin, CreditCard, Ticket, ShieldCheck, Loader, X, Smartphone, Copy, Check } from 'lucide-react';
+import { MapPin, CreditCard, Ticket, ShieldCheck, Loader, X, Smartphone, Copy, Check, Hammer, Truck } from 'lucide-react';
 import { generateItemDescription, formatDimensionWithOrientation } from '../../utils/itemFormatters';
 import { calculateSubtotal, resolvePromoCode, calculatePromoDiscount, calculateFinalTotal } from '../../utils/pricing';
 import Price from '../../components/common/Price';
@@ -614,6 +614,13 @@ const CheckoutPage = () => {
                         <Price amount={finalTotal} />
                     </div>
                     <p className="text-xs text-stone-400 pt-1">Shipping fee paid upon delivery.</p>
+                </div>
+
+                {/* Trust reassurance, right before the customer commits to paying */}
+                <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1.5 text-[11px] font-medium text-stone-500 px-1">
+                    <span className="flex items-center gap-1"><Hammer size={12} className="text-[#c9a84c]" /> Handcrafted locally</span>
+                    <span className="flex items-center gap-1"><Truck size={12} className="text-[#c9a84c]" /> Ships in 5-7 business days</span>
+                    <span className="flex items-center gap-1"><ShieldCheck size={12} className="text-[#c9a84c]" /> Satisfaction guaranteed</span>
                 </div>
 
                 {notice && (

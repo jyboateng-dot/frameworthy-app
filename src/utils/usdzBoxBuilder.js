@@ -20,6 +20,61 @@
 //      spec-legal but unrecognized extra-field record, sized so the
 //      following data lands on the boundary).
 
+function buildFrameRingMeshUsd({ widthM, heightM, depthM, railWidthM, openingInsetM = 0.004 }) {
+    const hx = widthM / 2;
+    const hy = heightM / 2;
+    const hz = depthM / 2;
+    const rail = Math.min(Math.max(railWidthM || Math.min(widthM, heightM) * 0.08, 0.001), Math.min(widthM, heightM) * 0.45);
+    const innerHx = Math.max(0.001, hx - rail);
+    const innerHy = Math.max(0.001, hy - rail);
+    const repeatsFor = (meters) => Math.max(0.25, meters / MOULDING_TILE_METERS);
+    const front = {
+        points: [], faceVertexCounts: [], faceVertexIndices: [], normals: [], uvs: [],
+    };
+    const moulding = {
+        points: [], faceVertexCounts: [], faceVertexIndices: [], normals: [], uvs: [],
+    };
+    const addFace = (target, corners, normal, faceUvs) => {
+        const base = target.points.length;
+        target.points.push(...corners);
+        target.faceVertexCounts.push(4);
+        target.faceVertexIndices.push(base, base + 1, base + 2, base + 3);
+        target.normals.push(normal, normal, normal, normal);
+        target.uvs.push(...faceUvs);
+    };
+    const sideNormal = (a, b) => {
+        const dx = b[0] - a[0];
+        const dy = b[1] - a[1];
+        const length = Math.hypot(dx, dy) || 1;
+        return [dy / length, -dx / length, 0];
+    };
+    const addRail = (points) => {
+        const frontFace = points.map(([x, y]) => [x, y, hz]);
+        const backFace = points.map(([x, y]) => [x, y, -hz]);
+        const perimeter = points.reduce((sum, point, index) => {
+            const next = points[(index + 1) % points.length];
+            return sum + Math.hypot(next[0] - point[0], next[1] - point[1]);
+        }, 0);
+        addFace(moulding, frontFace, [0, 0, 1], [[0, 0], [repeatsFor(perimeter / 4), 0], [repeatsFor(perimeter / 4), 1], [0, 1]]);
+        addFace(moulding, [...backFace].reverse(), [0, 0, -1], [[0, 0], [repeatsFor(perimeter / 4), 0], [repeatsFor(perimeter / 4), 1], [0, 1]]);
+        for (let index = 0; index < 4; index += 1) {
+            const next = (index + 1) % 4;
+            const edge = Math.hypot(points[next][0] - points[index][0], points[next][1] - points[index][1]);
+            addFace(moulding, [frontFace[index], frontFace[next], backFace[next], backFace[index]], sideNormal(points[index], points[next]), [[0, 0], [repeatsFor(edge), 0], [repeatsFor(edge), repeatsFor(depthM)], [0, repeatsFor(depthM)]]);
+        }
+    };
+    addRail([[-hx, hy], [-innerHx, innerHy], [innerHx, innerHy], [hx, hy]]);
+    addRail([[-hx, -hy], [hx, -hy], [innerHx, -innerHy], [-innerHx, -innerHy]]);
+    addRail([[-hx, -hy], [-innerHx, -innerHy], [-innerHx, innerHy], [-hx, hy]]);
+    addRail([[innerHx, -innerHy], [hx, -hy], [hx, hy], [innerHx, innerHy]]);
+    const openingZ = hz - Math.min(Math.max(openingInsetM, 0.001), depthM * 0.75);
+    addFace(front,
+        [[-innerHx, -innerHy, openingZ], [innerHx, -innerHy, openingZ], [innerHx, innerHy, openingZ], [-innerHx, innerHy, openingZ]],
+        [0, 0, 1], [[0, 0], [1, 0], [1, 1], [0, 1]],
+    );
+    return { front, box: moulding };
+}
+
 function buildBoxMeshUsd({ widthM, heightM, depthM }) {
     const hx = widthM / 2;
     const hy = heightM / 2;
@@ -92,8 +147,8 @@ const intArr = (arr) => `[${arr.join(', ')}]`;
  * @param {string} [options.mouldingTextureFileName] - relative path to the real tiled moulding material; falls back to frameColorHex when omitted
  * @returns {string} a complete .usda text document
  */
-export function buildFrameUsda({ widthM, heightM, depthM, frameColorHex, textureFileName, mouldingTextureFileName }) {
-    const { front, box } = buildBoxMeshUsd({ widthM, heightM, depthM });
+export function buildFrameUsda({ widthM, heightM, depthM, railWidthM, openingInsetM, frameColorHex, textureFileName, mouldingTextureFileName }) {
+    const { front, box } = buildFrameRingMeshUsd({ widthM, heightM, depthM, railWidthM, openingInsetM });
     const [r, g, b] = hexToRgbFloat(frameColorHex);
 
     // faceVarying normals/UVs need one entry per (face, corner) — flat

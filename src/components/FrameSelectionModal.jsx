@@ -90,7 +90,7 @@ export default function FrameSelectionModal({ isOpen, onClose, selectedFrame, on
                         >
                             <div className="aspect-square bg-gray-50 overflow-hidden relative">
                                 <img
-                                    src={f.previewImg || `/frames/${f.filename}`}
+                                    src={f.cornerImage || f.previewImg || `/frames/${f.filename}`}
                                     alt={f.name}
                                     loading="lazy"
                                     decoding="async"

@@ -18,6 +18,76 @@
 // scale reference at all.
 const MOULDING_TILE_METERS = 0.05;
 
+// The original solid-box builder is retained below as a useful reference for
+// the binary writer. The exported builder now uses the open ring geometry
+// declared here: four mitred rail prisms and a separate recessed artwork
+// panel. That gives AR a real opening instead of a flat frame image painted
+// onto a block.
+function buildFrameRingGeometry({ widthM, heightM, depthM, railWidthM, openingInsetM = 0.004 }) {
+    const hx = widthM / 2;
+    const hy = heightM / 2;
+    const hz = depthM / 2;
+    const rail = Math.min(Math.max(railWidthM || Math.min(widthM, heightM) * 0.08, 0.001), Math.min(widthM, heightM) * 0.45);
+    const innerHx = Math.max(0.001, hx - rail);
+    const innerHy = Math.max(0.001, hy - rail);
+    const uv = (uRepeat, vRepeat) => [[0, vRepeat], [uRepeat, vRepeat], [uRepeat, 0], [0, 0]];
+    const repeatsFor = (meters) => Math.max(0.25, meters / MOULDING_TILE_METERS);
+    const positions = [];
+    const normals = [];
+    const uvs = [];
+    const indicesByMaterial = [[], []];
+
+    const addFace = (corners, normal, faceUvs, materialIndex) => {
+        const base = positions.length / 3;
+        corners.forEach((corner, index) => {
+            positions.push(...corner);
+            normals.push(...normal);
+            uvs.push(...faceUvs[index]);
+        });
+        indicesByMaterial[materialIndex].push(base, base + 1, base + 2, base, base + 2, base + 3);
+    };
+    const sideNormal = (a, b) => {
+        const dx = b[0] - a[0];
+        const dy = b[1] - a[1];
+        const length = Math.hypot(dx, dy) || 1;
+        return [dy / length, -dx / length, 0];
+    };
+    const addRail = (points) => {
+        const front = points.map(([x, y]) => [x, y, hz]);
+        const back = points.map(([x, y]) => [x, y, -hz]);
+        const perimeter = points.reduce((sum, point, index) => {
+            const next = points[(index + 1) % points.length];
+            return sum + Math.hypot(next[0] - point[0], next[1] - point[1]);
+        }, 0);
+        addFace(front, [0, 0, 1], uv(repeatsFor(perimeter / 4), 1), 1);
+        addFace([...back].reverse(), [0, 0, -1], uv(repeatsFor(perimeter / 4), 1), 1);
+        for (let index = 0; index < 4; index += 1) {
+            const next = (index + 1) % 4;
+            const edge = Math.hypot(points[next][0] - points[index][0], points[next][1] - points[index][1]);
+            addFace([front[index], front[next], back[next], back[index]], sideNormal(points[index], points[next]), uv(repeatsFor(edge), repeatsFor(depthM)), 1);
+        }
+    };
+
+    // Each polygon has diagonal inner ends, creating real 45-degree mitre
+    // seams at the front face rather than overlapping rectangular bars.
+    addRail([[-hx, hy], [-innerHx, innerHy], [innerHx, innerHy], [hx, hy]]);
+    addRail([[-hx, -hy], [hx, -hy], [innerHx, -innerHy], [-innerHx, -innerHy]]);
+    addRail([[-hx, -hy], [-innerHx, -innerHy], [-innerHx, innerHy], [-hx, hy]]);
+    addRail([[innerHx, -innerHy], [hx, -hy], [hx, hy], [innerHx, innerHy]]);
+
+    const openingZ = hz - Math.min(Math.max(openingInsetM, 0.001), depthM * 0.75);
+    addFace(
+        [[-innerHx, -innerHy, openingZ], [innerHx, -innerHy, openingZ], [innerHx, innerHy, openingZ], [-innerHx, innerHy, openingZ]],
+        [0, 0, 1], [[0, 1], [1, 1], [1, 0], [0, 0]], 0,
+    );
+    return {
+        positions: new Float32Array(positions),
+        normals: new Float32Array(normals),
+        uvs: new Float32Array(uvs),
+        indicesByMaterial: indicesByMaterial.map(items => new Uint16Array(items)),
+    };
+}
+
 function buildBoxGeometry({ widthM, heightM, depthM }) {
     const hx = widthM / 2;
     const hy = heightM / 2;
@@ -103,8 +173,8 @@ function concatBuffers(buffers) {
  * @param {Uint8Array} [options.mouldingTexturePng] - real tiled moulding material for the other five faces; falls back to frameColorHex when omitted
  * @returns {Uint8Array} a complete, spec-valid .glb file
  */
-export function buildFrameGlb({ widthM, heightM, depthM, frontTexturePng, frameColorHex, mouldingTexturePng }) {
-    const geo = buildBoxGeometry({ widthM, heightM, depthM });
+export function buildFrameGlb({ widthM, heightM, depthM, railWidthM, openingInsetM, frontTexturePng, frameColorHex, mouldingTexturePng }) {
+    const geo = buildFrameRingGeometry({ widthM, heightM, depthM, railWidthM, openingInsetM });
 
     const bounds = (arr, stride, dim) => {
         const min = new Array(dim).fill(Infinity);

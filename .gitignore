@@ -68,6 +68,18 @@ frameworthy_codebase.zip
 # Stray pre-Cloudinary-migration backup copy of Met Museum images, not source content
 /met_collection/
 
+# Supplier frame-asset working material (~930MB of binaries). "frame assets/"
+# is the curated supplier drop the catalogue is generated FROM; catalog_downloads/
+# is the raw scrape archive it was reconciled against. Both are source material
+# kept locally, not shipped content — the generated catalogue data and the
+# render textures actually served are tracked separately. test-results/ is
+# Playwright output.
+/frame assets/
+/catalog_downloads/
+/.codex_tmp_bubola_pitch/
+/test-results/
+*.err
+
 # Museum Art / Artists & Masterpieces data pipeline — one-off scripts and
 # the large intermediate artifacts they produce (checkpoints, reports,
 # scrape dumps, pre-filter backups). The actual served data lives in

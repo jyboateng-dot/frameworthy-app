@@ -201,23 +201,61 @@ export async function renderAlbumPoster(posterData, sizeDims, dpi = 100) {
         fit = fitTracklist(columns, displayCount);
         if (fit.fontPx < MIN_READABLE_FONT) {
             // Still not enough even now — hold at the floor exactly, sized
-            // to whatever width it actually needs there.
+            // to whatever width it actually needs there. Split displayCount
+            // evenly across columns — NOT maxRowsAtFloor, which is each
+            // column's raw capacity at the floor font, not the rows this
+            // particular displayCount actually needs per column. Using
+            // capacity directly here left column 2 nearly empty whenever it
+            // comfortably exceeded that need (e.g. 28 tracks at a capacity
+            // of 26/column landed 26 in column 1 and only 2 in column 2).
             const scale = MIN_READABLE_FONT / REF_PX;
+            const evenRowsPerColumn = Math.ceil(displayCount / columns);
             fit = {
                 fontPx: MIN_READABLE_FONT,
-                rowsPerColumn: maxRowsAtFloor,
-                col1Width: widestTrackWidth(0, maxRowsAtFloor) * scale,
-                col2Width: columns === 2 ? widestTrackWidth(maxRowsAtFloor, displayCount) * scale : 0,
+                rowsPerColumn: evenRowsPerColumn,
+                col1Width: widestTrackWidth(0, evenRowsPerColumn) * scale,
+                col2Width: columns === 2 ? widestTrackWidth(evenRowsPerColumn, displayCount) * scale : 0,
             };
         }
     }
 
     const trackFontPx = fit.fontPx;
-    const lineHeight = trackFontPx / FONT_LINE_RATIO;
     const rowsPerColumn = fit.rowsPerColumn;
     let maxCol1Width = fit.col1Width;
     let maxCol2Width = fit.col2Width;
+
+    // Hard invariant: the tracklist must never extend past safeTracklistSpace
+    // — that's what keeps column 2 clear of the metadata column to its
+    // right. fitTracklist's own width-based sizing guarantees this by
+    // construction, but the readability-floor fallback above measures each
+    // column's natural text width directly at a font size it can no longer
+    // shrink, which can exceed it. Scale both columns down proportionally
+    // rather than let column 2 spill rightward into the metadata text;
+    // truncateToFit's per-line "…" below absorbs whatever that costs.
+    const totalTrackWidth = columns === 2 ? maxCol1Width + trackSubColGap + maxCol2Width : maxCol1Width;
+    if (totalTrackWidth > safeTracklistSpace && totalTrackWidth > 0) {
+        const availableForColumns = safeTracklistSpace - (columns === 2 ? trackSubColGap : 0);
+        const shrink = Math.max(0, availableForColumns) / (maxCol1Width + maxCol2Width);
+        maxCol1Width *= shrink;
+        maxCol2Width *= shrink;
+    }
+
     ctx.font = `600 ${trackFontPx}px "Inter", sans-serif`;
+
+    // fitTracklist sizes the font by whichever of height/width is more
+    // restrictive. When width wins — long titles forcing a smaller font
+    // despite vertical room to spare, the case most visible on long
+    // tracklists with wordy titles — the natural line height leaves the
+    // block packed at the top with a dead band underneath it. Stretch the
+    // gap BETWEEN rows to use that space instead of leaving it blank —
+    // never the font size or column widths, so this can't push column 1's
+    // text into column 2's. Capped at a multiple of the natural spacing so
+    // a short tracklist doesn't end up looking disconnected rather than
+    // legible.
+    const naturalLineHeight = trackFontPx / FONT_LINE_RATIO;
+    const zoneRowHeight = tracklistZoneHeight / rowsPerColumn;
+    const MAX_LINE_STRETCH = 1.6;
+    const lineHeight = Math.min(zoneRowHeight, naturalLineHeight * MAX_LINE_STRETCH);
 
     // Helper to truncate text by pixels — the final per-line safety net for
     // any individual track title still wider than its measured column

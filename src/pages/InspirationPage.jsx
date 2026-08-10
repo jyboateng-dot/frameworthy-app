@@ -61,7 +61,13 @@ const ProductCard = ({ product, onGetThis }) => {
 };
 
 const InspirationPage = ({ setProductMode, setSelectedFrame, setSelectedSize, navigate, isModal = false }) => {
-    const [currentSection, setCurrentSection] = useState(() => sessionStorage.getItem('fw_insp_section') || 'originals');
+    // Framed Prints ('inspiration') is shelved — not in the tab row below —
+    // but a session that had it active before the shelving shouldn't land on
+    // an unreachable tab with no pill to select it back out of.
+    const [currentSection, setCurrentSection] = useState(() => {
+        const stored = sessionStorage.getItem('fw_insp_section');
+        return stored && stored !== 'inspiration' ? stored : 'originals';
+    });
     // A result picked from the cross-category Search tab that needs its
     // native category's "Choose Framing Style" modal opened immediately —
     // Album/Movie results can't navigate directly like the flat-catalog
@@ -182,15 +188,18 @@ const InspirationPage = ({ setProductMode, setSelectedFrame, setSelectedSize, na
         const sections = [
             { id: 'search', label: 'Search' },
             { id: 'originals', label: 'Original Paintings' },
+            { id: 'museum', label: 'Artists & Masterpieces' },
             { id: 'prestige', label: 'Prestige Paintings' },
+            { id: 'albums', label: 'Album Artwork' },
+            { id: 'movies', label: 'Movie Posters' },
+            { id: 'met', label: 'Met Museum Collection' },
             { id: 'canvas', label: 'Canvas Art' },
             { id: 'glossy', label: 'Glossy Art' },
-            { id: 'albums', label: 'Album Artwork' },
-            { id: 'met', label: 'Met Museum Collection' },
-            { id: 'museum', label: 'Artists & Masterpieces' },
             { id: 'web', label: 'Web Images' },
-            { id: 'movies', label: 'Movie Posters' },
-            { id: 'inspiration', label: 'Framed Prints' },
+            // 'inspiration' (Framed Prints) is shelved — intentionally
+            // omitted from the tab row. Its content block, data, and the
+            // currentSection fallback guard above are left in place so it
+            // can be restored by re-adding this entry.
         ];
         return (
             <>

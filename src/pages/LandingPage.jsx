@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowRight, ChevronRight, ChevronLeft, Sparkles } from 'lucide-react';
+import { ArrowRight, ChevronRight, ChevronLeft, Sparkles, Upload, Frame as FrameIcon, SlidersHorizontal, Eye, Truck, Hammer, ShieldCheck } from 'lucide-react';
 import { FRAME_STYLES, CATEGORIES } from '../data/constants';
 import { CAROUSEL_SLIDES } from '../data/landingCarouselSlides';
 import { openExternalLinkFromEvent as openExternalLink } from '../utils/nativeLinks';
@@ -72,14 +72,14 @@ export default function LandingPage({ onStartFraming, navigate, setSelectedFrame
                 <div className="max-w-[2560px] mx-auto px-6 lg:px-12 w-full grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6 items-start">
                     
                     {/* Left: Anchored Typography */}
-                    <div className="lg:col-span-5 relative z-10 flex flex-col">
+                    <div className="lg:col-span-5 relative z-10 flex flex-col lg:self-stretch">
                         <div className="text-stone-400 font-bold tracking-widest text-xs uppercase mb-6 flex items-center gap-4 shrink-0">
                             <span className="w-8 h-[1px] bg-stone-300"></span>
                             0{currentSlide + 1} &mdash; 0{CAROUSEL_SLIDES.length}
                         </div>
                         <div className="relative">
                             {CAROUSEL_SLIDES.map((slide, index) => (
-                                <div 
+                                <div
                                     key={index}
                                     className={`transition-all duration-700 ease-[cubic-bezier(0.25,1,0.5,1)] ${
                                         currentSlide === index
@@ -94,7 +94,7 @@ export default function LandingPage({ onStartFraming, navigate, setSelectedFrame
                                         {slide.text}
                                     </p>
                                     <div className="mt-4">
-                                        <button 
+                                        <button
                                             onClick={handleStartAction}
                                             className="group flex items-center gap-4 text-sm font-bold tracking-wide uppercase text-stone-900 hover:text-stone-600 transition-colors"
                                         >
@@ -104,6 +104,25 @@ export default function LandingPage({ onStartFraming, navigate, setSelectedFrame
                                     </div>
                                 </div>
                             ))}
+                        </div>
+
+                        {/* Fills the empty space large screens leave below the
+                            short hero text (the image column is much taller) —
+                            reinforces the CTA instead of adding a separate
+                            section that interrupts the hero-to-gallery flow. */}
+                        <div className="hidden lg:flex flex-col gap-4 mt-auto pt-12">
+                            <div className="flex items-center gap-3">
+                                <Hammer size={18} className="text-[#c9a84c] shrink-0" />
+                                <span className="text-sm text-stone-600">All frames handcrafted locally</span>
+                            </div>
+                            <div className="flex items-center gap-3">
+                                <Truck size={18} className="text-[#c9a84c] shrink-0" />
+                                <span className="text-sm text-stone-600">Built &amp; shipped in 5-7 business days</span>
+                            </div>
+                            <div className="flex items-center gap-3">
+                                <ShieldCheck size={18} className="text-[#c9a84c] shrink-0" />
+                                <span className="text-sm text-stone-600">Customization-based pricing</span>
+                            </div>
                         </div>
                     </div>
 
@@ -145,6 +164,27 @@ export default function LandingPage({ onStartFraming, navigate, setSelectedFrame
 
                 </div>
             </section>
+
+            {/* Trust facts: horizontal row under the carousel on narrower
+                viewports, where the hero text column has no leftover space
+                to hold them the way it does at lg+. */}
+            <section className="lg:hidden bg-white border-t border-stone-100 py-5">
+                <div className="max-w-[2560px] mx-auto px-6 grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 text-center sm:text-left">
+                    <div className="flex items-center justify-center sm:justify-start gap-3">
+                        <Hammer size={18} className="text-[#c9a84c] shrink-0" />
+                        <span className="text-sm text-stone-600">All frames handcrafted locally</span>
+                    </div>
+                    <div className="flex items-center justify-center sm:justify-start gap-3">
+                        <Truck size={18} className="text-[#c9a84c] shrink-0" />
+                        <span className="text-sm text-stone-600">Built &amp; shipped in 5-7 business days</span>
+                    </div>
+                    <div className="flex items-center justify-center sm:justify-start gap-3">
+                        <ShieldCheck size={18} className="text-[#c9a84c] shrink-0" />
+                        <span className="text-sm text-stone-600">Customization-based pricing</span>
+                    </div>
+                </div>
+            </section>
+
 {/* Categorized Gallery Section */}
             <section id="curated-frames" className="py-12 lg:py-16 bg-white relative overflow-hidden">
                 <div className="max-w-[2560px] mx-auto px-6 lg:px-12">
@@ -245,33 +285,28 @@ export default function LandingPage({ onStartFraming, navigate, setSelectedFrame
             {/* Info Section */}
             <section className="py-12 bg-stone-50 border-t border-stone-200">
                 <div className="max-w-[2560px] mx-auto px-6 lg:px-12">
-                    <div className="text-center mb-8">
+                    <div className="text-center mb-12">
                         <h2 className="text-3xl lg:text-4xl font-bold tracking-tight text-stone-900 mb-2">How It Works</h2>
-                        <p className="text-stone-500 max-w-2xl mx-auto">Three simple steps to museum-quality framing.</p>
+                        <p className="text-stone-500 max-w-2xl mx-auto">Five simple steps to museum-quality framing.</p>
                     </div>
-                    
-                    <div className="grid md:grid-cols-3 gap-8 text-center">
-                        <div className="flex flex-col items-center">
-                            <div className="w-16 h-16 bg-white rounded-2xl shadow-sm border border-stone-100 flex items-center justify-center mb-6">
-                                <span className="text-2xl font-bold text-stone-900">1</span>
+
+                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-y-10 gap-x-6 text-center">
+                        {[
+                            { icon: Upload, title: 'Upload Your Image', desc: "Bring your photo, print, or artwork — we'll optimize it for the sharpest possible print." },
+                            { icon: FrameIcon, title: 'Choose Your Frame', desc: 'Browse hundreds of styles, from natural woods to hand-finished ornate mouldings.' },
+                            { icon: SlidersHorizontal, title: 'Choose Your Customizations', desc: 'Dial in size, mat, glass, and hardware — your price updates instantly to match exactly what you choose.' },
+                            { icon: Eye, title: 'Preview the End Product', desc: 'See your exact piece rendered true-to-scale in our visualizer, then step into AR to see it on your own wall in 3D.' },
+                            { icon: Truck, title: 'Place Your Order', desc: 'Handcrafted locally and delivered ready to hang, within 5-7 business days — satisfaction guaranteed.' },
+                        ].map((step, i) => (
+                            <div key={step.title} className="flex flex-col items-center">
+                                <div className="relative w-16 h-16 bg-white rounded-2xl shadow-sm border border-stone-100 flex items-center justify-center mb-6">
+                                    <step.icon size={24} strokeWidth={1.75} className="text-[#c9a84c]" />
+                                    <span className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-stone-900 text-white text-xs font-bold flex items-center justify-center">{i + 1}</span>
+                                </div>
+                                <h3 className="text-base lg:text-lg font-bold text-stone-900 mb-2">{step.title}</h3>
+                                <p className="text-stone-500 text-sm leading-relaxed max-w-[220px]">{step.desc}</p>
                             </div>
-                            <h3 className="text-xl font-bold text-stone-900 mb-3">Upload & Customize</h3>
-                            <p className="text-stone-500 leading-relaxed">Upload your photo or art, and preview it instantly in hundreds of frame styles using our 3D visualizer.</p>
-                        </div>
-                        <div className="flex flex-col items-center">
-                            <div className="w-16 h-16 bg-white rounded-2xl shadow-sm border border-stone-100 flex items-center justify-center mb-6">
-                                <span className="text-2xl font-bold text-stone-900">2</span>
-                            </div>
-                            <h3 className="text-xl font-bold text-stone-900 mb-3">Handcrafted With Care</h3>
-                            <p className="text-stone-500 leading-relaxed">Our artisans custom-build your frame using premium materials and archival-quality mats and acrylic.</p>
-                        </div>
-                        <div className="flex flex-col items-center">
-                            <div className="w-16 h-16 bg-white rounded-2xl shadow-sm border border-stone-100 flex items-center justify-center mb-6">
-                                <span className="text-2xl font-bold text-stone-900">3</span>
-                            </div>
-                            <h3 className="text-xl font-bold text-stone-900 mb-3">Delivered Ready to Hang</h3>
-                            <p className="text-stone-500 leading-relaxed">Your framed piece arrives securely packaged with hanging hardware already installed.</p>
-                        </div>
+                        ))}
                     </div>
                 </div>
             </section>

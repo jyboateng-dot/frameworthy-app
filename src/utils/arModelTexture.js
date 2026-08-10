@@ -8,19 +8,10 @@
 
 import { getFrameTextureAnchor, basenameOf, TEXTURE_ZOOM_PCT, cssBackgroundWindow } from './frameTexture';
 import FRAME_STRIP_MANIFEST from '../data/frameStrips.json';
+import { getFrameExteriorDimensions, getFrameRenderProfile } from './frameRenderProfile';
 
 const TEXTURE_PX = 1024; // Square texture; UV-mapped onto the model's actual w:h aspect, so this only controls sharpness, not shape.
 const MOULDING_TILE_MAX_PX = 512; // Real strip/crop photos can be 1000px+; a repeating swatch never needs to be sharper than this.
-
-// Mirrors CustomizeFramePage's own widthCategory -> visual thickness mapping
-// (the moulding-thickness *fact* about a SKU, not a rendering technique) so
-// the AR preview's proportions match what the customer already sees.
-function mouldingThicknessPct(frame) {
-    if (!frame?.widthCategory) return 5;
-    if (frame.widthCategory === 'wide') return 10;
-    if (frame.widthCategory === 'narrow') return 2;
-    return 5;
-}
 
 function loadImage(src) {
     return new Promise((resolve, reject) => {
@@ -53,6 +44,17 @@ function downscaleToCanvas(img, maxPx) {
 // Returns an HTMLCanvasElement, or null if neither source is available
 // (no catalogue photo at all for this frame).
 export async function loadMouldingTile(frame) {
+    const renderProfile = getFrameRenderProfile(frame);
+    // A profile photo is a geometric cross-section reference, not a seamless
+    // material tile. It is deliberately retained in the catalogue for the
+    // frame-ring mesh/QA pipeline, but never repeated across a model surface.
+    // Until that mesh is emitted, the clean front rail is the truthful finish
+    // texture for both face and depth surfaces.
+    const catalogueSource = renderProfile.frontTexture?.horizontalPath;
+    if (catalogueSource) {
+        const img = await loadImage(catalogueSource);
+        return downscaleToCanvas(img, MOULDING_TILE_MAX_PX);
+    }
     if (!frame?.previewImg) return null;
     const stripEntry = FRAME_STRIP_MANIFEST[basenameOf(frame.previewImg)];
 
@@ -92,7 +94,8 @@ export async function loadMouldingTile(frame) {
  * @returns {Promise<{canvas: HTMLCanvasElement, aspect: number}>}
  */
 export async function renderArFrontFaceTexture({ frame, widthIn, heightIn, matInches, matColorHex, artworkUrl, mouldingTile }) {
-    const aspect = widthIn / heightIn;
+    const geometry = getFrameExteriorDimensions(widthIn, heightIn, frame, matInches);
+    const aspect = geometry.outerWidthIn / geometry.outerHeightIn;
     const canvasW = aspect >= 1 ? TEXTURE_PX : Math.round(TEXTURE_PX * aspect);
     const canvasH = aspect >= 1 ? Math.round(TEXTURE_PX / aspect) : TEXTURE_PX;
 
@@ -101,14 +104,11 @@ export async function renderArFrontFaceTexture({ frame, widthIn, heightIn, matIn
     canvas.height = canvasH;
     const ctx = canvas.getContext('2d');
 
-    const minSide = Math.min(widthIn, heightIn);
-    const mouldingPct = mouldingThicknessPct(frame);
-    // Same normalization CustomizeFramePage uses: thickness is a fraction of
-    // the SHORT side, then expressed as a fraction of each individual side
-    // so a narrow piece doesn't get a disproportionately thick band on its
-    // long edge.
-    const mouldingFracW = (minSide / widthIn) * (mouldingPct / 100);
-    const mouldingFracH = (minSide / heightIn) * (mouldingPct / 100);
+    // The source customizer's face width is a real inch measurement. The
+    // canvas therefore represents the actual outside dimensions, not merely
+    // the selected artwork opening with a category-based decorative border.
+    const mouldingFracW = geometry.mouldingWidthIn / geometry.outerWidthIn;
+    const mouldingFracH = geometry.mouldingWidthIn / geometry.outerHeightIn;
     const mouldingXPx = mouldingFracW * canvasW;
     const mouldingYPx = mouldingFracH * canvasH;
 
@@ -132,8 +132,8 @@ export async function renderArFrontFaceTexture({ frame, widthIn, heightIn, matIn
     const innerH = canvasH - mouldingYPx * 2;
 
     // 2. Mat band (if any), same real-inch width converted to this face's px scale.
-    const matFracW = matInches > 0 ? matInches / widthIn : 0;
-    const matFracH = matInches > 0 ? matInches / heightIn : 0;
+    const matFracW = matInches > 0 ? matInches / geometry.outerWidthIn : 0;
+    const matFracH = matInches > 0 ? matInches / geometry.outerHeightIn : 0;
     const matXPx = matFracW * canvasW;
     const matYPx = matFracH * canvasH;
 
@@ -165,7 +165,18 @@ export async function renderArFrontFaceTexture({ frame, widthIn, heightIn, matIn
         ctx.drawImage(img, sx, sy, sw, sh, artX, artY, artW, artH);
     }
 
-    return { canvas, aspect };
+    // The 3D model is an open ring. Its separate artwork/mat panel therefore
+    // needs only the inner portion of this composite, not a second copy of
+    // the moulding band hidden behind the opening.
+    const openingCanvas = document.createElement('canvas');
+    openingCanvas.width = Math.max(1, Math.round(innerW));
+    openingCanvas.height = Math.max(1, Math.round(innerH));
+    openingCanvas.getContext('2d').drawImage(
+        canvas,
+        Math.round(innerX), Math.round(innerY), Math.max(1, Math.round(innerW)), Math.max(1, Math.round(innerH)),
+        0, 0, openingCanvas.width, openingCanvas.height,
+    );
+    return { canvas, openingCanvas, aspect };
 }
 
 export function canvasToPngBytes(canvas) {

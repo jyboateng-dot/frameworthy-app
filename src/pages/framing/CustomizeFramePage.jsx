@@ -294,6 +294,22 @@ const InfoTooltip = ({ text }) => {
     );
 };
 
+const parseDimension = (dim) => {
+    if (!dim || dim === 'null') return 1.0;
+    if (typeof dim === 'number') return dim;
+    let s = dim.replace(/-$/, '').trim();
+    if (s.includes('-')) {
+        const parts = s.split('-');
+        if (parts.length === 2 && parts[1].includes('/')) {
+            const frac = parts[1].split('/');
+            return parseFloat(parts[0]) + (parseFloat(frac[0]) / parseFloat(frac[1]));
+        }
+    } else if (s.includes('/')) {
+        const frac = s.split('/');
+        return parseFloat(frac[0]) / parseFloat(frac[1]);
+    }
+    return parseFloat(s) || 1.0;
+};
 
 const CustomizeFramePage = ({
     uploadedImage,
@@ -1999,6 +2015,31 @@ const CustomizeFramePage = ({
                                         selectedFrame?.id !== 'frame-canvas' ? (
                                             <>
                                                 {/* Outer Frame Edge — 4 Mitered 3D Borders */}
+                                                {selectedFrame?.borderImageSource ? (
+                                                    <div 
+                                                        className="absolute inset-0 transition-all duration-300 z-20 pointer-events-none"
+                                                        style={{
+                                                            borderStyle: "solid",
+                                                            borderWidth: "1px",
+                                                            borderColor: "transparent",
+                                                            borderImageWidth: `${mouldingPctH}% ${mouldingPctW}%`,
+                                                            borderImageSource: `url(${selectedFrame.borderImageSource})`,
+                                                            borderImageSlice: `${(() => { const w = parseDimension(selectedFrame.mouldingWidthInches); return (w / (8 + 2 * w)) * 100; })()}%`,
+                                                            borderImageRepeat: "stretch"
+                                                        }}
+                                                    >
+                                                        {/* Inner depth shadow */}
+                                                        <div 
+                                                            className="absolute shadow-[inset_0_2px_12px_rgba(0,0,0,0.5)] pointer-events-none z-20" 
+                                                            style={{
+                                                                top: `${mouldingPctH}%`,
+                                                                bottom: `${mouldingPctH}%`,
+                                                                left: `${mouldingPctW}%`,
+                                                                right: `${mouldingPctW}%`
+                                                            }}
+                                                        />
+                                                    </div>
+                                                ) : (
                                                 <div className="absolute inset-0 transition-all duration-300">
                                                     {/* Top */}
                                                     <FrameMouldingSide
@@ -2064,7 +2105,7 @@ const CustomizeFramePage = ({
                                                     {/* Inner depth shadow */}
                                                     <div className="absolute inset-0 shadow-[inset_0_2px_12px_rgba(0,0,0,0.5)] pointer-events-none z-20" />
                                                 </div>
-                                                    
+                                                )}
                                                 {/* Matting Background */}
                                                 <div
                                                     className="absolute shadow-[0_2px_5px_rgba(0,0,0,0.15),_0_1px_2px_rgba(0,0,0,0.1)] transition-all duration-300"
@@ -2419,7 +2460,7 @@ const CustomizeFramePage = ({
                             <div className="flex items-center gap-3">
                                 <div 
                                     className="w-10 h-10 rounded-lg bg-cover bg-center shadow-inner"
-                                    style={{ backgroundImage: `url(${isPreset && uploadedImage ? getThumbnailUrl(uploadedImage, 80) : selectedFrame.previewImg})` }}
+                                    style={{ backgroundImage: `url(${isPreset && uploadedImage ? getThumbnailUrl(uploadedImage, 80) : (selectedFrame.cornerImage || selectedFrame.previewImg)})` }}
                                 />
                                 <div className="text-left">
                                     <p className="text-sm font-bold text-stone-900">{isPreset && presetTitle ? presetTitle : selectedFrame.name}</p>

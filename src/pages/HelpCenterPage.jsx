@@ -59,6 +59,10 @@ const FAQ_DATA = [
             {
                 q: 'Can I order curated art prints instead of uploading my own photos?',
                 a: 'Yes! Visit our "Inspiration" page to browse thousands of pre-formatted artwork pieces, including Met Museum Masterpieces, Prestige Paintings, Vintage Movie Posters, and Iconic Album Cover Art, all ready for custom framing.'
+            },
+            {
+                q: "How is my frame's price calculated?",
+                a: 'Pricing is fully customization-based — you only pay for what you choose. Your final price reflects your selected size, frame style, mat, glazing, and hardware, and updates instantly in the customizer as you adjust each option.'
             }
         ]
     },
@@ -67,7 +71,7 @@ const FAQ_DATA = [
         questions: [
             {
                 q: 'How long does production and delivery take?',
-                a: 'Because every piece is handcrafted to your exact specifications, production takes 3 to 5 business days. Once ready, delivery within Ghana takes 1 to 3 business days depending on your location.'
+                a: 'Every frame is handcrafted locally, so please allow 5 to 7 business days from order to delivery: 3 to 5 business days for production, plus 1 to 3 business days for delivery within Ghana depending on your location.'
             },
             {
                 q: 'How are delivery fees calculated and paid?',
@@ -95,6 +99,10 @@ const FAQ_DATA = [
     {
         category: 'Returns & Cancellations',
         questions: [
+            {
+                q: 'Do you guarantee satisfaction with my order?',
+                a: "Yes. Every frame is backed by our satisfaction guarantee: if it arrives damaged, defective, or different from what you ordered, we'll arrange a free replacement or a full refund, whichever you prefer. See our Refund & Return Policy for full details."
+            },
             {
                 q: 'Can I cancel or modify my order after placing it?',
                 a: 'Orders can be cancelled for a full refund before production begins. Once your order enters the "Processing" stage, production starts immediately and cancellations are no longer accepted.'
