@@ -1,14 +1,15 @@
 {
-  "generatedAt": "2026-08-10T02:56:11.328Z",
+  "generatedAt": "2026-08-10T03:06:48.919Z",
   "frameCount": 335,
-  "withThumbnail": 335,
+  "withThumbnail": 331,
   "withMouldingWidth": 319,
   "withRabbetDepth": 326,
   "textureSourceBreakdown": {
     "assembled": 39,
-    "strip": 87,
-    "rail": 105,
-    "corner": 104
+    "strip": 84,
+    "rail": 90,
+    "corner": 120,
+    "none": 2
   },
   "ambiguousAssets": [
     "/frames/assets/american-flag-picture-frame/9565c.jpg",
@@ -22,12 +23,244 @@
   ],
   "warnings": [
     {
+      "folder": "aged-red-picture-frame",
+      "issue": "1 corrupt asset(s) skipped (saved error page, not an image)"
+    },
+    {
+      "folder": "aged-white-picture-frame",
+      "issue": "1 corrupt asset(s) skipped (saved error page, not an image)"
+    },
+    {
+      "folder": "american-flag-picture-frame",
+      "issue": "1 corrupt asset(s) skipped (saved error page, not an image)"
+    },
+    {
+      "folder": "antique-gold-beveled-picture-frame",
+      "issue": "2 corrupt asset(s) skipped (saved error page, not an image)"
+    },
+    {
+      "folder": "antique-gold-deep-picture-frame",
+      "issue": "1 corrupt asset(s) skipped (saved error page, not an image)"
+    },
+    {
+      "folder": "antique-gold-renaissance-picture-frame",
+      "issue": "1 corrupt asset(s) skipped (saved error page, not an image)"
+    },
+    {
+      "folder": "antique-gold-with-distressed-black-panel-picture-frame",
+      "issue": "1 corrupt asset(s) skipped (saved error page, not an image)"
+    },
+    {
+      "folder": "antique-pewter-renaissance-picture-frame",
+      "issue": "1 corrupt asset(s) skipped (saved error page, not an image)"
+    },
+    {
+      "folder": "antique-silver-beveled-picture-frame",
+      "issue": "1 corrupt asset(s) skipped (saved error page, not an image)"
+    },
+    {
+      "folder": "antique-silver-cross-hatch-picture-frame",
+      "issue": "1 corrupt asset(s) skipped (saved error page, not an image)"
+    },
+    {
+      "folder": "antique-silver-deep-picture-frame",
+      "issue": "1 corrupt asset(s) skipped (saved error page, not an image)"
+    },
+    {
+      "folder": "antique-silver-ornate-picture-frame",
+      "issue": "1 corrupt asset(s) skipped (saved error page, not an image)"
+    },
+    {
+      "folder": "antique-silver-renaissance-picture-frame",
+      "issue": "3 corrupt asset(s) skipped (saved error page, not an image)"
+    },
+    {
+      "folder": "antique-silver-renaissance-picture-frame",
+      "issue": "no corner image (thumbnail source)"
+    },
+    {
+      "folder": "antique-silver-reverse-slope-picture-frame",
+      "issue": "1 corrupt asset(s) skipped (saved error page, not an image)"
+    },
+    {
+      "folder": "antique-silver-tall-picture-frame",
+      "issue": "1 corrupt asset(s) skipped (saved error page, not an image)"
+    },
+    {
+      "folder": "bronze-shell-picture-frame",
+      "issue": "3 corrupt asset(s) skipped (saved error page, not an image)"
+    },
+    {
       "folder": "bronze-shell-picture-frame",
       "issue": "no moulding width from any source"
     },
     {
+      "folder": "distressed-antique-gold-picture-frame",
+      "issue": "3 corrupt asset(s) skipped (saved error page, not an image)"
+    },
+    {
+      "folder": "gold-bamboo-picture-frame",
+      "issue": "1 corrupt asset(s) skipped (saved error page, not an image)"
+    },
+    {
+      "folder": "gold-ornate-picture-frame",
+      "issue": "1 corrupt asset(s) skipped (saved error page, not an image)"
+    },
+    {
       "folder": "gold-with-black-flat-picture-frame",
       "issue": "no moulding width from any source"
+    },
+    {
+      "folder": "gold-with-black-lip-picture-frame",
+      "issue": "1 corrupt asset(s) skipped (saved error page, not an image)"
+    },
+    {
+      "folder": "gold-with-black-panel-picture-frame",
+      "issue": "2 corrupt asset(s) skipped (saved error page, not an image)"
+    },
+    {
+      "folder": "green-burl-picture-frame",
+      "issue": "2 corrupt asset(s) skipped (saved error page, not an image)"
+    },
+    {
+      "folder": "green-with-brushed-gold-sloped-picture-frame",
+      "issue": "1 corrupt asset(s) skipped (saved error page, not an image)"
+    },
+    {
+      "folder": "grey-barnwood-picture-frame",
+      "issue": "1 corrupt asset(s) skipped (saved error page, not an image)"
+    },
+    {
+      "folder": "grey-burl-picture-frame",
+      "issue": "1 corrupt asset(s) skipped (saved error page, not an image)"
+    },
+    {
+      "folder": "grey-mottled-pewter-scoop-picture-frame",
+      "issue": "1 corrupt asset(s) skipped (saved error page, not an image)"
+    },
+    {
+      "folder": "grey-mottled-pewter-scoop-wide-picture-frame",
+      "issue": "1 corrupt asset(s) skipped (saved error page, not an image)"
+    },
+    {
+      "folder": "grey-scoop-with-silver-lip-picture-frame",
+      "issue": "1 corrupt asset(s) skipped (saved error page, not an image)"
+    },
+    {
+      "folder": "grey-square-picture-frame",
+      "issue": "1 corrupt asset(s) skipped (saved error page, not an image)"
+    },
+    {
+      "folder": "grey-with-angled-lip-deep-picture-frame",
+      "issue": "1 corrupt asset(s) skipped (saved error page, not an image)"
+    },
+    {
+      "folder": "grey-with-silver-edge-picture-frame",
+      "issue": "2 corrupt asset(s) skipped (saved error page, not an image)"
+    },
+    {
+      "folder": "grey-with-silver-trim-picture-frame",
+      "issue": "2 corrupt asset(s) skipped (saved error page, not an image)"
+    },
+    {
+      "folder": "hammered-gold-top-with-rustic-black-side-picture-frame",
+      "issue": "1 corrupt asset(s) skipped (saved error page, not an image)"
+    },
+    {
+      "folder": "hammered-silver-top-with-rustic-black-side-picture-frame",
+      "issue": "1 corrupt asset(s) skipped (saved error page, not an image)"
+    },
+    {
+      "folder": "hi-gloss-walnut-burl-picture-frame",
+      "issue": "2 corrupt asset(s) skipped (saved error page, not an image)"
+    },
+    {
+      "folder": "honey-pecan-burl-and-black-picture-frame",
+      "issue": "1 corrupt asset(s) skipped (saved error page, not an image)"
+    },
+    {
+      "folder": "honey-pecan-burl-reverse-slop-picture-frame",
+      "issue": "1 corrupt asset(s) skipped (saved error page, not an image)"
+    },
+    {
+      "folder": "honey-pecan-contemporary-picture-frame",
+      "issue": "1 corrupt asset(s) skipped (saved error page, not an image)"
+    },
+    {
+      "folder": "honey-pecan-with-weathered-lip-picture-frame",
+      "issue": "1 corrupt asset(s) skipped (saved error page, not an image)"
+    },
+    {
+      "folder": "ornate-burnished-gold-with-beaded-edge-picture-frame",
+      "issue": "1 corrupt asset(s) skipped (saved error page, not an image)"
+    },
+    {
+      "folder": "ornate-gold-picture-frame",
+      "issue": "2 corrupt asset(s) skipped (saved error page, not an image)"
+    },
+    {
+      "folder": "ornate-scoop-antique-gold-picture-frame",
+      "issue": "6 corrupt asset(s) skipped (saved error page, not an image)"
+    },
+    {
+      "folder": "ornate-scoop-antique-gold-picture-frame",
+      "issue": "no corner image (thumbnail source)"
+    },
+    {
+      "folder": "oyster-shell-picture-frame",
+      "issue": "2 corrupt asset(s) skipped (saved error page, not an image)"
+    },
+    {
+      "folder": "rustic-barnwood-grey-picture-frame",
+      "issue": "2 corrupt asset(s) skipped (saved error page, not an image)"
+    },
+    {
+      "folder": "rustic-brown-picture-frame",
+      "issue": "2 corrupt asset(s) skipped (saved error page, not an image)"
+    },
+    {
+      "folder": "rustic-gold-picture-frame",
+      "issue": "1 corrupt asset(s) skipped (saved error page, not an image)"
+    },
+    {
+      "folder": "rustic-white-washed-picture-frame",
+      "issue": "2 corrupt asset(s) skipped (saved error page, not an image)"
+    },
+    {
+      "folder": "traditional-antique-gold-picture-frame",
+      "issue": "2 corrupt asset(s) skipped (saved error page, not an image)"
+    },
+    {
+      "folder": "walnut-square-picture-frame",
+      "issue": "1 corrupt asset(s) skipped (saved error page, not an image)"
+    },
+    {
+      "folder": "walnut-with-silver-edge-picture-frame",
+      "issue": "1 corrupt asset(s) skipped (saved error page, not an image)"
+    },
+    {
+      "folder": "weathered-oatmeal-traditional-picture-frame",
+      "issue": "2 corrupt asset(s) skipped (saved error page, not an image)"
+    },
+    {
+      "folder": "weathered-traditional-picture-frame",
+      "issue": "3 corrupt asset(s) skipped (saved error page, not an image)"
+    },
+    {
+      "folder": "white-birch-scoop-picture-frame",
+      "issue": "2 corrupt asset(s) skipped (saved error page, not an image)"
+    },
+    {
+      "folder": "white-washed-flat-picture-frame",
+      "issue": "4 corrupt asset(s) skipped (saved error page, not an image)"
+    },
+    {
+      "folder": "white-washed-flat-picture-frame",
+      "issue": "no corner image (thumbnail source)"
+    },
+    {
+      "folder": "white-with-clear-wood-picture-frame",
+      "issue": "3 corrupt asset(s) skipped (saved error page, not an image)"
     },
     {
       "folder": "wide-glossy-green-scoop-picture-frame",
@@ -76,6 +309,14 @@
     {
       "folder": "wide-silver-bamboo-picture-frame",
       "issue": "no moulding width from any source"
+    },
+    {
+      "folder": "wide-walnut-bamboo-picture-frame",
+      "issue": "3 corrupt asset(s) skipped (saved error page, not an image)"
+    },
+    {
+      "folder": "wide-walnut-bamboo-picture-frame",
+      "issue": "no corner image (thumbnail source)"
     },
     {
       "folder": "wide-walnut-bamboo-picture-frame",
@@ -356,9 +597,6 @@
           "/frames/assets/aged-red-picture-frame/10872_b.jpg",
           "/frames/assets/aged-red-picture-frame/10872a.jpg",
           "/frames/assets/aged-red-picture-frame/10872b.jpg"
-        ],
-        "assembled": [
-          "/frames/assets/aged-red-picture-frame/imagemanipulator_default_swap_10872.jpg"
         ]
       }
     },
@@ -381,9 +619,6 @@
         ],
         "corner": [
           "/frames/assets/aged-white-picture-frame/10881_b.jpg"
-        ],
-        "assembled": [
-          "/frames/assets/aged-white-picture-frame/imagemanipulator_default_swap_10881.jpg"
         ]
       }
     },
@@ -474,16 +709,13 @@
       "mouldingWidthSource": "supplier-archive",
       "rabbetDepthIn": 0.6875,
       "rabbetDepthSource": "supplier-archive",
-      "thumbnail": "/frames/assets/antique-gold-beveled-picture-frame/10685_corner_a.jpg",
-      "textureSource": "rail",
-      "textureDerived": false,
+      "thumbnail": "/frames/assets/antique-gold-beveled-picture-frame/10685_corner_a_1.jpg",
+      "textureSource": "corner",
+      "textureDerived": true,
       "assets": {
         "corner": [
-          "/frames/assets/antique-gold-beveled-picture-frame/10685_corner_a.jpg",
+          "/frames/assets/antique-gold-beveled-picture-frame/10685_corner_a_1.jpg",
           "/frames/assets/antique-gold-beveled-picture-frame/10685_corner_b.jpg"
-        ],
-        "rail": [
-          "/frames/assets/antique-gold-beveled-picture-frame/10685_framingengine.jpg"
         ],
         "profile": [
           "/frames/assets/antique-gold-beveled-picture-frame/10685_profile_a.jpg"
@@ -500,12 +732,12 @@
       "mouldingWidthSource": "supplier-archive",
       "rabbetDepthIn": 1.8125,
       "rabbetDepthSource": "supplier-archive",
-      "thumbnail": "/frames/assets/antique-gold-deep-picture-frame/83878_a_1.jpg",
+      "thumbnail": "/frames/assets/antique-gold-deep-picture-frame/83878_a_2.jpg",
       "textureSource": "corner",
       "textureDerived": true,
       "assets": {
         "corner": [
-          "/frames/assets/antique-gold-deep-picture-frame/83878_a_1.jpg",
+          "/frames/assets/antique-gold-deep-picture-frame/83878_a_2.jpg",
           "/frames/assets/antique-gold-deep-picture-frame/83878_b_1.jpg"
         ],
         "profile": [
@@ -558,9 +790,6 @@
         ],
         "corner": [
           "/frames/assets/antique-gold-renaissance-picture-frame/10715_b.jpg"
-        ],
-        "assembled": [
-          "/frames/assets/antique-gold-renaissance-picture-frame/imagemanipulator_default_swap_10715.jpg"
         ]
       }
     },
@@ -662,9 +891,6 @@
         "corner": [
           "/frames/assets/antique-gold-with-distressed-black-panel-picture-frame/9599_a.jpg",
           "/frames/assets/antique-gold-with-distressed-black-panel-picture-frame/9599_b.jpg"
-        ],
-        "assembled": [
-          "/frames/assets/antique-gold-with-distressed-black-panel-picture-frame/imagemanipulator_default_swap_9599.jpg"
         ]
       }
     },
@@ -712,9 +938,6 @@
         ],
         "corner": [
           "/frames/assets/antique-pewter-renaissance-picture-frame/10718_b.jpg"
-        ],
-        "assembled": [
-          "/frames/assets/antique-pewter-renaissance-picture-frame/imagemanipulator_default_swap_10718.jpg"
         ]
       }
     },
@@ -737,9 +960,6 @@
         ],
         "corner": [
           "/frames/assets/antique-silver-beveled-picture-frame/10683_b.jpg"
-        ],
-        "assembled": [
-          "/frames/assets/antique-silver-beveled-picture-frame/imagemanipulator_default_swap_10683.jpg"
         ]
       }
     },
@@ -776,12 +996,12 @@
       "mouldingWidthSource": "supplier-archive",
       "rabbetDepthIn": 1.8125,
       "rabbetDepthSource": "supplier-archive",
-      "thumbnail": "/frames/assets/antique-silver-deep-picture-frame/83879_a_1.jpg",
+      "thumbnail": "/frames/assets/antique-silver-deep-picture-frame/83879_a_2.jpg",
       "textureSource": "corner",
       "textureDerived": true,
       "assets": {
         "corner": [
-          "/frames/assets/antique-silver-deep-picture-frame/83879_a_1.jpg",
+          "/frames/assets/antique-silver-deep-picture-frame/83879_a_2.jpg",
           "/frames/assets/antique-silver-deep-picture-frame/83879_b_1.jpg"
         ],
         "profile": [
@@ -814,9 +1034,6 @@
         ],
         "profile": [
           "/frames/assets/antique-silver-ornate-picture-frame/8837c2.jpg"
-        ],
-        "assembled": [
-          "/frames/assets/antique-silver-ornate-picture-frame/imagemanipulator_default_swap_8837.jpg"
         ]
       }
     },
@@ -830,20 +1047,10 @@
       "mouldingWidthSource": "details.json",
       "rabbetDepthIn": 0.375,
       "rabbetDepthSource": "details.json",
-      "thumbnail": "/frames/assets/antique-silver-renaissance-picture-frame/10717_b.jpg",
-      "textureSource": "strip",
+      "thumbnail": null,
+      "textureSource": null,
       "textureDerived": false,
-      "assets": {
-        "strip": [
-          "/frames/assets/antique-silver-renaissance-picture-frame/10717.jpg"
-        ],
-        "corner": [
-          "/frames/assets/antique-silver-renaissance-picture-frame/10717_b.jpg"
-        ],
-        "assembled": [
-          "/frames/assets/antique-silver-renaissance-picture-frame/imagemanipulator_default_swap_10717.jpg"
-        ]
-      }
+      "assets": {}
     },
     {
       "id": "frame-10066",
@@ -865,9 +1072,6 @@
         "corner": [
           "/frames/assets/antique-silver-reverse-slope-picture-frame/10066_a_1.jpg",
           "/frames/assets/antique-silver-reverse-slope-picture-frame/10066_b_1.jpg"
-        ],
-        "assembled": [
-          "/frames/assets/antique-silver-reverse-slope-picture-frame/imagemanipulator_default_swap_10066_1.jpg"
         ]
       }
     },
@@ -907,12 +1111,12 @@
       "mouldingWidthSource": "supplier-archive",
       "rabbetDepthIn": 0.75,
       "rabbetDepthSource": "details.json",
-      "thumbnail": "/frames/assets/antique-silver-tall-picture-frame/83885_a.jpg",
+      "thumbnail": "/frames/assets/antique-silver-tall-picture-frame/83885_a_1.jpg",
       "textureSource": "corner",
       "textureDerived": true,
       "assets": {
         "corner": [
-          "/frames/assets/antique-silver-tall-picture-frame/83885_a.jpg",
+          "/frames/assets/antique-silver-tall-picture-frame/83885_a_1.jpg",
           "/frames/assets/antique-silver-tall-picture-frame/83885_b.jpg"
         ],
         "profile": [
@@ -1932,14 +2136,10 @@
       "textureDerived": false,
       "assets": {
         "corner": [
-          "/frames/assets/bronze-shell-picture-frame/11155_corner_a_1_1.jpg",
-          "/frames/assets/bronze-shell-picture-frame/11155_corner_b.jpg"
+          "/frames/assets/bronze-shell-picture-frame/11155_corner_a_1_1.jpg"
         ],
         "rail": [
           "/frames/assets/bronze-shell-picture-frame/11155_framingengine.jpg"
-        ],
-        "profile": [
-          "/frames/assets/bronze-shell-picture-frame/11155_profile_a.jpg"
         ]
       }
     },
@@ -2590,19 +2790,12 @@
       "mouldingWidthSource": "supplier-archive",
       "rabbetDepthIn": 0.625,
       "rabbetDepthSource": "supplier-archive",
-      "thumbnail": "/frames/assets/distressed-antique-gold-picture-frame/9878_a.jpg",
-      "textureSource": "strip",
-      "textureDerived": false,
+      "thumbnail": "/frames/assets/distressed-antique-gold-picture-frame/9878_b.jpg",
+      "textureSource": "corner",
+      "textureDerived": true,
       "assets": {
-        "strip": [
-          "/frames/assets/distressed-antique-gold-picture-frame/9878.jpg"
-        ],
         "corner": [
-          "/frames/assets/distressed-antique-gold-picture-frame/9878_a.jpg",
           "/frames/assets/distressed-antique-gold-picture-frame/9878_b.jpg"
-        ],
-        "assembled": [
-          "/frames/assets/distressed-antique-gold-picture-frame/imagemanipulator_default_swap_9878.jpg"
         ]
       }
     },
@@ -3865,12 +4058,12 @@
       "mouldingWidthSource": "details.json",
       "rabbetDepthIn": 0.75,
       "rabbetDepthSource": "details.json",
-      "thumbnail": "/frames/assets/gold-bamboo-picture-frame/8579_corner_a.jpg",
+      "thumbnail": "/frames/assets/gold-bamboo-picture-frame/8579_corner_a_1.jpg",
       "textureSource": "rail",
       "textureDerived": false,
       "assets": {
         "corner": [
-          "/frames/assets/gold-bamboo-picture-frame/8579_corner_a.jpg",
+          "/frames/assets/gold-bamboo-picture-frame/8579_corner_a_1.jpg",
           "/frames/assets/gold-bamboo-picture-frame/8579_corner_b.jpg"
         ],
         "rail": [
@@ -4019,9 +4212,6 @@
         "corner": [
           "/frames/assets/gold-ornate-picture-frame/5031_a.jpg",
           "/frames/assets/gold-ornate-picture-frame/5031_b.jpg"
-        ],
-        "assembled": [
-          "/frames/assets/gold-ornate-picture-frame/imagemanipulator_default_swap_5031.jpg"
         ]
       }
     },
@@ -4185,9 +4375,6 @@
         "corner": [
           "/frames/assets/gold-with-black-lip-picture-frame/9912_a_1.jpg",
           "/frames/assets/gold-with-black-lip-picture-frame/9912_b_1.jpg"
-        ],
-        "assembled": [
-          "/frames/assets/gold-with-black-lip-picture-frame/imagemanipulator_default_swap_9912_1.jpg"
         ]
       }
     },
@@ -4201,16 +4388,13 @@
       "mouldingWidthSource": "details.json",
       "rabbetDepthIn": 0.4375,
       "rabbetDepthSource": "details.json",
-      "thumbnail": "/frames/assets/gold-with-black-panel-picture-frame/6525_corner_a.jpg",
-      "textureSource": "rail",
-      "textureDerived": false,
+      "thumbnail": "/frames/assets/gold-with-black-panel-picture-frame/6525_corner_a_1.jpg",
+      "textureSource": "corner",
+      "textureDerived": true,
       "assets": {
         "corner": [
-          "/frames/assets/gold-with-black-panel-picture-frame/6525_corner_a.jpg",
+          "/frames/assets/gold-with-black-panel-picture-frame/6525_corner_a_1.jpg",
           "/frames/assets/gold-with-black-panel-picture-frame/6525_corner_b.jpg"
-        ],
-        "rail": [
-          "/frames/assets/gold-with-black-panel-picture-frame/6525_framingengine.jpg"
         ],
         "profile": [
           "/frames/assets/gold-with-black-panel-picture-frame/6525_profile_a.jpg"
@@ -4254,15 +4438,12 @@
       "rabbetDepthIn": 0.375,
       "rabbetDepthSource": "supplier-archive",
       "thumbnail": "/frames/assets/green-burl-picture-frame/11200_corner_a_1_1.jpg",
-      "textureSource": "rail",
-      "textureDerived": false,
+      "textureSource": "corner",
+      "textureDerived": true,
       "assets": {
         "corner": [
           "/frames/assets/green-burl-picture-frame/11200_corner_a_1_1.jpg",
           "/frames/assets/green-burl-picture-frame/11200_corner_b.jpg"
-        ],
-        "rail": [
-          "/frames/assets/green-burl-picture-frame/11200_framingengine.jpg"
         ],
         "profile": [
           "/frames/assets/green-burl-picture-frame/11200_profile_a.jpg"
@@ -4279,12 +4460,12 @@
       "mouldingWidthSource": "supplier-archive",
       "rabbetDepthIn": 0.75,
       "rabbetDepthSource": "details.json",
-      "thumbnail": "/frames/assets/green-with-brushed-gold-sloped-picture-frame/11194_a.jpg",
+      "thumbnail": "/frames/assets/green-with-brushed-gold-sloped-picture-frame/11194_a_1.jpg",
       "textureSource": "corner",
       "textureDerived": true,
       "assets": {
         "corner": [
-          "/frames/assets/green-with-brushed-gold-sloped-picture-frame/11194_a.jpg",
+          "/frames/assets/green-with-brushed-gold-sloped-picture-frame/11194_a_1.jpg",
           "/frames/assets/green-with-brushed-gold-sloped-picture-frame/11194_b.jpg"
         ],
         "profile": [
@@ -4302,12 +4483,12 @@
       "mouldingWidthSource": "supplier-archive",
       "rabbetDepthIn": 0.5,
       "rabbetDepthSource": "supplier-archive",
-      "thumbnail": "/frames/assets/grey-barnwood-picture-frame/10569_corner_a.jpg",
+      "thumbnail": "/frames/assets/grey-barnwood-picture-frame/10569_corner_a_1.jpg",
       "textureSource": "rail",
       "textureDerived": false,
       "assets": {
         "corner": [
-          "/frames/assets/grey-barnwood-picture-frame/10569_corner_a.jpg",
+          "/frames/assets/grey-barnwood-picture-frame/10569_corner_a_1.jpg",
           "/frames/assets/grey-barnwood-picture-frame/10569_corner_b.jpg"
         ],
         "rail": [
@@ -4354,12 +4535,12 @@
       "mouldingWidthSource": "supplier-archive",
       "rabbetDepthIn": 0.5625,
       "rabbetDepthSource": "supplier-archive",
-      "thumbnail": "/frames/assets/grey-mottled-pewter-scoop-picture-frame/84048-a_2.jpg",
+      "thumbnail": "/frames/assets/grey-mottled-pewter-scoop-picture-frame/84048-a_3.jpg",
       "textureSource": "corner",
       "textureDerived": true,
       "assets": {
         "corner": [
-          "/frames/assets/grey-mottled-pewter-scoop-picture-frame/84048-a_2.jpg",
+          "/frames/assets/grey-mottled-pewter-scoop-picture-frame/84048-a_3.jpg",
           "/frames/assets/grey-mottled-pewter-scoop-picture-frame/84048-b_2.jpg"
         ],
         "profile": [
@@ -4377,12 +4558,12 @@
       "mouldingWidthSource": "supplier-archive",
       "rabbetDepthIn": 0.6875,
       "rabbetDepthSource": "supplier-archive",
-      "thumbnail": "/frames/assets/grey-mottled-pewter-scoop-wide-picture-frame/84051_a.jpg",
+      "thumbnail": "/frames/assets/grey-mottled-pewter-scoop-wide-picture-frame/84051_a_1.jpg",
       "textureSource": "corner",
       "textureDerived": true,
       "assets": {
         "corner": [
-          "/frames/assets/grey-mottled-pewter-scoop-wide-picture-frame/84051_a.jpg",
+          "/frames/assets/grey-mottled-pewter-scoop-wide-picture-frame/84051_a_1.jpg",
           "/frames/assets/grey-mottled-pewter-scoop-wide-picture-frame/84051_b.jpg"
         ],
         "profile": [
@@ -4409,9 +4590,6 @@
         ],
         "corner": [
           "/frames/assets/grey-scoop-with-silver-lip-picture-frame/10939_b.jpg"
-        ],
-        "assembled": [
-          "/frames/assets/grey-scoop-with-silver-lip-picture-frame/imagemanipulator_default_swap_10939.jpg"
         ]
       }
     },
@@ -4425,12 +4603,12 @@
       "mouldingWidthSource": "supplier-archive",
       "rabbetDepthIn": 0.5625,
       "rabbetDepthSource": "details.json",
-      "thumbnail": "/frames/assets/grey-square-picture-frame/84002_a.jpg",
+      "thumbnail": "/frames/assets/grey-square-picture-frame/84002_a_1.jpg",
       "textureSource": "corner",
       "textureDerived": true,
       "assets": {
         "corner": [
-          "/frames/assets/grey-square-picture-frame/84002_a.jpg",
+          "/frames/assets/grey-square-picture-frame/84002_a_1.jpg",
           "/frames/assets/grey-square-picture-frame/84002_b.jpg"
         ],
         "profile": [
@@ -4448,12 +4626,12 @@
       "mouldingWidthSource": "supplier-archive",
       "rabbetDepthIn": 1,
       "rabbetDepthSource": "details.json",
-      "thumbnail": "/frames/assets/grey-with-angled-lip-deep-picture-frame/83998_a_1.jpg",
+      "thumbnail": "/frames/assets/grey-with-angled-lip-deep-picture-frame/83998_a_2.jpg",
       "textureSource": "corner",
       "textureDerived": true,
       "assets": {
         "corner": [
-          "/frames/assets/grey-with-angled-lip-deep-picture-frame/83998_a_1.jpg",
+          "/frames/assets/grey-with-angled-lip-deep-picture-frame/83998_a_2.jpg",
           "/frames/assets/grey-with-angled-lip-deep-picture-frame/83998_b_1.jpg"
         ],
         "profile": [
@@ -4471,16 +4649,13 @@
       "mouldingWidthSource": "details.json",
       "rabbetDepthIn": 0.4375,
       "rabbetDepthSource": "details.json",
-      "thumbnail": "/frames/assets/grey-with-silver-edge-picture-frame/11210_corner_a.jpg",
-      "textureSource": "rail",
-      "textureDerived": false,
+      "thumbnail": "/frames/assets/grey-with-silver-edge-picture-frame/11210_corner_a_1.jpg",
+      "textureSource": "corner",
+      "textureDerived": true,
       "assets": {
         "corner": [
-          "/frames/assets/grey-with-silver-edge-picture-frame/11210_corner_a.jpg",
+          "/frames/assets/grey-with-silver-edge-picture-frame/11210_corner_a_1.jpg",
           "/frames/assets/grey-with-silver-edge-picture-frame/11210_corner_b.jpg"
-        ],
-        "rail": [
-          "/frames/assets/grey-with-silver-edge-picture-frame/11210_framingengine.jpg"
         ],
         "profile": [
           "/frames/assets/grey-with-silver-edge-picture-frame/11210_profile_a.jpg"
@@ -4498,15 +4673,12 @@
       "rabbetDepthIn": 0.6875,
       "rabbetDepthSource": "details.json",
       "thumbnail": "/frames/assets/grey-with-silver-trim-picture-frame/11215_corner_a_1_1.jpg",
-      "textureSource": "rail",
-      "textureDerived": false,
+      "textureSource": "corner",
+      "textureDerived": true,
       "assets": {
         "corner": [
           "/frames/assets/grey-with-silver-trim-picture-frame/11215_corner_a_1_1.jpg",
           "/frames/assets/grey-with-silver-trim-picture-frame/11215_corner_b.jpg"
-        ],
-        "rail": [
-          "/frames/assets/grey-with-silver-trim-picture-frame/11215_framingengine.jpg"
         ],
         "profile": [
           "/frames/assets/grey-with-silver-trim-picture-frame/11215_profile_a.jpg"
@@ -4532,9 +4704,6 @@
         ],
         "corner": [
           "/frames/assets/hammered-gold-top-with-rustic-black-side-picture-frame/10952_b_1.jpg"
-        ],
-        "assembled": [
-          "/frames/assets/hammered-gold-top-with-rustic-black-side-picture-frame/imagemanipulator_default_swap_10952_1.jpg"
         ]
       }
     },
@@ -4560,9 +4729,6 @@
         ],
         "profile": [
           "/frames/assets/hammered-silver-top-with-rustic-black-side-picture-frame/10953c2_1.jpg"
-        ],
-        "assembled": [
-          "/frames/assets/hammered-silver-top-with-rustic-black-side-picture-frame/imagemanipulator_default_swap_10953_1.jpg"
         ]
       }
     },
@@ -4576,16 +4742,13 @@
       "mouldingWidthSource": "supplier-archive",
       "rabbetDepthIn": 0.375,
       "rabbetDepthSource": "details.json",
-      "thumbnail": "/frames/assets/hi-gloss-walnut-burl-picture-frame/11131_corner_a.jpg",
-      "textureSource": "rail",
-      "textureDerived": false,
+      "thumbnail": "/frames/assets/hi-gloss-walnut-burl-picture-frame/11131_corner_a_1.jpg",
+      "textureSource": "corner",
+      "textureDerived": true,
       "assets": {
         "corner": [
-          "/frames/assets/hi-gloss-walnut-burl-picture-frame/11131_corner_a.jpg",
+          "/frames/assets/hi-gloss-walnut-burl-picture-frame/11131_corner_a_1.jpg",
           "/frames/assets/hi-gloss-walnut-burl-picture-frame/11131_corner_b.jpg"
-        ],
-        "rail": [
-          "/frames/assets/hi-gloss-walnut-burl-picture-frame/11131_framingengine.jpg"
         ],
         "profile": [
           "/frames/assets/hi-gloss-walnut-burl-picture-frame/11131_profile_a.jpg"
@@ -4612,9 +4775,6 @@
         "corner": [
           "/frames/assets/honey-pecan-burl-and-black-picture-frame/9073_a.jpg",
           "/frames/assets/honey-pecan-burl-and-black-picture-frame/9073_b.jpg"
-        ],
-        "assembled": [
-          "/frames/assets/honey-pecan-burl-and-black-picture-frame/imagemanipulator_default_swap_9073.jpg"
         ]
       }
     },
@@ -4637,9 +4797,6 @@
         ],
         "corner": [
           "/frames/assets/honey-pecan-burl-reverse-slop-picture-frame/8708_a.jpg"
-        ],
-        "assembled": [
-          "/frames/assets/honey-pecan-burl-reverse-slop-picture-frame/imagemanipulator_default_swap_8708.jpg"
         ]
       }
     },
@@ -4666,9 +4823,6 @@
         ],
         "profile": [
           "/frames/assets/honey-pecan-contemporary-picture-frame/10459c2.jpg"
-        ],
-        "assembled": [
-          "/frames/assets/honey-pecan-contemporary-picture-frame/imagemanipulator_default_swap_10459.jpg"
         ]
       }
     },
@@ -4717,9 +4871,6 @@
         ],
         "corner": [
           "/frames/assets/honey-pecan-with-weathered-lip-picture-frame/10929_b.jpg"
-        ],
-        "assembled": [
-          "/frames/assets/honey-pecan-with-weathered-lip-picture-frame/imagemanipulator_default_swap_10929.jpg"
         ]
       }
     },
@@ -5406,9 +5557,6 @@
         ],
         "corner": [
           "/frames/assets/ornate-burnished-gold-with-beaded-edge-picture-frame/10713_b.jpg"
-        ],
-        "assembled": [
-          "/frames/assets/ornate-burnished-gold-with-beaded-edge-picture-frame/imagemanipulator_default_swap_10713.jpg"
         ]
       }
     },
@@ -5422,16 +5570,13 @@
       "mouldingWidthSource": "details.json",
       "rabbetDepthIn": 0.5,
       "rabbetDepthSource": "details.json",
-      "thumbnail": "/frames/assets/ornate-gold-picture-frame/11239_corner_a.jpg",
-      "textureSource": "rail",
-      "textureDerived": false,
+      "thumbnail": "/frames/assets/ornate-gold-picture-frame/11239_corner_a_1.jpg",
+      "textureSource": "corner",
+      "textureDerived": true,
       "assets": {
         "corner": [
-          "/frames/assets/ornate-gold-picture-frame/11239_corner_a.jpg",
+          "/frames/assets/ornate-gold-picture-frame/11239_corner_a_1.jpg",
           "/frames/assets/ornate-gold-picture-frame/11239_corner_b.jpg"
-        ],
-        "rail": [
-          "/frames/assets/ornate-gold-picture-frame/11239_framingengine.jpg"
         ],
         "profile": [
           "/frames/assets/ornate-gold-picture-frame/11239_profile_a.jpg"
@@ -5526,21 +5671,10 @@
       "mouldingWidthSource": "details.json",
       "rabbetDepthIn": 0.375,
       "rabbetDepthSource": "details.json",
-      "thumbnail": "/frames/assets/ornate-scoop-antique-gold-picture-frame/9732_a_1.jpg",
-      "textureSource": "strip",
+      "thumbnail": null,
+      "textureSource": null,
       "textureDerived": false,
-      "assets": {
-        "strip": [
-          "/frames/assets/ornate-scoop-antique-gold-picture-frame/9732_1.jpg"
-        ],
-        "corner": [
-          "/frames/assets/ornate-scoop-antique-gold-picture-frame/9732_a_1.jpg",
-          "/frames/assets/ornate-scoop-antique-gold-picture-frame/9732_b_1.jpg"
-        ],
-        "assembled": [
-          "/frames/assets/ornate-scoop-antique-gold-picture-frame/imagemanipulator_default_swap_9732_1.jpg"
-        ]
-      }
+      "assets": {}
     },
     {
       "id": "frame-9733",
@@ -5630,15 +5764,12 @@
       "rabbetDepthIn": 0.625,
       "rabbetDepthSource": "details.json",
       "thumbnail": "/frames/assets/oyster-shell-picture-frame/11151_corner_a_1_1.jpg",
-      "textureSource": "rail",
-      "textureDerived": false,
+      "textureSource": "corner",
+      "textureDerived": true,
       "assets": {
         "corner": [
           "/frames/assets/oyster-shell-picture-frame/11151_corner_a_1_1.jpg",
           "/frames/assets/oyster-shell-picture-frame/11151_corner_b.jpg"
-        ],
-        "rail": [
-          "/frames/assets/oyster-shell-picture-frame/11151_framingengine.jpg"
         ],
         "profile": [
           "/frames/assets/oyster-shell-picture-frame/11151_profile_a.jpg"
@@ -5874,16 +6005,13 @@
       "mouldingWidthSource": "supplier-archive",
       "rabbetDepthIn": 0.5,
       "rabbetDepthSource": "details.json",
-      "thumbnail": "/frames/assets/rustic-barnwood-grey-picture-frame/10574_corner_a.jpg",
-      "textureSource": "rail",
-      "textureDerived": false,
+      "thumbnail": "/frames/assets/rustic-barnwood-grey-picture-frame/10574_corner_a_1.jpg",
+      "textureSource": "corner",
+      "textureDerived": true,
       "assets": {
         "corner": [
-          "/frames/assets/rustic-barnwood-grey-picture-frame/10574_corner_a.jpg",
+          "/frames/assets/rustic-barnwood-grey-picture-frame/10574_corner_a_1.jpg",
           "/frames/assets/rustic-barnwood-grey-picture-frame/10574_corner_b.jpg"
-        ],
-        "rail": [
-          "/frames/assets/rustic-barnwood-grey-picture-frame/10574_framingengine.jpg"
         ],
         "profile": [
           "/frames/assets/rustic-barnwood-grey-picture-frame/10574_profile_a.jpg"
@@ -5976,15 +6104,12 @@
       "rabbetDepthIn": 0.875,
       "rabbetDepthSource": "supplier-archive",
       "thumbnail": "/frames/assets/rustic-brown-picture-frame/11252_corner_a_1_1.jpg",
-      "textureSource": "rail",
-      "textureDerived": false,
+      "textureSource": "corner",
+      "textureDerived": true,
       "assets": {
         "corner": [
           "/frames/assets/rustic-brown-picture-frame/11252_corner_a_1_1.jpg",
           "/frames/assets/rustic-brown-picture-frame/11252_corner_b.jpg"
-        ],
-        "rail": [
-          "/frames/assets/rustic-brown-picture-frame/11252_framingengine.jpg"
         ],
         "profile": [
           "/frames/assets/rustic-brown-picture-frame/11252_profile_a.jpg"
@@ -6097,15 +6222,12 @@
       "rabbetDepthIn": 0.4375,
       "rabbetDepthSource": "supplier-archive",
       "thumbnail": "/frames/assets/rustic-gold-picture-frame/10832_corner_a.jpg",
-      "textureSource": "rail",
-      "textureDerived": false,
+      "textureSource": "corner",
+      "textureDerived": true,
       "assets": {
         "corner": [
           "/frames/assets/rustic-gold-picture-frame/10832_corner_a.jpg",
           "/frames/assets/rustic-gold-picture-frame/10832_corner_b.jpg"
-        ],
-        "rail": [
-          "/frames/assets/rustic-gold-picture-frame/10832_framingengine.jpg"
         ],
         "profile": [
           "/frames/assets/rustic-gold-picture-frame/10832_profile_a.jpg"
@@ -6377,15 +6499,12 @@
       "rabbetDepthIn": 0.875,
       "rabbetDepthSource": "details.json",
       "thumbnail": "/frames/assets/rustic-white-washed-picture-frame/11259_corner_a_1_1.jpg",
-      "textureSource": "rail",
-      "textureDerived": false,
+      "textureSource": "corner",
+      "textureDerived": true,
       "assets": {
         "corner": [
           "/frames/assets/rustic-white-washed-picture-frame/11259_corner_a_1_1.jpg",
           "/frames/assets/rustic-white-washed-picture-frame/11259_corner_b.jpg"
-        ],
-        "rail": [
-          "/frames/assets/rustic-white-washed-picture-frame/11259_framingengine.jpg"
         ],
         "profile": [
           "/frames/assets/rustic-white-washed-picture-frame/11259_profile_a.jpg"
@@ -6990,15 +7109,12 @@
       "rabbetDepthIn": 0.375,
       "rabbetDepthSource": "details.json",
       "thumbnail": "/frames/assets/traditional-antique-gold-picture-frame/6301_corner_a_1_1.jpg",
-      "textureSource": "rail",
-      "textureDerived": false,
+      "textureSource": "corner",
+      "textureDerived": true,
       "assets": {
         "corner": [
           "/frames/assets/traditional-antique-gold-picture-frame/6301_corner_a_1_1.jpg",
           "/frames/assets/traditional-antique-gold-picture-frame/6301_corner_b.jpg"
-        ],
-        "rail": [
-          "/frames/assets/traditional-antique-gold-picture-frame/6301_framingengine_1.jpg"
         ],
         "profile": [
           "/frames/assets/traditional-antique-gold-picture-frame/6301_profile_a.jpg"
@@ -7220,12 +7336,12 @@
       "mouldingWidthSource": "supplier-archive",
       "rabbetDepthIn": 1,
       "rabbetDepthSource": "details.json",
-      "thumbnail": "/frames/assets/walnut-square-picture-frame/84154_a_1.jpg",
+      "thumbnail": "/frames/assets/walnut-square-picture-frame/84154_a_2.jpg",
       "textureSource": "corner",
       "textureDerived": true,
       "assets": {
         "corner": [
-          "/frames/assets/walnut-square-picture-frame/84154_a_1.jpg",
+          "/frames/assets/walnut-square-picture-frame/84154_a_2.jpg",
           "/frames/assets/walnut-square-picture-frame/84154_b_1.jpg"
         ],
         "profile": [
@@ -7303,9 +7419,6 @@
         ],
         "corner": [
           "/frames/assets/walnut-with-silver-edge-picture-frame/10602_b.jpg"
-        ],
-        "assembled": [
-          "/frames/assets/walnut-with-silver-edge-picture-frame/imagemanipulator_default_swap_10602.jpg"
         ]
       }
     },
@@ -7380,9 +7493,6 @@
         ],
         "rail": [
           "/frames/assets/weathered-oatmeal-traditional-picture-frame/10672_framingengine.jpg"
-        ],
-        "profile": [
-          "/frames/assets/weathered-oatmeal-traditional-picture-frame/10672_profile_a.jpg"
         ]
       }
     },
@@ -7396,16 +7506,12 @@
       "mouldingWidthSource": "supplier-archive",
       "rabbetDepthIn": 0.4375,
       "rabbetDepthSource": "details.json",
-      "thumbnail": "/frames/assets/weathered-traditional-picture-frame/10671_corner_a.jpg",
-      "textureSource": "rail",
-      "textureDerived": false,
+      "thumbnail": "/frames/assets/weathered-traditional-picture-frame/10671_corner_b.jpg",
+      "textureSource": "corner",
+      "textureDerived": true,
       "assets": {
         "corner": [
-          "/frames/assets/weathered-traditional-picture-frame/10671_corner_a.jpg",
           "/frames/assets/weathered-traditional-picture-frame/10671_corner_b.jpg"
-        ],
-        "rail": [
-          "/frames/assets/weathered-traditional-picture-frame/10671_framingengine.jpg"
         ],
         "profile": [
           "/frames/assets/weathered-traditional-picture-frame/10671_profile_a.jpg"
@@ -7449,18 +7555,12 @@
       "rabbetDepthIn": 0.625,
       "rabbetDepthSource": "details.json",
       "thumbnail": "/frames/assets/white-birch-scoop-picture-frame/10643_corner_a.jpg",
-      "textureSource": "rail",
-      "textureDerived": false,
+      "textureSource": "corner",
+      "textureDerived": true,
       "assets": {
         "corner": [
           "/frames/assets/white-birch-scoop-picture-frame/10643_corner_a.jpg",
           "/frames/assets/white-birch-scoop-picture-frame/10643_corner_b.jpg"
-        ],
-        "rail": [
-          "/frames/assets/white-birch-scoop-picture-frame/10643_framingengine.jpg"
-        ],
-        "profile": [
-          "/frames/assets/white-birch-scoop-picture-frame/10643_profile_a.jpg"
         ]
       }
     },
@@ -7549,19 +7649,12 @@
       "mouldingWidthSource": "supplier-archive",
       "rabbetDepthIn": 0.5,
       "rabbetDepthSource": "supplier-archive",
-      "thumbnail": "/frames/assets/white-washed-flat-picture-frame/10485b_corner_a.jpg",
+      "thumbnail": null,
       "textureSource": "rail",
       "textureDerived": false,
       "assets": {
-        "corner": [
-          "/frames/assets/white-washed-flat-picture-frame/10485b_corner_a.jpg",
-          "/frames/assets/white-washed-flat-picture-frame/10485b_corner_b.jpg"
-        ],
         "rail": [
           "/frames/assets/white-washed-flat-picture-frame/10485b_framingengine.jpg"
-        ],
-        "profile": [
-          "/frames/assets/white-washed-flat-picture-frame/10485b_profile_a.jpg"
         ]
       }
     },
@@ -7602,11 +7695,7 @@
       "textureDerived": true,
       "assets": {
         "corner": [
-          "/frames/assets/white-with-clear-wood-picture-frame/84159_a_2.jpg",
-          "/frames/assets/white-with-clear-wood-picture-frame/84159_b_2.jpg"
-        ],
-        "profile": [
-          "/frames/assets/white-with-clear-wood-picture-frame/84159_d_2.jpg"
+          "/frames/assets/white-with-clear-wood-picture-frame/84159_a_2.jpg"
         ]
       }
     },
@@ -8350,17 +8439,10 @@
       "mouldingWidthSource": null,
       "rabbetDepthIn": 0.625,
       "rabbetDepthSource": "details.json",
-      "thumbnail": "/frames/assets/wide-walnut-bamboo-picture-frame/9658a.jpg",
+      "thumbnail": null,
       "textureSource": "assembled",
       "textureDerived": false,
       "assets": {
-        "corner": [
-          "/frames/assets/wide-walnut-bamboo-picture-frame/9658a.jpg",
-          "/frames/assets/wide-walnut-bamboo-picture-frame/9658b.jpg"
-        ],
-        "profile": [
-          "/frames/assets/wide-walnut-bamboo-picture-frame/9658c2.jpg"
-        ],
         "assembled": [
           "/frames/assets/wide-walnut-bamboo-picture-frame/imagemanipulator_default_swap_9658.jpg"
         ]

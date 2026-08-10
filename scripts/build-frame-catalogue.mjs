@@ -47,6 +47,33 @@ const ROLE_RULES = [
     { role: 'strip', test: (s) => /^\d+$/.test(s) },
 ];
 
+/**
+ * 74 files in the drop are Cloudflare "503 Backend fetch failed" pages the
+ * scraper saved under a .jpg name after being rate limited. They are a
+ * plausible ~197KB on disk and only give themselves away in the first
+ * bytes, so every asset is sniffed before it is allowed into the
+ * catalogue — trusting the extension puts a broken image straight into
+ * the frame picker.
+ */
+function isUsableImage(diskPath) {
+    let fd;
+    try {
+        fd = fs.openSync(diskPath, 'r');
+        const head = Buffer.alloc(16);
+        const read = fs.readSync(fd, head, 0, 16, 0);
+        if (read < 4) return false;
+        // JPEG FFD8FF, PNG 89504E47, RIFF....WEBP
+        if (head[0] === 0xff && head[1] === 0xd8 && head[2] === 0xff) return true;
+        if (head[0] === 0x89 && head.toString('ascii', 1, 4) === 'PNG') return true;
+        if (head.toString('ascii', 0, 4) === 'RIFF') return true;
+        return false;
+    } catch {
+        return false;
+    } finally {
+        if (fd !== undefined) fs.closeSync(fd);
+    }
+}
+
 function classify(filename) {
     const stem = filename
         .toLowerCase()
@@ -209,14 +236,20 @@ for (const folder of folders) {
     // caller picking assets[0] gets a distinct shot rather than a re-upload.
     const assets = {};
     const seenStem = new Set();
+    let corrupt = 0;
     for (const f of files.sort()) {
         const role = classify(f);
         if (role === 'junk') continue;
+        if (!isUsableImage(path.join(dir, f))) {
+            corrupt += 1;
+            continue;
+        }
         const stem = f.toLowerCase().replace(/\.(jpe?g|png|webp)$/, '').replace(/(_\d+)+$/, '');
         if (seenStem.has(stem)) continue;
         seenStem.add(stem);
         (assets[role] ||= []).push(`/frames/assets/${folder}/${f}`);
     }
+    if (corrupt) warnings.push({ folder, issue: `${corrupt} corrupt asset(s) skipped (saved error page, not an image)` });
 
     const arch = archive.get(details.url) || {};
     const mw = resolveMeasurement(details.mouldingWidth, arch.mouldingWidthIn);

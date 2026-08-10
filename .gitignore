@@ -109,3 +109,7 @@ frameworthy_codebase.zip
 /artists_and_masterpieces_all.json
 /artists_and_masterpieces_prefilter_backup.json
 /museum_other_categories_backup/
+
+# Generated rail textures — rebuilt by scripts/build-rail-textures.mjs from
+# the local supplier drop. Tracked once the extraction quality settles.
+/public/frames/rails/
