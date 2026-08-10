@@ -26,11 +26,22 @@ export function getFrameRail(frame) {
  * strip's own aspect ratio on the repeating axis, so a frame tiles at the
  * same physical scale whatever size the preview is drawn at.
  *
- * Top and left are flipped so the cross-profile always runs outer-edge
- * first: the pre-rotated vertical strip and the shared horizontal strip
- * both start from one edge, but opposite sides of a frame face opposite
- * ways. Without this the bevel highlight lands on the wrong edge for two
- * of the four sides.
+ * Opposite sides of a frame face opposite ways, so two of the four are
+ * flipped to keep the cross-profile running outer edge -> inner edge.
+ * Which two is not symmetric between the axes, because the vertical strip
+ * was rotated 90 degrees clockwise at build time: that maps the
+ * horizontal strip's TOP row onto the vertical strip's RIGHT column.
+ *
+ *   h strip: outer edge is at the top
+ *     top    outer is up    -> already correct, no flip
+ *     bottom outer is down  -> flip
+ *   v strip: outer edge is at the right, after the build-time rotation
+ *     right  outer is right -> already correct, no flip
+ *     left   outer is left  -> flip
+ *
+ * Getting this wrong swaps the inner and outer edges on one side of each
+ * pair. It is invisible on a single-tone moulding and obvious on anything
+ * with two tones or a contrasting lip.
  */
 export function getRailTextureStyle(side, rail) {
     if (!rail) return null;
@@ -38,7 +49,7 @@ export function getRailTextureStyle(side, rail) {
     const url = horizontal ? rail.h : rail.v;
     if (!url) return null;
 
-    const flip = side === 'top' ? 'scaleY(-1)' : side === 'left' ? 'scaleX(-1)' : 'none';
+    const flip = side === 'bottom' ? 'scaleY(-1)' : side === 'left' ? 'scaleX(-1)' : 'none';
 
     return {
         backgroundImage: `url(${url})`,
