@@ -1,128 +1,178 @@
+/**
+ * Rebuild FRAME_STYLES from the supplier asset folders in public/frames/assets.
+ *
+ * READ THIS BEFORE CHANGING THE ID SCHEME.
+ *
+ * `frame.id` is the join key for every piece of render data the visualizer
+ * uses — frameRails.json (the tiling moulding texture), frameRenderProfiles
+ * .json (profile, finish, measurements), and any saved cart/wishlist item.
+ * None of those lookups throw when they miss; a frame with an unrecognised id
+ * simply renders as a flat `baseColor` rectangle with a guessed moulding
+ * width. An earlier version of this script minted `frame-${Math.random()}`
+ * whenever it couldn't parse a number out of the filename, and because the
+ * asset re-fetch had renamed everything to `pos1_*`, that fallback fired for
+ * two thirds of the catalogue and silently un-textured it.
+ *
+ * So: ids come from the supplier moulding number, or the frame is skipped and
+ * reported. Never invented.
+ *
+ * Everything a human curated — category, baseColor, widthCategory, priceMod,
+ * measurements, texture source — is carried over from the existing entry by
+ * id. This script only refreshes what it can actually observe: which asset
+ * files exist and what they're called.
+ *
+ * Usage: node scripts/rebuild_catalog.mjs            # writes constants_new.jsx
+ *        node scripts/rebuild_catalog.mjs --write    # writes constants.jsx
+ */
+
 import fs from 'fs';
 import path from 'path';
 
-function toSlug(name) {
-  return name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+const ASSETS_DIR = 'public/frames/assets';
+const LIVE = 'src/data/constants.jsx';
+const STAGING = 'src/data/constants_new.jsx';
+const WRITE_LIVE = process.argv.includes('--write');
+
+const constantsContent = fs.readFileSync(LIVE, 'utf8');
+
+// ── the existing catalogue, parsed properly ───────────────────────────────
+// A regex over 5,700 lines of object literals was how the curated fields got
+// dropped last time — it matched some entries and quietly skipped the rest.
+function loadFrameStyles(src) {
+    const start = src.indexOf('export const FRAME_STYLES = [');
+    if (start === -1) throw new Error(`FRAME_STYLES not found in ${LIVE}`);
+    const open = src.indexOf('[', start);
+    let depth = 0;
+    let end = -1;
+    for (let i = open; i < src.length; i++) {
+        if (src[i] === '[') depth++;
+        else if (src[i] === ']') { depth--; if (depth === 0) { end = i; break; } }
+    }
+    if (end === -1) throw new Error('unterminated FRAME_STYLES array');
+    // eslint-disable-next-line no-new-func
+    return new Function(`return ${src.slice(open, end + 1)}`)();
 }
 
-// 1. Read existing constants.jsx to extract categories, prices, base colors
-const constantsContent = fs.readFileSync('src/data/constants.jsx', 'utf8');
+const existing = loadFrameStyles(constantsContent);
+const byId = new Map(existing.map((f) => [f.id, f]));
 
-// Use a simple regex to pull out objects from FRAME_STYLES array
-const frameRegex = /\{\s*id:\s*'frame-[^']+',\s*name:\s*'([^']+)',\s*category:\s*'([^']+)',\s*baseColor:\s*'([^']+)',.*?widthCategory:\s*'([^']+)',\s*priceMod:\s*([\d.]+)/gs;
-let match;
-const legacyMetadata = {};
+// frameCatalogue.json is the authority on folder-slug -> id, and it's what the
+// rail builder itself reads. Preferring it over the filename matters: two
+// distinct products can carry the same supplier number in their asset names
+// (charcoal-with-silver-edge and mahogany-...-double-dimple both ship an
+// `80868-a` image), and a number-derived id would collapse them into one.
+const slugToId = new Map(
+    JSON.parse(fs.readFileSync('src/data/frameCatalogue.json', 'utf8')).frames.map((f) => [f.slug, f.id]),
+);
 
-while ((match = frameRegex.exec(constantsContent)) !== null) {
-  const [, name, category, baseColor, widthCategory, priceMod] = match;
-  legacyMetadata[toSlug(name)] = {
-    category,
-    baseColor,
-    widthCategory,
-    priceMod: parseFloat(priceMod)
-  };
-  
-  const baseName = name.replace(/ Picture Frame$/i, '').trim();
-  legacyMetadata[toSlug(baseName)] = {
-    category,
-    baseColor,
-    widthCategory,
-    priceMod: parseFloat(priceMod)
-  };
+/**
+ * Fallback for a folder that isn't in frameCatalogue.json yet. The supplier
+ * moulding number appears in every asset filename for a frame, optionally
+ * behind the re-fetch's position prefix: `83811_a.jpg`, `pos1_84129_a.jpg`,
+ * `pos4_10685_corner_a.jpg`.
+ */
+function supplierNumber(files) {
+    for (const file of files) {
+        const stripped = String(file).split('/').pop().replace(/^pos\d+_/i, '');
+        const m = stripped.match(/^(\d{3,6})/);
+        if (m) return m[1];
+    }
+    return null;
 }
 
-// 2. Iterate through public/frames/assets to generate new array
-const assetsDir = 'public/frames/assets';
-const folders = fs.readdirSync(assetsDir).filter(f => fs.statSync(path.join(assetsDir, f)).isDirectory());
+const folders = fs
+    .readdirSync(ASSETS_DIR)
+    .filter((f) => fs.statSync(path.join(ASSETS_DIR, f)).isDirectory());
 
 const newFrames = [];
+const skipped = [];
 
 for (const folder of folders) {
-  const detailsPath = path.join(assetsDir, folder, 'details.json');
-  if (!fs.existsSync(detailsPath)) continue;
-  
-  const details = JSON.parse(fs.readFileSync(detailsPath, 'utf8'));
-  
-  // Try to find matching legacy metadata
-  const baseName = details.title.replace(/ Picture Frame$/i, '').trim();
-  const slug = toSlug(baseName);
-  const meta = legacyMetadata[slug] || legacyMetadata[toSlug(details.title)] || {
-    category: 'Other',
-    baseColor: '#ffffff',
-    widthCategory: 'standard',
-    priceMod: 1.0
-  };
+    const detailsPath = path.join(ASSETS_DIR, folder, 'details.json');
+    if (!fs.existsSync(detailsPath)) { skipped.push({ folder, why: 'no details.json' }); continue; }
 
-  // Determine images
-  const images = details.images || [];
-  
-  const cornerImg = images.find(i => (i.includes('corner') && i.includes('_a')) || (i.includes('_a.jpg') && !i.includes('profile')) || i.includes('corner_1')) || '';
-  const profileImg = images.find(i => i.includes('_b.jpg') || i.includes('profile_1') || (i.includes('_a.jpg') && i.includes('profile'))) || '';
-  const fullFrameImg = images.find(i => i.includes('imagemanipulator') || i.includes('framingengine')) || '';
-  
-  // Extract ID from folder or title (or generate one)
-  // E.g. "contemporary-walnut-picture-frame" -> some ID. Or we can just extract the ID from the image names (like 10592_corner.jpg)
-  let frameId = 'frame-' + Math.floor(Math.random() * 100000);
-  if (images.length > 0) {
-    const idMatch = images[0].match(/^(\d+)_/);
-    if (idMatch) {
-      frameId = `frame-${idMatch[1]}`;
-    }
-  }
+    const details = JSON.parse(fs.readFileSync(detailsPath, 'utf8'));
+    const images = details.images || [];
+    if (images.length === 0) { skipped.push({ folder, why: 'no images' }); continue; }
 
-  const borderSrc = fullFrameImg ? `/frames/assets/${folder}/${fullFrameImg}` : '';
-  
-  if (!borderSrc) {
-    continue; // Exclude frames that lack a full 2D border rendering asset
-  }
+    const number = supplierNumber(images);
+    const id = slugToId.get(folder) || (number ? `frame-${number}` : null);
+    if (!id) { skipped.push({ folder, why: 'no id: absent from frameCatalogue.json and no supplier number' }); continue; }
 
-  const cornerSrc = cornerImg ? `/frames/assets/${folder}/${cornerImg}` : '';
-  const profileSrc = profileImg ? `/frames/assets/${folder}/${profileImg}` : '';
-  
-  const frameObj = {
-    id: frameId,
-    name: baseName,
-    category: meta.category,
-    baseColor: meta.baseColor,
-    filename: cornerImg || profileImg || images[0] || '', // Legacy fallback
-    width: meta.widthCategory === 'wide' ? '36px' : '24px',
-    widthCategory: meta.widthCategory,
-    priceMod: meta.priceMod,
-    type: 'Picture Frame',
-    desc: `${baseName}.`,
-    previewImg: cornerSrc || profileSrc,
-    mouldingWidthInches: details.mouldingWidth || "1.0",
-    rabbetDepthInches: details.rabbetDepth || "0.5",
-    borderImageSource: borderSrc,
-    cornerImage: cornerSrc,
-    profileImage: profileSrc
-  };
-  
-  newFrames.push(frameObj);
+    const prior = byId.get(id);
+    if (!prior) { skipped.push({ folder, why: `${id} is not in the catalogue — add it deliberately` }); continue; }
+
+    const baseName = details.title.replace(/ Picture Frame$/i, '').trim();
+
+    // Lead shot first: `pos1_` is the supplier's assembled-corner view, which
+    // is what the swatch has always shown.
+    const pick = (...tests) => {
+        for (const test of tests) {
+            const hit = images.find(test);
+            if (hit) return hit;
+        }
+        return '';
+    };
+    const cornerImg = pick(
+        (i) => /^pos1_/i.test(i),
+        (i) => i.includes('corner') && i.includes('_a'),
+        (i) => i.includes('_a.jpg') && !i.includes('profile'),
+    ) || images[0];
+
+    newFrames.push({
+        ...prior,                 // every curated + render field survives verbatim
+        id,
+        name: baseName,
+        filename: cornerImg,
+        desc: `${baseName}.`,
+        previewImg: `/frames/assets/${folder}/${cornerImg}`,
+    });
 }
 
-// 3. Inject new array back into constants.jsx
-let newConstants = constantsContent.replace(/export const FRAME_STYLES = \[[\s\S]*?\];/m, 'export const FRAME_STYLES = [\n' + newFrames.map(f => {
-  return `    {
-        id: '${f.id}',
-        name: '${f.name.replace(/'/g, "\\'")}',
-        category: '${f.category}',
-        baseColor: '${f.baseColor}',
-        filename: '${f.filename}',
-        width: '${f.width}',
-        widthCategory: '${f.widthCategory}',
-        priceMod: ${f.priceMod},
-        type: '${f.type}',
-        desc: '${f.desc.replace(/'/g, "\\'")}',
-        previewImg: '${f.previewImg}',
-        mouldingWidthInches: "${f.mouldingWidthInches}",
-        rabbetDepthInches: "${f.rabbetDepthInches}",
-        borderImageSource: '${f.borderImageSource}',
-        cornerImage: '${f.cornerImage}',
-        profileImage: '${f.profileImage}'
-    }`;
-}).join(',\n') + '\n];');
+// Synthetic products have no supplier folder to be rebuilt from — the Gallery
+// Wrapped Canvas is a frameless SKU, not a moulding — so they're carried
+// through rather than quietly falling out of a folder-driven rebuild.
+for (const f of existing) {
+    if ((f.isCanvas || f.id === 'frame-canvas') && !newFrames.some((n) => n.id === f.id)) {
+        newFrames.unshift(f);
+    }
+}
 
-fs.writeFileSync('src/data/constants_new.jsx', newConstants, 'utf8');
+// ── guardrail ─────────────────────────────────────────────────────────────
+// Refuse to publish a catalogue that would strip frames of their textures.
+const rails = JSON.parse(fs.readFileSync('src/data/frameRails.json', 'utf8')).rails || {};
+const before = existing.filter((f) => rails[f.id]).length;
+const after = newFrames.filter((f) => rails[f.id]).length;
+const dropped = existing.filter((f) => !newFrames.some((n) => n.id === f.id));
 
-console.log(`Rebuilt catalog with ${newFrames.length} frames.`);
+console.log(`\nrebuilt ${newFrames.length} frames (was ${existing.length})`);
+console.log(`textured: ${after} (was ${before})`);
+if (skipped.length) {
+    console.log(`\nskipped ${skipped.length} folders:`);
+    for (const s of skipped.slice(0, 20)) console.log(`  ${s.folder}: ${s.why}`);
+    if (skipped.length > 20) console.log(`  ... and ${skipped.length - 20} more`);
+}
+if (dropped.length) {
+    console.log(`\nwould drop ${dropped.length} existing frames:`);
+    for (const d of dropped) console.log(`  ${d.id}  ${d.name}`);
+}
+
+if (WRITE_LIVE && after < before) {
+    console.error(`\nREFUSING to write ${LIVE}: textured frames would fall ${before} -> ${after}.`);
+    console.error('That means ids changed and the rails no longer resolve. Fix the id');
+    console.error('derivation, or run without --write to inspect the staging output.');
+    process.exit(1);
+}
+
+const serialise = (f) => `    {\n${Object.entries(f)
+    .map(([k, v]) => `        ${k}: ${typeof v === 'string' ? `'${v.replace(/'/g, "\\'")}'` : JSON.stringify(v)}`)
+    .join(',\n')}\n    }`;
+
+const out = constantsContent.replace(
+    /export const FRAME_STYLES = \[[\s\S]*?\n\];/m,
+    `export const FRAME_STYLES = [\n${newFrames.map(serialise).join(',\n')}\n];`,
+);
+
+const target = WRITE_LIVE ? LIVE : STAGING;
+fs.writeFileSync(target, out, 'utf8');
+console.log(`\nwrote ${target}${WRITE_LIVE ? '' : '  (pass --write to update the live catalogue)'}`);
