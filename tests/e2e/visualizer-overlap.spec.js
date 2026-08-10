@@ -252,8 +252,13 @@ for (const width of WIDTHS) {
 
             // Expand the full size list — the biggest pieces are behind it, and
             // they're the ones that crowd the controls.
+            //
+            // force: same reasoning as selectScene/the size clicks below — the
+            // sticky site nav and the sticky cart bar both overlap this button
+            // depending on scroll position, and what's being tested is the
+            // layout after expanding, not this click's own hit-testing.
             const more = page.getByRole('button', { name: /more sizes/i });
-            if (await more.count()) await more.first().click();
+            if (await more.count()) await more.first().click({ force: true });
 
             // Narrowest wall first: the same piece renders largest there.
             for (const scene of ['Entryway', 'Home Office', 'Plain wall']) {
