@@ -35,16 +35,6 @@ import AuthModal from '../../components/AuthModal';
 import Price from '../../components/common/Price';
 import { visualizerFullScreenState } from '../../utils/visualizerFullScreenState';
 
-// A compact, iOS-style spatial-computing glyph for the AR launcher. Kept
-// inline so the visualizer control stays crisp at every device density.
-const IosArGlyph = ({ size = 19 }) => (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M12 2.5 20 7v10l-8 4.5L4 17V7l8-4.5Z" />
-        <path d="m4 7 8 4.6L20 7M12 11.6v9.9" />
-        <path d="m7.2 5.2 4.8 2.7 4.8-2.7M7.2 18.8l4.8-2.7 4.8 2.7" opacity=".72" />
-    </svg>
-);
-
 // High-fidelity 3D side gradients for the frame
 const getSideBackground = (side, frame) => {
     let hex = frame.baseColor || '#8b4513';
@@ -155,19 +145,17 @@ const getFrameVisualProfile = (frame) => {
 //
 // The texture is a pre-built rail from scripts/build-rail-textures.mjs —
 // see utils/frameRail.js for the orientation contract it relies on.
-const FrameMouldingSide = ({ side, frame, style }) => {
+const FrameMouldingMaterial = ({ side, frame }) => {
     const rail = getFrameRail(frame);
     const textureStyle = getRailTextureStyle(side, rail);
 
     return (
         <div
-            className="absolute z-10 overflow-hidden transition-all duration-300"
+            className="absolute inset-0"
             style={{
-                ...style,
                 // Only ever seen through a rail that failed to build (3 of
                 // 335) — otherwise the photographed material covers it.
                 backgroundImage: getSideBackground(side, frame),
-                isolation: 'isolate',
             }}
         >
             {textureStyle && (
@@ -190,6 +178,20 @@ const FrameMouldingSide = ({ side, frame, style }) => {
         </div>
     );
 };
+
+const FrameMouldingSide = ({ side, frame, outgoingFrame, isCrossfading, style }) => (
+    <div
+        className="absolute z-10 overflow-hidden transition-[top,right,bottom,left,width,height,clip-path] duration-200 ease-out"
+        style={{ ...style, isolation: 'isolate' }}
+    >
+        <FrameMouldingMaterial side={side} frame={frame} />
+        {outgoingFrame && (
+            <div className={`absolute inset-0 pointer-events-none transition-opacity duration-200 ease-out ${isCrossfading ? 'opacity-0' : 'opacity-100'}`}>
+                <FrameMouldingMaterial side={side} frame={outgoingFrame} />
+            </div>
+        )}
+    </div>
+);
 
 // Wall Paint Colors
 const WALL_COLORS = [
@@ -332,6 +334,14 @@ const CustomizeFramePage = ({
     const [isRendering, setIsRendering] = useState(false);
     const [isImageLoading, setIsImageLoading] = useState(false);
     const [isFrameLoading, setIsFrameLoading] = useState(false);
+    // Keep the currently painted frame in place while the next rail images
+    // decode. Background-image changes cannot animate, so this gives us a
+    // brief, genuine crossfade instead of a blank/rough texture swap.
+    const [renderedFrame, setRenderedFrame] = useState(selectedFrame);
+    const [outgoingFrame, setOutgoingFrame] = useState(null);
+    const [isFrameCrossfading, setIsFrameCrossfading] = useState(false);
+    const renderedFrameRef = useRef(selectedFrame);
+    const framePreloadTokenRef = useRef(0);
 
     // Drives the visualizer loading ring so its fill actually corresponds to
     // completion rather than looping on its own independent timer: it creeps
@@ -550,22 +560,58 @@ const CustomizeFramePage = ({
     }, [uploadedImage]);
 
     useEffect(() => {
-        if (!selectedFrame || isPreset || selectedFrame.id === 'frame-canvas') {
+        if (!selectedFrame || selectedFrame.id === renderedFrameRef.current?.id) {
             setIsFrameLoading(false);
-            return;
+            return undefined;
         }
-        const bg = getSideBackground('top', selectedFrame);
-        const match = bg.match(/url\(['"]?(.*?)['"]?\)/);
-        if (match && match[1]) {
-            setIsFrameLoading(true);
-            const img = new Image();
-            img.onload = () => setIsFrameLoading(false);
-            img.onerror = () => setIsFrameLoading(false);
-            img.src = match[1];
-        } else {
+
+        let cancelled = false;
+        let fadeFrame = null;
+        let clearOutgoingTimer = null;
+        const token = ++framePreloadTokenRef.current;
+        const rail = getFrameRail(selectedFrame);
+        const urls = [rail?.h, rail?.v].filter(Boolean);
+        setIsFrameLoading(urls.length > 0);
+
+        const preload = (url) => new Promise((resolve) => {
+            const image = new Image();
+            image.decoding = 'async';
+            image.onload = () => {
+                if (typeof image.decode === 'function') {
+                    image.decode().catch(() => {}).finally(resolve);
+                } else {
+                    resolve();
+                }
+            };
+            image.onerror = resolve;
+            image.src = url;
+        });
+
+        Promise.all(urls.map(preload)).finally(() => {
+            if (cancelled || token !== framePreloadTokenRef.current) return;
+            const currentRenderedFrame = renderedFrameRef.current;
+            setIsFrameCrossfading(false);
+            setOutgoingFrame(currentRenderedFrame || null);
+            renderedFrameRef.current = selectedFrame;
+            setRenderedFrame(selectedFrame);
             setIsFrameLoading(false);
-        }
-    }, [selectedFrame, isPreset]);
+            // Mount the outgoing layer at full opacity, then fade it on the
+            // next painted frame so the browser has an actual transition.
+            fadeFrame = requestAnimationFrame(() => {
+                fadeFrame = requestAnimationFrame(() => setIsFrameCrossfading(true));
+            });
+            clearOutgoingTimer = window.setTimeout(() => {
+                setOutgoingFrame(null);
+                setIsFrameCrossfading(false);
+            }, 230);
+        });
+
+        return () => {
+            cancelled = true;
+            if (fadeFrame) cancelAnimationFrame(fadeFrame);
+            if (clearOutgoingTimer) window.clearTimeout(clearOutgoingTimer);
+        };
+    }, [selectedFrame]);
 
 
     // Real-time ResizeObserver for the Frame Positioning Zone to guarantee no overlap/clipping on zoom
@@ -1596,7 +1642,7 @@ const CustomizeFramePage = ({
                     36px and clears the zone, and more usefully the whole centre
                     of the top is empty — which is the band a tall portrait
                     render grows into. */}
-                <div className="ml-auto shrink-0 flex flex-col items-end gap-2">
+                <div className="ml-auto shrink-0 flex items-start gap-[6px]">
 
                 {/* Wall Colour. `relative` anchors its popover. Hover-props
                     open/close it on PC the same way ScenePicker's own pill
@@ -1605,11 +1651,7 @@ const CustomizeFramePage = ({
                     auto/0), so the open popover — taller than the gap between
                     the two pills — draws over the scene pill instead of
                     disappearing behind it. */}
-                <div
-                    className="relative z-20"
-                    style={{ transform: 'translate(-101px, -2px)' }}
-                    {...wallPickerHoverProps}
-                >
+                <div className="relative z-20" {...wallPickerHoverProps}>
                     <button
                         onClick={() => setIsWallPickerOpen(!isWallPickerOpen)}
                         className="flex h-[30px] items-center gap-1 sm:gap-1.5 px-2 sm:px-3 rounded-full border border-stone-200 shadow-sm hover:shadow-md transition-all bg-white/95 backdrop-blur text-stone-700 font-bold text-xs ml-auto"
@@ -1661,7 +1703,6 @@ const CustomizeFramePage = ({
                 <ScenePicker
                     activeId={roomSceneId}
                     onSelect={setRoomSceneId}
-                    style={{ transform: 'translate(22px, -41px)' }}
                 />
 
                 </div>
@@ -2221,7 +2262,9 @@ const CustomizeFramePage = ({
                                                     {/* Top */}
                                                     <FrameMouldingSide
                                                         side="top"
-                                                        frame={selectedFrame}
+                                                        frame={renderedFrame || selectedFrame}
+                                                        outgoingFrame={outgoingFrame}
+                                                        isCrossfading={isFrameCrossfading}
                                                         style={{
                                                             top: 0,
                                                             left: 0,
@@ -2233,7 +2276,9 @@ const CustomizeFramePage = ({
                                                     {/* Bottom */}
                                                     <FrameMouldingSide
                                                         side="bottom"
-                                                        frame={selectedFrame}
+                                                        frame={renderedFrame || selectedFrame}
+                                                        outgoingFrame={outgoingFrame}
+                                                        isCrossfading={isFrameCrossfading}
                                                         style={{
                                                             bottom: 0,
                                                             left: 0,
@@ -2245,7 +2290,9 @@ const CustomizeFramePage = ({
                                                     {/* Left */}
                                                     <FrameMouldingSide
                                                         side="left"
-                                                        frame={selectedFrame}
+                                                        frame={renderedFrame || selectedFrame}
+                                                        outgoingFrame={outgoingFrame}
+                                                        isCrossfading={isFrameCrossfading}
                                                         style={{
                                                             top: 0,
                                                             bottom: 0,
@@ -2257,7 +2304,9 @@ const CustomizeFramePage = ({
                                                     {/* Right */}
                                                     <FrameMouldingSide
                                                         side="right"
-                                                        frame={selectedFrame}
+                                                        frame={renderedFrame || selectedFrame}
+                                                        outgoingFrame={outgoingFrame}
+                                                        isCrossfading={isFrameCrossfading}
                                                         style={{
                                                             top: 0,
                                                             bottom: 0,
@@ -2549,7 +2598,11 @@ const CustomizeFramePage = ({
                         title="View on your wall"
                         aria-label="View this frame on your wall in AR"
                     >
-                        <IosArGlyph size={20} />
+                        <img
+                            src="/icons/ar-spatial-cube.png"
+                            alt=""
+                            className="w-[27px] h-[27px] object-contain"
+                        />
                     </button>
                 )}
 
@@ -2565,10 +2618,12 @@ const CustomizeFramePage = ({
                     // overlay. Inside the pane it had to stay small to avoid
                     // competing with the piece; down here it has its own band and
                     // reads as a caption, so it can be sized to be read.
-                    className="shrink-0 select-none px-5 py-2.5 text-center text-[10px] sm:text-[12px] leading-relaxed tracking-wide text-stone-500 bg-[#faf9f8]"
+                    className="shrink-0 flex items-center justify-center select-none px-5 py-3 text-center text-[10px] sm:text-[12px] leading-relaxed tracking-wide text-stone-500 bg-[#faf9f8]"
                 >
-                    Note: Visualizer renderings are digital approximations. Finished products will
-                    feature the exact physical moulding profiles, textures, and details shown in our catalogue.
+                    <span className="-translate-y-[5px]">
+                        Note: Visualizer renderings are digital approximations. Finished products will
+                        feature the exact physical moulding profiles, textures, and details shown in our catalogue.
+                    </span>
                 </p>
             )}
             </div>
