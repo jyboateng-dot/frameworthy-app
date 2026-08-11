@@ -1481,6 +1481,27 @@ const CustomizeFramePage = ({
 
     if (!selectedSize || !selectedFrame) return <div className="min-h-screen bg-[#faf9f8]" />;
 
+    // Default room view is a small camera move, not a change to the frame's
+    // physical dimensions.  Clamp it from the selected piece's actual bounds
+    // so custom, tall, and wide pieces always retain a safe gutter.
+    const roomDefaultViewScale = (() => {
+        if (!activeRoom || !roomPlacement || !zoneSize.width || !zoneSize.height) return 1;
+
+        const frameWidthPx = (roomPlacement.widthPct / 100) * zoneSize.width;
+        const frameHeightPx = frameWidthPx * (hInch / wInch);
+        if (!frameWidthPx || !frameHeightPx) return 1;
+
+        const sceneHeightPx = zoneSize.width * (activeRoom.sceneHeightCm / activeRoom.wallSpanCm);
+        const frameCentreY = (roomPlacement.topPct / 100) * sceneHeightPx;
+        const safeGutterPx = 16;
+        const fitWidth = (zoneSize.width - (safeGutterPx * 2)) / frameWidthPx;
+        const fitAbove = (frameCentreY - safeGutterPx) / (frameHeightPx / 2);
+        const fitBelow = (zoneSize.height - safeGutterPx - frameCentreY) / (frameHeightPx / 2);
+        const safeScale = Math.min(fitWidth, fitAbove, fitBelow);
+
+        return Math.max(1, Math.min(1.2, safeScale));
+    })();
+
     return (
         <div className={`flex ${isSideBySide ? 'flex-row h-[calc(100dvh-56px)] overflow-hidden' : 'flex-col min-h-[calc(100dvh-56px)]'} bg-[#faf9f8]`}>
             
@@ -1790,7 +1811,7 @@ const CustomizeFramePage = ({
                             const sceneTop = 0;
                             return (
                                 <div
-                                    className={`absolute pointer-events-none z-0 transition-opacity ${CHROME_MOTION} ${
+                                    className={`absolute pointer-events-none z-0 transition-[opacity,transform] ${CHROME_MOTION} ${
                                         // Matches the sofa cue's own fade condition, and for the same
                                         // reason: all three of these states zoom the frame past its
                                         // true size (frameWidthPct * zoomScale) while the scene stays
@@ -1799,7 +1820,19 @@ const CustomizeFramePage = ({
                                         // making a false one.
                                         isHovered || isMaxZoom || isFullScreen ? 'opacity-0' : 'opacity-100'
                                     }`}
-                                    style={{ left: sceneLeft, top: sceneTop, width: sceneW, height: sceneH }}
+                                    style={{
+                                        left: sceneLeft,
+                                        top: sceneTop,
+                                        width: sceneW,
+                                        height: sceneH,
+                                        // Zoom the whole room about the hanging point in the
+                                        // resting view. The frame uses the same scale below,
+                                        // so furniture clearances remain visually unchanged.
+                                        transform: !isHovered && !isMaxZoom && !isFullScreen
+                                            ? `scale(${roomDefaultViewScale})`
+                                            : undefined,
+                                        transformOrigin: `${activeRoom.hang.x}% ${roomPlacement?.topPct ?? activeRoom.hang.y}%`,
+                                    }}
                                     aria-hidden="true"
                                 >
                                     {DrawnScene ? (
@@ -1845,18 +1878,80 @@ const CustomizeFramePage = ({
                             const frameWidthPct = roomPlacement
                                 ? roomPlacement.widthPct
                                 : (innerWidthCm / SOFA_CM) * SOFA_BODY_PCT;
+                            const restingViewScale = activeRoom && !isHovered && !isMaxZoom && !isFullScreen
+                                ? roomDefaultViewScale
+                                : 1;
                             
-                            // Moulding: Dynamic visual thickness
-                            // We determine if a frame is narrow, standard, or wide based on its catalogue data.
-                            const standardVisualPct = (() => {
-                                if (!selectedFrame || !selectedFrame.widthCategory) return 5;
-                                if (selectedFrame.widthCategory === 'wide') return 10;
-                                if (selectedFrame.widthCategory === 'narrow') return 2;
-                                return 5;
-                            })();
-                            const minSide = Math.min(wInch, hInch);
-                            const mouldingPctW = (minSide / wInch) * standardVisualPct;
-                            const mouldingPctH = (minSide / hInch) * standardVisualPct;
+                            // Moulding: use the supplier's actual rail width, not
+                            // the old narrow/standard/wide visual bucket. A 3px
+                            // on-screen floor keeps a physically thin rail readable
+                            // on small frame previews without changing real scale.
+                            const fallbackRailIn = selectedFrame?.widthCategory === 'wide'
+                                ? 1.25
+                                : selectedFrame?.widthCategory === 'narrow' ? 0.375 : 0.75;
+                            const catalogueRailIn = Number(selectedFrame?.mouldingWidthIn);
+                            const railWidthIn = Number.isFinite(catalogueRailIn) && catalogueRailIn > 0
+                                ? catalogueRailIn
+                                : fallbackRailIn;
+                            const renderedFrameWidthPx = Math.max(1, (frameWidthPct / 100) * zoneSize.width);
+                            const renderedFrameHeightPx = Math.max(1, renderedFrameWidthPx * (hInch / wInch));
+                            // Reference-view calibration: catalogue inches are
+                            // relative style data, not literal screen pixels. The
+                            // smallest catalogue format (13 × 18 cm / 5 × 7 in)
+                            // is the visual baseline. Larger pieces get gentle
+                            // square-root compensation: their rails gain presence
+                            // without becoming fully proportional or overpowering
+                            // the artwork. The rails are percentage based below, so
+                            // hover, double-tap zoom and fullscreen still enlarge
+                            // the rail by the exact same factor as the frame.
+                            const RAIL_PX_PER_IN_AT_REFERENCE_VIEW = 4;
+                            const MIN_LEGIBLE_RAIL_PX = 3;
+                            const REFERENCE_FRAME_WIDTH_CM = 12.7;
+                            const referenceFrameWidthPct = activeRoom
+                                ? (REFERENCE_FRAME_WIDTH_CM / activeRoom.wallSpanCm) * 100
+                                : (REFERENCE_FRAME_WIDTH_CM / SOFA_CM) * SOFA_BODY_PCT;
+                            const referenceFrameWidthPx = Math.max(
+                                1,
+                                (referenceFrameWidthPct / 100) * zoneSize.width,
+                            );
+                            const sizeCompensation = Math.sqrt(
+                                Math.max(1, renderedFrameWidthPx / referenceFrameWidthPx),
+                            );
+                            // Large-format work needs a little more visual presence
+                            // than the square-root curve alone provides. Begin that
+                            // assistance once the short side reaches 50cm, blend it
+                            // in gradually through 90cm, and use the short side so
+                            // portraits, landscapes, squares, and custom dimensions
+                            // all follow the same rule.
+                            const LARGE_FORMAT_START_CM = 50;
+                            const LARGE_FORMAT_FULL_CM = 90;
+                            const largeFormatProgress = Math.max(
+                                0,
+                                Math.min(
+                                    1,
+                                    (Math.min(innerWidthCm, innerHeightCm) - LARGE_FORMAT_START_CM)
+                                        / (LARGE_FORMAT_FULL_CM - LARGE_FORMAT_START_CM),
+                                ),
+                            );
+                            const smoothLargeFormatProgress = largeFormatProgress ** 2
+                                * (3 - (2 * largeFormatProgress));
+                            const largeFormatBoost = 1 + (smoothLargeFormatProgress * 0.4);
+                            const maxRailPx = Math.min(
+                                18,
+                                Math.min(renderedFrameWidthPx, renderedFrameHeightPx) * 0.18,
+                            );
+                            const visualRailPx = Math.max(
+                                MIN_LEGIBLE_RAIL_PX,
+                                Math.min(
+                                    maxRailPx,
+                                    railWidthIn
+                                        * RAIL_PX_PER_IN_AT_REFERENCE_VIEW
+                                        * sizeCompensation
+                                        * largeFormatBoost,
+                                ),
+                            );
+                            const mouldingPctW = (visualRailPx / renderedFrameWidthPx) * 100;
+                            const mouldingPctH = (visualRailPx / renderedFrameHeightPx) * 100;
                             
                             // Mat inset as % of frame width/height
                             // Clamp the max inset so we don't mathematically collapse the artwork to 0 or negative
@@ -2058,14 +2153,17 @@ const CustomizeFramePage = ({
                                     style={{
                                         width: isHovered || isMaxZoom || isFullScreen
                                             ? `${frameWidthPct * zoomScale}%`
-                                            : `${frameWidthPct}%`,
+                                            : `${frameWidthPct * restingViewScale}%`,
                                         aspectRatio: `${wInch} / ${hInch}`,
                                         marginTop: `${pushDownAmount + roomSceneVerticalOffsetPx}px`,
                                         marginLeft: `${pushRightAmount}px`,
-                                        // Baked from the visualizer edit pass: this nudges the
-                                        // rendered piece 35px upward without
-                                        // changing its real-world dimensions or zoom behaviour.
-                                        transform: 'translate(-11px, -35px)',
+                                        // The general visualizer adjustment stays on the plain
+                                        // wall. Room scenes already calculate a physical hanging
+                                        // height from their furniture, so applying that extra
+                                        // upward lift there would falsely widen the real gap.
+                                        transform: activeRoom
+                                            ? 'translateX(-11px)'
+                                            : 'translate(-11px, -35px)',
                                         touchAction: 'manipulation'
                                     }}
                                 >
@@ -2139,7 +2237,7 @@ const CustomizeFramePage = ({
                                                             borderColor: "transparent",
                                                             borderImageWidth: `${mouldingPctH}% ${mouldingPctW}%`,
                                                             borderImageSource: `url(${selectedFrame.borderImageSource})`,
-                                                            borderImageSlice: `${(() => { const w = parseDimension(selectedFrame.mouldingWidthInches); return (w / (8 + 2 * w)) * 100; })()}%`,
+                                                            borderImageSlice: `${(railWidthIn / (8 + 2 * railWidthIn)) * 100}%`,
                                                             borderImageRepeat: "stretch"
                                                         }}
                                                     >
