@@ -1,25 +1,23 @@
 import React from 'react';
 import { Sofa, Utensils, BedDouble, DoorOpen, Laptop, Square, ChevronDown } from 'lucide-react';
 import { ROOM_SCENES } from '../../data/roomScenes';
-import { ROOM_SCENE_COMPONENTS } from './roomSceneComponents';
+import { useHoverDropdown } from '../../hooks/useHoverDropdown';
 
 /**
- * Standalone scene selector for the visualizer.
+ * Standalone scene selector for the visualizer — a dropdown pill stacked
+ * directly beneath the wall-colour pill in the top-right corner.
  *
- * Lives at bottom-centre, which is the only free region of the pane — the four
- * corners are already the dimensions pill, the wall-colour pill, AR and full
- * screen — and also the quietest band of every scene: the room scenes all draw
- * floor there, and plain-wall mode has nothing below the frame but the sofa
- * cue's caption.
- *
- * Three variants are implemented so they can be compared in place rather than
- * argued about in the abstract. `variant` is read from the `?scenePicker=`
- * query param by the caller; once one is chosen the other two come out.
+ * Deliberately mirrors that wall-colour popover — same pill, same panel,
+ * same open/close motion — because the two are now a pair of backdrop
+ * controls in one corner, and reading as siblings is what stops the corner
+ * turning into a pile of unrelated buttons. Stacking them here (rather than a
+ * strip across the top, which was tried first) is also what leaves the whole
+ * top-centre band clear for a tall portrait render.
  */
 
-// Room icons rather than abstract glyphs: the choice being made is "which room
-// am I hanging this in", and a sofa/bed/door reads as that instantly at 16px
-// where a miniature of the scene itself would only be a silhouette.
+// Room icons rather than abstract glyphs: the choice being made is "which
+// room am I hanging this in", and a sofa/bed/door reads as that instantly at
+// 16px where a miniature of the scene itself would only be a silhouette.
 const SCENE_ICONS = {
     'studio-loft': Sofa,
     'dining-room': Utensils,
@@ -40,136 +38,37 @@ const SHORT_NAMES = {
     'home-office': 'Office',
 };
 
-const options = () => [
-    PLAIN,
+const OPTIONS = [
     ...ROOM_SCENES.map((s) => ({
         id: s.id,
         name: s.name,
         short: SHORT_NAMES[s.id] || s.name,
         icon: SCENE_ICONS[s.id] || Square,
         wallSpanCm: s.wallSpanCm,
-        scene: s,
     })),
+    PLAIN,
 ];
 
 const titleFor = (o) => (o.wallSpanCm ? `${o.name} — ${o.wallSpanCm}cm wall` : 'Plain wall with sofa scale cue');
 
-const SHELL =
-    'bg-white/95 backdrop-blur border border-stone-200 rounded-full shadow-sm hover:shadow-md transition-all';
+const ScenePicker = ({ activeId, onSelect, className = '', style }) => {
+    const { open, setOpen, hoverProps, closeOnSelect } = useHoverDropdown();
 
-/* ── A. icon rail, active expands ─────────────────────────────────────────
-   Mirrors the dimensions pill's own trick (Ruler icon + a width-animated
-   in/cm reveal), so the two read as one family of control. Icon-only at
-   rest keeps it ~220px, which is what lets it survive a 375px pane. */
-const IconRail = ({ items, activeId, onSelect }) => (
-    <div className={`flex items-stretch overflow-x-auto max-w-full h-9 ${SHELL} [scrollbar-width:none] [&::-webkit-scrollbar]:hidden`}>
-        {items.map((o) => {
-            const Icon = o.icon;
-            const active = o.id === activeId;
-            return (
-                <button
-                    key={o.id ?? 'plain'}
-                    onClick={() => onSelect(o.id)}
-                    title={titleFor(o)}
-                    aria-label={o.name}
-                    aria-pressed={active}
-                    className={`shrink-0 flex items-center h-full px-2.5 transition-colors ${
-                        active ? 'bg-stone-900 text-white' : 'text-stone-500 hover:text-stone-900 hover:bg-stone-50'
-                    }`}
-                >
-                    <Icon size={16} className="shrink-0" />
-                    {/* Width-animated rather than mounted/unmounted, so the
-                        rail slides between rooms instead of snapping. */}
-                    <span
-                        className={`overflow-hidden whitespace-nowrap text-[11px] font-semibold transition-all duration-300 ease-out ${
-                            active ? 'max-w-[90px] opacity-100 ml-1.5' : 'max-w-0 opacity-0 ml-0'
-                        }`}
-                    >
-                        {o.short}
-                    </span>
-                </button>
-            );
-        })}
-    </div>
-);
-
-/* ── B. labelled chip row ─────────────────────────────────────────────────
-   Every name visible, no discovery cost. Wider than the pane on a phone, so
-   it scrolls — the scrollbar is hidden but the overflow is real. */
-const ChipRow = ({ items, activeId, onSelect }) => (
-    <div className={`flex items-stretch overflow-x-auto max-w-full h-9 ${SHELL} [scrollbar-width:none] [&::-webkit-scrollbar]:hidden`}>
-        {items.map((o) => {
-            const active = o.id === activeId;
-            return (
-                <button
-                    key={o.id ?? 'plain'}
-                    onClick={() => onSelect(o.id)}
-                    title={titleFor(o)}
-                    aria-pressed={active}
-                    className={`shrink-0 px-3 h-full text-[11px] font-semibold whitespace-nowrap transition-colors ${
-                        active ? 'bg-stone-900 text-white' : 'text-stone-600 hover:text-stone-900 hover:bg-stone-50'
-                    }`}
-                >
-                    {o.name}
-                </button>
-            );
-        })}
-    </div>
-);
-
-/* ── C. live scene thumbnails ─────────────────────────────────────────────
-   The actual scene components at ~56px, tinted with the live wall colour, so
-   the picker previews exactly what selecting does. Costs six extra mounted
-   SVGs that re-render whenever the wall colour changes. */
-const ThumbStrip = ({ items, activeId, onSelect, wallHex, isDarkWall }) => (
-    <div className={`flex items-center gap-1 p-1 overflow-x-auto max-w-full ${SHELL} !rounded-2xl [scrollbar-width:none] [&::-webkit-scrollbar]:hidden`}>
-        {items.map((o) => {
-            const Scene = o.id ? ROOM_SCENE_COMPONENTS[o.id] : null;
-            const active = o.id === activeId;
-            return (
-                <button
-                    key={o.id ?? 'plain'}
-                    onClick={() => onSelect(o.id)}
-                    title={titleFor(o)}
-                    aria-label={o.name}
-                    aria-pressed={active}
-                    className={`shrink-0 w-14 h-10 rounded-lg overflow-hidden transition-all ${
-                        active ? 'ring-2 ring-stone-900 ring-offset-1 ring-offset-white' : 'opacity-70 hover:opacity-100'
-                    }`}
-                    style={{ backgroundColor: wallHex }}
-                >
-                    {/* The scene draws its own wall, so plain-wall is simply the
-                        swatch with nothing on it — which is what it is. */}
-                    {Scene && <Scene wallHex={wallHex} isDarkWall={isDarkWall} />}
-                </button>
-            );
-        })}
-    </div>
-);
-
-/* ── D. dropdown pill ─────────────────────────────────────────────────────
-   A trigger showing the current scene, opening a list. Unlike the three
-   inline treatments this costs one collapsed pill of chrome instead of a
-   strip, which is the point: it stacks under the wall-colour pill in the
-   corner and leaves the top of the pane clear for tall portrait renders.
-
-   Deliberately mirrors the wall-colour popover it sits beneath — same pill,
-   same panel, same open/close motion — because they're now a pair of
-   backdrop controls in one corner and reading as siblings is what stops the
-   corner turning into a pile of unrelated buttons. */
-const Dropdown = ({ items, activeId, onSelect }) => {
-    const [open, setOpen] = React.useState(false);
-    const active = items.find((o) => o.id === activeId) || items[0];
+    const active = OPTIONS.find((o) => o.id === activeId) || OPTIONS[0];
     const ActiveIcon = active.icon;
 
     return (
-        <div className="relative">
+        <div className={`relative z-20 ${className}`} style={style} {...hoverProps}>
             <button
-                onClick={() => setOpen(!open)}
+                // Click still toggles regardless of hover support — it's what
+                // opens the panel on touch, and what a keyboard user gets from
+                // Enter/Space after Tabbing to the trigger, where no hover
+                // event ever fires.
+                onClick={() => setOpen((o) => !o)}
                 title={`Scene — ${active.name}`}
                 aria-haspopup="true"
                 aria-expanded={open}
-                className="flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1.5 rounded-full border border-stone-200 shadow-sm hover:shadow-md transition-all bg-white/95 backdrop-blur text-stone-700 font-semibold text-xs ml-auto"
+                className="flex h-[30px] items-center gap-1 sm:gap-1.5 px-2 sm:px-3 rounded-full border border-stone-200 shadow-sm hover:shadow-md transition-all bg-white/95 backdrop-blur text-stone-700 font-bold text-xs ml-auto"
             >
                 <ActiveIcon size={14} className="shrink-0" />
                 <span className="hidden sm:inline whitespace-nowrap">{active.short}</span>
@@ -177,17 +76,17 @@ const Dropdown = ({ items, activeId, onSelect }) => {
             </button>
 
             <div
-                className={`absolute top-10 right-0 mt-2 bg-white/95 backdrop-blur shadow-xl border border-stone-100 rounded-xl p-1.5 w-[136px] origin-top-right transition-all duration-300 ease-out flex flex-col gap-0.5 ${
+                className={`absolute top-full right-0 mt-[3px] bg-white/95 backdrop-blur shadow-xl border border-stone-100 rounded-xl p-1.5 w-[136px] origin-top-right transition-all duration-300 ease-out flex flex-col gap-0.5 ${
                     open ? 'opacity-100 translate-y-0 pointer-events-auto' : 'opacity-0 -translate-y-2 pointer-events-none'
                 }`}
             >
-                {items.map((o) => {
+                {OPTIONS.map((o) => {
                     const Icon = o.icon;
                     const isActive = o.id === activeId;
                     return (
                         <button
                             key={o.id ?? 'plain'}
-                            onClick={() => { onSelect(o.id); setOpen(false); }}
+                            onClick={() => { onSelect(o.id); closeOnSelect(); }}
                             title={titleFor(o)}
                             aria-pressed={isActive}
                             className={`flex items-center gap-2 w-full px-2 py-1.5 rounded-lg text-[11px] font-semibold text-left transition-colors ${
@@ -200,34 +99,6 @@ const Dropdown = ({ items, activeId, onSelect }) => {
                     );
                 })}
             </div>
-        </div>
-    );
-};
-
-const VARIANTS = { icons: IconRail, chips: ChipRow, thumbs: ThumbStrip, dropdown: Dropdown };
-
-const ScenePicker = ({ variant = 'icons', activeId, onSelect, wallHex, isDarkWall, className = '' }) => {
-    const Variant = VARIANTS[variant] || IconRail;
-    const items = options();
-
-    return (
-        // `min-w-0 max-w-full` is load-bearing, not tidiness. This wrapper sits
-        // between the toolbar's `min-w-0 flex-1` slot and the variant's own
-        // `max-w-full`, and a flex item defaults to `min-width: auto` — it
-        // refuses to shrink below its content. Unstyled, this div sized itself
-        // to the full six-thumbnail strip, the variant's `max-w-full` resolved
-        // against *that* instead of the slot, and at 375px the strip rendered
-        // 35→400 in a 375px viewport: it overflowed the screen and the
-        // wall-colour button covered the last two scenes, which were then
-        // unclickable. Breaking the min-width chain anywhere breaks all of it.
-        <div className={`min-w-0 max-w-full ${className}`}>
-            <Variant
-                items={items}
-                activeId={activeId}
-                onSelect={onSelect}
-                wallHex={wallHex}
-                isDarkWall={isDarkWall}
-            />
         </div>
     );
 };

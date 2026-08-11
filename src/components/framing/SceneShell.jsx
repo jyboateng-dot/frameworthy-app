@@ -81,22 +81,31 @@ const SceneShell = ({
             <rect x="0" y="0" width={widthCm} height={floorLineCm} fill={wallHex} />
             <rect x="0" y="0" width={widthCm} height={floorLineCm} fill={`url(#${id}-wall-light)`} />
 
-            {/* ── FLOOR ── */}
-            <rect x="0" y={floorLineCm} width={widthCm} height={heightCm - floorLineCm} fill={`url(#${id}-floor)`} />
-            {/* Seams stay parallel: a receding/converging floor would contradict
-                the flat wall plane the artwork placement depends on. */}
-            {Array.from({ length: seamCount }, (_, i) => i * seamSpacingCm).map((x) => (
-                <rect
-                    key={x}
-                    x={x}
-                    y={floorLineCm + skirtingCm}
-                    width="1"
-                    height={heightCm - floorLineCm - skirtingCm}
-                    fill="#000"
-                    opacity="0.13"
-                />
-            ))}
-            <rect x="0" y={floorLineCm} width={widthCm} height={skirtingCm} fill={skirting} />
+            {/* ── FLOOR ── grouped as its own standalone artefact (floor fill
+                + seams together — they move as one surface), distinct from
+                the floorboard trim and the wall it sits against. */}
+            <g data-artefact="floor">
+                <rect x="0" y={floorLineCm} width={widthCm} height={heightCm - floorLineCm} fill={`url(#${id}-floor)`} />
+                {/* Seams stay parallel: a receding/converging floor would contradict
+                    the flat wall plane the artwork placement depends on. */}
+                {Array.from({ length: seamCount }, (_, i) => i * seamSpacingCm).map((x) => (
+                    <rect
+                        key={x}
+                        x={x}
+                        y={floorLineCm + skirtingCm}
+                        width="1"
+                        height={heightCm - floorLineCm - skirtingCm}
+                        fill="#000"
+                        opacity="0.13"
+                    />
+                ))}
+            </g>
+            {/* Grouped on its own so it's a standalone, independently
+                selectable artefact (distinct from the floor/wall it sits
+                between) rather than just another leaf shape in the scene. */}
+            <g data-artefact="floorboard">
+                <rect x="0" y={floorLineCm} width={widthCm} height={skirtingCm} fill={skirting} />
+            </g>
 
             {/* Furniture sits between the floor and the ambient occlusion below,
                 so the wall/floor junction darkens over the bottom of it. */}

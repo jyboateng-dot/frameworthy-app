@@ -19,8 +19,16 @@ import SceneShell from './SceneShell';
 const ID = 'fw-bedroom';
 const W = 400;
 const H = 280;
-const FLOOR_Y = 245;
-const SKIRT_H = 8;
+// Was 245 (35cm floor), 264 (16cm), 278 (2cm) — now 279, a 1cm hairline.
+// See StudioLoftScene's FLOOR_Y comment for why trimming this is free wall
+// height, not a fudge — the headboard's real 100cm doesn't move, only how
+// much canvas is spent drawing floor below it. The extra room matters most
+// here: this is the scene where a tall piece is most likely to need every
+// centimetre it can get to clear the bed.
+const FLOOR_Y = 279;
+// Matches FLOOR_Y's 1cm floor budget exactly — see StudioLoftScene's SKIRT_H
+// comment for why that's intentional at this depth, not a mismatch to fix.
+const SKIRT_H = 1;
 
 const BED_W = 152;                        // queen — the scene's scale anchor
 const BED_X = (W - BED_W) / 2;            // 124

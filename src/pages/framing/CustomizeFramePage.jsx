@@ -12,13 +12,13 @@ import {
     Info,
     Loader,
     Maximize2,
-    View,
     X
 } from 'lucide-react';
 import { FRAME_STYLES, FRAME_SIZES, MAT_COLORS, formatDimensions, findSizeByDimension, parseCustomSize, DEFAULT_DEMO_IMAGE } from '../../data/constants';
 import { ROOM_SCENES, computeRoomPlacement } from '../../data/roomScenes';
 import { ROOM_SCENE_COMPONENTS } from '../../components/framing/roomSceneComponents';
 import ScenePicker from '../../components/framing/ScenePicker';
+import { useHoverDropdown } from '../../hooks/useHoverDropdown';
 import { getFrameRail, getRailTextureStyle, getRailShading } from '../../utils/frameRail';
 import WEB_MET_DIMS from '../../data/web_met_dims.json';
 import { useUnit } from '../../context/UnitContext';
@@ -34,6 +34,16 @@ import { useAuth } from '../../context/AuthContext';
 import AuthModal from '../../components/AuthModal';
 import Price from '../../components/common/Price';
 import { visualizerFullScreenState } from '../../utils/visualizerFullScreenState';
+
+// A compact, iOS-style spatial-computing glyph for the AR launcher. Kept
+// inline so the visualizer control stays crisp at every device density.
+const IosArGlyph = ({ size = 19 }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M12 2.5 20 7v10l-8 4.5L4 17V7l8-4.5Z" />
+        <path d="m4 7 8 4.6L20 7M12 11.6v9.9" />
+        <path d="m7.2 5.2 4.8 2.7 4.8-2.7M7.2 18.8l4.8-2.7 4.8 2.7" opacity=".72" />
+    </svg>
+);
 
 // High-fidelity 3D side gradients for the frame
 const getSideBackground = (side, frame) => {
@@ -280,11 +290,6 @@ const CustomizeFramePage = ({
     // ROOM_SCENES id to swap in a full room, where the artwork is sized
     // against the room's own real-world wall span instead of the sofa.
     const [roomSceneId, setRoomSceneId] = useState(null);
-    // TEMPORARY: which scene-picker treatment to render, so the three
-    // candidates can be compared in place — ?scenePicker=icons|chips|thumbs.
-    // Collapses to the chosen one (and this line goes) once picked.
-    const scenePickerVariant =
-        new URLSearchParams(window.location.search).get('scenePicker') || 'dropdown';
     // Resolved async per selectedFrame — see utils/frameTexture.js. Stays
     // null (falls back to the synthesized-gradient moulding) until/unless a
     // confident on-material anchor is found for this frame's corner photo.
@@ -296,7 +301,7 @@ const CustomizeFramePage = ({
     const [isCloudUploadPending, setIsCloudUploadPending] = useState(false);
     const [isFrameModalOpen, setIsFrameModalOpen] = useState(false);
     const [isSizeGuideOpen, setIsSizeGuideOpen] = useState(false);
-    const [isWallPickerOpen, setIsWallPickerOpen] = useState(false);
+    const { open: isWallPickerOpen, setOpen: setIsWallPickerOpen, hoverProps: wallPickerHoverProps, closeOnSelect: closeWallPickerOnSelect } = useHoverDropdown();
     const [isMetModalOpen, setIsMetModalOpen] = useState(false);
     const [isArOpen, setIsArOpen] = useState(false);
     const [isHovered, setIsHovered] = useState(false);
@@ -336,6 +341,24 @@ const CustomizeFramePage = ({
     const isVisualizerLoading = isRendering || isImageLoading || isFrameLoading;
     const [ringComplete, setRingComplete] = useState(false);
     const [loadingOverlayVisible, setLoadingOverlayVisible] = useState(false);
+
+    // Dev-only visualizer edit overlay (drag/resize the frame and scene
+    // artefacts, freeform command bar). Dynamically imported behind
+    // import.meta.env.DEV so Vite tree-shakes it out of production builds
+    // entirely — it never ships to real customers. See src/devtools/visualizerEditor.js.
+    useEffect(() => {
+        if (!import.meta.env.DEV) return undefined;
+        let cancelled = false;
+        let installed = null;
+        import('../../devtools/visualizerEditor').then(({ installVisualizerEditor }) => {
+            if (!cancelled) installed = installVisualizerEditor();
+        });
+        return () => {
+            cancelled = true;
+            if (installed) installed.destroy();
+        };
+    }, []);
+
     useEffect(() => {
         if (isVisualizerLoading) {
             setLoadingOverlayVisible(true);
@@ -768,16 +791,27 @@ const CustomizeFramePage = ({
         // frame is centered in a zone that's a fixed 65% of this container.
         // That means this container must be tall enough for the zone's 65%
         // to leave room below the frame for the sofa (plus its own dimension
-        // overlay and note text) — otherwise the sofa/note render past this
-        // container's bottom edge and get cut off by its sibling below,
-        // invisible without the container itself growing to compensate.
+        // overlay) — otherwise the sofa renders past this container's bottom
+        // edge and gets cut off by its sibling below, invisible without the
+        // container itself growing to compensate.
         // Solving zoneTop + zoneHeight/2 + frameHeight/2 + gap + sofaBlock <= H
         // (with zoneHeight = 0.65*H - zoneTop) for H gives the formula below.
-        // These constants MUST match the sofa's own (search SOFA_GAP_PX).
-        const ZONE_TOP_PX = windowSize.width >= 640 ? 56 : 48; // matches top-14 / top-12
+        // These constants MUST match the sofa's own (search SOFA_GAP_PX) and
+        // the zone's own className (search FRAME POSITIONING ZONE).
+        // 40px — see the zone's own className comment (search FRAME
+        // POSITIONING ZONE) for the full history and why this specific
+        // value. Must track the room scenes' geometry, not just the
+        // toolbar: re-run the full collision sweep before changing it.
+        const ZONE_TOP_PX = 40; // matches top-10
         const SOFA_GAP_PX = 24;
-        const ZONE_HEIGHT_PCT = 0.65; // matches h-[calc(65%-3rem)]
-        const NOTE_RESERVE_PX = 60; // sofa's dimension-overlay line + 2-line note beneath the SVG, plus safety margin (this formula's other inputs are pre-scale estimates, so verified empirically rather than solved exactly)
+        const ZONE_HEIGHT_PCT = 0.65; // matches h-[calc(65%-2.5rem)]
+        // Just the sofa's own dimension-overlay line plus a safety margin now
+        // — the 2-line disclaimer note that used to sit beneath the SVG moved
+        // out to a caption below the whole pane (see visualizer-caption), so
+        // reserving space for it here would be holding room for something
+        // that no longer renders in this container, quietly capping tall
+        // frames below their true height for no reason.
+        const NOTE_RESERVE_PX = 28;
         const sofaBlockHeight = sofaHeightPx + NOTE_RESERVE_PX;
         const minHeightForSofaFit = (ZONE_TOP_PX / 2 + frameHeightPx / 2 + SOFA_GAP_PX + sofaBlockHeight) / (1 - ZONE_HEIGHT_PCT / 2);
 
@@ -788,33 +822,9 @@ const CustomizeFramePage = ({
         const maxHeight = isSideBySide ? windowSize.height * 0.80 : windowSize.height * 0.65;
         const finalHeight = Math.max(180, Math.min(calculatedHeight, maxHeight));
         
-        const heightScale = calculatedHeight > maxHeight ? finalHeight / calculatedHeight : 1;
+        const scale = calculatedHeight > maxHeight ? finalHeight / calculatedHeight : 1;
 
-        // ── CLEARANCE ──
-        // The piece must never touch a control, not merely avoid overlapping
-        // one. Measured before this existed, a 90x120 in the Entryway cleared
-        // the dimensions pill by 1px: technically passing, visually collided.
-        //
-        // Two things make the piece bigger than its own box. Its dimension
-        // labels hang outside it (`-top-4`/`-right-4` plus the label's own
-        // height), and at large sizes the piece nearly fills — sometimes
-        // overflows — the zone it's centred in.
-        //
-        // Shrinking the stage is the honest lever. `scale` drives the
-        // container's width, and BOTH the piece and the room scene derive
-        // from that same zone width, so they shrink together and the piece
-        // stays true to the wall it's measured against. Capping the piece
-        // alone would make it read small against an unchanged room, which is
-        // the one thing this visualizer must not do.
-        const ZONE_HEIGHT_PX = ZONE_HEIGHT_PCT * finalHeight - ZONE_TOP_PX;
-        const LABEL_ALLOWANCE_PX = 22;  // tick + label hanging above/right of the piece
-        const CLEARANCE_PX = 16;        // air required between the piece and any control
-        const budgetPx = ZONE_HEIGHT_PX - 2 * (LABEL_ALLOWANCE_PX + CLEARANCE_PX);
-        const frameHeightAtHeightScale = frameHeightPx * heightScale;
-        const clearanceScale =
-            budgetPx > 0 && frameHeightAtHeightScale > budgetPx ? budgetPx / frameHeightAtHeightScale : 1;
-
-        return { height: finalHeight, scale: heightScale * clearanceScale };
+        return { height: finalHeight, scale };
     })();
 
     // Dynamically calculate the actual physical inch size of the mat based on the qualitative choice and frame size
@@ -1539,10 +1549,10 @@ const CustomizeFramePage = ({
                 >
 
                 {/* Dimension toggle + unit selector — first slot. */}
-                <div className="shrink-0 flex items-stretch bg-white/95 backdrop-blur border border-stone-200 rounded-full shadow-sm hover:shadow-md transition-all overflow-hidden h-8 sm:h-9 duration-300">
+                <div className="shrink-0 flex items-stretch bg-white/95 backdrop-blur border border-stone-200 rounded-full shadow-sm hover:shadow-md transition-all overflow-hidden h-[30px] duration-300">
                     <button
                         onClick={() => setShowDimensions(!showDimensions)}
-                        className={`flex items-center gap-1.5 px-3 h-full text-xs font-semibold transition-colors ${
+                        className={`flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 h-full text-xs font-semibold transition-colors ${
                             showDimensions ? 'bg-stone-100 text-stone-900 border-r border-stone-200' : 'text-stone-600 hover:text-stone-900 bg-white'
                         }`}
                         title="Toggle Dimensions"
@@ -1558,7 +1568,7 @@ const CustomizeFramePage = ({
                     >
                         <button
                             onClick={() => setUnit('in')}
-                            className={`flex-1 h-full flex items-center justify-center text-[10px] font-bold uppercase tracking-wider transition-colors ${
+                            className={`flex-1 h-full flex items-center justify-center text-xs font-semibold transition-colors ${
                                 unit === 'in' ? 'text-stone-900 bg-stone-50' : 'text-stone-400 hover:text-stone-600 hover:bg-stone-50/50'
                             }`}
                         >
@@ -1567,7 +1577,7 @@ const CustomizeFramePage = ({
                         <div className="w-px h-full bg-stone-200"></div>
                         <button
                             onClick={() => setUnit('cm')}
-                            className={`flex-1 h-full flex items-center justify-center text-[10px] font-bold uppercase tracking-wider transition-colors ${
+                            className={`flex-1 h-full flex items-center justify-center text-xs font-semibold transition-colors ${
                                 unit === 'cm' ? 'text-stone-900 bg-stone-50' : 'text-stone-400 hover:text-stone-600 hover:bg-stone-50/50'
                             }`}
                         >
@@ -1588,21 +1598,31 @@ const CustomizeFramePage = ({
                     render grows into. */}
                 <div className="ml-auto shrink-0 flex flex-col items-end gap-2">
 
-                {/* Wall Colour. `relative` anchors its popover. */}
-                <div className="relative">
+                {/* Wall Colour. `relative` anchors its popover. Hover-props
+                    open/close it on PC the same way ScenePicker's own pill
+                    does; click still toggles for touch/keyboard. `z-20` beats
+                    the scene pill below it (which stacks at the default
+                    auto/0), so the open popover — taller than the gap between
+                    the two pills — draws over the scene pill instead of
+                    disappearing behind it. */}
+                <div
+                    className="relative z-20"
+                    style={{ transform: 'translate(-101px, -2px)' }}
+                    {...wallPickerHoverProps}
+                >
                     <button
                         onClick={() => setIsWallPickerOpen(!isWallPickerOpen)}
-                        className="flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1.5 rounded-full border border-stone-200 shadow-sm hover:shadow-md transition-all bg-white/95 backdrop-blur text-stone-700 font-semibold text-xs ml-auto"
+                        className="flex h-[30px] items-center gap-1 sm:gap-1.5 px-2 sm:px-3 rounded-full border border-stone-200 shadow-sm hover:shadow-md transition-all bg-white/95 backdrop-blur text-stone-700 font-bold text-xs ml-auto"
                         title="Change Wall Color"
                     >
                         <div className="w-4 h-4 rounded-full border border-stone-200 shrink-0" style={{ backgroundColor: wallColor.hex, boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.1)' }} />
-                        <span className="hidden sm:inline [font-variant:small-caps]">wall color</span>
+                        <span className="hidden sm:inline">wall color</span>
                         <ChevronDown size={14} className={`transition-transform text-stone-400 ${isWallPickerOpen ? 'rotate-180' : ''}`} />
                     </button>
 
                     {/* The Expanded Picker */}
                     <div
-                        className={`absolute top-10 right-0 mt-2 bg-white/95 backdrop-blur shadow-xl border border-stone-100 rounded-xl p-2.5 w-[90px] origin-top-right transition-all duration-300 ease-out flex flex-col items-center ${
+                        className={`absolute top-full right-0 mt-[3px] bg-white/95 backdrop-blur shadow-xl border border-stone-100 rounded-xl p-2.5 w-[90px] origin-top-right transition-all duration-300 ease-out flex flex-col items-center ${
                             isWallPickerOpen 
                                 ? 'opacity-100 translate-y-0 pointer-events-auto' 
                                 : 'opacity-0 -translate-y-2 pointer-events-none'
@@ -1618,7 +1638,7 @@ const CustomizeFramePage = ({
                             {WALL_COLORS.map(color => (
                                 <button
                                     key={color.id}
-                                    onClick={() => { setWallColor(color); setIsWallPickerOpen(false); }}
+                                    onClick={() => { setWallColor(color); closeWallPickerOnSelect(); }}
                                     title={color.name}
                                     className={`w-6 h-6 rounded-full border-2 transition-transform ${wallColor.id === color.id ? 'border-stone-900 scale-110 shadow-sm' : 'border-stone-200 hover:scale-110'}`}
                                     style={{ backgroundColor: color.hex, boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.1)' }}
@@ -1634,13 +1654,14 @@ const CustomizeFramePage = ({
                     </div>
                 </div>
 
-                {/* Scene — its own dropdown pill, directly beneath wall colour. */}
+                {/* Scene — its own dropdown pill, directly beneath wall colour.
+                    Opens on hover on a device that can genuinely hover (see
+                    ScenePicker's own isHoverCapable check); click still works
+                    everywhere, which is what touch and keyboard use. */}
                 <ScenePicker
-                    variant={scenePickerVariant}
                     activeId={roomSceneId}
                     onSelect={setRoomSceneId}
-                    wallHex={wallColor.hex}
-                    isDarkWall={isDarkWall}
+                    style={{ transform: 'translate(22px, -41px)' }}
                 />
 
                 </div>
@@ -1667,7 +1688,47 @@ const CustomizeFramePage = ({
                     style={{ width: visualizerMetrics.scale < 1 ? `${visualizerMetrics.scale * 100}%` : undefined }}
                 >
                     
-                    {/* ── FRAME POSITIONING ZONE ── */}
+                    {/* ── FRAME POSITIONING ZONE ──
+                        The reserved top inset has gone from 48/56px (the full
+                        toolbar height, reserved full-width regardless of frame
+                        size) down to a 40px gutter, same at every breakpoint.
+                        The toolbar is two pills pinned to the corners now
+                        (dimensions left, wall colour + scene stacked right),
+                        not a full-width bar, so the top-centre above a
+                        centred frame doesn't need a band reserved for it —
+                        this is a visual gutter plus real collision margin,
+                        not a collision margin sized to the toolbar's own
+                        height.
+
+                        Was 12px until the room scenes' floor strips got
+                        trimmed to a bare 2cm (see StudioLoftScene's FLOOR_Y
+                        comment): every scene's hang.y rose to hold the same
+                        real-world gallery height against the new floor line,
+                        which — for a room scene specifically — moves the
+                        frame's absolute page position 1:1 with the zone's own
+                        top inset (unlike plain-wall/sofa mode, which is pure
+                        flex-centring and only moves at roughly half that
+                        rate). Higher hang points plus that 1:1 coupling
+                        pushed a wide 120×120 piece on the narrowest walls
+                        (Entryway, Home Office) into the dimensions pill at
+                        375px, up to 17px deep. A full 2D collision sweep
+                        (bounding-box overlap on both axes, not just vertical
+                        proximity — which false-positives against the stacked
+                        right pills, since same-Y doesn't mean same-X) across
+                        every scene, the largest offered sizes, and every
+                        breakpoint from 375–1280px found 40px clears both with
+                        room to spare and re-passes everywhere else. Re-run
+                        the sweep before lowering this again — it's now tied
+                        to the room scenes' own geometry, not just the
+                        toolbar, so it can silently go stale from either side
+                        changing.
+
+                        The bottom edge is untouched (still 65% of the pane),
+                        so this adds height only at the top. For plain-wall/
+                        sofa mode the frame is flex-centred in this zone, so a
+                        taller zone still pulls that centre point up with it.
+                        zoneTopOffsetPx below (search it) and visualizerMetrics'
+                        ZONE_TOP_PX must both stay at 40. */}
                     <div
                         ref={zoneRef}
                         className={`absolute left-0 w-full flex flex-col items-center justify-center transition-all ${ZOOM_MOTION} ${
@@ -1675,7 +1736,7 @@ const CustomizeFramePage = ({
                                 // In full-screen mobile the note is a real footer below
                                 // this zone, not an overlay on top of the rendering.
                                 ? 'top-0 bottom-[calc(env(safe-area-inset-bottom)+4.5rem)] h-auto sm:bottom-0 sm:h-full'
-                                : 'top-12 sm:top-14 h-[calc(65%-3rem)] sm:h-[calc(65%-3.5rem)]'
+                                : 'top-10 h-[calc(65%-2.5rem)]'
                         }`}
                         onClick={(e) => {
                             // This zone (not the outer visualizer pane) is
@@ -1708,7 +1769,25 @@ const CustomizeFramePage = ({
                             const sceneW = zoneSize.width;
                             const sceneH = sceneW * (activeRoom.sceneHeightCm / activeRoom.wallSpanCm);
                             const sceneLeft = sceneW * (0.5 - activeRoom.hang.x / 100);
-                            const sceneTop = (zoneSize.height / 2) - ((roomPlacement?.topPct ?? activeRoom.hang.y) / 100) * sceneH;
+                            // Flush with the zone's own top, not centred on the hang
+                            // point. sceneH comes purely from zone WIDTH and the
+                            // room's real aspect ratio — nothing here relates it to
+                            // zoneSize.height — so the scene is reliably TALLER than
+                            // the zone for every size in this room, not just tall
+                            // portraits. Centring the hang point at zoneCenter used
+                            // to force part of that oversized image out of the
+                            // zone's bounds on one edge, leaving flat, wall-coloured
+                            // pane background on the other — a band that read as "a
+                            // reserved section" even after the toolbar's own inset
+                            // had already been cut to a few px, because it had
+                            // nothing to do with the toolbar at all.
+                            // Anchoring here instead means the room always uses every
+                            // px of available headroom, and the excess simply runs
+                            // past the zone's bottom (already tolerated — it's flat
+                            // wall/floor art with nothing placed against that edge).
+                            // The frame's own position compensates for this — see
+                            // roomSceneVerticalOffsetPx by the frame's marginTop.
+                            const sceneTop = 0;
                             return (
                                 <div
                                     className={`absolute pointer-events-none z-0 transition-opacity ${CHROME_MOTION} ${
@@ -1734,6 +1813,7 @@ const CustomizeFramePage = ({
                                         already matches, so only the floor needs this. */}
                                     {activeRoom.floorHex && (
                                         <div
+                                            data-artefact="floor-base"
                                             className="absolute left-0 w-full"
                                             style={{ top: '100%', height: '100vh', backgroundColor: activeRoom.floorHex }}
                                         />
@@ -1861,6 +1941,28 @@ const CustomizeFramePage = ({
                                 return overflowTop > 0 ? (overflowTop * 2) + 40 : 0;
                             })();
 
+                            // The frame is otherwise just flex-centred in the zone
+                            // (plain wall/sofa mode relies entirely on that, and stays
+                            // exactly as-is here). A room scene now anchors its
+                            // backdrop to the zone's own top instead of centring the
+                            // hang point on the zone's midpoint — see the scene
+                            // backdrop's own sceneTop for why — so the frame needs an
+                            // explicit nudge to land where that anchoring puts the
+                            // hang point, rather than sitting at the zone's natural
+                            // (now wrong) centre. Reuses the same marginTop channel
+                            // pushDownAmount already uses; they never fight over it —
+                            // the room backdrop fades out during hover/max-zoom/full
+                            // screen (same condition gates this to 0 then), which is
+                            // the only time pushDownAmount is ever nonzero.
+                            const roomSceneVerticalOffsetPx = (() => {
+                                if (!activeRoom || !roomPlacement) return 0;
+                                if (isHovered || isMaxZoom || isFullScreen) return 0;
+                                const sceneHForOffset = zoneSize.width * (activeRoom.sceneHeightCm / activeRoom.wallSpanCm);
+                                const desiredCenterY = (roomPlacement.topPct / 100) * sceneHForOffset;
+                                const naturalCenterY = zoneSize.height / 2;
+                                return desiredCenterY - naturalCenterY;
+                            })();
+
                             const pushRightAmount = (() => {
                                 if (!isMaxZoom) return 0;
                                 const baseWidthPx = (frameWidthPct / 100) * zoneSize.width;
@@ -1958,9 +2060,12 @@ const CustomizeFramePage = ({
                                             ? `${frameWidthPct * zoomScale}%`
                                             : `${frameWidthPct}%`,
                                         aspectRatio: `${wInch} / ${hInch}`,
-                                        marginTop: `${pushDownAmount}px`,
+                                        marginTop: `${pushDownAmount + roomSceneVerticalOffsetPx}px`,
                                         marginLeft: `${pushRightAmount}px`,
-                                        transform: 'translateY(0)',
+                                        // Baked from the visualizer edit pass: this nudges the
+                                        // rendered piece 35px upward without
+                                        // changing its real-world dimensions or zoom behaviour.
+                                        transform: 'translate(-11px, -35px)',
                                         touchAction: 'manipulation'
                                     }}
                                 >
@@ -2257,7 +2362,7 @@ const CustomizeFramePage = ({
                         const restFrameWidthPct = (wInch && hInch) ? ((wInch * 2.54) / SOFA_CM_REF) * SOFA_BODY_PCT_REF : 0;
                         const restFrameWidthPx = (restFrameWidthPct / 100) * zoneSize.width;
                         const restFrameHeightPx = (wInch && hInch) ? restFrameWidthPx * (hInch / wInch) : 0;
-                        const zoneTopOffsetPx = windowSize.width >= 640 ? 56 : 48; // matches top-14 / top-12
+                        const zoneTopOffsetPx = 40; // matches top-10 — see visualizerMetrics' ZONE_TOP_PX / the zone's own className comment for why
                         const SOFA_GAP_PX = 24;
                         const sofaTopPx = zoneTopOffsetPx + (zoneSize.height / 2) + (restFrameHeightPx / 2) + SOFA_GAP_PX;
                         // Same formula as the frame's own width/height labels
@@ -2353,7 +2458,7 @@ const CustomizeFramePage = ({
                     aria-label={isFullScreen ? 'Exit full screen' : 'Full screen'}
                 >
                     <span className="relative w-[18px] h-[18px] flex items-center justify-center">
-                        <Maximize2 size={16} className={`absolute transition-all duration-300 ${isFullScreen ? 'opacity-0 rotate-45 scale-75' : 'opacity-100 rotate-0 scale-100'}`} />
+                        <Maximize2 size={16} strokeWidth={1.3} className={`absolute transition-all duration-300 ${isFullScreen ? 'opacity-0 rotate-45 scale-75' : 'opacity-100 rotate-0 scale-100'}`} />
                         <X size={18} className={`absolute transition-all duration-300 ${isFullScreen ? 'opacity-100 rotate-0 scale-100' : 'opacity-0 -rotate-45 scale-75'}`} />
                     </span>
                 </button>
@@ -2382,7 +2487,7 @@ const CustomizeFramePage = ({
                         title="View on your wall"
                         aria-label="View this frame on your wall in AR"
                     >
-                        <View size={18} />
+                        <IosArGlyph size={20} />
                     </button>
                 )}
 

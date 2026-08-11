@@ -58,16 +58,23 @@ export const ROOM_SCENES = [
         // placement math — it's what lets the tests check `hang.y` against a
         // real hang height above the floor rather than trusting the number,
         // and it's asserted against the component's own GEOMETRY export.
-        floorLineCm: 245,
+        // 279, not the 420x280 viewBox's midpoint-ish 245 you'd guess from the
+        // wall span alone — the floor strip below it was trimmed from 35cm
+        // (245) to 16cm (264) to 2cm (278) to a 1cm hairline (see
+        // StudioLoftScene's FLOOR_Y comment) to hand the wall more of the
+        // same canvas. Stays exact by construction: this MUST match the
+        // component's own FLOOR_Y, and the drawn-geometry cross-check test
+        // below catches it if they ever drift apart.
+        floorLineCm: 279,
         // Height of the tallest thing standing directly under the hang point,
         // in the same centimetres. computeRoomPlacement raises a tall piece
         // until it clears this rather than drawing it over the furniture.
         // Read off the scene component: the sofa back tops out at 80cm.
         clearanceTopCm: 80,
-        // Centre point of the hanging zone, as a % of the image box. y=37.5%
-        // of a 280cm-tall scene = 105cm from the top = 140cm above the floor
-        // line at 245cm, i.e. gallery height, clearing the sofa back.
-        hang: { x: 50, y: 37.5 },
+        // Centre point of the hanging zone, as a % of the image box. Solved
+        // for the same 140cm-above-floor gallery height as before, against
+        // the new floorLineCm: (279-140)/280 = 49.64%.
+        hang: { x: 50, y: 49.64 },
         // The scene box is sized so its wall span exactly matches the
         // visualizer's width — which is what keeps the placement math a
         // direct ratio — so it won't always be tall enough to reach the
@@ -86,11 +93,15 @@ export const ROOM_SCENES = [
         // dining table, which is exactly the judgement this scene is for.
         wallSpanCm: 440,
         sceneHeightCm: 290,
-        floorLineCm: 255,
+        // Was 255 (35cm floor), 274 (16cm), 288 (2cm) — now 289, a 1cm
+        // hairline (see StudioLoftScene's FLOOR_Y comment). Must match the
+        // component's own FLOOR_Y.
+        floorLineCm: 289,
         // Table at 75cm, fruit bowl on it to 90cm.
         clearanceTopCm: 90,
-        // 37.93% of 290cm = 110cm from the top = 145cm above the floor.
-        hang: { x: 50, y: 37.93 },
+        // Solved for the same 145cm-above-floor gallery height against the
+        // new floorLineCm: (289-145)/290 = 49.66%.
+        hang: { x: 50, y: 49.66 },
         floorHex: '#6f5238',
     },
     {
@@ -99,15 +110,25 @@ export const ROOM_SCENES = [
         tintable: true,
         wallSpanCm: 400,
         sceneHeightCm: 280,
-        floorLineCm: 245,
+        // Was 245 (35cm floor), 264 (16cm), 278 (2cm) — now 279, a 1cm
+        // hairline (see StudioLoftScene's FLOOR_Y comment). Must match the
+        // component's own FLOOR_Y. The scene most likely to actually need
+        // this: a tall piece over the bed is the case that comes closest to
+        // not fitting the wall at all — the 100×150cm piece that used to
+        // overlap the headboard by 19.4cm (then 7.4, then 4.6, then cleared
+        // by 8.3 once the floor hit 2cm) now clears by even more. See
+        // computeRoomPlacement's `tooTall` for the set of sizes still too
+        // big for this wall.
+        floorLineCm: 279,
         // The headboard — the reason this scene's default hang is already
         // higher than the others, and the thing a tall piece must clear.
         clearanceTopCm: 100,
-        // The one scene that isn't at the 145cm gallery standard: 33.93% of
-        // 280cm = 95cm from the top = 150cm above the floor. Above-the-bed
-        // pieces are hung higher by convention because the headboard already
-        // owns the wall to 100cm — see BedroomScene for the full note.
-        hang: { x: 50, y: 33.93 },
+        // The one scene that isn't at the 145cm gallery standard: solved for
+        // the same 150cm-above-floor default as before, against the new
+        // floorLineCm: (279-150)/280 = 46.07%. Above-the-bed pieces are hung
+        // higher by convention because the headboard already owns the wall
+        // to 100cm — see BedroomScene for the full note.
+        hang: { x: 50, y: 46.07 },
         floorHex: '#6f5238',
     },
     {
@@ -119,11 +140,23 @@ export const ROOM_SCENES = [
         // customer that the large canvas they're configuring will not fit.
         wallSpanCm: 340,
         sceneHeightCm: 260,
-        floorLineCm: 230,
-        // Console at 80cm, the short vase on it to 100cm.
-        clearanceTopCm: 100,
-        // 32.69% of 260cm = 85cm from the top = 145cm above the floor.
-        hang: { x: 50, y: 32.69 },
+        // Was 230 (30cm floor), 246 (14cm), 258 (2cm) — now 259, a 1cm
+        // hairline, same depth as every other scene despite this one
+        // starting thinner (tile, not boards) — see StudioLoftScene's
+        // FLOOR_Y comment. Must match the component's own FLOOR_Y. Worth the
+        // most here: the narrowest wall on offer is the one most likely to
+        // need every spare centimetre for a tall piece.
+        floorLineCm: 259,
+        // Frames hang over the console at the wall centre, so their obstacle
+        // is the vase's true 129cm top — not the hook rail, which is confined
+        // to the far-left 80cm of the wall. Treating that distant rack as a
+        // centre-line obstacle lifted every small frame needlessly high above
+        // the console. This matches EntrywayScene's vase top at y=130 against
+        // a floor line of 259 (259 - 130 = 129cm).
+        clearanceTopCm: 129,
+        // Solved for the same 145cm-above-floor gallery height against the
+        // new floorLineCm: (259-145)/260 = 43.85%.
+        hang: { x: 50, y: 43.85 },
         // Stone tile, not boards — matches the bottom of this scene's own
         // floor gradient, which is what this colour has to track.
         floorHex: '#a09889',
@@ -134,11 +167,17 @@ export const ROOM_SCENES = [
         tintable: true,
         wallSpanCm: 360,
         sceneHeightCm: 260,
-        floorLineCm: 225,
+        // Was 225 (35cm floor), 244 (16cm), 258 (2cm) — now 259, a 1cm
+        // hairline (see StudioLoftScene's FLOOR_Y comment). Must match the
+        // component's own FLOOR_Y. Doesn't affect the floating shelf on the
+        // right, which is positioned from the wall's own top rather than off
+        // this line.
+        floorLineCm: 259,
         // Desk at 75cm, chair back 91cm, laptop lid 98cm — the lid wins.
         clearanceTopCm: 98,
-        // 30.77% of 260cm = 80cm from the top = 145cm above the floor.
-        hang: { x: 50, y: 30.77 },
+        // Solved for the same 145cm-above-floor gallery height against the
+        // new floorLineCm: (259-145)/260 = 43.85%.
+        hang: { x: 50, y: 43.85 },
         floorHex: '#6f5238',
     },
 ];
@@ -185,8 +224,23 @@ export const computeRoomPlacement = (scene, widthCm, heightCm) => {
     const obstacleCm = scene.clearanceTopCm ?? 0;
 
     const neededCentreCm = obstacleCm + FURNITURE_GAP_CM + heightCm / 2;
-    // The ceiling is the other end of the same squeeze.
-    const highestCentreCm = scene.floorLineCm - CEILING_MARGIN_CM - heightCm / 2;
+    // The ceiling is the other end of the same squeeze — two candidate caps,
+    // not one. CEILING_MARGIN_CM is cosmetic breathing room for the normal
+    // case, where the piece clears the furniture with room to spare and a
+    // flush-to-ceiling top would look cramped. `Absolute` is the true
+    // physical limit: top flush with the ceiling, zero margin.
+    //
+    // A piece can need MORE lift than the polished cap allows — 150cm in a
+    // 245cm-tall Bedroom wall over a 100cm headboard does, structurally,
+    // regardless of margins. Holding the cosmetic margin there doesn't buy
+    // any polish, because the piece is already overlapping the furniture; it
+    // only wastes centimetres that would otherwise shrink that overlap. So
+    // the margin is spent, not kept, once the polished cap can't clear the
+    // furniture anyway — every last cm above goes toward the piece instead.
+    const highestCentreCmPolished = scene.floorLineCm - CEILING_MARGIN_CM - heightCm / 2;
+    const highestCentreCmAbsolute = scene.floorLineCm - heightCm / 2;
+    const highestCentreCm =
+        neededCentreCm > highestCentreCmPolished ? highestCentreCmAbsolute : highestCentreCmPolished;
 
     const centreCm = Math.min(Math.max(defaultCentreCm, neededCentreCm), Math.max(defaultCentreCm, highestCentreCm));
     const topPct = ((scene.floorLineCm - centreCm) / scene.sceneHeightCm) * 100;
@@ -201,9 +255,11 @@ export const computeRoomPlacement = (scene, widthCm, heightCm) => {
         // exactly the "every size renders the same" dishonesty this whole
         // approach exists to avoid. The caller decides how to present it.
         overflows: widthPct > 100,
-        // Even raised as far as the ceiling allows, it still can't clear the
-        // furniture — the wall genuinely isn't tall enough for this piece.
-        tooTall: neededCentreCm > highestCentreCm,
+        // Even raised flush against the ceiling — zero margin, the true
+        // physical limit, not just the polished cap — it still can't clear
+        // the furniture. The wall genuinely isn't tall enough for this piece
+        // at any height; this is the honest floor for how much it overlaps.
+        tooTall: neededCentreCm > highestCentreCmAbsolute,
     };
 };
 

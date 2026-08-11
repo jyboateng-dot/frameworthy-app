@@ -19,8 +19,25 @@ import React from 'react';
  * matters.
  */
 
-const FLOOR_Y = 245;      // wall meets skirting
-const SKIRT_H = 8;        // skirting board height
+// Wall meets skirting. Was 245 (35cm floor), 264 (16cm), 278 (2cm) — now 279,
+// a 1cm hairline. The floor strip's own on-screen depth is a styling choice,
+// not a real measurement (unlike ceiling height or furniture size, which
+// are), so trimming it and pushing the boundary down is free real wall
+// height, not a fudge: the ceiling doesn't move, the sofa's real 80cm
+// doesn't move, there's just less canvas spent drawing floor a viewer never
+// measures anything against. Real payoff for a piece that needs lifting
+// near the ceiling to clear furniture below (see roomScenes.js's
+// computeRoomPlacement) — more wall between the two before they meet.
+// hang.y in roomScenes.js was recalculated to hold the same 140cm-above-
+// floor default gallery height this moves under it.
+const FLOOR_Y = 279;
+// Matches FLOOR_Y's 1cm floor budget exactly — at 2cm (the old value) this
+// would overrun the strip and drive the plank-seam rects below it to a
+// negative height (SKIRT_H > total floor depth). With 1cm of floor there's
+// no room for a distinct plank surface anyway, so the skirting IS the whole
+// floor strip; SKIRT_H === the floor's total depth is intentional here, not
+// a coincidence to "fix" back apart.
+const SKIRT_H = 1;        // skirting board height
 const SOFA_W = 160;       // a real 2-seater — the scene's honest scale cue
 const SOFA_H = 80;
 const SOFA_X = (420 - SOFA_W) / 2;
@@ -78,15 +95,24 @@ const StudioLoftScene = ({ wallHex = '#f4f4f4', isDarkWall = false }) => {
             <rect x="0" y="0" width="420" height={FLOOR_Y} fill={wallHex} />
             <rect x="0" y="0" width="420" height={FLOOR_Y} fill="url(#fw-wall-light)" />
 
-            {/* ── FLOOR ── */}
-            <rect x="0" y={FLOOR_Y} width="420" height={280 - FLOOR_Y} fill="url(#fw-floor)" />
-            {/* Plank seams. Straight-on view, so they stay parallel — a
-                receding/converging floor would contradict the flat wall plane
-                the artwork placement depends on. */}
-            {[0, 70, 140, 210, 280, 350].map((x) => (
-                <rect key={x} x={x} y={FLOOR_Y + SKIRT_H} width="1" height={280 - FLOOR_Y - SKIRT_H} fill="#000" opacity="0.13" />
-            ))}
-            <rect x="0" y={FLOOR_Y} width="420" height={SKIRT_H} fill={skirting} />
+            {/* ── FLOOR ── grouped as its own standalone artefact (floor fill
+                + seams together — they move as one surface), distinct from
+                the floorboard trim and the wall it sits against. */}
+            <g data-artefact="floor">
+                <rect x="0" y={FLOOR_Y} width="420" height={280 - FLOOR_Y} fill="url(#fw-floor)" />
+                {/* Plank seams. Straight-on view, so they stay parallel — a
+                    receding/converging floor would contradict the flat wall plane
+                    the artwork placement depends on. */}
+                {[0, 70, 140, 210, 280, 350].map((x) => (
+                    <rect key={x} x={x} y={FLOOR_Y + SKIRT_H} width="1" height={280 - FLOOR_Y - SKIRT_H} fill="#000" opacity="0.13" />
+                ))}
+            </g>
+            {/* Grouped on its own so it's a standalone, independently
+                selectable artefact (distinct from the floor/wall it sits
+                between) rather than just another leaf shape in the scene. */}
+            <g data-artefact="floorboard">
+                <rect x="0" y={FLOOR_Y} width="420" height={SKIRT_H} fill={skirting} />
+            </g>
 
             {/* ── RUG ── */}
             <rect x="90" y={FLOOR_Y + SKIRT_H + 6} width="240" height="18" rx="2" fill={isDarkWall ? '#3a3733' : '#cfc6b8'} opacity="0.85" />
@@ -121,13 +147,16 @@ const StudioLoftScene = ({ wallHex = '#f4f4f4', isDarkWall = false }) => {
             <path d={`M352 ${FLOOR_Y} L380 ${FLOOR_Y} L376 ${FLOOR_Y - 26} L356 ${FLOOR_Y - 26} Z`} fill="#a86c4e" />
             <rect x="354" y={FLOOR_Y - 29} width="24" height="4" rx="1.5" fill="#935e43" />
             <path d={`M366 ${FLOOR_Y - 29} L366 ${FLOOR_Y - 78}`} stroke="#4c6b45" strokeWidth="2.5" fill="none" />
-            {/* Leaves, alternating left/right up the stem. FLOOR_Y is 245, so
-                these sit between y=161 and y=208 — roughly 40-85cm off the
-                floor, a believable height for a potted fiddle-leaf. */}
-            <path d="M366 171 C 350 161, 344 175, 360 181" fill="#557a4d" opacity="0.92" />
-            <path d="M366 179 C 384 167, 392 183, 373 188" fill="#557a4d" opacity="0.92" />
-            <path d="M366 189 C 348 181, 340 195, 359 199" fill="#557a4d" opacity="0.92" />
-            <path d="M366 199 C 386 189, 392 205, 372 208" fill="#557a4d" opacity="0.92" />
+            {/* Leaves, alternating left/right up the stem, expressed as
+                FLOOR_Y-offsets (roughly 40-85cm off the floor, a believable
+                height for a potted fiddle-leaf) rather than hardcoded
+                absolute y's — those would silently detach from the stem the
+                next time FLOOR_Y moves, which is exactly what happened here
+                once before. */}
+            <path d={`M366 ${FLOOR_Y - 74} C 350 ${FLOOR_Y - 84}, 344 ${FLOOR_Y - 70}, 360 ${FLOOR_Y - 64}`} fill="#557a4d" opacity="0.92" />
+            <path d={`M366 ${FLOOR_Y - 66} C 384 ${FLOOR_Y - 78}, 392 ${FLOOR_Y - 62}, 373 ${FLOOR_Y - 57}`} fill="#557a4d" opacity="0.92" />
+            <path d={`M366 ${FLOOR_Y - 56} C 348 ${FLOOR_Y - 64}, 340 ${FLOOR_Y - 50}, 359 ${FLOOR_Y - 46}`} fill="#557a4d" opacity="0.92" />
+            <path d={`M366 ${FLOOR_Y - 46} C 386 ${FLOOR_Y - 56}, 392 ${FLOOR_Y - 40}, 372 ${FLOOR_Y - 37}`} fill="#557a4d" opacity="0.92" />
 
             {/* Ambient occlusion where wall meets floor — grounds the room. */}
             <rect x="0" y={FLOOR_Y - 14} width="420" height="14" fill={shadow} opacity="0.35" style={{ filter: 'blur(4px)' }} />

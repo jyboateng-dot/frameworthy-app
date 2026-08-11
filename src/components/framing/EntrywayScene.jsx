@@ -19,8 +19,18 @@ import SceneShell from './SceneShell';
 const ID = 'fw-entry';
 const W = 340;
 const H = 260;
-const FLOOR_Y = 230;
-const SKIRT_H = 8;
+// Was 230 (30cm floor), 246 (14cm), 258 (2cm) — now 259, a 1cm hairline,
+// same depth as every other scene despite this one starting thinner (tile,
+// not boards). See StudioLoftScene's FLOOR_Y comment for why trimming this
+// is free wall height, not a fudge: the console's real 80cm and the door's
+// real 203cm don't move, only how much canvas is spent drawing floor
+// beneath them. Worth the most here — this is the narrowest wall on offer,
+// so it's the scene most likely to need every spare centimetre to keep a
+// tall piece off the console or the hook rail.
+const FLOOR_Y = 259;
+// Matches FLOOR_Y's 1cm floor budget exactly — see StudioLoftScene's SKIRT_H
+// comment for why that's intentional at this depth, not a mismatch to fix.
+const SKIRT_H = 1;
 
 const DOOR_H = 203;                       // standard interior door opening
 const DOOR_W = 81;
@@ -103,15 +113,19 @@ const EntrywayScene = ({ wallHex = '#f4f4f4', isDarkWall = false }) => (
             the narrowest wall here anything standing on the floor loses its
             base and reads as floating. A rail hangs above the crop in every
             layout, and it's the more entryway-ish detail anyway. */}
-        <rect x="26" y={FLOOR_Y - 168} width="78" height="5" rx="1.5" fill="#6d5238" />
-        <rect x="26" y={FLOOR_Y - 163} width="78" height="2.5" fill="#000" opacity="0.15" />
-        {[40, 65, 90].map((x) => (
-            <rect key={x} x={x} y={FLOOR_Y - 161} width="3" height="7" rx="1.5" fill="#8d7a56" />
-        ))}
-        {/* a tote hung from the middle hook */}
-        <path d={`M58 ${FLOOR_Y - 154} C 58 ${FLOOR_Y - 166}, 74 ${FLOOR_Y - 166}, 74 ${FLOOR_Y - 154}`} stroke="#8a7156" strokeWidth="2" fill="none" />
-        <rect x="52" y={FLOOR_Y - 154} width="28" height="34" rx="2" fill="#8d9382" />
-        <rect x="52" y={FLOOR_Y - 154} width="28" height="5" fill="#000" opacity="0.12" />
+        {/* The rail's original left edge was x=26. Keep the grouped scene
+            artefact 2 units from the viewport edge and 9 units lower. */}
+        <g data-artefact="hanging-rack" transform="translate(-24 9)">
+            <rect x="26" y={FLOOR_Y - 168} width="78" height="5" rx="1.5" fill="#6d5238" />
+            <rect x="26" y={FLOOR_Y - 163} width="78" height="2.5" fill="#000" opacity="0.15" />
+            {[40, 65, 90].map((x) => (
+                <rect key={x} x={x} y={FLOOR_Y - 161} width="3" height="7" rx="1.5" fill="#8d7a56" />
+            ))}
+            {/* a tote hung from the middle hook */}
+            <path d={`M58 ${FLOOR_Y - 154} C 58 ${FLOOR_Y - 166}, 74 ${FLOOR_Y - 166}, 74 ${FLOOR_Y - 154}`} stroke="#8a7156" strokeWidth="2" fill="none" />
+            <rect x="52" y={FLOOR_Y - 154} width="28" height="34" rx="2" fill="#8d9382" />
+            <rect x="52" y={FLOOR_Y - 154} width="28" height="5" fill="#000" opacity="0.12" />
+        </g>
     </SceneShell>
 );
 

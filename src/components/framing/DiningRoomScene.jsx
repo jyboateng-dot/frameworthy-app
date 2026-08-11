@@ -13,8 +13,14 @@ import SceneShell from './SceneShell';
 const ID = 'fw-dining';
 const W = 440;
 const H = 290;
-const FLOOR_Y = 255;
-const SKIRT_H = 8;
+// Was 255 (35cm floor), 274 (16cm), 288 (2cm) — now 289, a 1cm hairline.
+// See StudioLoftScene's FLOOR_Y comment for why trimming this is free wall
+// height, not a fudge — the table's real 75cm doesn't move, only how much
+// canvas is spent drawing floor beneath it.
+const FLOOR_Y = 289;
+// Matches FLOOR_Y's 1cm floor budget exactly — see StudioLoftScene's SKIRT_H
+// comment for why that's intentional at this depth, not a mismatch to fix.
+const SKIRT_H = 1;
 
 const TABLE_W = 180;                      // a real 6-seater
 const TABLE_H = 75;                       // standard dining height — the scale anchor

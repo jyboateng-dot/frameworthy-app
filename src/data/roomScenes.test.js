@@ -19,7 +19,14 @@ const DRAWN_GEOMETRY = {
     'home-office': OFFICE,
 };
 
-const scene = { id: 'test', wallSpanCm: 400, hang: { x: 50, y: 40 } };
+// floorLineCm/sceneHeightCm are required now, not just wallSpanCm/hang — the
+// hang-height lift in computeRoomPlacement (a tall piece gets raised to clear
+// whatever's below it) needs them to find the floor and do the cm maths. No
+// clearanceTopCm here on purpose: these tests are about the base centring/
+// scaling behaviour, and an obstacle at floor level (the default when it's
+// unset) never triggers a lift for any of the modest heights used below —
+// see the dedicated hang-height tests further down for that behaviour.
+const scene = { id: 'test', wallSpanCm: 400, sceneHeightCm: 280, floorLineCm: 245, hang: { x: 50, y: 40 } };
 
 describe('computeRoomPlacement', () => {
     it('scales artwork width as a share of the wall span', () => {
@@ -96,11 +103,15 @@ describe('ROOM_SCENES data', () => {
 
     it('hangs a typical piece at a sensible height on the studio loft', () => {
         const loft = ROOM_SCENES.find((s) => s.id === 'studio-loft');
-        // The scene is 420x280cm, so hang.y of 37.5% = 105cm from the top,
-        // i.e. 140cm above the 245cm floor line — gallery height, and clear
-        // of the 80cm-tall sofa back below it.
-        const hangFromTopCm = (loft.hang.y / 100) * 280;
-        const heightAboveFloorCm = 245 - hangFromTopCm;
+        // Reads floorLineCm from the scene itself rather than a hardcoded
+        // literal — that number moved once already (the floor strip's own
+        // depth was trimmed to hand the wall more canvas), and a hardcoded
+        // copy here silently kept asserting against the old value instead of
+        // catching the drift.
+        const hangFromTopCm = (loft.hang.y / 100) * loft.sceneHeightCm;
+        const heightAboveFloorCm = loft.floorLineCm - hangFromTopCm;
+        // 140cm above the floor — gallery height, clear of the 80cm-tall
+        // sofa back below it.
         expect(heightAboveFloorCm).toBeCloseTo(140, 0);
     });
 

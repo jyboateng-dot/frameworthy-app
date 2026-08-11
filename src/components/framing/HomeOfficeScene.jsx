@@ -20,8 +20,16 @@ import SceneShell from './SceneShell';
 const ID = 'fw-office';
 const W = 360;
 const H = 260;
-const FLOOR_Y = 225;
-const SKIRT_H = 8;
+// Was 225 (35cm floor), 244 (16cm), 258 (2cm) — now 259, a 1cm hairline.
+// See StudioLoftScene's FLOOR_Y comment for why trimming this is free wall
+// height, not a fudge — the desk/chair's real heights don't move, only how
+// much canvas is spent drawing floor below them. Doesn't touch the floating
+// shelf on the right (positioned from the wall's own top, not FLOOR_Y, since
+// it's mounted near the ceiling).
+const FLOOR_Y = 259;
+// Matches FLOOR_Y's 1cm floor budget exactly — see StudioLoftScene's SKIRT_H
+// comment for why that's intentional at this depth, not a mismatch to fix.
+const SKIRT_H = 1;
 
 const DESK_W = 150;
 const DESK_H = 75;                        // standard desk height — the scale anchor
