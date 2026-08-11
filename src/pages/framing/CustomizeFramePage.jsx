@@ -1481,27 +1481,6 @@ const CustomizeFramePage = ({
 
     if (!selectedSize || !selectedFrame) return <div className="min-h-screen bg-[#faf9f8]" />;
 
-    // Default room view is a small camera move, not a change to the frame's
-    // physical dimensions.  Clamp it from the selected piece's actual bounds
-    // so custom, tall, and wide pieces always retain a safe gutter.
-    const roomDefaultViewScale = (() => {
-        if (!activeRoom || !roomPlacement || !zoneSize.width || !zoneSize.height) return 1;
-
-        const frameWidthPx = (roomPlacement.widthPct / 100) * zoneSize.width;
-        const frameHeightPx = frameWidthPx * (hInch / wInch);
-        if (!frameWidthPx || !frameHeightPx) return 1;
-
-        const sceneHeightPx = zoneSize.width * (activeRoom.sceneHeightCm / activeRoom.wallSpanCm);
-        const frameCentreY = (roomPlacement.topPct / 100) * sceneHeightPx;
-        const safeGutterPx = 16;
-        const fitWidth = (zoneSize.width - (safeGutterPx * 2)) / frameWidthPx;
-        const fitAbove = (frameCentreY - safeGutterPx) / (frameHeightPx / 2);
-        const fitBelow = (zoneSize.height - safeGutterPx - frameCentreY) / (frameHeightPx / 2);
-        const safeScale = Math.min(fitWidth, fitAbove, fitBelow);
-
-        return Math.max(1, Math.min(1.2, safeScale));
-    })();
-
     return (
         <div className={`flex ${isSideBySide ? 'flex-row h-[calc(100dvh-56px)] overflow-hidden' : 'flex-col min-h-[calc(100dvh-56px)]'} bg-[#faf9f8]`}>
             
@@ -1811,7 +1790,7 @@ const CustomizeFramePage = ({
                             const sceneTop = 0;
                             return (
                                 <div
-                                    className={`absolute pointer-events-none z-0 transition-[opacity,transform] ${CHROME_MOTION} ${
+                                    className={`absolute pointer-events-none z-0 transition-opacity ${CHROME_MOTION} ${
                                         // Matches the sofa cue's own fade condition, and for the same
                                         // reason: all three of these states zoom the frame past its
                                         // true size (frameWidthPct * zoomScale) while the scene stays
@@ -1820,19 +1799,7 @@ const CustomizeFramePage = ({
                                         // making a false one.
                                         isHovered || isMaxZoom || isFullScreen ? 'opacity-0' : 'opacity-100'
                                     }`}
-                                    style={{
-                                        left: sceneLeft,
-                                        top: sceneTop,
-                                        width: sceneW,
-                                        height: sceneH,
-                                        // Zoom the whole room about the hanging point in the
-                                        // resting view. The frame uses the same scale below,
-                                        // so furniture clearances remain visually unchanged.
-                                        transform: !isHovered && !isMaxZoom && !isFullScreen
-                                            ? `scale(${roomDefaultViewScale})`
-                                            : undefined,
-                                        transformOrigin: `${activeRoom.hang.x}% ${roomPlacement?.topPct ?? activeRoom.hang.y}%`,
-                                    }}
+                                    style={{ left: sceneLeft, top: sceneTop, width: sceneW, height: sceneH }}
                                     aria-hidden="true"
                                 >
                                     {DrawnScene ? (
@@ -1878,9 +1845,6 @@ const CustomizeFramePage = ({
                             const frameWidthPct = roomPlacement
                                 ? roomPlacement.widthPct
                                 : (innerWidthCm / SOFA_CM) * SOFA_BODY_PCT;
-                            const restingViewScale = activeRoom && !isHovered && !isMaxZoom && !isFullScreen
-                                ? roomDefaultViewScale
-                                : 1;
                             
                             // Moulding: use the supplier's actual rail width, not
                             // the old narrow/standard/wide visual bucket. A 3px
@@ -1935,7 +1899,7 @@ const CustomizeFramePage = ({
                             );
                             const smoothLargeFormatProgress = largeFormatProgress ** 2
                                 * (3 - (2 * largeFormatProgress));
-                            const largeFormatBoost = 1 + (smoothLargeFormatProgress * 0.4);
+                            const largeFormatBoost = 1 + (smoothLargeFormatProgress * 0.65);
                             const maxRailPx = Math.min(
                                 18,
                                 Math.min(renderedFrameWidthPx, renderedFrameHeightPx) * 0.18,
@@ -2153,7 +2117,7 @@ const CustomizeFramePage = ({
                                     style={{
                                         width: isHovered || isMaxZoom || isFullScreen
                                             ? `${frameWidthPct * zoomScale}%`
-                                            : `${frameWidthPct * restingViewScale}%`,
+                                            : `${frameWidthPct}%`,
                                         aspectRatio: `${wInch} / ${hInch}`,
                                         marginTop: `${pushDownAmount + roomSceneVerticalOffsetPx}px`,
                                         marginLeft: `${pushRightAmount}px`,

@@ -48,11 +48,12 @@ export function getRailTextureStyle(side, rail) {
     const horizontal = HORIZONTAL.has(side);
     const url = horizontal ? rail.h : rail.v;
     if (!url) return null;
+    const version = encodeURIComponent(FRAME_RAILS.generatedAt || 'current');
 
     const flip = side === 'bottom' ? 'scaleY(-1)' : side === 'left' ? 'scaleX(-1)' : 'none';
 
     return {
-        backgroundImage: `url(${url})`,
+        backgroundImage: `url(${url}?v=${version})`,
         backgroundRepeat: horizontal ? 'repeat-x' : 'repeat-y',
         backgroundSize: horizontal ? 'auto 100%' : '100% auto',
         backgroundPosition: 'center',

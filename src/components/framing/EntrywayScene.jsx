@@ -60,6 +60,7 @@ const EntrywayScene = ({ wallHex = '#f4f4f4', isDarkWall = false }) => (
         wallHex={wallHex}
         isDarkWall={isDarkWall}
     >
+        <g transform="translate(-4 0)">
         {/* ── FRONT DOOR (203cm opening — the second scale cue) ── */}
         <rect
             x={DOOR_X - CASING}
@@ -115,7 +116,7 @@ const EntrywayScene = ({ wallHex = '#f4f4f4', isDarkWall = false }) => (
             layout, and it's the more entryway-ish detail anyway. */}
         {/* The rail's original left edge was x=26. Keep the grouped scene
             artefact 2 units from the viewport edge and 9 units lower. */}
-        <g data-artefact="hanging-rack" transform="translate(-24 9)">
+        <g data-artefact="hanging-rack" transform="translate(-20 9)">
             <rect x="26" y={FLOOR_Y - 168} width="78" height="5" rx="1.5" fill="#6d5238" />
             <rect x="26" y={FLOOR_Y - 163} width="78" height="2.5" fill="#000" opacity="0.15" />
             {[40, 65, 90].map((x) => (
@@ -125,6 +126,7 @@ const EntrywayScene = ({ wallHex = '#f4f4f4', isDarkWall = false }) => (
             <path d={`M58 ${FLOOR_Y - 154} C 58 ${FLOOR_Y - 166}, 74 ${FLOOR_Y - 166}, 74 ${FLOOR_Y - 154}`} stroke="#8a7156" strokeWidth="2" fill="none" />
             <rect x="52" y={FLOOR_Y - 154} width="28" height="34" rx="2" fill="#8d9382" />
             <rect x="52" y={FLOOR_Y - 154} width="28" height="5" fill="#000" opacity="0.12" />
+        </g>
         </g>
     </SceneShell>
 );

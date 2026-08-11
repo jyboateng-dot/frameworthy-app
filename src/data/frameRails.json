@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-10T03:53:28.001Z",
+  "generatedAt": "2026-08-11T19:38:22.136Z",
   "stripLength": 1024,
   "byQuality": {
     "cropped-from-frame": 40,
@@ -7,7 +7,13 @@
     "derived-from-corner": 123
   },
   "failures": [
-    "frame-83530"
+    "frame-83530",
+    "frame-6540",
+    "frame-11114",
+    "frame-11211",
+    "frame-11235",
+    "frame-83999",
+    "frame-84163"
   ],
   "rails": {
     "frame-83811": {
@@ -1945,9 +1951,9 @@
     "frame-6301": {
       "h": "/frames/rails/frame-6301-rail-h.webp",
       "v": "/frames/rails/frame-6301-rail-v.webp",
-      "thickness": 256,
-      "sourceRole": "corner",
-      "quality": "derived-from-corner"
+      "thickness": 248,
+      "sourceRole": "rail",
+      "quality": "scanned"
     },
     "frame-8981": {
       "h": "/frames/rails/frame-8981-rail-h.webp",

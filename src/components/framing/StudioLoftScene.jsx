@@ -114,6 +114,8 @@ const StudioLoftScene = ({ wallHex = '#f4f4f4', isDarkWall = false }) => {
                 <rect x="0" y={FLOOR_Y} width="420" height={SKIRT_H} fill={skirting} />
             </g>
 
+            <g transform="translate(-4 0)">
+
             {/* ── RUG ── */}
             <rect x="90" y={FLOOR_Y + SKIRT_H + 6} width="240" height="18" rx="2" fill={isDarkWall ? '#3a3733' : '#cfc6b8'} opacity="0.85" />
 
@@ -159,6 +161,7 @@ const StudioLoftScene = ({ wallHex = '#f4f4f4', isDarkWall = false }) => {
             <path d={`M366 ${FLOOR_Y - 46} C 386 ${FLOOR_Y - 56}, 392 ${FLOOR_Y - 40}, 372 ${FLOOR_Y - 37}`} fill="#557a4d" opacity="0.92" />
 
             {/* Ambient occlusion where wall meets floor — grounds the room. */}
+            </g>
             <rect x="0" y={FLOOR_Y - 14} width="420" height="14" fill={shadow} opacity="0.35" style={{ filter: 'blur(4px)' }} />
         </svg>
     );

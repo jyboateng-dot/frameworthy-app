@@ -69,6 +69,8 @@ const DiningRoomScene = ({ wallHex = '#f4f4f4', isDarkWall = false }) => (
             </linearGradient>
         </defs>
 
+        <g transform="translate(-4 0)">
+
         {/* ── RUG ── */}
         <rect
             x="88"
@@ -117,6 +119,7 @@ const DiningRoomScene = ({ wallHex = '#f4f4f4', isDarkWall = false }) => (
         <rect x="418" y={FLOOR_Y - 65} width="5" height="65" fill="#5c4632" />
         <rect x="380" y={FLOOR_Y - 34} width="40" height="4" rx="1.5" fill="#5c4632" />
         <path d={`M394 ${FLOOR_Y - 70} L406 ${FLOOR_Y - 70} L404 ${FLOOR_Y - 88} L396 ${FLOOR_Y - 88} Z`} fill="#a9bdc4" opacity="0.85" />
+        </g>
     </SceneShell>
 );
 

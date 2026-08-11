@@ -35,6 +35,10 @@ const MANIFEST = 'src/data/frameRails.json';
 // that 335 pairs stay a reasonable payload.
 const STRIP_LENGTH = 1024;
 const MAX_THICKNESS = 256;
+// Corner-derived rails can retain a sliver of the photographed sweep or
+// mitre at either terminal. Those slivers repeat as bright cross-seams in
+// the visualizer, so remove them before the rail is normalized for tiling.
+const DERIVED_END_TRIM_RATIO = 0.06;
 
 const toDisk = (p) => p.replace('/frames/assets', ASSET_ROOT);
 
@@ -116,7 +120,11 @@ async function fromFlatScan(file) {
     // sawn cut — a pale end-grain band that tiles into a hard seam every
     // repeat. Dropping a little from each end costs nothing: the strip is
     // resampled to a fixed length anyway.
-    const trim = Math.floor(info.width * 0.04);
+    // Supplier rail photos can place a deep, angled mitre/end-cap well inside
+    // one side of the image (not merely at the outer few pixels). Keep only
+    // the central, parallel section: it is the part that can be repeated
+    // continuously around a rendered frame without creating cross-seams.
+    const trim = Math.floor(info.width * 0.18);
     const left = trim;
     const width = info.width - trim * 2;
     if (width < 64) return sharp(file).removeAlpha().extract({ left: 0, top, width: info.width, height });
@@ -403,7 +411,18 @@ for (const frame of catalogue.frames) {
 
     const meta = await built.metadata();
     const thickness = Math.min(MAX_THICKNESS, meta.height);
-    const horizontal = await built
+    const derivedEndTrim = usedRole === 'corner'
+        ? Math.floor(meta.width * DERIVED_END_TRIM_RATIO)
+        : 0;
+    const seamlessRail = derivedEndTrim > 0 && meta.width - (derivedEndTrim * 2) >= 64
+        ? built.extract({
+            left: derivedEndTrim,
+            top: 0,
+            width: meta.width - (derivedEndTrim * 2),
+            height: meta.height,
+        })
+        : built;
+    const horizontal = await seamlessRail
         .resize({ width: STRIP_LENGTH, height: thickness, fit: 'fill' })
         .webp({ quality: 88 })
         .toBuffer();

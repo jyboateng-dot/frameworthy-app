@@ -63,6 +63,7 @@ const BedroomScene = ({ wallHex = '#f4f4f4', isDarkWall = false }) => (
         wallHex={wallHex}
         isDarkWall={isDarkWall}
     >
+        <g transform="translate(-4 0)">
         {/* ── RUG ── */}
         <rect
             x="70"
@@ -98,6 +99,7 @@ const BedroomScene = ({ wallHex = '#f4f4f4', isDarkWall = false }) => (
 
         {/* ── THROW BLANKET over the foot of the bed ── */}
         <rect x={BED_X + 6} y={MATTRESS_TOP + 22} width={BED_W - 12} height="12" rx="3" fill="#8d9382" opacity="0.9" />
+        </g>
     </SceneShell>
 );
 

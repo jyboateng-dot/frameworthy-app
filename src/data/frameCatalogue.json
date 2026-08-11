@@ -515,9 +515,12 @@
       "rabbetDepthIn": 0.25,
       "rabbetDepthSource": "details.json",
       "thumbnail": "/frames/assets/american-flag-picture-frame/9565-a.jpg",
-      "textureSource": "corner",
-      "textureDerived": true,
+      "textureSource": "rail",
+      "textureDerived": false,
       "assets": {
+        "rail": [
+          "/frames/assets/traditional-antique-gold-picture-frame/6301_framingengine_1.jpg"
+        ],
         "corner": [
           "/frames/assets/american-flag-picture-frame/9565-a.jpg",
           "/frames/assets/american-flag-picture-frame/9565-b.jpg"
@@ -8427,6 +8430,132 @@
         ],
         "assembled": [
           "/frames/assets/yellow-square-with-bevel-lip-picture-frame/imagemanipulator_default_swap_80299.png"
+        ]
+      }
+    },
+    {
+      "id": "frame-6540",
+      "sku": "6540",
+      "slug": "gold-bamboo-picture-frame-with-decorative-edge",
+      "name": "Gold Bamboo with Decorative Edge",
+      "sourceUrl": "https://frameworthy.com/gold-bamboo-picture-frame-with-decorative-edge.html",
+      "mouldingWidthIn": 1.75,
+      "mouldingWidthSource": "supplier frame-builder API",
+      "rabbetDepthIn": 0.375,
+      "rabbetDepthSource": "supplier frame-builder API",
+      "thumbnail": "/frames/render-assets/frame-6540-corner-1.webp",
+      "textureSource": "strip",
+      "textureDerived": false,
+      "assets": {
+        "strip": [
+          "/frames/render-assets/frame-6540-front-h.webp"
+        ],
+        "corner": [
+          "/frames/render-assets/frame-6540-corner-1.webp"
+        ]
+      }
+    },
+    {
+      "id": "frame-11114",
+      "sku": "11114",
+      "slug": "modern-silver-picture-frame",
+      "name": "Modern Silver",
+      "sourceUrl": "https://frameworthy.com/modern-silver-picture-frame.html",
+      "mouldingWidthIn": 1.25,
+      "mouldingWidthSource": "supplier frame-builder API",
+      "rabbetDepthIn": 0.75,
+      "rabbetDepthSource": "supplier frame-builder API",
+      "thumbnail": "/frames/render-assets/frame-11114-corner-1.webp",
+      "textureSource": "strip",
+      "textureDerived": false,
+      "assets": {
+        "strip": [
+          "/frames/render-assets/frame-11114-front-h.webp"
+        ],
+        "corner": [
+          "/frames/render-assets/frame-11114-corner-1.webp"
+        ]
+      }
+    },
+    {
+      "id": "frame-11211",
+      "sku": "11211",
+      "slug": "magan",
+      "name": "Magan",
+      "sourceUrl": "https://frameworthy.com/magan.html",
+      "mouldingWidthIn": 2.75,
+      "mouldingWidthSource": "supplier frame-builder API",
+      "rabbetDepthIn": 0.4375,
+      "rabbetDepthSource": "supplier frame-builder API",
+      "thumbnail": "/frames/render-assets/frame-11211-corner-1.webp",
+      "textureSource": "strip",
+      "textureDerived": false,
+      "assets": {
+        "strip": [
+          "/frames/render-assets/frame-11211-front-h.webp"
+        ],
+        "corner": [
+          "/frames/render-assets/frame-11211-corner-1.webp"
+        ]
+      }
+    },
+    {
+      "id": "frame-11235",
+      "sku": "11235",
+      "slug": "white-washed-ornate-picture-frame",
+      "name": "Ornate White Washed",
+      "sourceUrl": "https://frameworthy.com/white-washed-ornate-picture-frame.html",
+      "mouldingWidthIn": 1.25,
+      "mouldingWidthSource": "supplier frame-builder API",
+      "rabbetDepthIn": 0.375,
+      "rabbetDepthSource": "supplier frame-builder API",
+      "thumbnail": "/frames/11235_a_1.jpg",
+      "textureSource": "strip",
+      "textureDerived": false,
+      "assets": {
+        "strip": [
+          "/frames/render-assets/frame-11235-front-h.webp"
+        ]
+      }
+    },
+    {
+      "id": "frame-83999",
+      "sku": "83999",
+      "slug": "slate-grey-with-angled-lip-deep-shadow-box",
+      "name": "Slate Grey With Angled Lip Deep Shadow Box",
+      "sourceUrl": "https://frameworthy.com/slate-grey-with-angled-lip-deep-shadow-box.html",
+      "mouldingWidthIn": 0.75,
+      "mouldingWidthSource": "supplier frame-builder API",
+      "rabbetDepthIn": 1,
+      "rabbetDepthSource": "supplier frame-builder API",
+      "thumbnail": "/frames/83999_a_2.jpg",
+      "textureSource": "strip",
+      "textureDerived": false,
+      "assets": {
+        "strip": [
+          "/frames/render-assets/frame-83999-front-h.webp"
+        ]
+      }
+    },
+    {
+      "id": "frame-84163",
+      "sku": "84163",
+      "slug": "distressed-white-square-picture-frame",
+      "name": "Distressed White Square",
+      "sourceUrl": "https://frameworthy.com/distressed-white-square-picture-frame.html",
+      "mouldingWidthIn": 0.75,
+      "mouldingWidthSource": "supplier frame-builder API",
+      "rabbetDepthIn": 1.125,
+      "rabbetDepthSource": "supplier frame-builder API",
+      "thumbnail": "/frames/render-assets/frame-84163-corner-1.webp",
+      "textureSource": "strip",
+      "textureDerived": false,
+      "assets": {
+        "strip": [
+          "/frames/render-assets/frame-84163-front-h.webp"
+        ],
+        "corner": [
+          "/frames/render-assets/frame-84163-corner-1.webp"
         ]
       }
     }

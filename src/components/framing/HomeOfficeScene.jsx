@@ -58,6 +58,8 @@ const HomeOfficeScene = ({ wallHex = '#f4f4f4', isDarkWall = false }) => (
             </linearGradient>
         </defs>
 
+        <g transform="translate(-4 0)">
+
         {/* ── FLOATING SHELF (right) ── 137cm up, clear of a 160cm-wide piece */}
         <rect x="282" y="88" width="70" height="5" rx="1.5" fill="#84663f" />
         <rect x="282" y="93" width="70" height="3" fill="#000" opacity="0.15" />
@@ -108,6 +110,7 @@ const HomeOfficeScene = ({ wallHex = '#f4f4f4', isDarkWall = false }) => (
         <ellipse cx="46" cy={FLOOR_Y + 3} rx="16" ry="4" fill={`url(#${ID}-contact)`} />
         <path d={`M34 ${FLOOR_Y} L58 ${FLOOR_Y} L56 ${FLOOR_Y - 32} L36 ${FLOOR_Y - 32} Z`} fill="#8e8377" />
         <rect x="35" y={FLOOR_Y - 35} width="22" height="4" rx="1.5" fill="#7d7266" />
+        </g>
     </SceneShell>
 );
 
