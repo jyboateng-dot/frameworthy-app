@@ -1777,6 +1777,12 @@ const CustomizeFramePage = ({
                                 // In full-screen mobile the note is a real footer below
                                 // this zone, not an overlay on top of the rendering.
                                 ? 'top-0 bottom-[calc(env(safe-area-inset-bottom)+4.5rem)] h-auto sm:bottom-0 sm:h-full'
+                                // A room is the visualizer background, not a scale cue
+                                // beneath the frame. Giving it the complete port prevents
+                                // the lower half of the room from being clipped by the
+                                // plain-wall frame-positioning zone.
+                                : activeRoom
+                                    ? 'inset-0 h-full'
                                 : 'top-10 h-[calc(65%-2.5rem)]'
                         }`}
                         onClick={(e) => {
