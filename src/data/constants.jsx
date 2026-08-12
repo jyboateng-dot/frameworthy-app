@@ -3,7 +3,13 @@
 // than inlined separately in App.jsx) so CustomizeFramePage's orientation
 // auto-detect effect can recognize it and skip overriding the intended
 // portrait default with this placeholder's own shape.
-export const DEFAULT_DEMO_IMAGE = 'https://images.unsplash.com/photo-1526045478516-99145907023c?auto=format&fit=crop&w=1600&q=80&sat=-20&con=-10';
+const DEFAULT_DEMO_IMAGE_BASE = 'https://images.unsplash.com/photo-1526045478516-99145907023c?auto=format&fit=crop&q=80&sat=-20&con=-10';
+export const getDemoImageForOrientation = (orientation = 'portrait') => (
+    orientation === 'landscape'
+        ? `${DEFAULT_DEMO_IMAGE_BASE}&w=1600&h=1000`
+        : `${DEFAULT_DEMO_IMAGE_BASE}&w=1000&h=1600`
+);
+export const DEFAULT_DEMO_IMAGE = getDemoImageForOrientation('landscape');
 
 // Prices are GHS, calibrated against real Ghana custom-framing market rates
 // (~GHS 45 base cost + ~GHS 1.05/sq in), not a straight USD->GHS relabel.

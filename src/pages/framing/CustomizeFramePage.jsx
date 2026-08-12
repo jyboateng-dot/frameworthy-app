@@ -14,12 +14,13 @@ import {
     Maximize2,
     X
 } from 'lucide-react';
-import { FRAME_STYLES, FRAME_SIZES, MAT_COLORS, formatDimensions, findSizeByDimension, parseCustomSize, DEFAULT_DEMO_IMAGE } from '../../data/constants';
+import { FRAME_STYLES, FRAME_SIZES, MAT_COLORS, formatDimensions, findSizeByDimension, parseCustomSize, DEFAULT_DEMO_IMAGE, getDemoImageForOrientation } from '../../data/constants';
 import { ROOM_SCENES, computeRoomPlacement } from '../../data/roomScenes';
 import { ROOM_SCENE_COMPONENTS } from '../../components/framing/roomSceneComponents';
 import ScenePicker from '../../components/framing/ScenePicker';
 import { useHoverDropdown } from '../../hooks/useHoverDropdown';
 import { getFrameRail, getRailTextureStyle, getRailShading } from '../../utils/frameRail';
+import { getMatReveal } from '../../utils/matting';
 import WEB_MET_DIMS from '../../data/web_met_dims.json';
 import { useUnit } from '../../context/UnitContext';
 import { useCart } from '../../context/CartContext';
@@ -278,7 +279,10 @@ const CustomizeFramePage = ({
     const { user } = useAuth();
     const [showAuthModal, setShowAuthModal] = useState(false);
     
-    const isPlaceholder = uploadedImage === 'https://images.unsplash.com/photo-1526045478516-99145907023c?auto=format&fit=crop&w=1600&q=80&sat=-20&con=-10';
+    // Also recognises the previous URL shape so an already-open dev session
+    // immediately adopts the orientation-aware crop after hot reload.
+    const isPlaceholder = uploadedImage === DEFAULT_DEMO_IMAGE
+        || uploadedImage?.includes('images.unsplash.com/photo-1526045478516-99145907023c');
     const hasImage = Boolean((uploadedImage && !isPlaceholder) || productionImage || (collageImages && collageImages.length > 0));
     
     // Core State
@@ -873,28 +877,12 @@ const CustomizeFramePage = ({
         return { height: finalHeight, scale };
     })();
 
-    // Dynamically calculate the actual physical inch size of the mat based on the qualitative choice and frame size
-    const getMatSizeInches = () => {
-        if (matWidth === 'none' || !selectedSize) return 0;
-        const maxDim = Math.max(selectedSize.width, selectedSize.height);
-        
-        if (maxDim <= 12) { // Small
-            if (matWidth === 'narrow') return 1.0;
-            if (matWidth === 'standard') return 1.5;
-            if (matWidth === 'wide') return 2.0;
-        } else if (maxDim <= 20) { // Medium
-            if (matWidth === 'narrow') return 1.5;
-            if (matWidth === 'standard') return 2.0;
-            if (matWidth === 'wide') return 3.0;
-        } else { // Large
-            if (matWidth === 'narrow') return 2.0;
-            if (matWidth === 'standard') return 3.0;
-            if (matWidth === 'wide') return 4.0;
-        }
-        return 1.5;
-    };
-    const currentMatInches = getMatSizeInches();
-    
+    // Physical mat reveal in inches, per edge — see src/utils/matting.js for
+    // the size-tiered base widths and the bottom-weighting rationale. Shared
+    // with the order-thumbnail capture below so the two never disagree.
+    const matReveal = getMatReveal(matWidth, selectedSize);
+    const currentMatInches = matReveal.topIn;
+
 
     useEffect(() => {
         if (!uploadedImage) {
@@ -1178,11 +1166,16 @@ const CustomizeFramePage = ({
                 ctx.fillRect(offsetX, offsetY, w, h);
             }
 
-            const matPct = (!isCanvasPrint && !isCanvasGlazing && matWidth !== 'none') ? ({ narrow: 0.04, standard: 0.06, wide: 0.08 }[matWidth] || 0.04) : 0;
-            const matW = Math.round(w * matPct);
-            const matH = Math.round(h * matPct);
+            // Same size-tiered, bottom-weighted formula the live visualizer
+            // uses (src/utils/matting.js) — previously this capture had its
+            // own flat percentage table that could disagree with what the
+            // customer actually saw on screen.
+            const thumbMatReveal = (!isCanvasPrint && !isCanvasGlazing) ? getMatReveal(matWidth, selectedSize) : { topIn: 0, sideIn: 0, bottomIn: 0 };
+            const matW = Math.round(w * ((thumbMatReveal.sideIn / sizeW) || 0));
+            const matHTop = Math.round(h * ((thumbMatReveal.topIn / sizeH) || 0));
+            const matHBottom = Math.round(h * ((thumbMatReveal.bottomIn / sizeH) || 0));
             const matLeft = offsetX + borderW, matTop = offsetY + borderH, matRight = offsetX + w - borderW, matBottom = offsetY + h - borderH;
-            if (matPct > 0) {
+            if (thumbMatReveal.topIn > 0) {
                 ctx.fillStyle = matColor?.hex || '#ffffff';
                 ctx.fillRect(matLeft, matTop, matRight - matLeft, matBottom - matTop);
             }
@@ -1201,9 +1194,9 @@ const CustomizeFramePage = ({
             const overlapPx = isTraditionalCanvas ? Math.round(Math.min(borderW, borderH) * 0.5) : 0;
 
             const artLeft = matLeft + matW + gapPx - overlapPx;
-            const artTop = matTop + matH + gapPx - overlapPx;
+            const artTop = matTop + matHTop + gapPx - overlapPx;
             const artW = Math.max(1, (matRight - matW - gapPx + overlapPx) - artLeft);
-            const artH = Math.max(1, (matBottom - matH - gapPx + overlapPx) - artTop);
+            const artH = Math.max(1, (matBottom - matHBottom - gapPx + overlapPx) - artTop);
 
             // Canvas prints (both the frame-less Gallery Wrap and a regular
             // frame with Canvas Print glazing) wrap edge-to-edge (cover);
@@ -1961,15 +1954,33 @@ const CustomizeFramePage = ({
                                         * largeFormatBoost,
                                 ),
                             );
-                            const mouldingPctW = (visualRailPx / renderedFrameWidthPx) * 100;
-                            const mouldingPctH = (visualRailPx / renderedFrameHeightPx) * 100;
+                            // Small frames need a 3px readability floor in the resting
+                            // view. If that same floor is enlarged in hover inspection it
+                            // reads like an exaggerated, thick moulding. Ease only that
+                            // smallest range back toward its true proportion on hover;
+                            // default, touch max-zoom, fullscreen and larger frames retain
+                            // their existing geometry.
+                            const smallFrameHoverProgress = Math.max(
+                                0,
+                                Math.min(1, (referenceFrameWidthPx * 1.5 - renderedFrameWidthPx) / (referenceFrameWidthPx * 0.5)),
+                            );
+                            const hoverRailFactor = isHovered && !isMaxZoom && !isFullScreen
+                                ? 1 - (smallFrameHoverProgress * 0.25)
+                                : 1;
+                            const effectiveVisualRailPx = visualRailPx * hoverRailFactor;
+                            const mouldingPctW = (effectiveVisualRailPx / renderedFrameWidthPx) * 100;
+                            const mouldingPctH = (effectiveVisualRailPx / renderedFrameHeightPx) * 100;
                             
-                            // Mat inset as % of frame width/height
-                            // Clamp the max inset so we don't mathematically collapse the artwork to 0 or negative
-                            const rawMatPctW = matWidth !== 'none' ? (currentMatInches / wInch) * 100 : 0;
-                            const rawMatPctH = matWidth !== 'none' ? (currentMatInches / hInch) * 100 : 0;
+                            // Mat inset as % of frame width/height.
+                            // Clamp the max inset so we don't mathematically collapse the artwork to 0 or negative.
+                            // Top/bottom differ (matReveal.bottomIn > matReveal.topIn) — the
+                            // standard bottom-weighted mat convention, see src/utils/matting.js.
+                            const rawMatPctW = (matReveal.sideIn / wInch) * 100;
+                            const rawMatPctTop = (matReveal.topIn / hInch) * 100;
+                            const rawMatPctBottom = (matReveal.bottomIn / hInch) * 100;
                             const matPctW = Math.max(0, Math.min(rawMatPctW, 45 - mouldingPctW));
-                            const matPctH = Math.max(0, Math.min(rawMatPctH, 45 - mouldingPctH));
+                            const matPctTop = Math.max(0, Math.min(rawMatPctTop, 45 - mouldingPctH));
+                            const matPctBottom = Math.max(0, Math.min(rawMatPctBottom, 45 - mouldingPctH));
 
                             // Canvas Print mount styles (glassType 'canvas'): Floater reveals a
                             // small gap between the canvas edge and the frame's inner wall;
@@ -2093,7 +2104,13 @@ const CustomizeFramePage = ({
                             // inspiration pick. getThumbnailUrl no-ops for blob:/data:/non-
                             // Cloudinary URLs, so user uploads and external sources render
                             // exactly as before.
-                            const displayImage = getThumbnailUrl(uploadedImage, 1400);
+                            // The starter image is a crop, not customer content. Match
+                            // that crop to the selected frame orientation; real uploads
+                            // and catalogue/preset images always keep their original file.
+                            const visualizerImage = isPlaceholder
+                                ? getDemoImageForOrientation(orientation)
+                                : uploadedImage;
+                            const displayImage = getThumbnailUrl(visualizerImage, 1400);
                             // Filling the opening edge-to-edge (object-cover) only
                             // makes sense when the image's own orientation matches
                             // the frame's — a landscape photo forced to cover a tall
@@ -2395,8 +2412,8 @@ const CustomizeFramePage = ({
                                         <div
                                             className={`absolute overflow-hidden transition-all duration-300 ${isCanvasGlazing && canvasMountStyle === 'traditional' ? 'z-[5]' : 'z-20'} ${selectedFrame?.id === 'frame-canvas' || isCanvasGlazing ? 'shadow-[inset_0_0_0_1px_rgba(255,255,255,0.1)]' : 'shadow-[inset_0_1px_3px_rgba(0,0,0,0.1)]'}`}
                                         style={{
-                                            top: selectedFrame?.id === 'frame-canvas' || isPreset ? '0%' : isCanvasGlazing ? (canvasMountStyle === 'floater' ? `${mouldingPctH + floaterGapPctH}%` : `${Math.max(0, mouldingPctH - traditionalOverlapPctH)}%`) : `${mouldingPctH + matPctH}%`,
-                                            bottom: selectedFrame?.id === 'frame-canvas' || isPreset ? '0%' : isCanvasGlazing ? (canvasMountStyle === 'floater' ? `${mouldingPctH + floaterGapPctH}%` : `${Math.max(0, mouldingPctH - traditionalOverlapPctH)}%`) : `${mouldingPctH + matPctH}%`,
+                                            top: selectedFrame?.id === 'frame-canvas' || isPreset ? '0%' : isCanvasGlazing ? (canvasMountStyle === 'floater' ? `${mouldingPctH + floaterGapPctH}%` : `${Math.max(0, mouldingPctH - traditionalOverlapPctH)}%`) : `${mouldingPctH + matPctTop}%`,
+                                            bottom: selectedFrame?.id === 'frame-canvas' || isPreset ? '0%' : isCanvasGlazing ? (canvasMountStyle === 'floater' ? `${mouldingPctH + floaterGapPctH}%` : `${Math.max(0, mouldingPctH - traditionalOverlapPctH)}%`) : `${mouldingPctH + matPctBottom}%`,
                                             left: selectedFrame?.id === 'frame-canvas' || isPreset ? '0%' : isCanvasGlazing ? (canvasMountStyle === 'floater' ? `${mouldingPctW + floaterGapPctW}%` : `${Math.max(0, mouldingPctW - traditionalOverlapPctW)}%`) : `${mouldingPctW + matPctW}%`,
                                             right: selectedFrame?.id === 'frame-canvas' || isPreset ? '0%' : isCanvasGlazing ? (canvasMountStyle === 'floater' ? `${mouldingPctW + floaterGapPctW}%` : `${Math.max(0, mouldingPctW - traditionalOverlapPctW)}%`) : `${mouldingPctW + matPctW}%`,
                                             backgroundColor: (selectedFrame?.id !== 'frame-canvas' && !isCanvasGlazing && matWidth !== 'none' && !isPreset) ? matColor.hex : 'transparent'
