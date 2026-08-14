@@ -37,14 +37,16 @@ const SceneShell = ({
     floorBottomHex = '#6f5238',
     wallHex = '#f4f4f4',
     isDarkWall = false,
+    canvasInsetLeftCm = 0,
     children,
 }) => {
     // Furniture keeps its own palette rather than deriving from the wall, so it
     // stays readable against both a near-white and a near-black wall. Only the
     // ambient shading flips, since a dark wall bounces far less light.
-    const shadow = isDarkWall ? 'rgba(0,0,0,0.55)' : 'rgba(28,26,23,0.16)';
     const skirting = isDarkWall ? 'rgba(255,255,255,0.10)' : 'rgba(28,26,23,0.10)';
     const seamCount = Math.ceil(widthCm / seamSpacingCm);
+    const canvasX = -canvasInsetLeftCm;
+    const canvasWidthCm = widthCm + canvasInsetLeftCm;
 
     return (
         // The caller sizes the scene box to this viewBox's exact aspect ratio,
@@ -52,7 +54,7 @@ const SceneShell = ({
         // in the viewBox mapping to a fixed fraction of the rendered box, and
         // therefore keeps the artwork placement math a direct ratio.
         <svg
-            viewBox={`0 0 ${widthCm} ${heightCm}`}
+            viewBox={`${canvasX} 0 ${canvasWidthCm} ${heightCm}`}
             preserveAspectRatio="xMidYMid meet"
             className="w-full h-full"
             xmlns="http://www.w3.org/2000/svg"
@@ -61,31 +63,20 @@ const SceneShell = ({
             <defs>
                 {/* Light falls off toward the floor and corners — without this
                     the flat fill reads as a colour swatch, not a wall. */}
-                <radialGradient id={`${id}-wall-light`} cx="50%" cy="34%" r="78%">
-                    <stop offset="0%" stopColor="#fff" stopOpacity={isDarkWall ? 0.16 : 0.55} />
-                    <stop offset="60%" stopColor="#fff" stopOpacity={isDarkWall ? 0.05 : 0.16} />
-                    <stop offset="100%" stopColor="#000" stopOpacity={isDarkWall ? 0.28 : 0.10} />
-                </radialGradient>
                 <linearGradient id={`${id}-floor`} x1="0" y1="0" x2="0" y2="1">
                     <stop offset="0%" stopColor={floorTopHex} />
                     <stop offset="100%" stopColor={floorBottomHex} />
                 </linearGradient>
-                {/* Contact shadow beneath furniture. */}
-                <radialGradient id={`${id}-contact`} cx="50%" cy="50%" r="50%">
-                    <stop offset="0%" stopColor="#000" stopOpacity="0.38" />
-                    <stop offset="100%" stopColor="#000" stopOpacity="0" />
-                </radialGradient>
             </defs>
 
             {/* ── WALL ── */}
-            <rect x="0" y="0" width={widthCm} height={floorLineCm} fill={wallHex} />
-            <rect x="0" y="0" width={widthCm} height={floorLineCm} fill={`url(#${id}-wall-light)`} />
+            <rect x={canvasX} y="0" width={canvasWidthCm} height={floorLineCm} fill={wallHex} />
 
             {/* ── FLOOR ── grouped as its own standalone artefact (floor fill
                 + seams together — they move as one surface), distinct from
                 the floorboard trim and the wall it sits against. */}
             <g data-artefact="floor">
-                <rect x="0" y={floorLineCm} width={widthCm} height={heightCm - floorLineCm} fill={`url(#${id}-floor)`} />
+                <rect x={canvasX} y={floorLineCm} width={canvasWidthCm} height={heightCm - floorLineCm} fill={`url(#${id}-floor)`} />
                 {/* Seams stay parallel: a receding/converging floor would contradict
                     the flat wall plane the artwork placement depends on. */}
                 {Array.from({ length: seamCount }, (_, i) => i * seamSpacingCm).map((x) => (
@@ -104,7 +95,7 @@ const SceneShell = ({
                 selectable artefact (distinct from the floor/wall it sits
                 between) rather than just another leaf shape in the scene. */}
             <g data-artefact="floorboard">
-                <rect x="0" y={floorLineCm} width={widthCm} height={skirtingCm} fill={skirting} />
+                <rect x={canvasX} y={floorLineCm} width={canvasWidthCm} height={skirtingCm} fill={skirting} />
             </g>
 
             {/* Furniture sits between the floor and the ambient occlusion below,
@@ -112,15 +103,6 @@ const SceneShell = ({
             {children}
 
             {/* Ambient occlusion where wall meets floor — grounds the room. */}
-            <rect
-                x="0"
-                y={floorLineCm - 14}
-                width={widthCm}
-                height="14"
-                fill={shadow}
-                opacity="0.35"
-                style={{ filter: 'blur(4px)' }}
-            />
         </svg>
     );
 };

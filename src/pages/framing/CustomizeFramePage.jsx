@@ -70,6 +70,17 @@ const getSideBackground = (side, frame) => {
     return hex;
 };
 
+// Catalogue dimensions describe the artwork opening. The frame's physical
+// outside size is that opening plus two measured moulding faces.
+const getMouldingWidthIn = (frame) => {
+    if (frame?.id === 'frame-canvas') return 0;
+    const fallback = frame?.widthCategory === 'wide'
+        ? 1.25
+        : frame?.widthCategory === 'narrow' ? 0.375 : 0.75;
+    const measured = Number(frame?.mouldingWidthIn);
+    return Number.isFinite(measured) && measured > 0 ? measured : fallback;
+};
+
 // Directional bevel shading, as an `overlay`-blended gradient over a texture
 // photo rather than baked into a flat colour — mid-grey (#808080) is the
 // identity colour for `overlay`, so this sweeps from a highlight through
@@ -325,6 +336,8 @@ const CustomizeFramePage = ({
     const hoverTimeoutRef = useRef(null);
     const lastTapRef = useRef(0);
     const zoneRef = useRef(null);
+    const visualizerPaneRef = useRef(null);
+    const zoomTouchStartRef = useRef(null);
     const [loadingAction, setLoadingAction] = useState(null);
     const [wasAddedToCart, setWasAddedToCart] = useState(false);
     // Always holds the uploadedImage value from the most recent render, updated
@@ -357,11 +370,12 @@ const CustomizeFramePage = ({
     const [loadingOverlayVisible, setLoadingOverlayVisible] = useState(false);
 
     // Dev-only visualizer edit overlay (drag/resize the frame and scene
-    // artefacts, freeform command bar). Dynamically imported behind
-    // import.meta.env.DEV so Vite tree-shakes it out of production builds
-    // entirely — it never ships to real customers. See src/devtools/visualizerEditor.js.
+    // artefacts, freeform command bar) — see src/devtools/visualizerEditor.js.
+    // Parked for now: flip this back to true to re-enable it. Deliberately
+    // NOT deleted; only whether it auto-installs is toggled here.
+    const VISUALIZER_EDITOR_ENABLED = false;
     useEffect(() => {
-        if (!import.meta.env.DEV) return undefined;
+        if (!VISUALIZER_EDITOR_ENABLED || !import.meta.env.DEV) return undefined;
         let cancelled = false;
         let installed = null;
         import('../../devtools/visualizerEditor').then(({ installVisualizerEditor }) => {
@@ -748,6 +762,37 @@ const CustomizeFramePage = ({
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, [isFullScreen]);
 
+    // Double-tap zoom exits on a deliberate tap inside the visualizer only.
+    // A held touch or drag is left alone so users can pan the enlarged frame.
+    useEffect(() => {
+        if (!isMaxZoom || isFullScreen) return undefined;
+        if (!window.matchMedia('(hover: none), (pointer: coarse)').matches) return undefined;
+        const pane = visualizerPaneRef.current;
+        if (!pane) return undefined;
+        const recordTouchStart = (event) => {
+            const touch = event.touches[0];
+            if (!touch) return;
+            zoomTouchStartRef.current = { x: touch.clientX, y: touch.clientY, at: Date.now() };
+        };
+        const dismissMaxZoomOnTap = (event) => {
+            const start = zoomTouchStartRef.current;
+            const touch = event.changedTouches[0];
+            zoomTouchStartRef.current = null;
+            if (!start || !touch) return;
+            const moved = Math.hypot(touch.clientX - start.x, touch.clientY - start.y);
+            const heldFor = Date.now() - start.at;
+            if (moved > 12 || heldFor > 280) return;
+            lastTapRef.current = 0;
+            setIsMaxZoom(false);
+        };
+        pane.addEventListener('touchstart', recordTouchStart, { passive: true });
+        pane.addEventListener('touchend', dismissMaxZoomOnTap, { passive: true });
+        return () => {
+            pane.removeEventListener('touchstart', recordTouchStart);
+            pane.removeEventListener('touchend', dismissMaxZoomOnTap);
+        };
+    }, [isMaxZoom, isFullScreen]);
+
     // Lets App.jsx's Android hardware-back-button handler close full screen
     // instead of navigating back a page — see visualizerFullScreenState.js.
     useEffect(() => {
@@ -805,13 +850,19 @@ const CustomizeFramePage = ({
     // Dimension Helpers
     const wInch = orientation === 'portrait' ? selectedSize?.width : selectedSize?.height;
     const hInch = orientation === 'portrait' ? selectedSize?.height : selectedSize?.width;
+    const isSquareFrame = Boolean(wInch && hInch && Math.abs(wInch - hInch) < 0.01);
+    const railWidthIn = getMouldingWidthIn(selectedFrame);
+    const innerWidthCm = (wInch || 0) * 2.54;
+    const innerHeightCm = (hInch || 0) * 2.54;
+    const railWidthCm = railWidthIn * 2.54;
+    const outerFrameWidthCm = innerWidthCm + (railWidthCm * 2);
+    const outerFrameHeightCm = innerHeightCm + (railWidthCm * 2);
 
     const visualizerMetrics = (() => {
         if (!wInch || !hInch) return { height: undefined, scale: 1 };
         // Constants matching the visualizer's rendering math
         const SOFA_CM = 160;
         const SOFA_BODY_PCT = 42; 
-        const innerWidthCm = wInch * 2.54;
         
         const containerWidth = isSideBySide ? windowSize.width * 0.70 : windowSize.width;
 
@@ -823,10 +874,10 @@ const CustomizeFramePage = ({
         // the scenes where it comes closest to the controls.
         const activeSceneForMetrics = roomSceneId ? ROOM_SCENES.find((s) => s.id === roomSceneId) : null;
         const frameWidthPct = activeSceneForMetrics
-            ? (innerWidthCm / activeSceneForMetrics.wallSpanCm) * 100
-            : (innerWidthCm / SOFA_CM) * SOFA_BODY_PCT;
+            ? (outerFrameWidthCm / (activeSceneForMetrics.wallSpanCm + (activeSceneForMetrics.canvasInsetLeftCm || 0))) * 100
+            : (outerFrameWidthCm / SOFA_CM) * SOFA_BODY_PCT;
         const frameWidthPx = (frameWidthPct / 100) * containerWidth;
-        const frameHeightPx = frameWidthPx * (hInch / wInch);
+        const frameHeightPx = frameWidthPx * (outerFrameHeightCm / outerFrameWidthCm);
         
         // Calculate sofa height in pixels (SVG aspect ratio is 800/300, width is 48% of screen)
         const sofaWidthPx = containerWidth * 0.48;
@@ -870,7 +921,13 @@ const CustomizeFramePage = ({
         // Ensure it doesn't get ridiculously small (lowered to 180px) or impossibly tall
         // Mobile max height is 65%, Desktop side-by-side uses ~80vh for the visualizer
         const maxHeight = isSideBySide ? windowSize.height * 0.80 : windowSize.height * 0.65;
-        const finalHeight = Math.max(180, Math.min(calculatedHeight, maxHeight));
+        // Reclaim 16px from the caption band below the visualizer for room
+        // scene headroom. Desktop receives the same space automatically from
+        // the flex layout when that caption shrinks; mobile needs it added to
+        // its explicit pane height here.
+        const CAPTION_TO_VIEWPORT_PX = 16;
+        const finalHeight = Math.max(180, Math.min(calculatedHeight, maxHeight))
+            + (isSideBySide ? 0 : CAPTION_TO_VIEWPORT_PX);
         
         const scale = calculatedHeight > maxHeight ? finalHeight / calculatedHeight : 1;
 
@@ -1500,7 +1557,29 @@ const CustomizeFramePage = ({
     // piece, the two would disagree and the lift would have no visible effect
     // — the piece would sit in the same spot with the room unmoved under it.
     const roomPlacement = activeRoom
-        ? computeRoomPlacement(activeRoom, wInch * 2.54, hInch * 2.54)
+        ? (() => {
+            const base = computeRoomPlacement(activeRoom, outerFrameWidthCm, outerFrameHeightCm);
+            if (!base) return base;
+            // Entryway-only, landscape-only: the console/vase clearance
+            // formula above hangs a piece at a height sized to clear the
+            // vase, not scaled to the piece's own height, so every
+            // orientation lands at the same distance above it (verified —
+            // portrait and landscape measure identically there). For a
+            // wide, short landscape crop that reads as hanging too far
+            // above the console specifically, so it gets an explicit,
+            // scene+orientation-scoped nudge down rather than a change to
+            // the shared formula (which stays correct for every other
+            // scene/orientation combination).
+            if (activeRoom.id === 'entryway' && orientation === 'landscape') {
+                const ENTRYWAY_LANDSCAPE_DROP_CM = 30;
+                return { ...base, topPct: base.topPct + (ENTRYWAY_LANDSCAPE_DROP_CM / activeRoom.sceneHeightCm) * 100 };
+            }
+            if (activeRoom.id === 'entryway' && orientation === 'portrait') {
+                const ENTRYWAY_PORTRAIT_DROP_CM = 10;
+                return { ...base, topPct: base.topPct + (ENTRYWAY_PORTRAIT_DROP_CM / activeRoom.sceneHeightCm) * 100 };
+            }
+            return base;
+        })()
         : null;
 
     const wallLuminance = (() => {
@@ -1521,7 +1600,7 @@ const CustomizeFramePage = ({
     if (!selectedSize || !selectedFrame) return <div className="min-h-screen bg-[#faf9f8]" />;
 
     return (
-        <div className={`flex ${isSideBySide ? 'flex-row h-[calc(100dvh-56px)] overflow-hidden' : 'flex-col min-h-[calc(100dvh-56px)]'} bg-[#faf9f8]`}>
+        <div className={`flex ${isSideBySide ? 'flex-row h-[calc(100dvh-47px)] overflow-hidden' : 'flex-col min-h-[calc(100dvh-47px)]'} bg-[#faf9f8]`}>
             
             {/* LEFT COLUMN: the visualizer, with the approximation note beneath it.
                 The note used to sit inside the pane, floating over the wall
@@ -1543,10 +1622,11 @@ const CustomizeFramePage = ({
                         // stays in view while the customization panel underneath scrolls.
                         // Desktop side-by-side already keeps it in view (fixed-height row,
                         // panel scrolls in its own container), so sticky is a no-op there.
-                        : `shrink-0 flex flex-col border-r border-stone-200 ${isSideBySide ? 'w-[70%] h-full' : 'w-full sticky top-[60px] z-30'}`
+                        : `shrink-0 flex flex-col border-r border-stone-200 ${isSideBySide ? 'w-[70%] h-full' : 'w-full sticky top-[calc(2.9375rem+env(safe-area-inset-top,0px))] z-30'}`
                 }
             >
             <div
+                ref={visualizerPaneRef}
                 data-testid="visualizer-pane"
                 className={`flex items-center justify-center transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${isMaxZoom ? 'overflow-auto' : 'overflow-hidden'} [scrollbar-gutter:stable] ${paneVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-95'} ${
                     isFullScreen
@@ -1717,10 +1797,7 @@ const CustomizeFramePage = ({
                     • baseThicknessPct = moulding as % of frame container width
                     • sideHeightPct = moulding as % of frame container height
                     ═══════════════════════════════════════════════════════════════ */}
-                <div 
-                    className={`relative h-full max-w-[1200px] mx-auto flex items-center justify-center mt-6 ${isSideBySide ? 'aspect-auto h-[85dvh] mt-12 w-full' : 'w-full'}`}
-                    style={{ width: visualizerMetrics.scale < 1 ? `${visualizerMetrics.scale * 100}%` : undefined }}
-                >
+                <div className="relative h-full w-full flex items-center justify-center">
                     
                     {/* ── FRAME POSITIONING ZONE ──
                         The reserved top inset has gone from 48/56px (the full
@@ -1765,18 +1842,30 @@ const CustomizeFramePage = ({
                         ZONE_TOP_PX must both stay at 40. */}
                     <div
                         ref={zoneRef}
-                        className={`absolute left-0 w-full flex flex-col items-center justify-center transition-all ${ZOOM_MOTION} ${
+                        className={`absolute left-0 w-full flex flex-col items-center transition-all ${ZOOM_MOTION} ${
+                            // Room scenes now anchor the frame via an explicit
+                            // top-of-zone pixel distance (roomSceneVerticalOffsetPx
+                            // below) instead of a margin-top delta from an assumed
+                            // flex-centred point. That assumption broke — silently
+                            // and by a non-obvious amount — the moment the zone's
+                            // own height stopped tracking the scene's rendered
+                            // height (exactly what 'inset-0 h-full' below does:
+                            // the zone can now be taller than the scene it holds).
+                            // flex-start makes the frame's natural (margin-top: 0)
+                            // position flush with the zone's top, so the offset is
+                            // a direct, unambiguous distance rather than a
+                            // cancellation of a centring point that has to be
+                            // predicted correctly to work at all.
+                            activeRoom && !isHovered && !isMaxZoom && !isFullScreen ? 'justify-start' : 'justify-center'
+                        } ${
                             isFullScreen
                                 // In full-screen mobile the note is a real footer below
                                 // this zone, not an overlay on top of the rendering.
                                 ? 'top-0 bottom-[calc(env(safe-area-inset-bottom)+4.5rem)] h-auto sm:bottom-0 sm:h-full'
-                                // A room is the visualizer background, not a scale cue
-                                // beneath the frame. Giving it the complete port prevents
-                                // the lower half of the room from being clipped by the
-                                // plain-wall frame-positioning zone.
-                                : activeRoom
-                                    ? 'inset-0 h-full'
-                                : 'top-10 h-[calc(65%-2.5rem)]'
+                                // Every visualizer mode shares the complete port. The
+                                // controls float above this canvas, rather than reserving
+                                // a smaller frame-only zone beneath them.
+                                : 'inset-0 h-full'
                         }`}
                         onClick={(e) => {
                             // This zone (not the outer visualizer pane) is
@@ -1806,9 +1895,17 @@ const CustomizeFramePage = ({
                             // Drawn scenes are looked up by id; a photographic
                             // one has no component and falls through to <img>.
                             const DrawnScene = activeRoom.tintable ? ROOM_SCENE_COMPONENTS[activeRoom.id] : null;
-                            const sceneW = zoneSize.width;
-                            const sceneH = sceneW * (activeRoom.sceneHeightCm / activeRoom.wallSpanCm);
-                            const sceneLeft = sceneW * (0.5 - activeRoom.hang.x / 100);
+                            const sceneCanvasWidthCm = activeRoom.wallSpanCm + (activeRoom.canvasInsetLeftCm || 0);
+                            // Fit the complete room inside the visualizer while
+                            // retaining its real-world aspect ratio. The shared
+                            // wall-colour canvas occupies any remaining space.
+                            const sceneScale = Math.min(
+                                zoneSize.width / sceneCanvasWidthCm,
+                                zoneSize.height / activeRoom.sceneHeightCm
+                            );
+                            const sceneW = sceneCanvasWidthCm * sceneScale;
+                            const sceneH = activeRoom.sceneHeightCm * sceneScale;
+                            const sceneLeft = (zoneSize.width - sceneW) / 2;
                             // Flush with the zone's own top, not centred on the hang
                             // point. sceneH comes purely from zone WIDTH and the
                             // room's real aspect ratio — nothing here relates it to
@@ -1827,7 +1924,11 @@ const CustomizeFramePage = ({
                             // wall/floor art with nothing placed against that edge).
                             // The frame's own position compensates for this — see
                             // roomSceneVerticalOffsetPx by the frame's marginTop.
-                            const sceneTop = 0;
+                            // Keep the floor anchored to the bottom of the port.
+                            // Any newly available vertical space therefore becomes
+                            // usable headroom above large frames, rather than being
+                            // split evenly above and below the room.
+                            const sceneTop = zoneSize.height - sceneH;
                             return (
                                 <div
                                     className={`absolute pointer-events-none z-0 transition-opacity ${CHROME_MOTION} ${
@@ -1839,25 +1940,34 @@ const CustomizeFramePage = ({
                                         // making a false one.
                                         isHovered || isMaxZoom || isFullScreen ? 'opacity-0' : 'opacity-100'
                                     }`}
-                                    style={{ left: sceneLeft, top: sceneTop, width: sceneW, height: sceneH }}
+                                    style={{ inset: 0, overflow: 'hidden', backgroundColor: wallColor.hex }}
                                     aria-hidden="true"
                                 >
-                                    {DrawnScene ? (
-                                        <DrawnScene wallHex={wallColor.hex} isDarkWall={isDarkWall} />
-                                    ) : (
-                                        <img src={activeRoom.image} alt="" className="w-full h-full object-fill" />
-                                    )}
-                                    {/* Continues the floor to the bottom of the panel so the
-                                        scene reads as full-bleed instead of a letterboxed
-                                        picture. Above the scene the panel's own wall colour
-                                        already matches, so only the floor needs this. */}
-                                    {activeRoom.floorHex && (
-                                        <div
-                                            data-artefact="floor-base"
-                                            className="absolute left-0 w-full"
-                                            style={{ top: '100%', height: '100vh', backgroundColor: activeRoom.floorHex }}
-                                        />
-                                    )}
+                                    <div
+                                        className="absolute"
+                                        style={{ left: sceneLeft, top: sceneTop, width: sceneW, height: sceneH }}
+                                    >
+                                        {DrawnScene ? (
+                                            <DrawnScene
+                                                wallHex={wallColor.hex}
+                                                isDarkWall={isDarkWall}
+                                                canvasInsetLeftCm={activeRoom.canvasInsetLeftCm || 0}
+                                            />
+                                        ) : (
+                                            <img src={activeRoom.image} alt="" className="w-full h-full object-fill" />
+                                        )}
+                                        {/* Continues the floor to the bottom of the panel so the
+                                            scene reads as full-bleed instead of a letterboxed
+                                            picture. Above the scene the panel's own wall colour
+                                            already matches, so only the floor needs this. */}
+                                        {activeRoom.floorHex && (
+                                            <div
+                                                data-artefact="floor-base"
+                                                className="absolute left-0 w-full"
+                                                style={{ top: '100%', height: '100vh', backgroundColor: activeRoom.floorHex }}
+                                            />
+                                        )}
+                                    </div>
                                 </div>
                             );
                         })()}
@@ -1872,8 +1982,6 @@ const CustomizeFramePage = ({
                             // This way a 160cm frame exactly overlaps the 160cm sofa body.
                             const SOFA_CM = 160;
                             const SOFA_BODY_PCT = 42; // sofa body occupies 42% of the parent container
-                            const innerWidthCm = wInch * 2.54;
-                            const innerHeightCm = hInch * 2.54;
                             // Both branches are the same conversion — physical cm to a
                             // percentage of this zone's width — differing only in what the
                             // zone represents. Against the sofa cue, the zone is scaled so
@@ -1882,23 +1990,21 @@ const CustomizeFramePage = ({
                             // exactly fill it), so the conversion is a direct ratio.
                             // (roomPlacement is computed once at component scope so the
                             // backdrop's offset and this share one hang height.)
+                            const roomSceneScale = activeRoom
+                                ? Math.min(
+                                    zoneSize.width / (activeRoom.wallSpanCm + (activeRoom.canvasInsetLeftCm || 0)),
+                                    zoneSize.height / activeRoom.sceneHeightCm
+                                )
+                                : 0;
+                            const pixelsPerCm = activeRoom
+                                ? roomSceneScale
+                                : (zoneSize.width * (SOFA_BODY_PCT / 100)) / SOFA_CM;
                             const frameWidthPct = roomPlacement
-                                ? roomPlacement.widthPct
-                                : (innerWidthCm / SOFA_CM) * SOFA_BODY_PCT;
+                                ? ((outerFrameWidthCm * pixelsPerCm) / zoneSize.width) * 100
+                                : (outerFrameWidthCm / SOFA_CM) * SOFA_BODY_PCT;
                             
-                            // Moulding: use the supplier's actual rail width, not
-                            // the old narrow/standard/wide visual bucket. A 3px
-                            // on-screen floor keeps a physically thin rail readable
-                            // on small frame previews without changing real scale.
-                            const fallbackRailIn = selectedFrame?.widthCategory === 'wide'
-                                ? 1.25
-                                : selectedFrame?.widthCategory === 'narrow' ? 0.375 : 0.75;
-                            const catalogueRailIn = Number(selectedFrame?.mouldingWidthIn);
-                            const railWidthIn = Number.isFinite(catalogueRailIn) && catalogueRailIn > 0
-                                ? catalogueRailIn
-                                : fallbackRailIn;
                             const renderedFrameWidthPx = Math.max(1, (frameWidthPct / 100) * zoneSize.width);
-                            const renderedFrameHeightPx = Math.max(1, renderedFrameWidthPx * (hInch / wInch));
+                            const renderedFrameHeightPx = Math.max(1, renderedFrameWidthPx * (outerFrameHeightCm / outerFrameWidthCm));
                             // Reference-view calibration: catalogue inches are
                             // relative style data, not literal screen pixels. The
                             // smallest catalogue format (13 × 18 cm / 5 × 7 in)
@@ -1908,76 +2014,17 @@ const CustomizeFramePage = ({
                             // the artwork. The rails are percentage based below, so
                             // hover, double-tap zoom and fullscreen still enlarge
                             // the rail by the exact same factor as the frame.
-                            const RAIL_PX_PER_IN_AT_REFERENCE_VIEW = 4;
-                            const MIN_LEGIBLE_RAIL_PX = 3;
-                            const REFERENCE_FRAME_WIDTH_CM = 12.7;
-                            const referenceFrameWidthPct = activeRoom
-                                ? (REFERENCE_FRAME_WIDTH_CM / activeRoom.wallSpanCm) * 100
-                                : (REFERENCE_FRAME_WIDTH_CM / SOFA_CM) * SOFA_BODY_PCT;
-                            const referenceFrameWidthPx = Math.max(
-                                1,
-                                (referenceFrameWidthPct / 100) * zoneSize.width,
-                            );
-                            const sizeCompensation = Math.sqrt(
-                                Math.max(1, renderedFrameWidthPx / referenceFrameWidthPx),
-                            );
-                            // Large-format work needs a little more visual presence
-                            // than the square-root curve alone provides. Begin that
-                            // assistance once the short side reaches 50cm, blend it
-                            // in gradually through 90cm, and use the short side so
-                            // portraits, landscapes, squares, and custom dimensions
-                            // all follow the same rule.
-                            const LARGE_FORMAT_START_CM = 50;
-                            const LARGE_FORMAT_FULL_CM = 90;
-                            const largeFormatProgress = Math.max(
-                                0,
-                                Math.min(
-                                    1,
-                                    (Math.min(innerWidthCm, innerHeightCm) - LARGE_FORMAT_START_CM)
-                                        / (LARGE_FORMAT_FULL_CM - LARGE_FORMAT_START_CM),
-                                ),
-                            );
-                            const smoothLargeFormatProgress = largeFormatProgress ** 2
-                                * (3 - (2 * largeFormatProgress));
-                            const largeFormatBoost = 1 + (smoothLargeFormatProgress * 0.65);
-                            const maxRailPx = Math.min(
-                                18,
-                                Math.min(renderedFrameWidthPx, renderedFrameHeightPx) * 0.18,
-                            );
-                            const visualRailPx = Math.max(
-                                MIN_LEGIBLE_RAIL_PX,
-                                Math.min(
-                                    maxRailPx,
-                                    railWidthIn
-                                        * RAIL_PX_PER_IN_AT_REFERENCE_VIEW
-                                        * sizeCompensation
-                                        * largeFormatBoost,
-                                ),
-                            );
-                            // Small frames need a 3px readability floor in the resting
-                            // view. If that same floor is enlarged in hover inspection it
-                            // reads like an exaggerated, thick moulding. Ease only that
-                            // smallest range back toward its true proportion on hover;
-                            // default, touch max-zoom, fullscreen and larger frames retain
-                            // their existing geometry.
-                            const smallFrameHoverProgress = Math.max(
-                                0,
-                                Math.min(1, (referenceFrameWidthPx * 1.5 - renderedFrameWidthPx) / (referenceFrameWidthPx * 0.5)),
-                            );
-                            const hoverRailFactor = isHovered && !isMaxZoom && !isFullScreen
-                                ? 1 - (smallFrameHoverProgress * 0.25)
-                                : 1;
-                            const effectiveVisualRailPx = visualRailPx * hoverRailFactor;
-                            const mouldingPctW = (effectiveVisualRailPx / renderedFrameWidthPx) * 100;
-                            const mouldingPctH = (effectiveVisualRailPx / renderedFrameHeightPx) * 100;
+                            const projectedRailPx = railWidthCm * pixelsPerCm;
+                            const mouldingPctW = (projectedRailPx / renderedFrameWidthPx) * 100;
+                            const mouldingPctH = (projectedRailPx / renderedFrameHeightPx) * 100;
                             
                             // Mat inset as % of frame width/height.
                             // Clamp the max inset so we don't mathematically collapse the artwork to 0 or negative.
                             // Top/bottom differ (matReveal.bottomIn > matReveal.topIn) — the
                             // standard bottom-weighted mat convention, see src/utils/matting.js.
-                            const rawMatPctW = (matReveal.sideIn / wInch) * 100;
-                            const rawMatPctTop = (matReveal.topIn / hInch) * 100;
-                            const rawMatPctBottom = (matReveal.bottomIn / hInch) * 100;
+                            const rawMatPctW = (matReveal.sideIn / (wInch + 2 * railWidthIn)) * 100;
+                            const rawMatPctTop = (matReveal.topIn / (hInch + 2 * railWidthIn)) * 100;
+                            const rawMatPctBottom = (matReveal.bottomIn / (hInch + 2 * railWidthIn)) * 100;
                             const matPctW = Math.max(0, Math.min(rawMatPctW, 45 - mouldingPctW));
                             const matPctTop = Math.max(0, Math.min(rawMatPctTop, 45 - mouldingPctH));
                             const matPctBottom = Math.max(0, Math.min(rawMatPctBottom, 45 - mouldingPctH));
@@ -1987,10 +2034,10 @@ const CustomizeFramePage = ({
                             // Traditional lets the frame's inner lip overlap and hide the canvas
                             // edge. Both a fixed physical inch amount converted to %, same
                             // derivation as matPct above, so they scale sensibly across sizes.
-                            const floaterGapPctW = (0.25 / wInch) * 100;
-                            const floaterGapPctH = (0.25 / hInch) * 100;
-                            const traditionalOverlapPctW = Math.min(0.375 / wInch * 100, mouldingPctW);
-                            const traditionalOverlapPctH = Math.min(0.375 / hInch * 100, mouldingPctH);
+                            const floaterGapPctW = (0.25 / (wInch + 2 * railWidthIn)) * 100;
+                            const floaterGapPctH = (0.25 / (hInch + 2 * railWidthIn)) * 100;
+                            const traditionalOverlapPctW = Math.min(0.375 / (wInch + 2 * railWidthIn) * 100, mouldingPctW);
+                            const traditionalOverlapPctH = Math.min(0.375 / (hInch + 2 * railWidthIn) * 100, mouldingPctH);
 
                             // ─── DYNAMIC ZOOM CLAMPING (Never Overlap/Cutoff) ───
                             const zoomScale = (() => {
@@ -2006,7 +2053,7 @@ const CustomizeFramePage = ({
 
                                 // Calculate unzoomed dimensions in pixels relative to the physical container
                                 const baseWidthPx = (frameWidthPct / 100) * zoneSize.width;
-                                const baseHeightPx = baseWidthPx * (hInch / wInch);
+                                const baseHeightPx = baseWidthPx * (outerFrameHeightCm / outerFrameWidthCm);
 
                                 // Safe zoom boundaries: never exceed 90% of zone height or 85% of
                                 // zone width. On mobile full-screen the zone itself stops above the
@@ -2052,32 +2099,56 @@ const CustomizeFramePage = ({
                             const pushDownAmount = (() => {
                                 if (!isMaxZoom) return 0;
                                 const baseWidthPx = (frameWidthPct / 100) * zoneSize.width;
-                                const baseHeightPx = baseWidthPx * (hInch / wInch);
+                                const baseHeightPx = baseWidthPx * (outerFrameHeightCm / outerFrameWidthCm);
                                 const targetHeight = baseHeightPx * zoomScale;
                                 const overflowTop = (targetHeight - zoneSize.height) / 2;
                                 return overflowTop > 0 ? (overflowTop * 2) + 40 : 0;
                             })();
 
-                            // The frame is otherwise just flex-centred in the zone
-                            // (plain wall/sofa mode relies entirely on that, and stays
-                            // exactly as-is here). A room scene now anchors its
-                            // backdrop to the zone's own top instead of centring the
-                            // hang point on the zone's midpoint — see the scene
-                            // backdrop's own sceneTop for why — so the frame needs an
-                            // explicit nudge to land where that anchoring puts the
-                            // hang point, rather than sitting at the zone's natural
-                            // (now wrong) centre. Reuses the same marginTop channel
-                            // pushDownAmount already uses; they never fight over it —
-                            // the room backdrop fades out during hover/max-zoom/full
-                            // screen (same condition gates this to 0 then), which is
-                            // the only time pushDownAmount is ever nonzero.
+                            // Plain wall/sofa mode is still pure flex-centring and
+                            // stays exactly as-is. A room scene anchors its backdrop
+                            // to the zone's own top (see the scene backdrop's own
+                            // sceneTop) and — since the zone above now also sets
+                            // justify-start for this case — the frame's natural
+                            // (margin-top: 0) position is flush with that same top,
+                            // not an assumed centre point. So this is a direct
+                            // top-of-zone distance to the hang point's pixel
+                            // position, minus half the frame's own height to land
+                            // its CENTRE (not its top) on the hang point — no
+                            // flex-centring math to predict or cancel out. Reuses
+                            // the same marginTop channel pushDownAmount already
+                            // uses; they never fight over it — the room backdrop
+                            // fades out during hover/max-zoom/full screen (same
+                            // condition gates this to 0 then), which is the only
+                            // time pushDownAmount is ever nonzero.
                             const roomSceneVerticalOffsetPx = (() => {
                                 if (!activeRoom || !roomPlacement) return 0;
                                 if (isHovered || isMaxZoom || isFullScreen) return 0;
-                                const sceneHForOffset = zoneSize.width * (activeRoom.sceneHeightCm / activeRoom.wallSpanCm);
-                                const desiredCenterY = (roomPlacement.topPct / 100) * sceneHForOffset;
-                                const naturalCenterY = zoneSize.height / 2;
-                                return desiredCenterY - naturalCenterY;
+                                const sceneCanvasWidthCm = activeRoom.wallSpanCm + (activeRoom.canvasInsetLeftCm || 0);
+                                const sceneScale = Math.min(
+                                    zoneSize.width / sceneCanvasWidthCm,
+                                    zoneSize.height / activeRoom.sceneHeightCm
+                                );
+                                const sceneHForOffset = activeRoom.sceneHeightCm * sceneScale;
+                                const sceneTop = zoneSize.height - sceneHForOffset;
+                                const desiredCenterY = sceneTop + (roomPlacement.topPct / 100) * sceneHForOffset;
+                                return desiredCenterY - renderedFrameHeightPx / 2;
+                            })();
+
+                            const roomSceneHorizontalOffsetPx = (() => {
+                                if (!activeRoom || !roomPlacement) return 0;
+                                if (isHovered || isMaxZoom || isFullScreen) return 0;
+                                const canvasInsetLeftCm = activeRoom.canvasInsetLeftCm || 0;
+                                const sceneCanvasWidthCm = activeRoom.wallSpanCm + canvasInsetLeftCm;
+                                const sceneScale = Math.min(
+                                    zoneSize.width / sceneCanvasWidthCm,
+                                    zoneSize.height / activeRoom.sceneHeightCm
+                                );
+                                const sceneW = sceneCanvasWidthCm * sceneScale;
+                                const sceneLeft = (zoneSize.width - sceneW) / 2;
+                                const hangXcm = (activeRoom.hang.x / 100) * activeRoom.wallSpanCm;
+                                const desiredCenterX = sceneLeft + (hangXcm + canvasInsetLeftCm) * sceneScale;
+                                return desiredCenterX - (zoneSize.width / 2);
                             })();
 
                             const pushRightAmount = (() => {
@@ -2108,7 +2179,7 @@ const CustomizeFramePage = ({
                             // that crop to the selected frame orientation; real uploads
                             // and catalogue/preset images always keep their original file.
                             const visualizerImage = isPlaceholder
-                                ? getDemoImageForOrientation(orientation)
+                                ? getDemoImageForOrientation(isSquareFrame ? 'square' : orientation)
                                 : uploadedImage;
                             const displayImage = getThumbnailUrl(visualizerImage, 1400);
                             // Filling the opening edge-to-edge (object-cover) only
@@ -2152,6 +2223,7 @@ const CustomizeFramePage = ({
                                         // this handler just made — a real double-tap netted zero
                                         // change, and only a third tap left a visible toggle.
                                         e.preventDefault();
+                                        if (isMaxZoom) return;
                                         const now = Date.now();
                                         const DOUBLE_TAP_DELAY = 300;
                                         if (now - lastTapRef.current < DOUBLE_TAP_DELAY) {
@@ -2182,15 +2254,18 @@ const CustomizeFramePage = ({
                                         width: isHovered || isMaxZoom || isFullScreen
                                             ? `${frameWidthPct * zoomScale}%`
                                             : `${frameWidthPct}%`,
-                                        aspectRatio: `${wInch} / ${hInch}`,
+                                        aspectRatio: `${outerFrameWidthCm} / ${outerFrameHeightCm}`,
                                         marginTop: `${pushDownAmount + roomSceneVerticalOffsetPx}px`,
                                         marginLeft: `${pushRightAmount}px`,
                                         // The general visualizer adjustment stays on the plain
                                         // wall. Room scenes already calculate a physical hanging
                                         // height from their furniture, so applying that extra
                                         // upward lift there would falsely widen the real gap.
+                                        // A contained room can be narrower than the port;
+                                        // follow its calibrated hang point rather than the
+                                        // port midpoint (notably in the entryway).
                                         transform: activeRoom
-                                            ? 'translateX(-11px)'
+                                            ? `translateX(${roomSceneHorizontalOffsetPx}px)`
                                             : 'translate(-11px, -35px)',
                                         touchAction: 'manipulation'
                                     }}
@@ -2493,9 +2568,9 @@ const CustomizeFramePage = ({
                     {!activeRoom && (() => {
                         const SOFA_CM_REF = 160;
                         const SOFA_BODY_PCT_REF = 42;
-                        const restFrameWidthPct = (wInch && hInch) ? ((wInch * 2.54) / SOFA_CM_REF) * SOFA_BODY_PCT_REF : 0;
+                        const restFrameWidthPct = (wInch && hInch) ? (outerFrameWidthCm / SOFA_CM_REF) * SOFA_BODY_PCT_REF : 0;
                         const restFrameWidthPx = (restFrameWidthPct / 100) * zoneSize.width;
-                        const restFrameHeightPx = (wInch && hInch) ? restFrameWidthPx * (hInch / wInch) : 0;
+                        const restFrameHeightPx = (wInch && hInch) ? restFrameWidthPx * (outerFrameHeightCm / outerFrameWidthCm) : 0;
                         const zoneTopOffsetPx = 40; // matches top-10 — see visualizerMetrics' ZONE_TOP_PX / the zone's own className comment for why
                         const SOFA_GAP_PX = 24;
                         const sofaTopPx = zoneTopOffsetPx + (zoneSize.height / 2) + (restFrameHeightPx / 2) + SOFA_GAP_PX;
@@ -2641,7 +2716,7 @@ const CustomizeFramePage = ({
                     // overlay. Inside the pane it had to stay small to avoid
                     // competing with the piece; down here it has its own band and
                     // reads as a caption, so it can be sized to be read.
-                    className="shrink-0 flex items-center justify-center select-none px-5 py-3 text-center text-[10px] sm:text-[12px] leading-relaxed tracking-wide text-stone-500 bg-[#faf9f8]"
+                    className="shrink-0 flex items-center justify-center select-none px-5 py-1 text-center text-[10px] sm:text-[12px] leading-relaxed tracking-wide text-stone-500 bg-[#faf9f8]"
                 >
                     <span className="-translate-y-[5px]">
                         Note: Visualizer renderings are digital approximations. Finished products will
@@ -2656,7 +2731,7 @@ const CustomizeFramePage = ({
                 hard-pop back in the instant it remounts after a full-screen
                 exit. */}
             {!isFullScreen && (
-            <div className={`flex flex-col relative shadow-[-10px_0_30px_rgba(0,0,0,0.02)] z-10 transition-all duration-300 ${paneVisible ? 'opacity-100' : 'opacity-0'} ${isSideBySide ? 'w-[30%] flex-none h-[calc(100dvh-56px)] overflow-hidden' : 'w-full flex-1 h-auto'}`} style={{ backgroundColor: wallColor.hex }}>
+            <div className={`flex flex-col relative shadow-[-10px_0_30px_rgba(0,0,0,0.02)] z-10 transition-all duration-300 ${paneVisible ? 'opacity-100' : 'opacity-0'} ${isSideBySide ? 'w-[30%] flex-none h-[calc(100dvh-47px)] overflow-hidden' : 'w-full flex-1 h-auto'}`} style={{ backgroundColor: wallColor.hex }}>
                 {/* Premium Tint Overlay: Keeps the sidebar 90% white, letting 10% of the wall color bleed through */}
                 <div className="absolute inset-0 bg-white/90" />
                 

@@ -40,7 +40,6 @@ export const GEOMETRY = { widthCm: W, heightCm: H, floorLineCm: FLOOR_Y };
 // A 46cm nightstand with a table lamp, ~87cm to the top of the shade.
 const Nightstand = ({ cx }) => (
     <g>
-        <ellipse cx={cx} cy={FLOOR_Y + 4} rx="30" ry="5" fill={`url(#${ID}-contact)`} />
         <rect x={cx - 23} y={FLOOR_Y - 60} width="46" height="60" rx="3" fill="#7a6448" />
         <rect x={cx - 18} y={FLOOR_Y - 52} width="36" height="18" rx="2" fill="#8b7454" />
         <rect x={cx - 18} y={FLOOR_Y - 30} width="36" height="18" rx="2" fill="#8b7454" />
@@ -79,7 +78,6 @@ const BedroomScene = ({ wallHex = '#f4f4f4', isDarkWall = false }) => (
         <Nightstand cx={311} />
 
         {/* ── BED (152cm queen — the scene's scale anchor) ── */}
-        <ellipse cx={W / 2} cy={FLOOR_Y + 5} rx="105" ry="7" fill={`url(#${ID}-contact)`} />
         {/* headboard, 100cm tall */}
         <rect x={BED_X} y={HEADBOARD_TOP} width={BED_W} height="72" rx="6" fill="#6f6a5f" />
         <rect x={BED_X + 8} y={HEADBOARD_TOP + 7} width={BED_W - 16} height="26" rx="4" fill="#7d786c" />

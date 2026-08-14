@@ -36,7 +36,6 @@ export const GEOMETRY = { widthCm: W, heightCm: H, floorLineCm: FLOOR_Y };
 // and 97cm to the top of the back, which is what a real dining chair measures.
 const Chair = ({ cx }) => (
     <g>
-        <ellipse cx={cx} cy={FLOOR_Y + 5} rx="34" ry="6" fill={`url(#${ID}-contact)`} />
         {/* back posts run from the seat up behind the back panel */}
         <rect x={cx - 22} y={FLOOR_Y - 97} width="5" height="55" fill="#5c4632" />
         <rect x={cx + 17} y={FLOOR_Y - 97} width="5" height="55" fill="#5c4632" />
@@ -83,7 +82,6 @@ const DiningRoomScene = ({ wallHex = '#f4f4f4', isDarkWall = false }) => (
         />
 
         {/* ── TABLE (180cm × 75cm — the scene's scale anchor) ── */}
-        <ellipse cx={W / 2} cy={FLOOR_Y + 6} rx="118" ry="7" fill={`url(#${ID}-contact)`} />
         {/* trestle legs + stretcher, drawn before the top so the top overlaps */}
         <rect x={TABLE_X + 12} y={TABLE_TOP + 6} width="8" height={TABLE_H - 6} fill="#5c4632" />
         <rect x={TABLE_X + TABLE_W - 20} y={TABLE_TOP + 6} width="8" height={TABLE_H - 6} fill="#5c4632" />
@@ -104,7 +102,6 @@ const DiningRoomScene = ({ wallHex = '#f4f4f4', isDarkWall = false }) => (
         <circle cx={W / 2 + 11} cy={TABLE_TOP - 9} r="4.5" fill="#a8894f" />
 
         {/* ── FLOOR PLANT (left) ── */}
-        <ellipse cx="44" cy={FLOOR_Y + 4} rx="22" ry="5" fill={`url(#${ID}-contact)`} />
         <path d={`M31 ${FLOOR_Y} L57 ${FLOOR_Y} L54 ${FLOOR_Y - 30} L34 ${FLOOR_Y - 30} Z`} fill="#8e8377" />
         <rect x="32" y={FLOOR_Y - 33} width="24" height="4" rx="1.5" fill="#7d7266" />
         {/* Upright blades — a snake plant, ~75cm to the tallest tip. */}
@@ -113,7 +110,6 @@ const DiningRoomScene = ({ wallHex = '#f4f4f4', isDarkWall = false }) => (
         <path d={`M44 ${FLOOR_Y - 33} C 36 ${FLOOR_Y - 52}, 31 ${FLOOR_Y - 64}, 32 ${FLOOR_Y - 84}`} stroke="#5f8654" strokeWidth="4.5" strokeLinecap="round" fill="none" />
 
         {/* ── SIDE TABLE + CARAFE (right) ── 70cm tall */}
-        <ellipse cx="400" cy={FLOOR_Y + 4} rx="26" ry="5" fill={`url(#${ID}-contact)`} />
         <rect x="372" y={FLOOR_Y - 70} width="56" height="5" rx="2" fill="#6d5238" />
         <rect x="377" y={FLOOR_Y - 65} width="5" height="65" fill="#5c4632" />
         <rect x="418" y={FLOOR_Y - 65} width="5" height="65" fill="#5c4632" />

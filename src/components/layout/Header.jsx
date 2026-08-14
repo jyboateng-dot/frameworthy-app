@@ -60,7 +60,7 @@ const Header = ({
         }, 150);
     };    return (
         <>
-        <nav className="min-h-14 flex items-center justify-between px-4 pb-3 pt-[calc(0.75rem+env(safe-area-inset-top,0px))] bg-[#0a0a0a] border-b border-white/[0.07] sticky top-0 z-[100] backdrop-blur-sm">
+        <nav className="min-h-[47px] flex items-center justify-between px-4 pb-[7.5px] pt-[calc(7.5px+env(safe-area-inset-top,0px))] bg-[#0a0a0a] border-b border-white/[0.07] sticky top-0 z-[100] backdrop-blur-sm">
             <div className="flex items-center gap-1 sm:gap-2 min-w-0">
                 {showBack && (
                     <button onClick={() => navigate(-1)} className="text-[#9a8e7d] p-1 sm:p-1.5 hover:bg-white/[0.05] rounded-full transition mr-0.5 sm:mr-1 shrink-0" aria-label="Go back">

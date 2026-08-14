@@ -139,6 +139,7 @@ export const ROOM_SCENES = [
         // casing eating the right 88cm, this is where the preview tells a
         // customer that the large canvas they're configuring will not fit.
         wallSpanCm: 340,
+        canvasInsetLeftCm: 40,
         sceneHeightCm: 260,
         // Was 230 (30cm floor), 246 (14cm), 258 (2cm) — now 259, a 1cm
         // hairline, same depth as every other scene despite this one
@@ -154,9 +155,13 @@ export const ROOM_SCENES = [
         // the console. This matches EntrywayScene's vase top at y=130 against
         // a floor line of 259 (259 - 130 = 129cm).
         clearanceTopCm: 129,
-        // Solved for the same 145cm-above-floor gallery height against the
-        // new floorLineCm: (259-145)/260 = 43.85%.
-        hang: { x: 50, y: 43.85 },
+        // The usable span between the hook rail and door casing centres at
+        // 147cm (43.24% of this 340cm wall). It matches EntrywayScene's
+        // console centre, keeping the frame and console/objects as one
+        // composition rather than centring them on the whole wall.
+        // y remains the same 145cm-above-floor gallery height:
+        // (259-145)/260 = 43.85%.
+        hang: { x: 40.29, y: 43.85 },
         // Stone tile, not boards — matches the bottom of this scene's own
         // floor gradient, which is what this colour has to track.
         floorHex: '#a09889',

@@ -71,7 +71,6 @@ const HomeOfficeScene = ({ wallHex = '#f4f4f4', isDarkWall = false }) => (
         <path d="M337 74 C 329 66, 325 74, 333 78" fill="#557a4d" opacity="0.9" />
 
         {/* ── DESK (150cm × 75cm — the scene's scale anchor) ── */}
-        <ellipse cx={W / 2} cy={FLOOR_Y + 5} rx="98" ry="6" fill={`url(#${ID}-contact)`} />
         <rect x={DESK_X + 5} y={DESK_TOP + 6} width="7" height={DESK_H - 6} fill="#6d5238" />
         <rect x={DESK_X + DESK_W - 12} y={DESK_TOP + 6} width="7" height={DESK_H - 6} fill="#6d5238" />
         {/* drawer unit under the right side */}
@@ -86,17 +85,8 @@ const HomeOfficeScene = ({ wallHex = '#f4f4f4', isDarkWall = false }) => (
         <rect x={DESK_X + 81} y={DESK_TOP - 23} width="30" height="20" rx="1.5" fill="#6b7079" />
         <rect x={DESK_X + 83} y={DESK_TOP - 21} width="26" height="16" rx="1" fill="#3f444b" />
 
-        {/* ── DESK LAMP ── at the far left of the desk with the head angled
-            outward, away from the hang point: a 90cm-wide piece clears it. */}
-        <ellipse cx={DESK_X + 20} cy={DESK_TOP - 2} rx="12" ry="3.5" fill="#3f444b" />
-        <rect x={DESK_X + 18.5} y={DESK_TOP - 34} width="3" height="32" fill="#3f444b" />
-        <path d={`M${DESK_X + 20} ${DESK_TOP - 34} L${DESK_X + 5} ${DESK_TOP - 44}`} stroke="#3f444b" strokeWidth="3" strokeLinecap="round" fill="none" />
-        <path d={`M${DESK_X - 2} ${DESK_TOP - 50} L${DESK_X + 14} ${DESK_TOP - 42} L${DESK_X + 7} ${DESK_TOP - 31} L${DESK_X - 8} ${DESK_TOP - 39} Z`} fill="#e8e2d4" />
-        <ellipse cx={DESK_X + 3} cy={DESK_TOP - 37} rx="6" ry="2.5" fill="#f3e6c8" opacity={isDarkWall ? 0.8 : 0.5} transform={`rotate(28 ${DESK_X + 3} ${DESK_TOP - 37})`} />
-
         {/* ── TASK CHAIR ── back at 91cm, drawn after the desk so it reads as
             standing in front of it */}
-        <ellipse cx={CHAIR_CX} cy={FLOOR_Y + 4} rx="32" ry="5" fill={`url(#${ID}-contact)`} />
         <rect x={CHAIR_CX - 25} y={FLOOR_Y - 91} width="50" height="40" rx="8" fill="#5b6068" />
         <rect x={CHAIR_CX - 18} y={FLOOR_Y - 84} width="36" height="12" rx="4" fill="#6b7079" />
         <rect x={CHAIR_CX - 3} y={FLOOR_Y - 53} width="6" height="12" fill="#43474d" />
@@ -107,7 +97,6 @@ const HomeOfficeScene = ({ wallHex = '#f4f4f4', isDarkWall = false }) => (
         <circle cx={CHAIR_CX + 22} cy={FLOOR_Y - 6} r="5" fill="#3a3d42" />
 
         {/* ── WASTEBASKET (left) ── */}
-        <ellipse cx="46" cy={FLOOR_Y + 3} rx="16" ry="4" fill={`url(#${ID}-contact)`} />
         <path d={`M34 ${FLOOR_Y} L58 ${FLOOR_Y} L56 ${FLOOR_Y - 32} L36 ${FLOOR_Y - 32} Z`} fill="#8e8377" />
         <rect x="35" y={FLOOR_Y - 35} width="22" height="4" rx="1.5" fill="#7d7266" />
         </g>

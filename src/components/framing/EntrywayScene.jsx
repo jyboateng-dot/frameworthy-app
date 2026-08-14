@@ -39,12 +39,17 @@ const CASING = 5;
 
 const CONSOLE_W = 100;
 const CONSOLE_H = 80;                     // the near-field scale cue
-const CONSOLE_CX = W / 2;                 // sits under the hang point
+// The usable wall is the span between the hook rail's right edge (≈53cm)
+// and the door casing's left edge (242cm). Its visual midpoint is ≈147cm;
+// the outer scene group shifts this coordinate 4cm left, so 151cm lands the
+// console at that midpoint. The frame's matching hang.x lives in
+// roomScenes.js, keeping the picture and its console/objects one composition.
+const CONSOLE_CX = 151;
 const CONSOLE_TOP = FLOOR_Y - CONSOLE_H;  // 150
 
 export const GEOMETRY = { widthCm: W, heightCm: H, floorLineCm: FLOOR_Y };
 
-const EntrywayScene = ({ wallHex = '#f4f4f4', isDarkWall = false }) => (
+const EntrywayScene = ({ wallHex = '#f4f4f4', isDarkWall = false, canvasInsetLeftCm = 0 }) => (
     <SceneShell
         id={ID}
         widthCm={W}
@@ -59,6 +64,7 @@ const EntrywayScene = ({ wallHex = '#f4f4f4', isDarkWall = false }) => (
         floorBottomHex="#a09889"
         wallHex={wallHex}
         isDarkWall={isDarkWall}
+        canvasInsetLeftCm={canvasInsetLeftCm}
     >
         <g transform="translate(-4 0)">
         {/* ── FRONT DOOR (203cm opening — the second scale cue) ── */}
@@ -76,6 +82,8 @@ const EntrywayScene = ({ wallHex = '#f4f4f4', isDarkWall = false }) => (
         {/* handle at 95cm, where a real one sits */}
         <circle cx={DOOR_X + 11} cy={FLOOR_Y - 95} r="3.5" fill="#8d7a56" />
 
+        <g transform="translate(-10 0)">
+
         {/* ── RUNNER ── */}
         <rect
             x="24"
@@ -88,7 +96,6 @@ const EntrywayScene = ({ wallHex = '#f4f4f4', isDarkWall = false }) => (
         />
 
         {/* ── CONSOLE TABLE (100cm × 80cm) ── */}
-        <ellipse cx={CONSOLE_CX} cy={FLOOR_Y + 4} rx="66" ry="6" fill={`url(#${ID}-contact)`} />
         <rect x={CONSOLE_CX - 52} y={CONSOLE_TOP} width={CONSOLE_W + 4} height="6" rx="2" fill="#6d5238" />
         <rect x={CONSOLE_CX - 46} y={CONSOLE_TOP + 6} width="5" height={CONSOLE_H - 6} fill="#5c4632" />
         <rect x={CONSOLE_CX + 41} y={CONSOLE_TOP + 6} width="5" height={CONSOLE_H - 6} fill="#5c4632" />
@@ -114,9 +121,9 @@ const EntrywayScene = ({ wallHex = '#f4f4f4', isDarkWall = false }) => (
             the narrowest wall here anything standing on the floor loses its
             base and reads as floating. A rail hangs above the crop in every
             layout, and it's the more entryway-ish detail anyway. */}
-        {/* The rail's original left edge was x=26. Keep the grouped scene
-            artefact 2 units from the viewport edge and 9 units lower. */}
-        <g data-artefact="hanging-rack" transform="translate(-20 9)">
+        {/* Full-size rail. Its offset preserves the current gap between the
+            rail's right edge and the centred frame composition. */}
+        <g data-artefact="hanging-rack" transform="translate(-47.3 9)">
             <rect x="26" y={FLOOR_Y - 168} width="78" height="5" rx="1.5" fill="#6d5238" />
             <rect x="26" y={FLOOR_Y - 163} width="78" height="2.5" fill="#000" opacity="0.15" />
             {[40, 65, 90].map((x) => (
@@ -126,6 +133,7 @@ const EntrywayScene = ({ wallHex = '#f4f4f4', isDarkWall = false }) => (
             <path d={`M58 ${FLOOR_Y - 154} C 58 ${FLOOR_Y - 166}, 74 ${FLOOR_Y - 166}, 74 ${FLOOR_Y - 154}`} stroke="#8a7156" strokeWidth="2" fill="none" />
             <rect x="52" y={FLOOR_Y - 154} width="28" height="34" rx="2" fill="#8d9382" />
             <rect x="52" y={FLOOR_Y - 154} width="28" height="5" fill="#000" opacity="0.12" />
+        </g>
         </g>
         </g>
     </SceneShell>

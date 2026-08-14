@@ -53,7 +53,6 @@ const StudioLoftScene = ({ wallHex = '#f4f4f4', isDarkWall = false }) => {
     // Furniture keeps its own palette rather than deriving from the wall, so
     // it stays readable against both a near-white and a near-black wall. Only
     // the ambient shading flips, since a dark wall bounces far less light.
-    const shadow = isDarkWall ? 'rgba(0,0,0,0.55)' : 'rgba(28,26,23,0.16)';
     const skirting = isDarkWall ? 'rgba(255,255,255,0.10)' : 'rgba(28,26,23,0.10)';
 
     return (
@@ -71,11 +70,6 @@ const StudioLoftScene = ({ wallHex = '#f4f4f4', isDarkWall = false }) => {
             <defs>
                 {/* Light falls off toward the floor and corners — without this
                     the flat fill reads as a colour swatch, not a wall. */}
-                <radialGradient id="fw-wall-light" cx="50%" cy="34%" r="78%">
-                    <stop offset="0%" stopColor="#fff" stopOpacity={isDarkWall ? 0.16 : 0.55} />
-                    <stop offset="60%" stopColor="#fff" stopOpacity={isDarkWall ? 0.05 : 0.16} />
-                    <stop offset="100%" stopColor="#000" stopOpacity={isDarkWall ? 0.28 : 0.10} />
-                </radialGradient>
                 <linearGradient id="fw-floor" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="0%" stopColor="#8a6a4a" />
                     <stop offset="100%" stopColor="#6f5238" />
@@ -84,16 +78,10 @@ const StudioLoftScene = ({ wallHex = '#f4f4f4', isDarkWall = false }) => {
                     <stop offset="0%" stopColor="#6d7469" />
                     <stop offset="100%" stopColor="#565c53" />
                 </linearGradient>
-                {/* Contact shadow beneath furniture. */}
-                <radialGradient id="fw-contact" cx="50%" cy="50%" r="50%">
-                    <stop offset="0%" stopColor="#000" stopOpacity="0.38" />
-                    <stop offset="100%" stopColor="#000" stopOpacity="0" />
-                </radialGradient>
             </defs>
 
             {/* ── WALL ── */}
             <rect x="0" y="0" width="420" height={FLOOR_Y} fill={wallHex} />
-            <rect x="0" y="0" width="420" height={FLOOR_Y} fill="url(#fw-wall-light)" />
 
             {/* ── FLOOR ── grouped as its own standalone artefact (floor fill
                 + seams together — they move as one surface), distinct from
@@ -120,7 +108,6 @@ const StudioLoftScene = ({ wallHex = '#f4f4f4', isDarkWall = false }) => {
             <rect x="90" y={FLOOR_Y + SKIRT_H + 6} width="240" height="18" rx="2" fill={isDarkWall ? '#3a3733' : '#cfc6b8'} opacity="0.85" />
 
             {/* ── SOFA (160cm — the scene's scale anchor) ── */}
-            <ellipse cx="210" cy={FLOOR_Y + 6} rx={SOFA_W * 0.62} ry="7" fill="url(#fw-contact)" />
             {/* back */}
             <rect x={SOFA_X} y={SOFA_TOP} width={SOFA_W} height="46" rx="7" fill="url(#fw-sofa)" />
             {/* seat cushions */}
@@ -138,14 +125,12 @@ const StudioLoftScene = ({ wallHex = '#f4f4f4', isDarkWall = false }) => {
             <rect x={SOFA_X + SOFA_W - 44} y={SOFA_TOP + 12} width="30" height="28" rx="5" fill="#b9a06a" opacity="0.85" transform={`rotate(7 ${SOFA_X + SOFA_W - 29} ${SOFA_TOP + 26})`} />
 
             {/* ── FLOOR LAMP (left) — ~165cm tall, a second scale cue ── */}
-            <ellipse cx="52" cy={FLOOR_Y + 4} rx="20" ry="5" fill="url(#fw-contact)" />
             <rect x="50" y={FLOOR_Y - 118} width="3" height="118" fill="#4a463f" />
             <path d={`M34 ${FLOOR_Y - 150} L70 ${FLOOR_Y - 150} L64 ${FLOOR_Y - 118} L40 ${FLOOR_Y - 118} Z`} fill={isDarkWall ? '#d8cfbb' : '#e8e2d4'} />
             <ellipse cx="52" cy={FLOOR_Y - 118} rx="12" ry="3" fill="#f3e6c8" opacity={isDarkWall ? 0.75 : 0.45} />
             <rect x="38" y={FLOOR_Y - 4} width="28" height="4" rx="2" fill="#3d3a34" />
 
             {/* ── PLANT (right) ── */}
-            <ellipse cx="366" cy={FLOOR_Y + 4} rx="22" ry="5" fill="url(#fw-contact)" />
             <path d={`M352 ${FLOOR_Y} L380 ${FLOOR_Y} L376 ${FLOOR_Y - 26} L356 ${FLOOR_Y - 26} Z`} fill="#a86c4e" />
             <rect x="354" y={FLOOR_Y - 29} width="24" height="4" rx="1.5" fill="#935e43" />
             <path d={`M366 ${FLOOR_Y - 29} L366 ${FLOOR_Y - 78}`} stroke="#4c6b45" strokeWidth="2.5" fill="none" />
@@ -162,7 +147,6 @@ const StudioLoftScene = ({ wallHex = '#f4f4f4', isDarkWall = false }) => {
 
             {/* Ambient occlusion where wall meets floor — grounds the room. */}
             </g>
-            <rect x="0" y={FLOOR_Y - 14} width="420" height="14" fill={shadow} opacity="0.35" style={{ filter: 'blur(4px)' }} />
         </svg>
     );
 };
