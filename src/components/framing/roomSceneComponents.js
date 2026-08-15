@@ -1,7 +1,7 @@
 import StudioLoftScene from './StudioLoftScene';
 import DiningRoomScene from './DiningRoomScene';
 import BedroomScene from './BedroomScene';
-import EntrywayScene from './EntrywayScene';
+import EntrywayScene, { EntrywaySceneForeground } from './EntrywayScene';
 import HomeOfficeScene from './HomeOfficeScene';
 
 /**
@@ -22,6 +22,10 @@ export const ROOM_SCENE_COMPONENTS = {
     bedroom: BedroomScene,
     entryway: EntrywayScene,
     'home-office': HomeOfficeScene,
+};
+
+export const ROOM_SCENE_FOREGROUND_COMPONENTS = {
+    entryway: EntrywaySceneForeground,
 };
 
 export default ROOM_SCENE_COMPONENTS;

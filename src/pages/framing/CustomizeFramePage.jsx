@@ -16,7 +16,7 @@ import {
 } from 'lucide-react';
 import { FRAME_STYLES, FRAME_SIZES, MAT_COLORS, formatDimensions, findSizeByDimension, parseCustomSize, DEFAULT_DEMO_IMAGE, getDemoImageForOrientation } from '../../data/constants';
 import { ROOM_SCENES, computeRoomPlacement } from '../../data/roomScenes';
-import { ROOM_SCENE_COMPONENTS } from '../../components/framing/roomSceneComponents';
+import { ROOM_SCENE_COMPONENTS, ROOM_SCENE_FOREGROUND_COMPONENTS } from '../../components/framing/roomSceneComponents';
 import ScenePicker from '../../components/framing/ScenePicker';
 import { useHoverDropdown } from '../../hooks/useHoverDropdown';
 import { getFrameRail, getRailTextureStyle, getRailShading } from '../../utils/frameRail';
@@ -860,63 +860,56 @@ const CustomizeFramePage = ({
 
     const visualizerMetrics = (() => {
         if (!wInch || !hInch) return { height: undefined, scale: 1 };
-        // Constants matching the visualizer's rendering math
-        const SOFA_CM = 160;
-        const SOFA_BODY_PCT = 42; 
-        
+        // Sizing calibration only — no longer tied to a rendered artefact.
+        // The plain-wall reference sofa was removed (the frame is just
+        // centred in the pane now), but the frame still needs *some* basis
+        // for how big a fraction of the container it renders at, so this
+        // keeps the same 160cm/42% ratio the sofa used to provide.
+        const FRAME_SCALE_REF_CM = 160;
+        const FRAME_SCALE_REF_PCT = 42;
+
         const containerWidth = isSideBySide ? windowSize.width * 0.70 : windowSize.width;
 
         // Calculate frame width in pixels. A room scene measures the piece
-        // against its own wall span rather than the sofa, and the two don't
-        // agree — 90cm on the Entryway's 340cm wall renders ~12% larger than
-        // the sofa formula predicts. Using the sofa number here regardless
-        // would leave this whole block under-estimating the piece in exactly
-        // the scenes where it comes closest to the controls.
+        // against its own wall span rather than this reference, and the two
+        // don't agree — 90cm on the Entryway's 340cm wall renders ~12%
+        // larger than the reference formula predicts. Using the reference
+        // number regardless would leave this whole block under-estimating
+        // the piece in exactly the scenes where it comes closest to the
+        // controls.
         const activeSceneForMetrics = roomSceneId ? ROOM_SCENES.find((s) => s.id === roomSceneId) : null;
         const frameWidthPct = activeSceneForMetrics
             ? (outerFrameWidthCm / (activeSceneForMetrics.wallSpanCm + (activeSceneForMetrics.canvasInsetLeftCm || 0))) * 100
-            : (outerFrameWidthCm / SOFA_CM) * SOFA_BODY_PCT;
+            : (outerFrameWidthCm / FRAME_SCALE_REF_CM) * FRAME_SCALE_REF_PCT;
         const frameWidthPx = (frameWidthPct / 100) * containerWidth;
         const frameHeightPx = frameWidthPx * (outerFrameHeightCm / outerFrameWidthCm);
-        
-        // Calculate sofa height in pixels (SVG aspect ratio is 800/300, width is 48% of screen)
-        const sofaWidthPx = containerWidth * 0.48;
-        const sofaHeightPx = sofaWidthPx * (300 / 800);
-        
+
         // Add proportional padding: small frames get a tighter crop to pull menus up, large frames get more breathing room
         const dynamicPadding = Math.min(140, 60 + frameHeightPx * 0.8);
 
-        // The sofa's own position is computed elsewhere (search SOFA_GAP_PX)
-        // from the ZONE's height, not from this container height directly —
-        // it sits at zoneTop + zoneHeight/2 + frameHeight/2 + gap, since the
-        // frame is centered in a zone that's a fixed 65% of this container.
-        // That means this container must be tall enough for the zone's 65%
-        // to leave room below the frame for the sofa (plus its own dimension
-        // overlay) — otherwise the sofa renders past this container's bottom
-        // edge and gets cut off by its sibling below, invisible without the
-        // container itself growing to compensate.
-        // Solving zoneTop + zoneHeight/2 + frameHeight/2 + gap + sofaBlock <= H
-        // (with zoneHeight = 0.65*H - zoneTop) for H gives the formula below.
-        // These constants MUST match the sofa's own (search SOFA_GAP_PX) and
-        // the zone's own className (search FRAME POSITIONING ZONE).
-        // 40px — see the zone's own className comment (search FRAME
-        // POSITIONING ZONE) for the full history and why this specific
-        // value. Must track the room scenes' geometry, not just the
-        // toolbar: re-run the full collision sweep before changing it.
-        const ZONE_TOP_PX = 40; // matches top-10
-        const SOFA_GAP_PX = 24;
-        const ZONE_HEIGHT_PCT = 0.65; // matches h-[calc(65%-2.5rem)]
-        // Just the sofa's own dimension-overlay line plus a safety margin now
-        // — the 2-line disclaimer note that used to sit beneath the SVG moved
-        // out to a caption below the whole pane (see visualizer-caption), so
-        // reserving space for it here would be holding room for something
-        // that no longer renders in this container, quietly capping tall
-        // frames below their true height for no reason.
-        const NOTE_RESERVE_PX = 28;
-        const sofaBlockHeight = sofaHeightPx + NOTE_RESERVE_PX;
-        const minHeightForSofaFit = (ZONE_TOP_PX / 2 + frameHeightPx / 2 + SOFA_GAP_PX + sofaBlockHeight) / (1 - ZONE_HEIGHT_PCT / 2);
-
-        const calculatedHeight = Math.max(frameHeightPx + sofaHeightPx + dynamicPadding, minHeightForSofaFit);
+        let calculatedHeight;
+        if (activeSceneForMetrics) {
+            // Room scenes: this reservation formula predates the plain-wall
+            // sofa's removal and stays exactly as it was — every room-scene
+            // collision sweep this session was verified against this pane
+            // height, so changing it here (even to simplify) risks silently
+            // reopening a frame/furniture collision nothing re-checks for.
+            const sofaWidthPx = containerWidth * 0.48;
+            const sofaHeightPx = sofaWidthPx * (300 / 800);
+            const ZONE_TOP_PX = 40; // matches the zone's own top inset — see "FRAME POSITIONING ZONE" below
+            const SOFA_GAP_PX = 24;
+            const ZONE_HEIGHT_PCT = 0.65;
+            const NOTE_RESERVE_PX = 28;
+            const sofaBlockHeight = sofaHeightPx + NOTE_RESERVE_PX;
+            const minHeightForRoomFit = (ZONE_TOP_PX / 2 + frameHeightPx / 2 + SOFA_GAP_PX + sofaBlockHeight) / (1 - ZONE_HEIGHT_PCT / 2);
+            calculatedHeight = Math.max(frameHeightPx + sofaHeightPx + dynamicPadding, minHeightForRoomFit);
+        } else {
+            // Plain wall: no reference artefact anymore, so the pane only
+            // needs to fit the frame itself — this (not the room-scene
+            // formula above) is what lets it flex-centre instead of sitting
+            // high to leave room for a sofa that's no longer drawn.
+            calculatedHeight = frameHeightPx + dynamicPadding;
+        }
 
         // Ensure it doesn't get ridiculously small (lowered to 180px) or impossibly tall
         // Mobile max height is 65%, Desktop side-by-side uses ~80vh for the visualizer
@@ -1662,47 +1655,51 @@ const CustomizeFramePage = ({
                     instead of an instant pop. */}
                 <div
                     data-testid="visualizer-chrome"
-                    className={`absolute top-3 left-3 right-3 sm:top-6 sm:left-6 sm:right-6 z-20 flex items-start gap-2 sm:gap-3 transition-opacity ${CHROME_MOTION} ${
+                    className={`absolute top-1.5 left-1.5 right-1.5 sm:top-2 sm:left-2 sm:right-2 z-20 grid grid-cols-[auto_minmax(0,1fr)_auto] items-start gap-2 sm:gap-3 transition-opacity ${CHROME_MOTION} ${
                         (isHovered || isFullScreen || isMaxZoom) ? 'opacity-0 pointer-events-none' : 'opacity-100'
                     }`}
                 >
 
-                {/* Dimension toggle + unit selector — first slot. */}
-                <div className="shrink-0 flex items-stretch bg-white/95 backdrop-blur border border-stone-200 rounded-full shadow-sm hover:shadow-md transition-all overflow-hidden h-[30px] duration-300">
+                {/* Compact measurement control — kept in the visualizer, but
+                    reduced and pinned tight to the top-left chrome so the
+                    largest portrait previews have room for their left/bottom
+                    measurement lines. */}
+                <div className="shrink-0 flex h-7 items-stretch overflow-hidden rounded-full border border-stone-200 bg-white/95 text-[11px] font-bold shadow-sm backdrop-blur transition-all hover:shadow-md">
                     <button
                         onClick={() => setShowDimensions(!showDimensions)}
-                        className={`flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 h-full text-xs font-semibold transition-colors ${
-                            showDimensions ? 'bg-stone-100 text-stone-900 border-r border-stone-200' : 'text-stone-600 hover:text-stone-900 bg-white'
+                        className={`flex w-7 items-center justify-center border-r border-stone-200 transition-colors ${
+                            showDimensions ? 'bg-stone-100 text-stone-900' : 'text-stone-500 hover:text-stone-900'
                         }`}
-                        title="Toggle Dimensions"
+                        title="Toggle measurement lines"
+                        aria-pressed={showDimensions}
                     >
-                        <Ruler size={14} className="shrink-0" />
+                        <Ruler size={13} className="shrink-0" />
                     </button>
-
-                    {/* Unit Toggles (Slide in/out) */}
-                    <div
-                        className={`flex items-stretch transition-all duration-300 ease-out origin-left bg-white ${
-                            showDimensions ? 'w-[72px] opacity-100' : 'w-0 opacity-0 overflow-hidden border-none'
+                    <button
+                        onClick={() => setUnit('in')}
+                        className={`w-7 transition-colors ${
+                            unit === 'in' ? 'bg-stone-100 text-stone-900' : 'text-stone-400 hover:bg-stone-50 hover:text-stone-700'
                         }`}
                     >
-                        <button
-                            onClick={() => setUnit('in')}
-                            className={`flex-1 h-full flex items-center justify-center text-xs font-semibold transition-colors ${
-                                unit === 'in' ? 'text-stone-900 bg-stone-50' : 'text-stone-400 hover:text-stone-600 hover:bg-stone-50/50'
-                            }`}
-                        >
-                            in
-                        </button>
-                        <div className="w-px h-full bg-stone-200"></div>
-                        <button
-                            onClick={() => setUnit('cm')}
-                            className={`flex-1 h-full flex items-center justify-center text-xs font-semibold transition-colors ${
-                                unit === 'cm' ? 'text-stone-900 bg-stone-50' : 'text-stone-400 hover:text-stone-600 hover:bg-stone-50/50'
-                            }`}
-                        >
-                            cm
-                        </button>
-                    </div>
+                        in
+                    </button>
+                    <button
+                        onClick={() => setUnit('cm')}
+                        className={`w-8 border-l border-stone-200 transition-colors ${
+                            unit === 'cm' ? 'bg-stone-100 text-stone-900' : 'text-stone-400 hover:bg-stone-50 hover:text-stone-700'
+                        }`}
+                    >
+                        cm
+                    </button>
+                </div>
+
+                {/* Scene — expanded horizontal pill tucked between the
+                    measurement/unit control and the wall-colour picker. */}
+                <div className="min-w-0 flex justify-center">
+                    <ScenePicker
+                        activeId={roomSceneId}
+                        onSelect={setRoomSceneId}
+                    />
                 </div>
 
                 {/* BACKDROP CONTROLS — wall colour, and the scene beneath it.
@@ -1715,7 +1712,7 @@ const CustomizeFramePage = ({
                     36px and clears the zone, and more usefully the whole centre
                     of the top is empty — which is the band a tall portrait
                     render grows into. */}
-                <div className="ml-auto shrink-0 flex items-start gap-[6px]">
+                <div className="shrink-0 flex items-start">
 
                 {/* Wall Colour. `relative` anchors its popover. Hover-props
                     open/close it on PC the same way ScenePicker's own pill
@@ -1768,15 +1765,6 @@ const CustomizeFramePage = ({
                             it two clicks deep and invisible. */}
                     </div>
                 </div>
-
-                {/* Scene — its own dropdown pill, directly beneath wall colour.
-                    Opens on hover on a device that can genuinely hover (see
-                    ScenePicker's own isHoverCapable check); click still works
-                    everywhere, which is what touch and keyboard use. */}
-                <ScenePicker
-                    activeId={roomSceneId}
-                    onSelect={setRoomSceneId}
-                />
 
                 </div>
 
@@ -2039,6 +2027,18 @@ const CustomizeFramePage = ({
                             const traditionalOverlapPctW = Math.min(0.375 / (wInch + 2 * railWidthIn) * 100, mouldingPctW);
                             const traditionalOverlapPctH = Math.min(0.375 / (hInch + 2 * railWidthIn) * 100, mouldingPctH);
 
+                            // With the plain-wall reference artefact gone, there's nothing
+                            // left in that mode to show the frame at physical scale
+                            // against — the pane is the frame's alone, so the size that
+                            // used to need a hover/double-tap to reveal is now just how a
+                            // plain-wall render looks. Room scenes keep the original
+                            // hover-to-reveal behaviour: their backdrop furniture is the
+                            // scale reference, and it only fades out once a zoom is
+                            // actively requested (see the ROOM SCENE BACKDROP's own fade
+                            // condition above) — showing the frame pre-zoomed by default
+                            // there would claim a scale against furniture it doesn't match.
+                            const isZoomedByDefault = !activeRoom;
+
                             // ─── DYNAMIC ZOOM CLAMPING (Never Overlap/Cutoff) ───
                             const zoomScale = (() => {
                                 // isMaxZoom alone (without isHovered) is how touch double-tap
@@ -2048,8 +2048,9 @@ const CustomizeFramePage = ({
                                 // "enhanced" standalone view) regardless of hover/tap state —
                                 // there's no sofa/dashboard to preserve physical scale against
                                 // once those are hidden, so it's always shown as large as
-                                // possible instead of requiring a hover to reveal that.
-                                if (!isHovered && !isMaxZoom && !isFullScreen) return 1.0;
+                                // possible instead of requiring a hover to reveal that. Plain
+                                // wall now joins that list per isZoomedByDefault above.
+                                if (!isHovered && !isMaxZoom && !isFullScreen && !isZoomedByDefault) return 1.0;
 
                                 // Calculate unzoomed dimensions in pixels relative to the physical container
                                 const baseWidthPx = (frameWidthPct / 100) * zoneSize.width;
@@ -2196,9 +2197,14 @@ const CustomizeFramePage = ({
                                 (imageNaturalSize.h > imageNaturalSize.w && orientation === 'portrait')
                             );
                             const shouldFillNoMatOpening = matWidth === 'none' && imageOrientationMatchesFrame;
-                            const dimTopClass = isHovered ? '-top-6' : '-top-4';
-                            const dimRightClass = isHovered ? '-right-6' : '-right-4';
-                            const dimFontSizePx = isHovered ? 14 : Math.max(8, Math.min(10, baseFrameWidthPx / 12));
+                            const useOriginalDimensionPlacement = Boolean(activeRoom);
+                            const dimHorizontalClass = useOriginalDimensionPlacement
+                                ? (isHovered || isZoomedByDefault ? '-top-6' : '-top-4')
+                                : (isHovered || isZoomedByDefault ? '-bottom-6' : '-bottom-4');
+                            const dimVerticalClass = useOriginalDimensionPlacement
+                                ? (isHovered || isZoomedByDefault ? '-right-6' : '-right-4')
+                                : (isHovered || isZoomedByDefault ? '-left-6' : '-left-4');
+                            const dimFontSizePx = isHovered || isZoomedByDefault ? 14 : Math.max(8, Math.min(10, baseFrameWidthPx / 12));
 
                             return (
                                 <div
@@ -2246,27 +2252,32 @@ const CustomizeFramePage = ({
                                     className={`relative shadow-[0_25px_50px_rgba(0,0,0,0.3)] select-none transition-[width,margin,box-shadow] ${ZOOM_MOTION} ${
                                         isMaxZoom && !isFullScreen ? 'cursor-zoom-out' : isFullScreen ? '' : 'cursor-zoom-in'
                                     } ${
-                                        isHovered || isMaxZoom || isFullScreen
+                                        isHovered || isMaxZoom || isFullScreen || isZoomedByDefault
                                             ? 'shadow-[0_50px_100px_rgba(0,0,0,0.55)] z-40'
                                             : 'z-10'
                                     }`}
                                     style={{
-                                        width: isHovered || isMaxZoom || isFullScreen
+                                        width: isHovered || isMaxZoom || isFullScreen || isZoomedByDefault
                                             ? `${frameWidthPct * zoomScale}%`
                                             : `${frameWidthPct}%`,
                                         aspectRatio: `${outerFrameWidthCm} / ${outerFrameHeightCm}`,
                                         marginTop: `${pushDownAmount + roomSceneVerticalOffsetPx}px`,
                                         marginLeft: `${pushRightAmount}px`,
-                                        // The general visualizer adjustment stays on the plain
-                                        // wall. Room scenes already calculate a physical hanging
-                                        // height from their furniture, so applying that extra
-                                        // upward lift there would falsely widen the real gap.
+                                        // -11px is a fixed horizontal nudge for the frame's own
+                                        // drop shadow (shadow-[...25px_50px...] renders
+                                        // asymmetrically, so the frame+shadow composite's visual
+                                        // centre sits slightly right of its true box centre without
+                                        // this). Used to carry a -35px vertical component too, to
+                                        // lift the frame clear of the reference sofa that used to
+                                        // render below it in plain-wall mode; now that the sofa's
+                                        // gone the frame is simply flex-centred in the pane, so
+                                        // that vertical lift is gone with it.
                                         // A contained room can be narrower than the port;
                                         // follow its calibrated hang point rather than the
                                         // port midpoint (notably in the entryway).
                                         transform: activeRoom
                                             ? `translateX(${roomSceneHorizontalOffsetPx}px)`
-                                            : 'translate(-11px, -35px)',
+                                            : 'translate(-11px, 4px)',
                                         touchAction: 'manipulation'
                                     }}
                                 >
@@ -2294,14 +2305,14 @@ const CustomizeFramePage = ({
                                         by design — instead of hard-unmounting) */}
                                     {showDimensions && (
                                         <>
-                                            <div style={{ fontSize: `${dimFontSizePx}px` }} className={`absolute ${dimTopClass} left-0 w-full flex items-center justify-center ${wallInkClass} font-mono border-t ${wallInkBorderClass} pt-1 ${wallInkBlend} ${isFullScreen ? 'opacity-0' : 'opacity-80'} transition-all ${ZOOM_MOTION} whitespace-nowrap overflow-visible pointer-events-none`}>
-                                                <div className={`absolute left-0 top-0 h-1.5 sm:h-2 w-px ${wallInkBgClass}`} />
-                                                <div className={`absolute right-0 top-0 h-1.5 sm:h-2 w-px ${wallInkBgClass}`} />
+                                            <div style={{ fontSize: `${dimFontSizePx}px` }} className={`absolute ${dimHorizontalClass} left-0 w-full flex items-center justify-center ${wallInkClass} font-mono ${useOriginalDimensionPlacement ? `border-t ${wallInkBorderClass} pt-1` : `border-b ${wallInkBorderClass} pb-1`} ${wallInkBlend} ${isFullScreen ? 'opacity-0' : 'opacity-80'} transition-all ${ZOOM_MOTION} whitespace-nowrap overflow-visible pointer-events-none`}>
+                                                <div className={`absolute left-0 ${useOriginalDimensionPlacement ? 'top-0' : 'bottom-0'} h-1.5 sm:h-2 w-px ${wallInkBgClass}`} />
+                                                <div className={`absolute right-0 ${useOriginalDimensionPlacement ? 'top-0' : 'bottom-0'} h-1.5 sm:h-2 w-px ${wallInkBgClass}`} />
                                                 {unit === 'in' ? wInch.toFixed(1) : innerWidthCm.toFixed(1)} {unit === 'in' ? 'in' : 'cm'}
                                             </div>
-                                            <div style={{ fontSize: `${dimFontSizePx}px` }} className={`absolute ${dimRightClass} top-0 h-full flex flex-col items-center justify-center ${wallInkClass} font-mono border-r ${wallInkBorderClass} pr-1 ${wallInkBlend} ${isFullScreen ? 'opacity-0' : 'opacity-80'} transition-all ${ZOOM_MOTION} whitespace-nowrap overflow-visible pointer-events-none`}>
-                                                <div className={`absolute right-0 top-0 w-1.5 sm:w-2 h-px ${wallInkBgClass}`} />
-                                                <div className={`absolute right-0 bottom-0 w-1.5 sm:w-2 h-px ${wallInkBgClass}`} />
+                                            <div style={{ fontSize: `${dimFontSizePx}px` }} className={`absolute ${dimVerticalClass} top-0 h-full flex flex-col items-center justify-center ${wallInkClass} font-mono ${useOriginalDimensionPlacement ? `border-r ${wallInkBorderClass} pr-1` : `border-l ${wallInkBorderClass} pl-1`} ${wallInkBlend} ${isFullScreen ? 'opacity-0' : 'opacity-80'} transition-all ${ZOOM_MOTION} whitespace-nowrap overflow-visible pointer-events-none`}>
+                                                <div className={`absolute ${useOriginalDimensionPlacement ? 'right-0' : 'left-0'} top-0 w-1.5 sm:w-2 h-px ${wallInkBgClass}`} />
+                                                <div className={`absolute ${useOriginalDimensionPlacement ? 'right-0' : 'left-0'} bottom-0 w-1.5 sm:w-2 h-px ${wallInkBgClass}`} />
                                                 <span style={{ writingMode: 'vertical-rl' }}>{unit === 'in' ? hInch.toFixed(1) : innerHeightCm.toFixed(1)} {unit === 'in' ? 'in' : 'cm'}</span>
                                             </div>
                                         </>
@@ -2537,6 +2548,42 @@ const CustomizeFramePage = ({
                             </div>
                         );
                     })()}
+
+                        {/* ── ROOM SCENE FOREGROUND ──
+                            A few near-field objects should visually occlude a
+                            frame when the configured piece collides with them.
+                            Keep this as a separate foreground pass so the
+                            room backdrop can stay behind the frame, while
+                            entryway console artefacts can sit in front. */}
+                        {activeRoom && (() => {
+                            const ForegroundScene = ROOM_SCENE_FOREGROUND_COMPONENTS[activeRoom.id];
+                            if (!ForegroundScene || isHovered || isMaxZoom || isFullScreen) return null;
+
+                            const sceneCanvasWidthCm = activeRoom.wallSpanCm + (activeRoom.canvasInsetLeftCm || 0);
+                            const sceneScale = Math.min(
+                                zoneSize.width / sceneCanvasWidthCm,
+                                zoneSize.height / activeRoom.sceneHeightCm
+                            );
+                            const sceneW = sceneCanvasWidthCm * sceneScale;
+                            const sceneH = activeRoom.sceneHeightCm * sceneScale;
+                            const sceneLeft = (zoneSize.width - sceneW) / 2;
+                            const sceneTop = zoneSize.height - sceneH;
+
+                            return (
+                                <div
+                                    className={`absolute pointer-events-none z-20 transition-opacity ${CHROME_MOTION} opacity-100`}
+                                    style={{ inset: 0, overflow: 'hidden' }}
+                                    aria-hidden="true"
+                                >
+                                    <div
+                                        className="absolute"
+                                        style={{ left: sceneLeft, top: sceneTop, width: sceneW, height: sceneH }}
+                                    >
+                                        <ForegroundScene canvasInsetLeftCm={activeRoom.canvasInsetLeftCm || 0} />
+                                    </div>
+                                </div>
+                            );
+                        })()}
                         
                         {/* The zoomed-in disclaimer that used to fade in here is
                             gone: with the note pinned under the pane it's on
@@ -2544,72 +2591,6 @@ const CustomizeFramePage = ({
                             fading a second copy in over the wall would have
                             been two notes at once. */}
                     </div>
-
-                    {/* ── SCALE REFERENCE: 160cm Sofa ── (the "reference
-                        artefact" — fades out via the same hover-driven
-                        opacity transition it already had, rather than
-                        hard-unmounting, for the full-screen enhanced view
-                        which shows the frame standalone).
-
-                        Positioned dynamically via a computed `top` (instead
-                        of a fixed `bottom-5`) so it sits a small, constant
-                        gap below the frame's actual rendered bottom edge
-                        regardless of frame size — previously the frame was
-                        just vertically centered in a fixed-percentage zone,
-                        so a small frame left a huge gap above the sofa while
-                        a large one crept close to it. This reuses zoneSize
-                        (already measured via ResizeObserver) and the same
-                        rest-state frame math the zoom system uses, so it
-                        stays correct across every size/viewport combination
-                        rather than assuming a percentage split holds up. */}
-                    {/* Suppressed in room-scene mode: the scene draws its own 160cm sofa
-                        in situ, so this floating reference would be a second, redundant
-                        sofa at a different scale. */}
-                    {!activeRoom && (() => {
-                        const SOFA_CM_REF = 160;
-                        const SOFA_BODY_PCT_REF = 42;
-                        const restFrameWidthPct = (wInch && hInch) ? (outerFrameWidthCm / SOFA_CM_REF) * SOFA_BODY_PCT_REF : 0;
-                        const restFrameWidthPx = (restFrameWidthPct / 100) * zoneSize.width;
-                        const restFrameHeightPx = (wInch && hInch) ? restFrameWidthPx * (outerFrameHeightCm / outerFrameWidthCm) : 0;
-                        const zoneTopOffsetPx = 40; // matches top-10 — see visualizerMetrics' ZONE_TOP_PX / the zone's own className comment for why
-                        const SOFA_GAP_PX = 24;
-                        const sofaTopPx = zoneTopOffsetPx + (zoneSize.height / 2) + (restFrameHeightPx / 2) + SOFA_GAP_PX;
-                        // Same formula as the frame's own width/height labels
-                        // (search dimFontSizePx) — scales with the frame's
-                        // rendered width so the sofa's dimension text reads at
-                        // a consistent size relative to the frame's, instead
-                        // of a fixed size that looks oversized next to a tiny
-                        // frame or undersized next to a large one.
-                        const sofaDimFontSizePx = Math.max(8, Math.min(10, restFrameWidthPx / 12));
-
-                        return (
-                    <div
-                        className={`absolute left-1/2 -translate-x-1/2 w-[48%] pointer-events-none flex flex-col items-center justify-end transition-all ${ZOOM_MOTION} ${
-                            isHovered || isMaxZoom || isFullScreen ? 'opacity-0 scale-75 translate-y-10' : 'opacity-100 scale-100 translate-y-0'
-                        }`}
-                        style={{ top: `${sofaTopPx}px` }}
-                    >
-                        <div className="relative w-full">
-                            <svg viewBox="0 0 800 250" className={`w-full h-auto ${isDarkWall ? 'text-stone-100' : 'text-stone-900'} opacity-[0.12]`} fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M50 250 L750 250 L750 150 L700 150 L700 200 L100 200 L100 150 L50 150 Z" />
-                                <rect x="120" y="100" width="270" height="100" rx="10" />
-                                <rect x="410" y="100" width="270" height="100" rx="10" />
-                            </svg>
-                        </div>
-
-                        {/* Sofa Dimension Overlay */}
-                        {showDimensions && (
-                            <div style={{ fontSize: `${sofaDimFontSizePx}px` }} className={`relative w-[87.5%] mt-0 flex items-center justify-center ${wallInkClass} font-mono whitespace-nowrap border-b ${wallInkBorderClass} pb-0.5 ${wallInkBlend} opacity-80`}>
-                                <div className={`absolute left-0 bottom-0 h-1.5 sm:h-2 w-px ${wallInkBgClass}`} />
-                                <div className={`absolute right-0 bottom-0 h-1.5 sm:h-2 w-px ${wallInkBgClass}`} />
-                                Standard 2-Seater Sofa - {unit === 'in' ? (160 / 2.54).toFixed(1) : '160.0'} {unit === 'in' ? 'in' : 'cm'}
-                            </div>
-                        )}
-                        {/* The note that used to sit here is now a caption under
-                            the whole pane — see the left column's wrapper. */}
-                    </div>
-                        );
-                    })()}
 
                 </div>
 
@@ -2660,7 +2641,7 @@ const CustomizeFramePage = ({
                 <button
                     onClick={() => (isFullScreen ? exitFullScreen() : enterFullScreen())}
                     data-testid="visualizer-chrome"
-                    className={`absolute ${isFullScreen ? 'bottom-[max(1.5rem,env(safe-area-inset-bottom))] right-5 sm:bottom-6 sm:right-6' : 'bottom-3 right-3 sm:bottom-6 sm:right-6'} z-30 w-10 h-10 flex items-center justify-center rounded-full border border-stone-200 shadow-sm hover:shadow-md transition-all ${CHROME_MOTION} bg-white/95 backdrop-blur text-stone-700 ${
+                    className={`absolute ${isFullScreen ? 'bottom-[max(1.5rem,env(safe-area-inset-bottom))] right-5 sm:bottom-6 sm:right-6' : 'bottom-1 right-3 sm:bottom-2 sm:right-6'} z-30 w-10 h-10 flex items-center justify-center rounded-full border border-stone-200 shadow-sm hover:shadow-md transition-all ${CHROME_MOTION} bg-white/95 backdrop-blur text-stone-700 ${
                         (isHovered || isMaxZoom) && !isFullScreen ? 'opacity-0 scale-75 pointer-events-none' : 'opacity-100 scale-100'
                     }`}
                     title={isFullScreen ? 'Exit full screen' : 'Full screen'}
@@ -2690,7 +2671,7 @@ const CustomizeFramePage = ({
                     <button
                         onClick={() => setIsArOpen(true)}
                         data-testid="visualizer-chrome"
-                        className={`absolute bottom-3 left-3 sm:bottom-6 sm:left-6 z-30 w-10 h-10 flex items-center justify-center rounded-full border border-stone-200 shadow-sm hover:shadow-md transition-all ${CHROME_MOTION} bg-white/95 backdrop-blur text-stone-700 ${
+                        className={`absolute bottom-1 left-3 sm:bottom-2 sm:left-6 z-30 w-10 h-10 flex items-center justify-center rounded-full border border-stone-200 shadow-sm hover:shadow-md transition-all ${CHROME_MOTION} bg-white/95 backdrop-blur text-stone-700 ${
                             (isHovered || isMaxZoom) ? 'opacity-0 scale-75 pointer-events-none' : 'opacity-100 scale-100'
                         }`}
                         title="View on your wall"
