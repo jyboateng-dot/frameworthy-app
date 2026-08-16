@@ -3,18 +3,10 @@
   "stripLength": 1024,
   "byQuality": {
     "cropped-from-frame": 40,
-    "scanned": 171,
+    "scanned": 178,
     "derived-from-corner": 123
   },
-  "failures": [
-    "frame-83530",
-    "frame-6540",
-    "frame-11114",
-    "frame-11211",
-    "frame-11235",
-    "frame-83999",
-    "frame-84163"
-  ],
+  "failures": [],
   "rails": {
     "frame-83811": {
       "h": "/frames/rails/frame-83811-rail-h.webp",
@@ -2353,6 +2345,55 @@
       "thickness": 256,
       "sourceRole": "corner",
       "quality": "derived-from-corner"
+    },
+    "frame-83530": {
+      "h": "/frames/rails/frame-83530-rail-h.webp",
+      "v": "/frames/rails/frame-83530-rail-v.webp",
+      "thickness": 246,
+      "sourceRole": "corner",
+      "quality": "derived-from-corner"
+    },
+    "frame-6540": {
+      "h": "/frames/rails/frame-6540-rail-h.webp",
+      "v": "/frames/rails/frame-6540-rail-v.webp",
+      "thickness": 90,
+      "sourceRole": "strip",
+      "quality": "scanned"
+    },
+    "frame-11114": {
+      "h": "/frames/rails/frame-11114-rail-h.webp",
+      "v": "/frames/rails/frame-11114-rail-v.webp",
+      "thickness": 223,
+      "sourceRole": "strip",
+      "quality": "scanned"
+    },
+    "frame-11211": {
+      "h": "/frames/rails/frame-11211-rail-h.webp",
+      "v": "/frames/rails/frame-11211-rail-v.webp",
+      "thickness": 124,
+      "sourceRole": "strip",
+      "quality": "scanned"
+    },
+    "frame-11235": {
+      "h": "/frames/rails/frame-11235-rail-h.webp",
+      "v": "/frames/rails/frame-11235-rail-v.webp",
+      "thickness": 33,
+      "sourceRole": "assembled",
+      "quality": "scanned"
+    },
+    "frame-83999": {
+      "h": "/frames/rails/frame-83999-rail-h.webp",
+      "v": "/frames/rails/frame-83999-rail-v.webp",
+      "thickness": 85,
+      "sourceRole": "strip",
+      "quality": "scanned"
+    },
+    "frame-84163": {
+      "h": "/frames/rails/frame-84163-rail-h.webp",
+      "v": "/frames/rails/frame-84163-rail-v.webp",
+      "thickness": 166,
+      "sourceRole": "strip",
+      "quality": "scanned"
     }
   }
 }

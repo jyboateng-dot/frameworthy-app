@@ -1655,7 +1655,7 @@ const CustomizeFramePage = ({
                     instead of an instant pop. */}
                 <div
                     data-testid="visualizer-chrome"
-                    className={`absolute top-1.5 left-1.5 right-1.5 sm:top-2 sm:left-2 sm:right-2 z-20 grid grid-cols-[auto_minmax(0,1fr)_auto] items-start gap-2 sm:gap-3 transition-opacity ${CHROME_MOTION} ${
+                    className={`absolute top-1.5 left-1.5 right-[-4px] sm:top-2 sm:left-2 sm:right-[-4px] z-20 grid grid-cols-[auto_minmax(0,1fr)_auto] items-start gap-2 sm:gap-3 transition-opacity ${CHROME_MOTION} ${
                         (isHovered || isFullScreen || isMaxZoom) ? 'opacity-0 pointer-events-none' : 'opacity-100'
                     }`}
                 >
@@ -2002,30 +2002,24 @@ const CustomizeFramePage = ({
                             // the artwork. The rails are percentage based below, so
                             // hover, double-tap zoom and fullscreen still enlarge
                             // the rail by the exact same factor as the frame.
-                            const projectedRailPx = railWidthCm * pixelsPerCm;
-                            const mouldingPctW = (projectedRailPx / renderedFrameWidthPx) * 100;
-                            const mouldingPctH = (projectedRailPx / renderedFrameHeightPx) * 100;
+                            let projectedRailPx = railWidthCm * pixelsPerCm;
+                            let mouldingPctW = (projectedRailPx / renderedFrameWidthPx) * 100;
+                            let mouldingPctH = (projectedRailPx / renderedFrameHeightPx) * 100;
                             
                             // Mat inset as % of frame width/height.
                             // Clamp the max inset so we don't mathematically collapse the artwork to 0 or negative.
                             // Top/bottom differ (matReveal.bottomIn > matReveal.topIn) — the
                             // standard bottom-weighted mat convention, see src/utils/matting.js.
-                            const rawMatPctW = (matReveal.sideIn / (wInch + 2 * railWidthIn)) * 100;
-                            const rawMatPctTop = (matReveal.topIn / (hInch + 2 * railWidthIn)) * 100;
-                            const rawMatPctBottom = (matReveal.bottomIn / (hInch + 2 * railWidthIn)) * 100;
-                            const matPctW = Math.max(0, Math.min(rawMatPctW, 45 - mouldingPctW));
-                            const matPctTop = Math.max(0, Math.min(rawMatPctTop, 45 - mouldingPctH));
-                            const matPctBottom = Math.max(0, Math.min(rawMatPctBottom, 45 - mouldingPctH));
+                            // Mat values are calculated after preview-specific
+                            // moulding adjustments below.
 
                             // Canvas Print mount styles (glassType 'canvas'): Floater reveals a
                             // small gap between the canvas edge and the frame's inner wall;
                             // Traditional lets the frame's inner lip overlap and hide the canvas
                             // edge. Both a fixed physical inch amount converted to %, same
                             // derivation as matPct above, so they scale sensibly across sizes.
-                            const floaterGapPctW = (0.25 / (wInch + 2 * railWidthIn)) * 100;
-                            const floaterGapPctH = (0.25 / (hInch + 2 * railWidthIn)) * 100;
-                            const traditionalOverlapPctW = Math.min(0.375 / (wInch + 2 * railWidthIn) * 100, mouldingPctW);
-                            const traditionalOverlapPctH = Math.min(0.375 / (hInch + 2 * railWidthIn) * 100, mouldingPctH);
+                            // Canvas mount values are calculated after preview-
+                            // specific moulding adjustments below.
 
                             // With the plain-wall reference artefact gone, there's nothing
                             // left in that mode to show the frame at physical scale
@@ -2095,6 +2089,96 @@ const CustomizeFramePage = ({
                                 // on tiny frames, never shrink below 1.0x.
                                 return Math.max(1.0, Math.min(isPosterPrint ? 16.0 : 8.0, maxScale));
                             })();
+                            const is100By150Cm = (
+                                Math.abs(Math.max(innerWidthCm, innerHeightCm) - 150) <= 3 &&
+                                Math.abs(Math.min(innerWidthCm, innerHeightCm) - 100) <= 3
+                            );
+                            const isSharedPreviewView = (
+                                (!activeRoom && !isMaxZoom && !isFullScreen) ||
+                                (activeRoom && isHovered && !isMaxZoom && !isFullScreen) ||
+                                isFullScreen
+                            );
+                            const isAtLeast28By35Cm = (
+                                Math.max(innerWidthCm, innerHeightCm) >= 35 &&
+                                Math.min(innerWidthCm, innerHeightCm) >= 28
+                            );
+                            const shouldReduceSharedLargeRender = isSharedPreviewView && !isMaxZoom && isAtLeast28By35Cm;
+                            const shouldIncrease100By150Render = isSharedPreviewView && is100By150Cm;
+                            const renderIncrease100By150PerSidePx = shouldIncrease100By150Render ? 40 : 0;
+                            const renderIncrease100By150WidthPx = (renderIncrease100By150PerSidePx * 2) / Math.max(outerFrameHeightCm / outerFrameWidthCm, 0.01);
+                            const referenceMinAreaCm2 = 13 * 18;
+                            const referenceMaxAreaCm2 = 100 * 150;
+                            const currentInnerAreaCm2 = Math.max(1, innerWidthCm * innerHeightCm);
+                            const sizeRangeProgress = Math.max(
+                                0,
+                                Math.min(1, (currentInnerAreaCm2 - referenceMinAreaCm2) / (referenceMaxAreaCm2 - referenceMinAreaCm2))
+                            );
+                            const isBetweenReferenceSizes = isSharedPreviewView && sizeRangeProgress > 0.02 && sizeRangeProgress < 0.98;
+                            const inBetweenSizeReductionPx = isBetweenReferenceSizes
+                                ? (() => {
+                                    // Keep the endpoints fixed, but compress the
+                                    // middle asymmetrically: medium formats need
+                                    // the most help separating from the large end,
+                                    // while upper-large formats should recover
+                                    // toward the 100×150 reference.
+                                    const mediumWeightedCurve = Math.pow(sizeRangeProgress, 0.35) * Math.pow(1 - sizeRangeProgress, 1.9);
+                                    const curvePeak = Math.pow(0.35 / (0.35 + 1.9), 0.35) * Math.pow(1 - (0.35 / (0.35 + 1.9)), 1.9);
+                                    return 92 * (mediumWeightedCurve / curvePeak);
+                                })()
+                                : 0;
+                            const displayedFrameWidthPct = isHovered || isMaxZoom || isFullScreen || isZoomedByDefault
+                                ? frameWidthPct * zoomScale
+                                : frameWidthPct;
+                            const adjustedDisplayedFrameWidthPct = Math.max(
+                                1,
+                                displayedFrameWidthPct
+                                    - (shouldReduceSharedLargeRender ? (60 / Math.max(zoneSize.width, 1)) * 100 : 0)
+                                    - ((inBetweenSizeReductionPx / Math.max(zoneSize.width, 1)) * 100)
+                                    + (shouldIncrease100By150Render ? (renderIncrease100By150WidthPx / Math.max(zoneSize.width, 1)) * 100 : 0)
+                            );
+                            const shouldUseSixtyBySixtyMouldingReference = (
+                                isSharedPreviewView
+                            );
+                            if (shouldUseSixtyBySixtyMouldingReference) {
+                                const SIXTY_CM_INNER = 60;
+                                const referenceOuterWidthCm = SIXTY_CM_INNER + (railWidthCm * 2);
+                                const referenceFrameWidthPct = (referenceOuterWidthCm / SOFA_CM) * SOFA_BODY_PCT;
+                                const referenceBaseWidthPx = (referenceFrameWidthPct / 100) * zoneSize.width;
+                                const referenceMaxWidthPx = zoneSize.width * 0.85;
+                                const referenceMaxHeightPx = zoneSize.height * 0.90;
+                                const safeReferenceWidthPx = referenceBaseWidthPx > 0 ? referenceBaseWidthPx : 1;
+                                const referenceScale = Math.max(
+                                    1.0,
+                                    Math.min(8.0, referenceMaxWidthPx / safeReferenceWidthPx, referenceMaxHeightPx / safeReferenceWidthPx)
+                                );
+                                const referenceRailPx = (railWidthCm / referenceOuterWidthCm) * referenceBaseWidthPx * referenceScale;
+                                const finalFrameWidthPx = Math.max(1, (adjustedDisplayedFrameWidthPct / 100) * zoneSize.width);
+                                const displayScale = finalFrameWidthPx / renderedFrameWidthPx;
+                                projectedRailPx = referenceRailPx / Math.max(displayScale, 0.01);
+                                mouldingPctW = (projectedRailPx / renderedFrameWidthPx) * 100;
+                                mouldingPctH = (projectedRailPx / renderedFrameHeightPx) * 100;
+                            }
+
+                            // Mat inset as % of frame width/height.
+                            // Clamp the max inset so we don't mathematically collapse the artwork to 0 or negative.
+                            // Top/bottom differ (matReveal.bottomIn > matReveal.topIn) — the
+                            // standard bottom-weighted mat convention, see src/utils/matting.js.
+                            const rawMatPctW = (matReveal.sideIn / (wInch + 2 * railWidthIn)) * 100;
+                            const rawMatPctTop = (matReveal.topIn / (hInch + 2 * railWidthIn)) * 100;
+                            const rawMatPctBottom = (matReveal.bottomIn / (hInch + 2 * railWidthIn)) * 100;
+                            const matPctW = Math.max(0, Math.min(rawMatPctW, 45 - mouldingPctW));
+                            const matPctTop = Math.max(0, Math.min(rawMatPctTop, 45 - mouldingPctH));
+                            const matPctBottom = Math.max(0, Math.min(rawMatPctBottom, 45 - mouldingPctH));
+
+                            // Canvas Print mount styles (glassType 'canvas'): Floater reveals a
+                            // small gap between the canvas edge and the frame's inner wall;
+                            // Traditional lets the frame's inner lip overlap and hide the canvas
+                            // edge. Both a fixed physical inch amount converted to %, same
+                            // derivation as matPct above, so they scale sensibly across sizes.
+                            const floaterGapPctW = (0.25 / (wInch + 2 * railWidthIn)) * 100;
+                            const floaterGapPctH = (0.25 / (hInch + 2 * railWidthIn)) * 100;
+                            const traditionalOverlapPctW = Math.min(0.375 / (wInch + 2 * railWidthIn) * 100, mouldingPctW);
+                            const traditionalOverlapPctH = Math.min(0.375 / (hInch + 2 * railWidthIn) * 100, mouldingPctH);
 
                             // Calculate push down amount so the top of the frame isn't hidden behind the header in max zoom
                             const pushDownAmount = (() => {
@@ -2166,7 +2250,7 @@ const CustomizeFramePage = ({
                             // never looks oversized or cramped next to a tiny frame. Tailwind
                             // can't JIT a runtime-computed arbitrary value, so this drives an
                             // inline font-size rather than a text-[Npx] class.
-                            const baseFrameWidthPx = (frameWidthPct / 100) * zoneSize.width;
+                            const baseFrameWidthPx = (adjustedDisplayedFrameWidthPct / 100) * zoneSize.width;
 
                             // On-screen preview only — never affects what's stored on the
                             // cart item or sent to print. Inspiration/catalogue selections set
@@ -2257,9 +2341,7 @@ const CustomizeFramePage = ({
                                             : 'z-10'
                                     }`}
                                     style={{
-                                        width: isHovered || isMaxZoom || isFullScreen || isZoomedByDefault
-                                            ? `${frameWidthPct * zoomScale}%`
-                                            : `${frameWidthPct}%`,
+                                        width: `${adjustedDisplayedFrameWidthPct}%`,
                                         aspectRatio: `${outerFrameWidthCm} / ${outerFrameHeightCm}`,
                                         marginTop: `${pushDownAmount + roomSceneVerticalOffsetPx}px`,
                                         marginLeft: `${pushRightAmount}px`,
@@ -2277,7 +2359,7 @@ const CustomizeFramePage = ({
                                         // port midpoint (notably in the entryway).
                                         transform: activeRoom
                                             ? `translateX(${roomSceneHorizontalOffsetPx}px)`
-                                            : 'translate(-11px, 4px)',
+                                            : 'translate(1px, 4px)',
                                         touchAction: 'manipulation'
                                     }}
                                 >
@@ -2351,7 +2433,7 @@ const CustomizeFramePage = ({
                                                             borderColor: "transparent",
                                                             borderImageWidth: `${mouldingPctH}% ${mouldingPctW}%`,
                                                             borderImageSource: `url(${selectedFrame.borderImageSource})`,
-                                                            borderImageSlice: `${(railWidthIn / (8 + 2 * railWidthIn)) * 100}%`,
+                                                            borderImageSlice: `${selectedFrame.borderImageSlicePct ?? ((railWidthIn / (8 + 2 * railWidthIn)) * 100)}%`,
                                                             borderImageRepeat: "stretch"
                                                         }}
                                                     >

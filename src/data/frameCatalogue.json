@@ -8502,17 +8502,30 @@
     {
       "id": "frame-11235",
       "sku": "11235",
-      "slug": "white-washed-ornate-picture-frame",
+      "slug": "carved-white-washed-picture-frame",
       "name": "Ornate White Washed",
-      "sourceUrl": "https://frameworthy.com/white-washed-ornate-picture-frame.html",
-      "mouldingWidthIn": 1.25,
-      "mouldingWidthSource": "supplier frame-builder API",
-      "rabbetDepthIn": 0.375,
-      "rabbetDepthSource": "supplier frame-builder API",
-      "thumbnail": "/frames/11235_a_1.jpg",
-      "textureSource": "strip",
+      "sourceUrl": "https://frameworthy.com/carved-white-washed-picture-frame.html",
+      "mouldingWidthIn": 1,
+      "mouldingWidthSource": "FrameWorthy product page",
+      "rabbetDepthIn": 0.4375,
+      "rabbetDepthSource": "FrameWorthy product page",
+      "thumbnail": "/frames/assets/carved-white-washed-picture-frame/11235_a.webp",
+      "textureSource": "assembled",
       "textureDerived": false,
       "assets": {
+        "assembled": [
+          "/frames/assets/carved-white-washed-picture-frame/11235_full-frame-reference.png"
+        ],
+        "gallery": [
+          "/frames/assets/carved-white-washed-picture-frame/11235_full-frame-reference.png",
+          "/frames/assets/carved-white-washed-picture-frame/11235_a.webp",
+          "/frames/assets/carved-white-washed-picture-frame/11235_a_1.webp",
+          "/frames/assets/carved-white-washed-picture-frame/11235_b.webp",
+          "/frames/assets/carved-white-washed-picture-frame/11235_d.webp"
+        ],
+        "rail": [
+          "/frames/assets/carved-white-washed-picture-frame/11235-c.jpg"
+        ],
         "strip": [
           "/frames/render-assets/frame-11235-front-h.webp"
         ]

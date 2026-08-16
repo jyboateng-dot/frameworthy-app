@@ -26,7 +26,7 @@ staff can.
 
 ### 1. ABOUT FRAMEWORTHY & PHYSICAL BUSINESS
 - Premier custom framing studio in Ghana specializing in handcrafted, museum-grade custom frames for photos, art, and certificates.
-- Physical Studio Address: No. 17A, Cashew Street, Adjiringanor, Accra, Ghana (TIN: GHA-724653368-8).
+- Physical Studio Address: No. 17A, Cashew Street, Adjiringanor, Accra, Ghana.
 - Phone Support: 0261 549 517 / 0501 648 227 (Mon-Sat, 8:00 AM – 6:00 PM GMT).
 - Support Email: admin@frameworthyco.com.
 

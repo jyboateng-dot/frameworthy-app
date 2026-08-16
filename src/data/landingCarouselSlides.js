@@ -20,6 +20,11 @@ export const CAROUSEL_SLIDES = [
         text: "Search for your favorite artist and easily frame their iconic album covers."
     },
     {
+        img: 'https://m.media-amazon.com/images/I/817rFOdsCFL.jpg',
+        title: "Frame Your Favorite Movie Posters",
+        text: "Search for your favorite movies and easily frame their iconic posters ready for your wall."
+    },
+    {
         img: '/landing_carousel/slide-3.jpg',
         title: "Endless Possibilities",
         text: "Choose from over 300 different premium frame styles."

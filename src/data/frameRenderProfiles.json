@@ -5104,12 +5104,12 @@
       "finish": "metallic"
     },
     "frame-11235": {
-      "mouldingWidthIn": 1.25,
-      "rabbetDepthIn": 0.375,
+      "mouldingWidthIn": 1,
+      "rabbetDepthIn": 0.4375,
       "style": "Ornate, Traditional",
       "color": "White",
       "frameType": "Picture Frame",
-      "sourceProductName": "White Washed Ornate Picture Frame",
+      "sourceProductName": "Ornate White Washed Picture Frame",
       "frontTexture": {
         "horizontalPath": "/frames/render-assets/frame-11235-front-h.webp",
         "verticalPath": "/frames/render-assets/frame-11235-front-v.webp"

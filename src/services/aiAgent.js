@@ -80,7 +80,7 @@ export function getLocalAiResponse(userMessage) {
 
     // 10. Location, Physical Address & Phone Contacts
     if (matchAny(text, ['address', 'location', 'where', 'office', 'studio', 'adjiringanor', 'phone', 'contact', 'call', 'email', 'number', 'speak'])) {
-        return "Our physical studio is located at No. 17A, Cashew Street, Adjiringanor, Accra, Ghana (TIN: GHA-724653368-8). You can call our support team at 0261 549 517 / 0501 648 227 (Mon-Sat, 8am-6pm GMT) or email us at admin@frameworthyco.com.";
+        return "Our physical studio is located at No. 17A, Cashew Street, Adjiringanor, Accra, Ghana. You can call our support team at 0261 549 517 / 0501 648 227 (Mon-Sat, 8am-6pm GMT) or email us at admin@frameworthyco.com.";
     }
 
     // 11. Returns, Cancellations & Damaged Items
