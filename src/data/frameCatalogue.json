@@ -5,10 +5,10 @@
   "withMouldingWidth": 319,
   "withRabbetDepth": 326,
   "textureSourceBreakdown": {
-    "assembled": 42,
-    "strip": 84,
-    "rail": 90,
-    "corner": 119
+    "assembled": 43,
+    "strip": 89,
+    "rail": 93,
+    "corner": 116
   },
   "ambiguousAssets": [
     "/frames/assets/american-flag-picture-frame/9565c.jpg",
@@ -570,8 +570,8 @@
       "rabbetDepthIn": 0.6875,
       "rabbetDepthSource": "supplier-archive",
       "thumbnail": "/frames/assets/antique-gold-beveled-picture-frame/10685_corner_a.jpg",
-      "textureSource": "corner",
-      "textureDerived": true,
+      "textureSource": "rail",
+      "textureDerived": false,
       "assets": {
         "corner": [
           "/frames/assets/antique-gold-beveled-picture-frame/10685_corner_a.jpg",
@@ -579,6 +579,9 @@
         ],
         "profile": [
           "/frames/assets/antique-gold-beveled-picture-frame/10685_profile_a.jpg"
+        ],
+        "rail": [
+          "/frames/assets/antique-gold-beveled-picture-frame/pos8_10685_framingengine.jpg"
         ]
       }
     },
@@ -7035,8 +7038,8 @@
       "rabbetDepthIn": 0.375,
       "rabbetDepthSource": "details.json",
       "thumbnail": "/frames/assets/traditional-antique-gold-picture-frame/6301_corner_a_1_1.jpg",
-      "textureSource": "corner",
-      "textureDerived": true,
+      "textureSource": "rail",
+      "textureDerived": false,
       "assets": {
         "corner": [
           "/frames/assets/traditional-antique-gold-picture-frame/6301_corner_a_1_1.jpg",
@@ -7044,6 +7047,9 @@
         ],
         "profile": [
           "/frames/assets/traditional-antique-gold-picture-frame/6301_profile_a.jpg"
+        ],
+        "rail": [
+          "/frames/assets/traditional-antique-gold-picture-frame/6301_framingengine_1.jpg"
         ]
       }
     },

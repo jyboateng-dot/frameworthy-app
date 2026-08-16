@@ -479,8 +479,8 @@ export const FRAME_STYLES = [
         previewImg: '/frames/assets/antique-gold-beveled-picture-frame/pos4_10685_corner_a.jpg',
         mouldingWidthIn: 1.625,
         rabbetDepthIn: 0.6875,
-        textureSource: 'corner',
-        textureDerived: true
+        textureSource: 'rail',
+        textureDerived: false
     },
     {
         id: 'frame-83878',
@@ -5900,6 +5900,8 @@ export const FRAME_STYLES = [
         type: 'Picture Frame',
         desc: 'Yellow Square With Bevel Lip.',
         previewImg: '/frames/assets/yellow-square-with-bevel-lip-picture-frame/pos1_imagemanipulator_default_swap_80299.png',
+        borderImageSource: '/frames/assets/yellow-square-with-bevel-lip-picture-frame/imagemanipulator_default_swap_80299.png',
+        borderImageSlicePct: 8.2,
         mouldingWidthIn: null,
         rabbetDepthIn: null,
         textureSource: 'assembled',

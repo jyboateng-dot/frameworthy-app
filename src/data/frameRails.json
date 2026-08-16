@@ -3,8 +3,8 @@
   "stripLength": 1024,
   "byQuality": {
     "cropped-from-frame": 40,
-    "scanned": 178,
-    "derived-from-corner": 123
+    "scanned": 181,
+    "derived-from-corner": 120
   },
   "failures": [],
   "rails": {
@@ -116,9 +116,9 @@
     "frame-10685": {
       "h": "/frames/rails/frame-10685-rail-h.webp",
       "v": "/frames/rails/frame-10685-rail-v.webp",
-      "thickness": 61,
-      "sourceRole": "corner",
-      "quality": "derived-from-corner"
+      "thickness": 256,
+      "sourceRole": "rail",
+      "quality": "scanned"
     },
     "frame-83878": {
       "h": "/frames/rails/frame-83878-rail-h.webp",
@@ -2076,9 +2076,9 @@
     "frame-8989": {
       "h": "/frames/rails/frame-8989-rail-h.webp",
       "v": "/frames/rails/frame-8989-rail-v.webp",
-      "thickness": 147,
-      "sourceRole": "corner",
-      "quality": "derived-from-corner"
+      "thickness": 212,
+      "sourceRole": "rail",
+      "quality": "scanned"
     },
     "frame-10732": {
       "h": "/frames/rails/frame-10732-rail-h.webp",
@@ -2336,8 +2336,8 @@
       "h": "/frames/rails/frame-8991-rail-h.webp",
       "v": "/frames/rails/frame-8991-rail-v.webp",
       "thickness": 256,
-      "sourceRole": "corner",
-      "quality": "derived-from-corner"
+      "sourceRole": "rail",
+      "quality": "scanned"
     },
     "frame-80299": {
       "h": "/frames/rails/frame-80299-rail-h.webp",
