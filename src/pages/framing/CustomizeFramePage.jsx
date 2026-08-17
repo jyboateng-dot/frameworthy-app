@@ -870,6 +870,20 @@ const CustomizeFramePage = ({
 
         const containerWidth = isSideBySide ? windowSize.width * 0.70 : windowSize.width;
 
+        // The viewport is sized once, for the largest catalogue frame
+        // (100×150cm, portrait — the tallest orientation of the largest
+        // reference, so this is the true worst-case height), and then held
+        // fixed. It no longer tracks whatever size is actually selected, so
+        // switching dimensions only changes how big the frame renders inside
+        // a constant-size viewport, never the viewport itself. Rail width
+        // still comes from the current frame STYLE (a chunkier moulding
+        // legitimately wants a touch more room) — only the SIZE dependency
+        // is removed.
+        const LARGEST_REF_INNER_W_CM = 100;
+        const LARGEST_REF_INNER_H_CM = 150;
+        const largestOuterWidthCm = LARGEST_REF_INNER_W_CM + (railWidthCm * 2);
+        const largestOuterHeightCm = LARGEST_REF_INNER_H_CM + (railWidthCm * 2);
+
         // Calculate frame width in pixels. A room scene measures the piece
         // against its own wall span rather than this reference, and the two
         // don't agree — 90cm on the Entryway's 340cm wall renders ~12%
@@ -879,10 +893,10 @@ const CustomizeFramePage = ({
         // controls.
         const activeSceneForMetrics = roomSceneId ? ROOM_SCENES.find((s) => s.id === roomSceneId) : null;
         const frameWidthPct = activeSceneForMetrics
-            ? (outerFrameWidthCm / (activeSceneForMetrics.wallSpanCm + (activeSceneForMetrics.canvasInsetLeftCm || 0))) * 100
-            : (outerFrameWidthCm / FRAME_SCALE_REF_CM) * FRAME_SCALE_REF_PCT;
+            ? (largestOuterWidthCm / (activeSceneForMetrics.wallSpanCm + (activeSceneForMetrics.canvasInsetLeftCm || 0))) * 100
+            : (largestOuterWidthCm / FRAME_SCALE_REF_CM) * FRAME_SCALE_REF_PCT;
         const frameWidthPx = (frameWidthPct / 100) * containerWidth;
-        const frameHeightPx = frameWidthPx * (outerFrameHeightCm / outerFrameWidthCm);
+        const frameHeightPx = frameWidthPx * (largestOuterHeightCm / largestOuterWidthCm);
 
         // Add proportional padding: small frames get a tighter crop to pull menus up, large frames get more breathing room
         const dynamicPadding = Math.min(140, 60 + frameHeightPx * 0.8);
@@ -1660,47 +1674,20 @@ const CustomizeFramePage = ({
                     }`}
                 >
 
-                {/* Compact measurement control — kept in the visualizer, but
-                    reduced and pinned tight to the top-left chrome so the
-                    largest portrait previews have room for their left/bottom
-                    measurement lines. */}
-                <div className="shrink-0 flex h-7 items-stretch overflow-hidden rounded-full border border-stone-200 bg-white/95 text-[11px] font-bold shadow-sm backdrop-blur transition-all hover:shadow-md">
-                    <button
-                        onClick={() => setShowDimensions(!showDimensions)}
-                        className={`flex w-7 items-center justify-center border-r border-stone-200 transition-colors ${
-                            showDimensions ? 'bg-stone-100 text-stone-900' : 'text-stone-500 hover:text-stone-900'
-                        }`}
-                        title="Toggle measurement lines"
-                        aria-pressed={showDimensions}
-                    >
-                        <Ruler size={13} className="shrink-0" />
-                    </button>
-                    <button
-                        onClick={() => setUnit('in')}
-                        className={`w-7 transition-colors ${
-                            unit === 'in' ? 'bg-stone-100 text-stone-900' : 'text-stone-400 hover:bg-stone-50 hover:text-stone-700'
-                        }`}
-                    >
-                        in
-                    </button>
-                    <button
-                        onClick={() => setUnit('cm')}
-                        className={`w-8 border-l border-stone-200 transition-colors ${
-                            unit === 'cm' ? 'bg-stone-100 text-stone-900' : 'text-stone-400 hover:bg-stone-50 hover:text-stone-700'
-                        }`}
-                    >
-                        cm
-                    </button>
-                </div>
+                {/* Scene — pill + dropdown, mirroring the wall-colour picker.
+                    Sits where the unit/measurement control used to (that
+                    moved into the Dimensions panel section), so this corner
+                    stays a single pill instead of stacking two. */}
+                <ScenePicker
+                    activeId={roomSceneId}
+                    onSelect={setRoomSceneId}
+                />
 
-                {/* Scene — expanded horizontal pill tucked between the
-                    measurement/unit control and the wall-colour picker. */}
-                <div className="min-w-0 flex justify-center">
-                    <ScenePicker
-                        activeId={roomSceneId}
-                        onSelect={setRoomSceneId}
-                    />
-                </div>
+                {/* Empty flexible middle column — keeps the wall-colour pill
+                    in the grid's third (auto-width) track, right-aligned,
+                    exactly as it was when this column held the old inline
+                    scene-picker row. */}
+                <div aria-hidden="true" />
 
                 {/* BACKDROP CONTROLS — wall colour, and the scene beneath it.
                     Both change what's behind the piece, so they stack in one
@@ -2098,13 +2085,8 @@ const CustomizeFramePage = ({
                                 (activeRoom && isHovered && !isMaxZoom && !isFullScreen) ||
                                 isFullScreen
                             );
-                            const isAtLeast28By35Cm = (
-                                Math.max(innerWidthCm, innerHeightCm) >= 35 &&
-                                Math.min(innerWidthCm, innerHeightCm) >= 28
-                            );
-                            const shouldReduceSharedLargeRender = isSharedPreviewView && !isMaxZoom && isAtLeast28By35Cm;
                             const shouldIncrease100By150Render = isSharedPreviewView && is100By150Cm;
-                            const renderIncrease100By150PerSidePx = shouldIncrease100By150Render ? 40 : 0;
+                            const renderIncrease100By150PerSidePx = shouldIncrease100By150Render ? 2 : 0;
                             const renderIncrease100By150WidthPx = (renderIncrease100By150PerSidePx * 2) / Math.max(outerFrameHeightCm / outerFrameWidthCm, 0.01);
                             const referenceMinAreaCm2 = 13 * 18;
                             const referenceMaxAreaCm2 = 100 * 150;
@@ -2126,14 +2108,32 @@ const CustomizeFramePage = ({
                                     return 92 * (mediumWeightedCurve / curvePeak);
                                 })()
                                 : 0;
+                            // Large-but-not-huge formats used to get an extra flat -60px cut
+                            // the instant both dimensions crossed 28/35cm — a hard on/off step
+                            // that, stacked on top of the continuous curve above (which is
+                            // already reducing size through this same band), produced a
+                            // discontinuity right at the threshold: a 28×35 could render
+                            // SMALLER than a 30×30 despite being the physically larger frame.
+                            // Smoothstepped over an area band instead (rise ~700-1400cm²,
+                            // matching where the old dimension threshold typically landed),
+                            // and faded back out approaching the 100×150 anchor so it never
+                            // fights that reference's own boost above — same separation
+                            // intent, no seam.
+                            const largeFormatRiseT = Math.max(0, Math.min(1, (currentInnerAreaCm2 - 700) / (1400 - 700)));
+                            const largeFormatRise = largeFormatRiseT * largeFormatRiseT * (3 - 2 * largeFormatRiseT);
+                            const largeFormatFallT = Math.max(0, Math.min(1, (sizeRangeProgress - 0.6) / (0.9 - 0.6)));
+                            const largeFormatFall = largeFormatFallT * largeFormatFallT * (3 - 2 * largeFormatFallT);
+                            const largeFormatReductionPx = isSharedPreviewView
+                                ? 60 * largeFormatRise * (1 - largeFormatFall)
+                                : 0;
                             const displayedFrameWidthPct = isHovered || isMaxZoom || isFullScreen || isZoomedByDefault
                                 ? frameWidthPct * zoomScale
                                 : frameWidthPct;
                             const adjustedDisplayedFrameWidthPct = Math.max(
                                 1,
                                 displayedFrameWidthPct
-                                    - (shouldReduceSharedLargeRender ? (60 / Math.max(zoneSize.width, 1)) * 100 : 0)
                                     - ((inBetweenSizeReductionPx / Math.max(zoneSize.width, 1)) * 100)
+                                    - ((largeFormatReductionPx / Math.max(zoneSize.width, 1)) * 100)
                                     + (shouldIncrease100By150Render ? (renderIncrease100By150WidthPx / Math.max(zoneSize.width, 1)) * 100 : 0)
                             );
                             const shouldUseSixtyBySixtyMouldingReference = (
@@ -2876,6 +2876,42 @@ const CustomizeFramePage = ({
                                     Dimensions
                                     <InfoTooltip text="Dimensions show the inner opening size. Every frame is built custom to fit." />
                                 </span>
+                                {/* Unit/measurement-lines control — moved in from the
+                                    visualizer's top-left chrome, right beside the
+                                    section it actually governs. normal-case/tracking-
+                                    normal counteract this heading's own uppercase
+                                    styling, same as the Size guide link below does. */}
+                                <div className="shrink-0 flex h-6 items-stretch overflow-hidden rounded-full border border-stone-200 bg-white text-[10px] font-bold normal-case tracking-normal shadow-sm">
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowDimensions(!showDimensions)}
+                                        className={`flex w-6 items-center justify-center border-r border-stone-200 transition-colors ${
+                                            showDimensions ? 'bg-stone-100 text-stone-900' : 'text-stone-500 hover:text-stone-900'
+                                        }`}
+                                        title="Toggle measurement lines"
+                                        aria-pressed={showDimensions}
+                                    >
+                                        <Ruler size={12} className="shrink-0" />
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setUnit('in')}
+                                        className={`w-6 transition-colors ${
+                                            unit === 'in' ? 'bg-stone-100 text-stone-900' : 'text-stone-400 hover:bg-stone-50 hover:text-stone-700'
+                                        }`}
+                                    >
+                                        in
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setUnit('cm')}
+                                        className={`w-7 border-l border-stone-200 transition-colors ${
+                                            unit === 'cm' ? 'bg-stone-100 text-stone-900' : 'text-stone-400 hover:bg-stone-50 hover:text-stone-700'
+                                        }`}
+                                    >
+                                        cm
+                                    </button>
+                                </div>
                             </span>
                             <button
                                 type="button"
