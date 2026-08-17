@@ -4,7 +4,6 @@ import { Capacitor } from '@capacitor/core';
 import {
     ImagePlus,
     Check,
-    Ruler,
     Palette,
     Frame,
     ImageUp,
@@ -310,7 +309,7 @@ const CustomizeFramePage = ({
     // Resolved async per selectedFrame — see utils/frameTexture.js. Stays
     // null (falls back to the synthesized-gradient moulding) until/unless a
     // confident on-material anchor is found for this frame's corner photo.
-    const [showDimensions, setShowDimensions] = useState(true);
+    const [showDimensions] = useState(true);
     const [isUploading, setIsUploading] = useState(false);
     // True while the background Cloudinary upload for the current image is
     // in flight — until it resolves, `uploadedImage` is a blob: URL that
@@ -2876,23 +2875,14 @@ const CustomizeFramePage = ({
                                     Dimensions
                                     <InfoTooltip text="Dimensions show the inner opening size. Every frame is built custom to fit." />
                                 </span>
-                                {/* Unit/measurement-lines control — moved in from the
-                                    visualizer's top-left chrome, right beside the
-                                    section it actually governs. normal-case/tracking-
-                                    normal counteract this heading's own uppercase
+                                {/* Unit control — moved in from the visualizer's
+                                    top-left chrome, right beside the section it
+                                    actually governs. The measurement-lines toggle
+                                    that used to sit here is gone; dimension lines
+                                    just stay on. normal-case/tracking-normal
+                                    counteract this heading's own uppercase
                                     styling, same as the Size guide link below does. */}
                                 <div className="shrink-0 flex h-6 items-stretch overflow-hidden rounded-full border border-stone-200 bg-white text-[10px] font-bold normal-case tracking-normal shadow-sm">
-                                    <button
-                                        type="button"
-                                        onClick={() => setShowDimensions(!showDimensions)}
-                                        className={`flex w-6 items-center justify-center border-r border-stone-200 transition-colors ${
-                                            showDimensions ? 'bg-stone-100 text-stone-900' : 'text-stone-500 hover:text-stone-900'
-                                        }`}
-                                        title="Toggle measurement lines"
-                                        aria-pressed={showDimensions}
-                                    >
-                                        <Ruler size={12} className="shrink-0" />
-                                    </button>
                                     <button
                                         type="button"
                                         onClick={() => setUnit('in')}
