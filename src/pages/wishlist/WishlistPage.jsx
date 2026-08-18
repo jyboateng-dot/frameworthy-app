@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useWishlist } from '../../context/WishlistContext';
 import { useCart } from '../../context/CartContext';
 import { Heart, Trash2, ChevronRight, ArrowLeft } from 'lucide-react';
-import { FRAME_STYLES, FRAME_SIZES, parseCustomSize, findSizeByDimension } from '../../data/constants';
+import { FRAME_STYLES, FRAME_SIZES, parseCustomSize, findSizeByDimension, clampSizeToValidRange } from '../../data/constants';
 
 const WishlistPage = () => {
     const { wishlistItems, removeFromWishlist } = useWishlist();
@@ -13,7 +13,15 @@ const WishlistPage = () => {
     // Helper to generate a default cart item from an inspiration product
     const createCartItemFromProduct = (product) => {
         const frameObj = FRAME_STYLES.find(f => f.id === product.frameStyleId) || FRAME_STYLES.find(f => f.id === 'frame-10512');
-        const sizeObj = parseCustomSize(product.dims) || findSizeByDimension(product.dims) || FRAME_SIZES.find(s => s.id === product.sizeId) || FRAME_SIZES[0];
+        const rawSizeObj = parseCustomSize(product.dims) || findSizeByDimension(product.dims) || FRAME_SIZES.find(s => s.id === product.sizeId) || FRAME_SIZES[0];
+        // This is a direct add-to-cart, skipping CustomizeFramePage (and its
+        // sizeClampNotice banner) entirely — parseCustomSize does no bounds
+        // checking, so without this a wishlisted item outside the
+        // 13x18-180x180cm production range would reach checkout unclamped.
+        // No UI surface here to show a notice, but the clamp itself is not
+        // optional: a stale/out-of-range size is a fulfillment problem, not
+        // just a missing notification.
+        const { size: sizeObj } = clampSizeToValidRange(rawSizeObj);
         
         const isPreset = true;
         const presetTitle = product.title;

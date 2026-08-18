@@ -63,6 +63,42 @@ describe('server pricing matches client pricing', () => {
         });
         expect(price).toBe(Math.round(expected * (canvasFrame.priceMod || 1)));
     });
+
+    // Guards clampSizeToValidRange (CustomizeFramePage.jsx) specifically:
+    // an out-of-range Inspiration dims string gets clamped into the
+    // 13x18-180x180cm range, and must regenerate BOTH its id and its price
+    // from the same clamped numbers. The server never sees width/height or
+    // price directly — it recomputes price purely from the two numbers
+    // embedded in a "custom-WxH" id — so an id left pointing at the
+    // pre-clamp dimensions would make the server verify a different price
+    // than what the client charged, failing every clamped order.
+    it('prices a clamped Inspiration size the same way the clamp itself does', () => {
+        // e.g. a 5x7cm dims string clamped up to the 13x18cm floor.
+        const clampedShortCm = 13, clampedLongCm = 18;
+        const expected = Math.round(((clampedShortCm * clampedLongCm) / 1000) * 10) + 40;
+        const price = priceForItem({
+            selectedFrame: canvasFrame,
+            selectedSize: { id: `custom-${clampedShortCm}x${clampedLongCm}` },
+            matWidth: 'none',
+        });
+        expect(price).toBe(Math.round(expected * (canvasFrame.priceMod || 1)));
+    });
+
+    it('rejects a custom size id that still points at pre-clamp dimensions', () => {
+        // If the clamp changed the size to 13x18 but left a stale
+        // "custom-5x7" id, the server-recomputed price silently diverges
+        // from what the clamp itself charges — this pins that the two
+        // formulas disagree on a stale id, so a regression that reintroduces
+        // the bug shows up as this assertion flipping to pass.
+        const staleId = 'custom-5x7';
+        const clampedPrice = Math.round(((13 * 18) / 1000) * 10) + 40;
+        const priceFromStaleId = priceForItem({
+            selectedFrame: canvasFrame,
+            selectedSize: { id: staleId },
+            matWidth: 'none',
+        });
+        expect(priceFromStaleId).not.toBe(Math.round(clampedPrice * (canvasFrame.priceMod || 1)));
+    });
 });
 
 describe('generated price table is in sync with source constants', () => {

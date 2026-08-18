@@ -14,7 +14,7 @@ import {
     Maximize2,
     X
 } from 'lucide-react';
-import { FRAME_STYLES, FRAME_SIZES, MAT_COLORS, formatDimensions, findSizeByDimension, parseCustomSize, DEFAULT_DEMO_IMAGE, getDemoImageForOrientation } from '../../data/constants';
+import { FRAME_STYLES, FRAME_SIZES, MAT_COLORS, formatDimensions, findSizeByDimension, parseCustomSize, clampSizeToValidRange, DEFAULT_DEMO_IMAGE, getDemoImageForOrientation } from '../../data/constants';
 import { ROOM_SCENES, computeRoomPlacement } from '../../data/roomScenes';
 import { ROOM_SCENE_COMPONENTS, ROOM_SCENE_FOREGROUND_COMPONENTS } from '../../components/framing/roomSceneComponents';
 import ScenePicker from '../../components/framing/ScenePicker';
@@ -307,6 +307,13 @@ const CustomizeFramePage = ({
     // ROOM_SCENES id to swap in a full room, where the artwork is sized
     // against the room's own real-world wall span instead of the sofa.
     const [roomSceneId, setRoomSceneId] = useState(null);
+    // Bumped exactly when a new image is applied (a fresh upload or an
+    // Inspiration "Get This" pick) — never on the initial demo placeholder,
+    // never on the same image's later blob:->Cloudinary URL swap. ScenePicker
+    // watches this to auto-open and show off the scene options right when
+    // there's finally a real piece of art to preview in one, instead of
+    // requiring the customer to notice the pill on their own.
+    const [sceneAutoOpenTick, setSceneAutoOpenTick] = useState(0);
     // Resolved async per selectedFrame — see utils/frameTexture.js. Stays
     // null (falls back to the synthesized-gradient moulding) until/unless a
     // confident on-material anchor is found for this frame's corner photo.
@@ -404,6 +411,7 @@ const CustomizeFramePage = ({
     const [customWidthInput, setCustomWidthInput] = useState('');
     const [customHeightInput, setCustomHeightInput] = useState('');
     const [customSizeError, setCustomSizeError] = useState('');
+    const [sizeClampNotice, setSizeClampNotice] = useState('');
     // Kept separate from selectedSize so the user's custom size stays visible
     // in the list (in its last-position slot) even after they pick a
     // different size — otherwise it'd vanish the moment it's no longer active.
@@ -455,12 +463,21 @@ const CustomizeFramePage = ({
         if (state.presetImage) {
             setUploadedImage(state.presetImage);
             initialPresetImageRef.current = state.presetImage;
+            setSceneAutoOpenTick(t => t + 1);
         }
         if (state.productionImage || state.presetImage) {
             setProductionImage(state.productionImage || state.presetImage);
         }
         if (state.initialFrame) setSelectedFrame(state.initialFrame);
-        if (state.initialSize) setSelectedSize(state.initialSize);
+        if (state.initialSize) {
+            const { size: sizeToApply, wasClamped, clampedShortCm, clampedLongCm } = clampSizeToValidRange(state.initialSize);
+            setSelectedSize(sizeToApply);
+            setSizeClampNotice(wasClamped
+                ? `This artwork's listed size was outside what we can produce, so it's been adjusted to ${clampedShortCm.toFixed(1)} × ${clampedLongCm.toFixed(1)} cm.`
+                : '');
+        } else {
+            setSizeClampNotice('');
+        }
         if (state.orientation) setOrientation(state.orientation);
         if (state.initialMatWidth) setMatWidth(state.initialMatWidth);
         if (state.initialThickness) setFrameThickness(state.initialThickness);
@@ -986,22 +1003,22 @@ const CustomizeFramePage = ({
         }
         // Album/movie poster prints are always portrait and are re-generated
         // at exactly `selectedSize`'s aspect ratio, so orientation-detection
-        // and square-snap are both irrelevant for them — skip entirely rather
-        // than decode the (often 50MB+) generated canvas data URL a second
-        // time purely to compute values this flow never uses. That redundant
-        // decode ran on every single size change, competing with the visible
-        // <img> tag's own decode of the identical string.
+        // is irrelevant for them — skip entirely rather than decode the
+        // (often 50MB+) generated canvas data URL a second time purely to
+        // compute values this flow never uses. That redundant decode ran on
+        // every single size change, competing with the visible <img> tag's
+        // own decode of the identical string.
         if (isAlbumPoster || isMoviePosterPrint) {
             return;
         }
         // Preset/Inspiration selections (Original Paintings, Canvas Art, etc.)
         // already specify their own orientation via the selection itself, so
-        // auto-detect and square-snap must not override that choice — but
-        // imageNaturalSize still needs computing for these (it now also
-        // drives whether a no-mat frame fills edge-to-edge or letterboxes),
-        // so this only skips the auto-detect/square-snap portion below rather
-        // than returning early and skipping the whole effect. Returning early
-        // here used to silently leave imageNaturalSize null forever for every
+        // auto-detect must not override that choice — but imageNaturalSize
+        // still needs computing for these (it now also drives whether a
+        // no-mat frame fills edge-to-edge or letterboxes), so this only skips
+        // the auto-detect portion below rather than returning early and
+        // skipping the whole effect. Returning early here used to silently
+        // leave imageNaturalSize null forever for every
         // preset image, not just the one loaded on mount as intended.
         const isPresetImage = uploadedImage === initialPresetImageRef.current;
         const effectImage = uploadedImage;
@@ -1025,24 +1042,13 @@ const CustomizeFramePage = ({
                 setOrientation(isLandscape ? 'landscape' : 'portrait');
             }
             setIsOptimized(false); // Reset optimization state for new image
-
-            // Auto-snap to square size if the image is square
-            const isSq = Math.abs(img.naturalWidth - img.naturalHeight) <= 5;
-            if (isSq) {
-                setSelectedSize(prevSize => {
-                    if (prevSize && prevSize.width !== prevSize.height) {
-                        return FRAME_SIZES.find(s => s.width === s.height && s.id === '12x12') || prevSize;
-                    }
-                    return prevSize;
-                });
-            }
         };
         img.onerror = () => {
             if (cancelled) return;
             setIsImageLoading(false);
         };
-        // Only need this for aspect ratio (orientation-match / square-snap),
-        // not pixel-perfect dimensions, so load the same thumbnail-sized
+        // Only need this for aspect ratio (orientation-match), not
+        // pixel-perfect dimensions, so load the same thumbnail-sized
         // transform the visible <img> already uses (getThumbnailUrl no-ops
         // for blob:/data: URLs, so direct uploads are unaffected — this only
         // changes behavior for Cloudinary-hosted preset/Inspiration images).
@@ -1070,6 +1076,7 @@ const CustomizeFramePage = ({
             // Instantly generate local URL for immediate visual rendering in the frame studio
             const localUrl = URL.createObjectURL(file);
             setUploadedImage(localUrl);
+            setSceneAutoOpenTick(t => t + 1);
             setIsUploading(false); // Stop spinner immediately once local preview is ready
 
             // Perform cloud upload asynchronously in the background so the UI is never blocked
@@ -1090,6 +1097,61 @@ const CustomizeFramePage = ({
     };
 
     // Optimize toggle: computes best orientation + mat from image aspect ratio
+    // Pulled out of handleOptimizeToggle so the live-tracking effect below
+    // can also call it — auto-fit needs to recompute whenever the size or
+    // image it was calculated for changes, not just at the moment it's
+    // switched on.
+    const applyOptimization = (w, h) => {
+        const imageRatio = w / h;
+
+        // Frame ratios in portrait and landscape
+        const widthDim = selectedSize?.width ?? 8;
+        const heightDim = selectedSize?.height ?? 10;
+        const ratioPortrait = Math.min(widthDim, heightDim) / Math.max(widthDim, heightDim);
+        const ratioLandscape = Math.max(widthDim, heightDim) / Math.min(widthDim, heightDim);
+
+        // Mismatches
+        const mismatchPortrait = Math.abs(imageRatio - ratioPortrait) / ratioPortrait;
+        const mismatchLandscape = Math.abs(imageRatio - ratioLandscape) / ratioLandscape;
+
+        let recOrientation = 'portrait';
+        let recMismatch = mismatchPortrait;
+
+        // Choose the orientation that yields the closest fit
+        if (mismatchLandscape < mismatchPortrait) {
+            recOrientation = 'landscape';
+            recMismatch = mismatchLandscape;
+        } else {
+            recOrientation = 'portrait';
+            recMismatch = mismatchPortrait;
+        }
+
+        setOrientation(recOrientation);
+
+        // Decide mat width based on the optimal orientation's mismatch
+        if (recMismatch < 0.08) {
+            setMatWidth('none');      // Perfect or near-perfect fit — fill the frame (No Mat)
+        } else if (recMismatch < 0.22) {
+            setMatWidth('narrow');    // Minor aspect ratio mismatch
+        } else {
+            setMatWidth('standard');  // Significant aspect ratio mismatch
+        }
+
+        setIsOptimized(true);
+    };
+
+    // Auto-fit is a live setting, not a one-shot calculation applied only at
+    // the moment the toggle is clicked: without this, switching sizes (or
+    // swapping the photo) while it's on left the "Auto-fit on" pill pointing
+    // at an orientation/mat combo computed for a size or image the user has
+    // since moved past. Re-derives from scratch whenever either input
+    // changes, same formula as the toggle-on path itself.
+    useEffect(() => {
+        if (!isOptimized || !imageNaturalSize) return;
+        applyOptimization(imageNaturalSize.w, imageNaturalSize.h);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isOptimized, imageNaturalSize?.w, imageNaturalSize?.h, selectedSize?.width, selectedSize?.height]);
+
     const handleOptimizeToggle = () => {
         if (isOptimized) {
             // Restore saved manual settings
@@ -1100,45 +1162,6 @@ const CustomizeFramePage = ({
             setIsOptimized(false);
             return;
         }
-
-        const applyOptimization = (w, h) => {
-            const imageRatio = w / h;
-
-            // Frame ratios in portrait and landscape
-            const widthDim = selectedSize?.width ?? 8;
-            const heightDim = selectedSize?.height ?? 10;
-            const ratioPortrait = Math.min(widthDim, heightDim) / Math.max(widthDim, heightDim);
-            const ratioLandscape = Math.max(widthDim, heightDim) / Math.min(widthDim, heightDim);
-
-            // Mismatches
-            const mismatchPortrait = Math.abs(imageRatio - ratioPortrait) / ratioPortrait;
-            const mismatchLandscape = Math.abs(imageRatio - ratioLandscape) / ratioLandscape;
-
-            let recOrientation = 'portrait';
-            let recMismatch = mismatchPortrait;
-
-            // Choose the orientation that yields the closest fit
-            if (mismatchLandscape < mismatchPortrait) {
-                recOrientation = 'landscape';
-                recMismatch = mismatchLandscape;
-            } else {
-                recOrientation = 'portrait';
-                recMismatch = mismatchPortrait;
-            }
-
-            setOrientation(recOrientation);
-
-            // Decide mat width based on the optimal orientation's mismatch
-            if (recMismatch < 0.08) {
-                setMatWidth('none');      // Perfect or near-perfect fit — fill the frame (No Mat)
-            } else if (recMismatch < 0.22) {
-                setMatWidth('narrow');    // Minor aspect ratio mismatch
-            } else {
-                setMatWidth('standard');  // Significant aspect ratio mismatch
-            }
-
-            setIsOptimized(true);
-        };
 
         if (imageNaturalSize) {
             applyOptimization(imageNaturalSize.w, imageNaturalSize.h);
@@ -1375,15 +1398,7 @@ const CustomizeFramePage = ({
             return (a.width * a.height) - (b.width * b.height);
         });
 
-        // Check if the image is square
-        const isSquareArtwork = isAlbumArt || (imageNaturalSize && imageNaturalSize.w > 0 && Math.abs(imageNaturalSize.w - imageNaturalSize.h) <= 5);
-
         for (const size of sortedSizes) {
-            // If it's a square image (like album art), only allow square sizes
-            if (isSquareArtwork && size.width !== size.height) {
-                continue;
-            }
-
             // Album posters and movie posters are portrait-or-square — a landscape
             // canvas doesn't suit their tracklist/cast-list layout, but square
             // (e.g. 20x20cm) is a valid alternate format alongside true portrait.
@@ -1415,9 +1430,9 @@ const CustomizeFramePage = ({
         // Collapsed view is curated, not a slice of the full catalog: left column
         // is the most popular small-to-medium sizes, right column the most
         // popular large-to-very-large sizes, each ascending top to bottom. IDs
-        // are looked up against normalSizes so category filters (square-only
-        // album art, portrait-or-square posters) still apply — a popular ID that
-        // isn't available under the current filter is just skipped rather than
+        // are looked up against normalSizes so the remaining category filter
+        // (portrait-or-square posters) still applies — a popular ID that isn't
+        // available under the current filter is just skipped rather than
         // leaving a gap.
         const popularSmallIds = ['5x7', '8x10', 'a4', '11x14', '12x12', 'a3'];
         const popularLargeIds = ['16x20', 'a2', '18x24', '20x30', '24x36', '100x100cm'];
@@ -1426,7 +1441,7 @@ const CustomizeFramePage = ({
         const rightColumnCollapsed = findPopular(popularLargeIds);
 
         return { finalSizesList, leftColumnCollapsed, rightColumnCollapsed };
-    }, [isAlbumArt, isAlbumPoster, isMoviePoster, isMoviePosterPrint, imageNaturalSize]);
+    }, [isAlbumArt, isAlbumPoster, isMoviePoster, isMoviePosterPrint]);
 
     // A created custom size stays visible as the LAST option — same spot as
     // the "Custom Size" trigger button itself — even after the user selects
@@ -1681,6 +1696,7 @@ const CustomizeFramePage = ({
                 <ScenePicker
                     activeId={roomSceneId}
                     onSelect={setRoomSceneId}
+                    autoOpenSignal={sceneAutoOpenTick}
                 />
 
                 {/* Empty flexible middle column — keeps the wall-colour pill
@@ -1703,12 +1719,12 @@ const CustomizeFramePage = ({
 
                 {/* Wall Colour. `relative` anchors its popover. Hover-props
                     open/close it on PC the same way ScenePicker's own pill
-                    does; click still toggles for touch/keyboard. `z-20` beats
-                    the scene pill below it (which stacks at the default
-                    auto/0), so the open popover — taller than the gap between
-                    the two pills — draws over the scene pill instead of
-                    disappearing behind it. */}
-                <div className="relative z-20" {...wallPickerHoverProps}>
+                    does; click still toggles for touch/keyboard. z-50 while
+                    open beats every other pill/chrome element (same pattern
+                    as ScenePicker) so the popover always draws over whatever
+                    it collides with, not just the scene pill it happens to
+                    sit near; z-20 at rest otherwise. */}
+                <div className={`relative ${isWallPickerOpen ? 'z-50' : 'z-20'}`} {...wallPickerHoverProps}>
                     <button
                         onClick={() => setIsWallPickerOpen(!isWallPickerOpen)}
                         className="flex h-[30px] items-center gap-1 sm:gap-1.5 px-2 sm:px-3 rounded-full border border-stone-200 shadow-sm hover:shadow-md transition-all bg-white/95 backdrop-blur text-stone-700 font-bold text-xs ml-auto"
@@ -2076,18 +2092,26 @@ const CustomizeFramePage = ({
                                 // on tiny frames, never shrink below 1.0x.
                                 return Math.max(1.0, Math.min(isPosterPrint ? 16.0 : 8.0, maxScale));
                             })();
-                            const is100By150Cm = (
-                                Math.abs(Math.max(innerWidthCm, innerHeightCm) - 150) <= 3 &&
-                                Math.abs(Math.min(innerWidthCm, innerHeightCm) - 100) <= 3
-                            );
                             const isSharedPreviewView = (
                                 (!activeRoom && !isMaxZoom && !isFullScreen) ||
                                 (activeRoom && isHovered && !isMaxZoom && !isFullScreen) ||
                                 isFullScreen
                             );
-                            const shouldIncrease100By150Render = isSharedPreviewView && is100By150Cm;
-                            const renderIncrease100By150PerSidePx = shouldIncrease100By150Render ? 2 : 0;
-                            const renderIncrease100By150WidthPx = (renderIncrease100By150PerSidePx * 2) / Math.max(outerFrameHeightCm / outerFrameWidthCm, 0.01);
+                            // ─── ANCHORED SIZE CURVE (shared-preview views only) ───
+                            // Replaces the old stack of three separate patches (a
+                            // medium-format compression bump, a large-format
+                            // plateau, and a 100×150-only boost) — each was tuned
+                            // in isolation and their overlapping ranges produced
+                            // real inversions (a 40×40 rendering smaller than a
+                            // 30×30). This is one formula instead: the smallest
+                            // (13×18) and largest (100×150) catalogue sizes are
+                            // fixed anchors, rendered at their own true physical
+                            // scale with nothing added or subtracted, and every
+                            // size in between is placed by linearly interpolating
+                            // between those two anchors' rendered widths according
+                            // to its own position (by inner area) in that range —
+                            // so it grows or shrinks strictly in step with the
+                            // rest of the catalogue, never out of order.
                             const referenceMinAreaCm2 = 13 * 18;
                             const referenceMaxAreaCm2 = 100 * 150;
                             const currentInnerAreaCm2 = Math.max(1, innerWidthCm * innerHeightCm);
@@ -2095,46 +2119,136 @@ const CustomizeFramePage = ({
                                 0,
                                 Math.min(1, (currentInnerAreaCm2 - referenceMinAreaCm2) / (referenceMaxAreaCm2 - referenceMinAreaCm2))
                             );
-                            const isBetweenReferenceSizes = isSharedPreviewView && sizeRangeProgress > 0.02 && sizeRangeProgress < 0.98;
-                            const inBetweenSizeReductionPx = isBetweenReferenceSizes
-                                ? (() => {
-                                    // Keep the endpoints fixed, but compress the
-                                    // middle asymmetrically: medium formats need
-                                    // the most help separating from the large end,
-                                    // while upper-large formats should recover
-                                    // toward the 100×150 reference.
-                                    const mediumWeightedCurve = Math.pow(sizeRangeProgress, 0.35) * Math.pow(1 - sizeRangeProgress, 1.9);
-                                    const curvePeak = Math.pow(0.35 / (0.35 + 1.9), 0.35) * Math.pow(1 - (0.35 / (0.35 + 1.9)), 1.9);
-                                    return 92 * (mediumWeightedCurve / curvePeak);
-                                })()
-                                : 0;
-                            // Large-but-not-huge formats used to get an extra flat -60px cut
-                            // the instant both dimensions crossed 28/35cm — a hard on/off step
-                            // that, stacked on top of the continuous curve above (which is
-                            // already reducing size through this same band), produced a
-                            // discontinuity right at the threshold: a 28×35 could render
-                            // SMALLER than a 30×30 despite being the physically larger frame.
-                            // Smoothstepped over an area band instead (rise ~700-1400cm²,
-                            // matching where the old dimension threshold typically landed),
-                            // and faded back out approaching the 100×150 anchor so it never
-                            // fights that reference's own boost above — same separation
-                            // intent, no seam.
-                            const largeFormatRiseT = Math.max(0, Math.min(1, (currentInnerAreaCm2 - 700) / (1400 - 700)));
-                            const largeFormatRise = largeFormatRiseT * largeFormatRiseT * (3 - 2 * largeFormatRiseT);
-                            const largeFormatFallT = Math.max(0, Math.min(1, (sizeRangeProgress - 0.6) / (0.9 - 0.6)));
-                            const largeFormatFall = largeFormatFallT * largeFormatFallT * (3 - 2 * largeFormatFallT);
-                            const largeFormatReductionPx = isSharedPreviewView
-                                ? 60 * largeFormatRise * (1 - largeFormatFall)
-                                : 0;
+                            // Each anchor's target is its OWN fully-resolved
+                            // final size — raw physical scale AND the same
+                            // safe-zoom-bounds treatment every size gets via
+                            // zoomScale above — not just a raw percentage.
+                            // Interpolating those two already-final numbers
+                            // (rather than interpolating a raw percentage and
+                            // multiplying by a zoomScale computed for a
+                            // DIFFERENT, unrelated size) is what keeps this
+                            // monotonic: composing a width-based zoomScale
+                            // with an area-based percentage was tried first
+                            // and reintroduced the exact 40×40-smaller-than-
+                            // 30×30 inversion this rework exists to fix,
+                            // because the two don't scale together. A straight
+                            // linear blend between two fixed, already-correct
+                            // endpoints can't produce a value outside their
+                            // range, so no separate safety-cap is needed here
+                            // either — both endpoints already respect it.
+                            const pctForOuterWidthCm = (outerWCm) => (roomPlacement
+                                ? ((outerWCm * pixelsPerCm) / zoneSize.width) * 100
+                                : (outerWCm / SOFA_CM) * SOFA_BODY_PCT);
+                            const finalDisplayedPctFor = (outerWCm, outerHCm) => {
+                                const rawPct = pctForOuterWidthCm(outerWCm);
+                                const baseWPx = (rawPct / 100) * zoneSize.width;
+                                const baseHPx = baseWPx * (outerHCm / outerWCm);
+                                const maxZoomWPx = zoneSize.width * 0.85;
+                                const maxZoomHPx = isFullScreen ? Math.max(80, zoneSize.height * 0.90) : zoneSize.height * 0.90;
+                                const maxScale = Math.min(maxZoomWPx / Math.max(baseWPx, 1), maxZoomHPx / Math.max(baseHPx, 1));
+                                const isPosterPrint = isAlbumPoster || isMoviePosterPrint;
+                                const scale = Math.max(1.0, Math.min(isPosterPrint ? 16.0 : 8.0, maxScale));
+                                return rawPct * scale;
+                            };
+                            // Anchor roles are FIXED (13/100 always the short
+                            // side, 18/150 always the long side) rather than
+                            // flipping with the current orientation. Flipping
+                            // them — matching how wInch/hInch derive their
+                            // width/height roles — seemed consistent at first,
+                            // but it re-calibrates the anchors' own scale
+                            // per orientation (18cm-as-width produces a bigger
+                            // raw percentage than 13cm-as-width), which bled
+                            // into every size's interpolated target. Confirmed
+                            // by measurement: a 30×30 square — physically
+                            // identical either way — rendered at 374px
+                            // portrait vs 469px landscape. Fixed roles make
+                            // the curve itself orientation-independent; the
+                            // orientation swap happens once, at the very end,
+                            // by swapping the two resolved px values (see
+                            // canonicalWidthPx/canonicalHeightPx below) —
+                            // which is just "render this shape, then rotate
+                            // it 90° for landscape," so a square is trivially
+                            // unaffected and every other size's landscape
+                            // render is an exact rotation of its portrait one.
+                            const anchorMinDisplayedPct = finalDisplayedPctFor(13 + (railWidthCm * 2), 18 + (railWidthCm * 2));
+                            const anchorMaxDisplayedPct = finalDisplayedPctFor(100 + (railWidthCm * 2), 150 + (railWidthCm * 2));
+                            const anchoredDisplayedPct = anchorMinDisplayedPct + (anchorMaxDisplayedPct - anchorMinDisplayedPct) * sizeRangeProgress;
+                            // The 100×150/150×100 selection gets its own
+                            // explicit height target (680px, in portrait
+                            // terms — i.e. the LONG side) rather than riding
+                            // the anchor curve's own natural value. Computed
+                            // from the frame's true short/long cm (not
+                            // orientation-labelled outer width/height) so it
+                            // composes correctly with the rotation swap below
+                            // regardless of which orientation is selected.
+                            // Scoped to only fire when 100×150/150×100 is
+                            // actually selected; anchorMaxDisplayedPct itself —
+                            // what every in-between size interpolates toward —
+                            // is unaffected, so 120×120, 90×120, etc. don't move.
+                            const isExactly100By150 = (
+                                Math.abs(Math.max(innerWidthCm, innerHeightCm) - 150) <= 3 &&
+                                Math.abs(Math.min(innerWidthCm, innerHeightCm) - 100) <= 3
+                            );
+                            const portraitOuterShortCm = Math.min(innerWidthCm, innerHeightCm) + (railWidthCm * 2);
+                            const portraitOuterLongCm = Math.max(innerWidthCm, innerHeightCm) + (railWidthCm * 2);
+                            const portraitLongOverShort = portraitOuterLongCm / portraitOuterShortCm;
+                            // canonicalWidthPx/canonicalHeightPx are always
+                            // computed in portrait terms (short side = width,
+                            // long side = height), then swapped for landscape
+                            // as the very last step — the rotation described
+                            // above. CSS only ever derives ONE side from the
+                            // other (via the fixed aspect-ratio style), so to
+                            // land the long side on an exact target the SHORT
+                            // side has to be recomputed from that target, not
+                            // adjusted independently after the fact — doing it
+                            // as an additive nudge on the long side alone (an
+                            // earlier version of this) left portrait's CSS-
+                            // derived height still coming from the ORIGINAL,
+                            // un-nudged width, so the target only actually
+                            // landed for whichever orientation happened to
+                            // read it directly off canonicalWidthPx.
+                            const canonicalWidthPx = (() => {
+                                if (!isSharedPreviewView || !isExactly100By150) return (anchoredDisplayedPct / 100) * zoneSize.width;
+                                const LARGEST_SIZE_TARGET_LONG_SIDE_PX = 680;
+                                return LARGEST_SIZE_TARGET_LONG_SIDE_PX / portraitLongOverShort;
+                            })();
+                            const canonicalHeightPx = canonicalWidthPx * portraitLongOverShort;
+                            // The safety-zoom bounds above were only ever
+                            // checked against the two anchors' OWN shapes
+                            // (13×18 and 100×150, both a tame ~1.4:1 ratio).
+                            // A theoretical/custom size in between can have
+                            // a far more extreme aspect ratio than either
+                            // anchor — e.g. a 13×150cm custom entry is an
+                            // 11.5:1 ratio — and nothing upstream constrains
+                            // that, so the derived long side can blow straight
+                            // through the pane (confirmed: a 13×150 rendered
+                            // ~2985px tall against an ~806px pane). A single
+                            // uniform scale-down — never non-uniform, which
+                            // would distort the frame's real proportions —
+                            // keeps every theoretical size inside the same
+                            // safe bounds every catalogue size already
+                            // respects. No-op for sizes already inside them.
+                            const preClampWidthPx = orientation === 'portrait' ? canonicalWidthPx : canonicalHeightPx;
+                            const preClampHeightPx = orientation === 'portrait' ? canonicalHeightPx : canonicalWidthPx;
+                            const canonicalMaxSafeWidthPx = zoneSize.width * 0.85;
+                            const canonicalMaxSafeHeightPx = isFullScreen ? Math.max(80, zoneSize.height * 0.90) : zoneSize.height * 0.90;
+                            const canonicalSafetyScale = Math.min(
+                                1,
+                                canonicalMaxSafeWidthPx / Math.max(preClampWidthPx, 1),
+                                canonicalMaxSafeHeightPx / Math.max(preClampHeightPx, 1)
+                            );
+                            const anchoredFinalWidthPx = preClampWidthPx * canonicalSafetyScale;
                             const displayedFrameWidthPct = isHovered || isMaxZoom || isFullScreen || isZoomedByDefault
                                 ? frameWidthPct * zoomScale
                                 : frameWidthPct;
+                            // isMaxZoom is excluded from isSharedPreviewView by
+                            // design (see above), so this never fights double-
+                            // tap's own deliberately-past-the-safe-bounds zoom.
                             const adjustedDisplayedFrameWidthPct = Math.max(
                                 1,
-                                displayedFrameWidthPct
-                                    - ((inBetweenSizeReductionPx / Math.max(zoneSize.width, 1)) * 100)
-                                    - ((largeFormatReductionPx / Math.max(zoneSize.width, 1)) * 100)
-                                    + (shouldIncrease100By150Render ? (renderIncrease100By150WidthPx / Math.max(zoneSize.width, 1)) * 100 : 0)
+                                isSharedPreviewView
+                                    ? (anchoredFinalWidthPx / Math.max(zoneSize.width, 1)) * 100
+                                    : displayedFrameWidthPct
                             );
                             const shouldUseSixtyBySixtyMouldingReference = (
                                 isSharedPreviewView
@@ -2159,13 +2273,58 @@ const CustomizeFramePage = ({
                                 mouldingPctH = (projectedRailPx / renderedFrameHeightPx) * 100;
                             }
 
-                            // Mat inset as % of frame width/height.
+                            // Mat inset as % of frame width/height — held to a
+                            // CONSTANT proportion of the frame (calibrated to
+                            // the 120×120 reference size's own current
+                            // rendering) in shared-preview view, rather than
+                            // the raw physical mat-inches/frame-inches ratio.
+                            // That raw ratio shrinks as a proportion the
+                            // bigger the frame's own physical size gets (a
+                            // fixed mat reveal in real inches, over a growing
+                            // outer-inch denominator), which — measured
+                            // across the catalogue — produced a visibly noisy,
+                            // non-proportional mat rather than a consistent
+                            // one. Scoped the same way the moulding's own
+                            // 60×60-reference consistency pass above is
+                            // scoped: elsewhere (a small room-scene
+                            // thumbnail) the raw physical-ratio mat is close
+                            // enough that the extra consistency isn't worth
+                            // the risk. getMatReveal already returns all
+                            // zeros for matWidth 'none', so "No Mat" is
+                            // unaffected.
+                            const MAT_PROPORTION_REFERENCE_CM = 120;
+                            const referenceOuterWidthIn = (MAT_PROPORTION_REFERENCE_CM / 2.54) + (2 * railWidthIn);
+                            const referenceMatReveal = getMatReveal(matWidth, {
+                                width: MAT_PROPORTION_REFERENCE_CM / 2.54,
+                                height: MAT_PROPORTION_REFERENCE_CM / 2.54,
+                            });
+                            const referenceMatPctW = (referenceMatReveal.sideIn / referenceOuterWidthIn) * 100;
+                            const referenceMatPctTop = (referenceMatReveal.topIn / referenceOuterWidthIn) * 100;
+                            const referenceMatPctBottom = (referenceMatReveal.bottomIn / referenceOuterWidthIn) * 100;
+                            // referenceMatPctTop/Bottom above are computed
+                            // against the SAME (width-based) denominator as
+                            // referenceMatPctW — only correct if applied as a
+                            // percentage of WIDTH. CSS applies top/bottom as a
+                            // percentage of the frame's HEIGHT instead, so for
+                            // any non-square frame, using that number as-is
+                            // would give a visibly different absolute mat
+                            // width on top/bottom than on the sides — a
+                            // portrait piece reading mat-heavy on top and
+                            // bottom, a landscape one reading mat-heavy on
+                            // the sides, purely from its own shape. Correcting
+                            // by the current frame's own width/height ratio
+                            // converts the SAME absolute pixel reveal into
+                            // the right percentage for the height axis, so
+                            // all four sides read as one uniform mat border
+                            // (before the deliberate bottom-weighting) no
+                            // matter the frame's own aspect ratio.
+                            const currentAspectWidthOverHeight = outerFrameWidthCm / outerFrameHeightCm;
                             // Clamp the max inset so we don't mathematically collapse the artwork to 0 or negative.
                             // Top/bottom differ (matReveal.bottomIn > matReveal.topIn) — the
                             // standard bottom-weighted mat convention, see src/utils/matting.js.
-                            const rawMatPctW = (matReveal.sideIn / (wInch + 2 * railWidthIn)) * 100;
-                            const rawMatPctTop = (matReveal.topIn / (hInch + 2 * railWidthIn)) * 100;
-                            const rawMatPctBottom = (matReveal.bottomIn / (hInch + 2 * railWidthIn)) * 100;
+                            const rawMatPctW = isSharedPreviewView ? referenceMatPctW : (matReveal.sideIn / (wInch + 2 * railWidthIn)) * 100;
+                            const rawMatPctTop = isSharedPreviewView ? referenceMatPctTop * currentAspectWidthOverHeight : (matReveal.topIn / (hInch + 2 * railWidthIn)) * 100;
+                            const rawMatPctBottom = isSharedPreviewView ? referenceMatPctBottom * currentAspectWidthOverHeight : (matReveal.bottomIn / (hInch + 2 * railWidthIn)) * 100;
                             const matPctW = Math.max(0, Math.min(rawMatPctW, 45 - mouldingPctW));
                             const matPctTop = Math.max(0, Math.min(rawMatPctTop, 45 - mouldingPctH));
                             const matPctBottom = Math.max(0, Math.min(rawMatPctBottom, 45 - mouldingPctH));
@@ -2266,7 +2425,23 @@ const CustomizeFramePage = ({
                             const visualizerImage = isPlaceholder
                                 ? getDemoImageForOrientation(isSquareFrame ? 'square' : orientation)
                                 : uploadedImage;
-                            const displayImage = getThumbnailUrl(visualizerImage, 1400);
+                            // A flat width cap (1400, then 2400) was either too soft for a
+                            // heavily zoomed room scene or wasteful for a small honest-scale
+                            // one — Studio Loft's wide 420cm wall gives the hover/zoom formula
+                            // more room to zoom in than a tighter wall does, so the same cap
+                            // that's plenty for one scene falls short for another. Sizing the
+                            // request from baseFrameWidthPx (the frame's actual on-screen CSS
+                            // width, already computed above) times devicePixelRatio fetches
+                            // exactly what THIS render needs on THIS screen, whichever scene or
+                            // zoom state produced it. Quantized to steps of 200px so dragging,
+                            // resizing, or a fractional zoom scale doesn't mint a fresh
+                            // Cloudinary transform (and cache miss) for every pixel; clamped to
+                            // [400, 4000] so a tiny preview still gets a usable minimum and a
+                            // fullscreen 3x-DPR render can't demand a print-resolution fetch.
+                            const targetImageWidthPx = Math.min(4000, Math.max(400,
+                                Math.ceil((baseFrameWidthPx * (window.devicePixelRatio || 1)) / 200) * 200
+                            ));
+                            const displayImage = getThumbnailUrl(visualizerImage, targetImageWidthPx);
                             // Filling the opening edge-to-edge (object-cover) only
                             // makes sense when the image's own orientation matches
                             // the frame's — a landscape photo forced to cover a tall
@@ -2806,6 +2981,25 @@ const CustomizeFramePage = ({
                         <p className="text-sm text-stone-500">Perfectly customized to your space.</p>
                     </div>
 
+                    {/* Only ever appears when clampSizeToValidRange actually
+                        had to adjust an Inspiration/Museum/catalogue
+                        selection's listed size — a manually-picked or
+                        manually-typed size never triggers this. */}
+                    {sizeClampNotice && (
+                        <div className="mb-4 flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2.5 text-xs text-amber-900">
+                            <Info size={14} className="mt-0.5 shrink-0 text-amber-600" />
+                            <p className="flex-1">{sizeClampNotice}</p>
+                            <button
+                                type="button"
+                                onClick={() => setSizeClampNotice('')}
+                                className="shrink-0 text-amber-500 hover:text-amber-700"
+                                aria-label="Dismiss"
+                            >
+                                <X size={14} />
+                            </button>
+                        </div>
+                    )}
+
                     {/* 1. Artwork */}
                     <section>
                         <h2 className="text-xs font-bold uppercase tracking-wider text-stone-900 mb-3 flex items-center gap-2">
@@ -2815,15 +3009,15 @@ const CustomizeFramePage = ({
                         
                         <div className="grid grid-cols-2 gap-3">
                             {/* Upload Trigger */}
-                            <label className={`relative border-2 border-dashed ${(!uploadedImage || uploadedImage === 'https://images.unsplash.com/photo-1526045478516-99145907023c?auto=format&fit=crop&w=1600&q=80&sat=-20&con=-10') ? 'border-stone-300 hover:border-stone-400' : 'border-stone-950 bg-stone-50/50'} rounded-xl p-3 flex flex-col items-center justify-center cursor-pointer transition-colors h-[72px] text-center`}>
+                            <label className={`relative border-2 border-dashed ${isPlaceholder ? 'border-stone-300 hover:border-stone-400' : 'border-stone-950 bg-stone-50/50'} rounded-xl p-3 flex flex-col items-center justify-center cursor-pointer transition-colors h-[72px] text-center`}>
                                 <input type="file" className="hidden" accept="image/*" onChange={handleImageUpload} disabled={isUploading} />
                                 {isUploading ? (
                                     <div className="w-4 h-4 border-2 border-stone-300 border-t-stone-900 rounded-full animate-spin" />
                                 ) : (
                                     <>
-                                        <ImageUp size={16} className={(!uploadedImage || uploadedImage === 'https://images.unsplash.com/photo-1526045478516-99145907023c?auto=format&fit=crop&w=1600&q=80&sat=-20&con=-10') ? 'text-stone-500' : 'text-stone-950'} />
+                                        <ImageUp size={16} className={isPlaceholder ? 'text-stone-500' : 'text-stone-950'} />
                                         <span className="mt-1 text-[10px] font-bold uppercase tracking-wider text-stone-700 truncate w-full">
-                                            {(!uploadedImage || uploadedImage === 'https://images.unsplash.com/photo-1526045478516-99145907023c?auto=format&fit=crop&w=1600&q=80&sat=-20&con=-10') ? 'Upload Image' : 'Replace Image'}
+                                            {isPlaceholder ? 'Upload Image' : 'Replace Image'}
                                         </span>
                                     </>
                                 )}
@@ -2931,7 +3125,7 @@ const CustomizeFramePage = ({
                             />
                         )}
                         <div className="grid grid-cols-2 gap-2">
-                            {(!showAllSizes && !isAlbumArt && finalSizesList.length > 6) ? (
+                            {(!showAllSizes && finalSizesList.length > 6) ? (
                                 <>
                                     {/* Collapsed: curated, column-major — left
                                         is the most popular small-to-medium
@@ -3025,7 +3219,7 @@ const CustomizeFramePage = ({
                                 </div>
                             )}
 
-                            {!showAllSizes && !isAlbumArt && finalSizesList.length > 6 && finalSizesList.length > collapsedShownCount && (
+                            {!showAllSizes && finalSizesList.length > 6 && finalSizesList.length > collapsedShownCount && (
                                 <button
                                     data-size-list-toggle
                                     onClick={toggleShowAllSizes(true)}
@@ -3036,7 +3230,7 @@ const CustomizeFramePage = ({
                                 </button>
                             )}
 
-                            {showAllSizes && !isAlbumArt && finalSizesList.length > 6 && finalSizesList.length > collapsedShownCount && (
+                            {showAllSizes && finalSizesList.length > 6 && finalSizesList.length > collapsedShownCount && (
                                 <button
                                     data-size-list-toggle
                                     onClick={toggleShowAllSizes(false)}

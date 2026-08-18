@@ -47,6 +47,7 @@ export const FRAME_SIZES = [
     { id: '20x20cm', width: 8, height: 8, label: '20 x 20 cm', price: 110 },
     { id: '35x50cm', width: 14, height: 20, label: '35 x 50 cm', price: 340 },
     { id: '40x40cm', width: 16, height: 16, label: '40 x 40 cm', price: 315 },
+    { id: '50x50cm', width: 20, height: 20, label: '50 x 50 cm', price: 465 },
     { id: '60x60cm', width: 24, height: 24, label: '60 x 60 cm', price: 650 },
     { id: '80x80cm', width: 32, height: 32, label: '80 x 80 cm', price: 1120 },
     { id: '90x90cm', width: 36, height: 36, label: '90 x 90 cm', price: 1405 },
@@ -166,6 +167,55 @@ export const parseCustomSize = (dimsString) => {
         // need this to know whether to also set orientation to 'landscape'
         // (otherwise a "120 x 60" piece silently renders as 60 x 120).
         orientation: w >= h ? 'landscape' : 'portrait'
+    };
+};
+
+// Inspiration/Museum/catalogue artwork sizes come from product data via
+// parseCustomSize above, which does no bounds checking at all — unlike the
+// manual "+ Custom Size" form, which enforces this same 13x18-180x180cm
+// range the catalogue and visualizer are built around. A malformed dims
+// string (or a genuinely out-of-range piece) would otherwise reach
+// checkout/pricing unchecked. Clamps to that range and reports whether it
+// had to, so a caller can surface a notice — never touches a size that was
+// already valid. Every caller that builds a size from a raw dims string
+// (CustomizeFramePage's Inspiration hand-off, WishlistPage's direct
+// add-to-cart) must run it through this — duplicating the clamp math
+// instead of importing it is exactly how id/price drift happens: the
+// server prices a custom size purely from the numbers in its "custom-WxH"
+// id, so id, width, height, and price all have to come from the same
+// clamped pair or the client and server silently disagree on price.
+export const MIN_SHORT_SIZE_CM = 13;
+export const MIN_LONG_SIZE_CM = 18;
+export const MAX_SIZE_CM = 180;
+export const clampSizeToValidRange = (size) => {
+    if (!size || !Number.isFinite(size.width) || !Number.isFinite(size.height)) {
+        return { size, wasClamped: false };
+    }
+    const shortCm = Math.min(size.width, size.height) * 2.54;
+    const longCm = Math.max(size.width, size.height) * 2.54;
+    const rawClampedShortCm = Math.min(Math.max(shortCm, MIN_SHORT_SIZE_CM), MAX_SIZE_CM);
+    const rawClampedLongCm = Math.min(Math.max(longCm, MIN_LONG_SIZE_CM), MAX_SIZE_CM);
+    const wasClamped = Math.abs(rawClampedShortCm - shortCm) > 0.01 || Math.abs(rawClampedLongCm - longCm) > 0.01;
+    if (!wasClamped) return { size, wasClamped: false };
+    // Rounded to whole cm (every real dims string in the catalogue already
+    // is one) and id/width/height/price are all derived from this SAME
+    // rounded pair — see the module comment above for why that matters.
+    const clampedShortCm = Math.round(rawClampedShortCm);
+    const clampedLongCm = Math.round(rawClampedLongCm);
+    // width/height stay in inches, short-side-first — parseCustomSize's own
+    // portrait-normalized convention. orientation is a separate field on
+    // the size object and is left exactly as the source page set it.
+    return {
+        size: {
+            ...size,
+            id: `custom-${clampedShortCm}x${clampedLongCm}`,
+            width: clampedShortCm / 2.54,
+            height: clampedLongCm / 2.54,
+            price: Math.round(((clampedShortCm * clampedLongCm) / 1000) * 10) + 40,
+        },
+        wasClamped: true,
+        clampedShortCm,
+        clampedLongCm,
     };
 };
 

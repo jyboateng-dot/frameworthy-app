@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Sofa, Utensils, BedDouble, DoorOpen, Laptop, Square, ChevronDown } from 'lucide-react';
 import { ROOM_SCENES } from '../../data/roomScenes';
 import { useHoverDropdown } from '../../hooks/useHoverDropdown';
@@ -37,13 +37,33 @@ const OPTIONS = [
 
 const titleFor = (o) => (o.wallSpanCm ? `${o.name} — ${o.wallSpanCm}cm wall` : 'Plain wall with sofa scale cue');
 
-const ScenePicker = ({ activeId, onSelect, className = '', style }) => {
+const ScenePicker = ({ activeId, onSelect, autoOpenSignal, className = '', style }) => {
     const { open, setOpen, hoverProps, closeOnSelect } = useHoverDropdown();
     const active = OPTIONS.find((o) => o.id === activeId) || OPTIONS[0];
     const ActiveIcon = active.icon;
 
+    // Opens the picker on its own right after a new image lands — a fresh
+    // upload or an Inspiration pick — so a customer who's never noticed this
+    // pill sees, unprompted, that other scenes exist. autoOpenSignal is a
+    // counter the caller bumps on exactly that event (never on mount, never
+    // on the same image's later blob:->Cloudinary URL swap), so 0/undefined
+    // on first render intentionally does nothing here.
+    //
+    // No timer closes this back up — it stays open until the customer
+    // actually does something with it: picks a scene, clicks the pill to
+    // collapse it, or (hover-capable devices) moves the mouse off it, same
+    // as every other hover-dropdown pill in this chrome. A time-based close
+    // was closing it while nobody had looked yet on a slower connection or a
+    // customer who glanced away for a moment.
+    useEffect(() => {
+        if (autoOpenSignal) setOpen(true);
+    }, [autoOpenSignal, setOpen]);
+
     return (
-        <div className={`relative z-20 ${className}`} style={style} {...hoverProps}>
+        // z-50 while open — above every other pill/chrome element it could
+        // otherwise sit behind (they're all z-20 or lower); back to z-20,
+        // its resting stacking order, once closed.
+        <div className={`relative ${open ? 'z-50' : 'z-20'} ${className}`} style={style} {...hoverProps}>
             <button
                 type="button"
                 onClick={() => setOpen((o) => !o)}

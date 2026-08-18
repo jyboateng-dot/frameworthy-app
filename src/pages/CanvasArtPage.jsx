@@ -48,12 +48,6 @@ const ProductCard = ({ product, onGetThis }) => {
                 >
                     <Heart size={13} fill={liked ? 'currentColor' : 'none'} strokeWidth={1.5} />
                 </button>
-
-                {product.series === 'mix' && (
-                    <span className="absolute top-2.5 left-2.5 px-1.5 py-0.5 bg-stone-900 text-white text-[8px] font-black uppercase tracking-wider z-10">
-                        Set
-                    </span>
-                )}
             </div>
 
             <div className="pt-3 pb-2 border-b border-stone-200">

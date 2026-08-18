@@ -127,8 +127,10 @@ export default function LandingPage({ onStartFraming, navigate, setSelectedFrame
                             ))}
                         </div>
 
-                        {/* Minimalist Controls Overlayed on Image */}
-                        <div className="absolute bottom-6 left-6 lg:-left-6 z-30 flex gap-0 shadow-xl overflow-hidden rounded-sm">
+                        {/* Minimalist Controls Overlayed on Image — flush against the
+                            slide's own left edge (lg:-left-6 used to push this outside
+                            the image onto the page background instead). */}
+                        <div className="absolute bottom-6 left-0 z-30 flex gap-0 shadow-xl overflow-hidden rounded-sm">
                             <button 
                                 onClick={prevSlide}
                                 className="w-14 h-14 bg-white/60 backdrop-blur-md text-stone-900 flex items-center justify-center hover:bg-white/90 transition-all border-r border-white/20"

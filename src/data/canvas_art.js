@@ -42,9 +42,6 @@ const RAW_FILES = [
     'CANVA-037350F0.jpg','CANVA-037450F0.jpg','CANVA-037550F0.jpg','CANVA-037650F0.jpg',
     'CANVA-037750F0.jpg','CANVA-037850F0.jpg','CANVA-037950F0.jpg','CANVA-038050F0.jpg',
     'CANVA-038150F0.jpg','CANVA-038250F0.jpg','CANVA-038350F0.jpg','CANVA-038450F0.jpg',
-    'CANVA-MIXM10.jpg','CANVA-MIXM25X.jpg',
-    'CANVA-MIXN10.jpg','CANVA-MIXN25X.jpg',
-    'CANVA-MIXO10.jpg','CANVA-MIXO25X.jpg',
 ];
 
 export const SERIES_TABS = [
@@ -53,11 +50,9 @@ export const SERIES_TABS = [
     { label: '40 × 80 cm', value: '4080' },
     { label: '120 × 80 cm', value: 'b0' },
     { label: '100 × 50 cm', value: '50f0' },
-    { label: 'MIX Sets', value: 'mix' },
 ];
 
 const getSeries = (code) => {
-    if (code.includes('MIX')) return 'mix';
     if (code.includes('80B0') || code.includes('0B0')) return 'b0';
     if (code.includes('4080')) return '4080';
     if (code.includes('50F0')) return '50f0';
@@ -70,24 +65,19 @@ export const PRODUCTS = RAW_FILES.map((filename) => {
     const displayCode = code.replace('CANVA-', 'CANVA/');
     const dims = dimsFromCode(code, filename);
     const series = getSeries(code);
-    const isMix = code.includes('MIX');
 
-    const finish = isMix
-        ? 'Multi-panel canvas set'
-        : code.includes('80B0') || code.includes('0B0')
-            ? 'Premium canvas — 120 × 80 cm'
-            : code.includes('4080')
-                ? 'Canvas panel — 80 × 40 cm'
-                : code.includes('50F0')
-                    ? 'Canvas panel — 100 × 50 cm'
-                    : 'Narrow canvas strip';
+    const finish = code.includes('80B0') || code.includes('0B0')
+        ? 'Premium canvas — 120 × 80 cm'
+        : code.includes('4080')
+            ? 'Canvas panel — 80 × 40 cm'
+            : code.includes('50F0')
+                ? 'Canvas panel — 100 × 50 cm'
+                : 'Narrow canvas strip';
 
     return {
         id: filename,
         code: displayCode,
-        title: isMix
-            ? `Canvas Mix Set ${code.replace('CANVA-MIX', '')}`
-            : `Canvas ${code.replace('CANVA-', '')}`,
+        title: `Canvas ${code.replace('CANVA-', '')}`,
         dims,
         finish,
         image: getThumbnailUrl(BASE + filename),
