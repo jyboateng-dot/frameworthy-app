@@ -354,6 +354,22 @@ const CustomizeFramePage = ({
     const latestUploadedImageRef = useRef(uploadedImage);
     latestUploadedImageRef.current = uploadedImage;
     const initialPresetImageRef = useRef(null);
+    // The visualizer image's fetch width is computed from the frame's live
+    // on-screen pixel size (see targetImageWidthPx, deep in the visualizer
+    // render below) — necessary so a heavily zoomed room scene doesn't fetch
+    // a too-small Cloudinary thumbnail, but that on-screen size itself
+    // fluctuates across several renders while things settle right after an
+    // upload (orientation auto-detect, zoneSize's ResizeObserver, etc.).
+    // Reacting to every one of those fluctuations meant a freshly uploaded
+    // photo could request two (or more) differently-sized thumbnails in
+    // quick succession, each swap visible as a distinct pop instead of one
+    // clean transition. targetImageWidthPx is written here every render
+    // (same plain-synchronous-write pattern as latestUploadedImageRef right
+    // above) purely so the debounce effect further down has a way to read
+    // "this render's value" without the img-src computation itself needing
+    // a hook — it's nested too many closures deep in the render for that.
+    const targetImageWidthRef = useRef(2400);
+    const [committedImageWidthPx, setCommittedImageWidthPx] = useState(2400);
     const [zoneSize, setZoneSize] = useState({ width: 1000, height: 500 }); // Default fallback
     const [isRendering, setIsRendering] = useState(false);
     const [isImageLoading, setIsImageLoading] = useState(false);
@@ -663,6 +679,24 @@ const CustomizeFramePage = ({
         observer.observe(zoneRef.current);
         return () => observer.disconnect();
     }, []);
+
+    // Debounces the visualizer image's fetch width (see targetImageWidthRef's
+    // declaration above) — commits it only once it's held steady for a beat,
+    // so a burst of renders while layout settles (orientation auto-detect,
+    // zoneSize's own ResizeObserver, etc.) collapses into one eventual
+    // Cloudinary request instead of several visibly different mid-settle
+    // swaps. No dependency array: runs after every render rather than
+    // guessing every input that can move targetImageWidthPx, since the ref
+    // always holds this render's freshly computed value regardless of what
+    // changed it, and a fresh timer each render is exactly the debounce.
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setCommittedImageWidthPx((prev) => (
+                targetImageWidthRef.current !== prev ? targetImageWidthRef.current : prev
+            ));
+        }, 250);
+        return () => clearTimeout(timer);
+    });
 
     // Full-screen visualizer: reset hover/max-zoom on every transition so
     // zoom state computed against one container size (pane vs. viewport)
@@ -2232,10 +2266,29 @@ const CustomizeFramePage = ({
                             const preClampHeightPx = orientation === 'portrait' ? canonicalHeightPx : canonicalWidthPx;
                             const canonicalMaxSafeWidthPx = zoneSize.width * 0.85;
                             const canonicalMaxSafeHeightPx = isFullScreen ? Math.max(80, zoneSize.height * 0.90) : zoneSize.height * 0.90;
+                            // The two safe-bounds axes aren't symmetric (85% of
+                            // width vs 90% of height), so a shape and its own
+                            // 90°-rotated twin can land on different caps —
+                            // whichever orientation happens to put its long
+                            // side against the tighter (width) axis gets
+                            // clamped harder than the other. That broke the
+                            // exact-rotation guarantee above for any size
+                            // large enough to actually reach these bounds,
+                            // which the largest catalogue size (100x150 /
+                            // 150x100) always is: confirmed a 100x150 portrait
+                            // rendering ~3% bigger than 150x100 landscape at
+                            // the same viewport, not the identical size a
+                            // rotation should produce. Checking BOTH axis
+                            // assignments — current orientation's and its
+                            // rotated twin's — and taking the tighter makes
+                            // the scale a function of the shape alone, so
+                            // orientation can no longer change it.
                             const canonicalSafetyScale = Math.min(
                                 1,
                                 canonicalMaxSafeWidthPx / Math.max(preClampWidthPx, 1),
-                                canonicalMaxSafeHeightPx / Math.max(preClampHeightPx, 1)
+                                canonicalMaxSafeHeightPx / Math.max(preClampHeightPx, 1),
+                                canonicalMaxSafeWidthPx / Math.max(preClampHeightPx, 1),
+                                canonicalMaxSafeHeightPx / Math.max(preClampWidthPx, 1)
                             );
                             const anchoredFinalWidthPx = preClampWidthPx * canonicalSafetyScale;
                             const displayedFrameWidthPct = isHovered || isMaxZoom || isFullScreen || isZoomedByDefault
@@ -2441,7 +2494,8 @@ const CustomizeFramePage = ({
                             const targetImageWidthPx = Math.min(4000, Math.max(400,
                                 Math.ceil((baseFrameWidthPx * (window.devicePixelRatio || 1)) / 200) * 200
                             ));
-                            const displayImage = getThumbnailUrl(visualizerImage, targetImageWidthPx);
+                            targetImageWidthRef.current = targetImageWidthPx;
+                            const displayImage = getThumbnailUrl(visualizerImage, committedImageWidthPx);
                             // Filling the opening edge-to-edge (object-cover) only
                             // makes sense when the image's own orientation matches
                             // the frame's — a landscape photo forced to cover a tall
@@ -2472,10 +2526,25 @@ const CustomizeFramePage = ({
                                         setIsHovered(true);
                                     }}
                                     onMouseLeave={() => {
+                                        // Hover triggers this same element's own grow/reposition
+                                        // (width, and — in a room scene — the honest-placement
+                                        // offset snapping to 0) over ZOOM_MOTION's 260ms. If the
+                                        // box's edge sweeps across the cursor's fixed screen
+                                        // position at any point mid-transition, that's a real
+                                        // mouseleave, and a debounce shorter than the transition
+                                        // can't bridge it: it fires, isHovered reverts, the box
+                                        // snaps back and re-crosses the cursor, mouseenter fires
+                                        // again, and the cycle repeats — jittering back and forth
+                                        // for as long as the cursor sits near that edge. 320ms
+                                        // comfortably outlasts one full transition, so a genuine
+                                        // mid-animation excursion gets cancelled by the next
+                                        // mouseenter (which clears this timeout) before the close
+                                        // ever actually commits, while a real leave (cursor moved
+                                        // away and stayed away) still closes, just slightly later.
                                         hoverTimeoutRef.current = setTimeout(() => {
                                             setIsHovered(false);
                                             setIsMaxZoom(false);
-                                        }, 50); // 50ms debounce absorbs subpixel edge jitter
+                                        }, 320);
                                     }}
                                     onTouchEnd={(e) => {
                                         // Mobile browsers synthesize a compatibility mouse-event
