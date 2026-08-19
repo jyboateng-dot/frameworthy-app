@@ -27,7 +27,8 @@ import { useCart } from '../../context/CartContext';
 import { uploadImageToCloud, getThumbnailUrl } from '../../services/storage';
 import FrameSelectionModal from '../../components/FrameSelectionModal';
 import SizeGuidePanel from '../../components/framing/SizeGuidePanel';
-import ArPreviewModal from '../../components/framing/ArPreviewModal';
+import ArViewer from '../../components/framing/ArViewer';
+import { clearArModelCache } from '../../utils/ar/buildArModel';
 import MetArtSelectionModal from '../../components/MetArtSelectionModal';
 import { renderAlbumPoster } from '../../utils/albumPoster';
 import { renderMoviePoster } from '../../utils/moviePoster';
@@ -679,6 +680,13 @@ const CustomizeFramePage = ({
         observer.observe(zoneRef.current);
         return () => observer.disconnect();
     }, []);
+
+    // AR models are cached as blob URLs so reopening the preview for a
+    // configuration already built is instant. Blob URLs belong to the
+    // document rather than to the component that made them, so without
+    // this they'd stay resident for as long as the tab lives — several
+    // megabytes of model and texture per cached configuration.
+    useEffect(() => () => { clearArModelCache(); }, []);
 
     // Debounces the visualizer image's fetch width (see targetImageWidthRef's
     // declaration above) — commits it only once it's held steady for a beat,
@@ -3570,7 +3578,7 @@ const CustomizeFramePage = ({
                 returnTo="/checkout"
             />
 
-            <ArPreviewModal
+            <ArViewer
                 isOpen={isArOpen}
                 onClose={() => setIsArOpen(false)}
                 frame={selectedFrame}
@@ -3579,6 +3587,7 @@ const CustomizeFramePage = ({
                 matInches={matWidth !== 'none' ? currentMatInches : 0}
                 matColorHex={matColor?.hex}
                 artworkUrl={productionImage || uploadedImage}
+                hardwareType={hardwareType}
             />
         </div>
     );

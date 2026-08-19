@@ -73,7 +73,7 @@ const ScenePicker = ({ activeId, onSelect, autoOpenSignal, className = '', style
                 className="flex h-[30px] items-center gap-1 sm:gap-1.5 px-2 sm:px-3 rounded-full border border-stone-200 shadow-sm hover:shadow-md transition-all bg-white/95 backdrop-blur text-stone-700 font-bold text-xs"
             >
                 <ActiveIcon size={14} className="shrink-0" />
-                <span className="hidden sm:inline whitespace-nowrap">{active.short}</span>
+                <span className="hidden sm:inline whitespace-nowrap">Scene</span>
                 <ChevronDown size={14} className={`transition-transform text-stone-400 ${open ? 'rotate-180' : ''}`} />
             </button>
 
