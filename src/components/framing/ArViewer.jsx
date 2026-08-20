@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { X, Loader, RotateCcw } from 'lucide-react';
 import { buildArModel } from '../../utils/ar/buildArModel';
-import { AR_MODE, detectArMode, openQuickLook } from '../../utils/ar/arCapabilities';
+import { AR_MODE, detectArMode, openQuickLook, isMobileDevice } from '../../utils/ar/arCapabilities';
 
 /**
  * "See it on your wall" — the AR entry point from the visualizer.
@@ -231,8 +231,14 @@ export default function ArViewer({
                         </button>
                     ) : (
                         <p className="text-[11px] text-stone-400 text-center max-w-xs">
-                            Drag to look around. Wall placement needs a phone or tablet —
-                            open this page on one to hang it in your room.
+                            {isMobileDevice()
+                                // Genuinely on a phone/tablet already — the
+                                // gap is the browser's AR support, not the
+                                // device, so telling them to grab a phone
+                                // would be telling them to use the one in
+                                // their hand.
+                                ? "Drag to look around. This browser doesn't support wall placement yet — try Chrome, or open this page on one that does."
+                                : 'Drag to look around. Wall placement needs a phone or tablet — open this page on one to hang it in your room.'}
                         </p>
                     )}
                     <p className="text-[10px] text-stone-500 text-center max-w-sm">

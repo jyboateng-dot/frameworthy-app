@@ -21,10 +21,16 @@
  *                attached, so this is an orbit preview, honestly
  *                labelled as one rather than dressed up as AR.
  *
- * Every check is a real capability probe. User-agent strings appear
- * only where a capability genuinely cannot be feature-detected: iOS
- * needs one because `relList.supports('ar')` is true in some non-AR
- * WebKit contexts, and iPadOS deliberately reports itself as macOS.
+ * iOS is decided by user-agent alone, not by feature-probing —
+ * `HTMLAnchorElement.relList.supports('ar')`, the capability check
+ * Apple documents for this, turned out to return false on real
+ * AR-capable iPhones (confirmed: a customer on an actual iPhone was
+ * dropped to the desktop viewer-only fallback). Since AR Quick Look
+ * has shipped on effectively every iOS device still receiving updates
+ * (iOS 12+), a `rel="ar"` link that turns out to be wrong for some
+ * edge-case device just falls back to a normal file download — a far
+ * better failure mode than confidently telling someone on their own
+ * phone that they need a phone.
  */
 
 export const AR_MODE = {
@@ -42,10 +48,21 @@ export function isIosDevice() {
     return navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1;
 }
 
-function supportsQuickLook() {
-    if (!isIosDevice()) return false;
-    const anchor = document.createElement('a');
-    return Boolean(anchor.relList?.supports?.('ar'));
+export function isAndroidDevice() {
+    if (typeof navigator === 'undefined') return false;
+    return /Android/.test(navigator.userAgent || '');
+}
+
+/**
+ * True on any handheld — used only to pick the right words for the
+ * viewer-only fallback message, never to gate a capability. An Android
+ * phone that lands on viewer-only because its browser lacks WebXR (a
+ * real, common case: Firefox/Samsung Internet/older Chrome, or no
+ * ARCore installed) still has a phone in hand, so it must not be told
+ * it needs one — that was the exact wrong message iOS was showing.
+ */
+export function isMobileDevice() {
+    return isIosDevice() || isAndroidDevice();
 }
 
 async function supportsWebXrAr() {
@@ -62,9 +79,14 @@ async function supportsWebXrAr() {
 /**
  * Resolves the mode this device should use. Async because WebXR's
  * support check is a promise — there is no synchronous equivalent.
+ *
+ * iOS is decided outright, before any feature probe — see the module
+ * comment for why. Everything else (Android, desktop, headset
+ * browsers) goes through the real WebXR capability check, since that
+ * one has proven reliable; it's Apple's own probe that lied.
  */
 export async function detectArMode() {
-    if (supportsQuickLook()) return AR_MODE.QUICK_LOOK;
+    if (isIosDevice()) return AR_MODE.QUICK_LOOK;
     if (await supportsWebXrAr()) return AR_MODE.WEBXR;
     return AR_MODE.VIEWER_ONLY;
 }
