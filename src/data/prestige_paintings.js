@@ -2,7 +2,7 @@ import SOURCE_DIMS from './source_dims.json';
 import { FRAME_STYLES } from './constants';
 import { getThumbnailUrl } from '../services/storage';
 
-export const BASE = 'https://res.cloudinary.com/uucoqdzr/image/upload/inspiration_prestige_paintings/';
+export const BASE = 'https://ik.imagekit.io/jybooboo187/inspiration_prestige_paintings/';
 
 /* helper: derive dimensions from painting code */
 const dimsFromCode = (code, filename) => {

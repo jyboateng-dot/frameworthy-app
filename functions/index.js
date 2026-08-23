@@ -757,3 +757,84 @@ exports.askSupportAgent = onCall({ secrets: [geminiApiKey], region: 'us-central1
 
     return { text };
 });
+
+// Mints a short-lived ImageKit client-upload signature. Unlike Cloudinary's
+// unsigned upload preset, ImageKit has no equivalent — every client upload
+// must carry a token/expire/signature triple where the signature is
+// HMAC-SHA1(token + expire) keyed on the *private* key, which can only ever
+// be computed server-side. This callable is that computation; the private
+// key itself never reaches the client.
+// Stored in Secret Manager via `firebase functions:secrets:set IMAGEKIT_PRIVATE_KEY`
+const imageKitPrivateKey = defineSecret('IMAGEKIT_PRIVATE_KEY');
+
+exports.getImageKitUploadAuth = onCall({ secrets: [imageKitPrivateKey], region: 'us-central1', timeoutSeconds: 10, maxInstances: 20 }, async () => {
+    const token = crypto.randomUUID();
+    const expire = Math.floor(Date.now() / 1000) + 60 * 5; // 5 minute window
+    const signature = crypto.createHmac('sha1', imageKitPrivateKey.value()).update(token + String(expire)).digest('hex');
+    return { token, expire, signature };
+});
+
+// Re-serves an image from an allowlisted upstream host with CORS enabled.
+//
+// Why this exists: the AR pipeline (src/utils/ar/arTextures.js) draws
+// artwork into a <canvas> to embed as a GLB/USDZ texture, which requires
+// actually reading the pixel data — not just displaying the image, the way
+// a plain <img> tag does. That read is blocked by the browser unless the
+// image's own response carries CORS headers. Most of this app's image
+// hosts (ImageKit, Apple's/Amazon's/the Met's CDNs) already send
+// `Access-Control-Allow-Origin`, but bymuseum.com — the source for the
+// Artists & Masterpieces catalogue — sends none at all, which silently
+// left every masterpiece's AR preview showing an empty frame.
+//
+// A server-to-server fetch has no such restriction (CORS only governs
+// browser-to-server requests), so this just re-fetches the bytes here and
+// adds the header when handing them back. Restricted to an explicit host
+// allowlist rather than accepting any URL — an open image proxy is a
+// classic SSRF vector (a client could otherwise point it at internal
+// infrastructure, or just burn bandwidth as an anonymizing relay).
+const PROXY_ALLOWED_HOSTS = new Set(['bymuseum.com', 'www.bymuseum.com']);
+
+exports.proxyArtworkImage = onRequest({ region: 'us-central1', timeoutSeconds: 15, maxInstances: 10 }, async (req, res) => {
+    const target = req.query.url;
+    if (typeof target !== 'string' || !target) {
+        res.status(400).send('Missing url parameter');
+        return;
+    }
+
+    let parsed;
+    try {
+        parsed = new URL(target);
+    } catch {
+        res.status(400).send('Invalid url parameter');
+        return;
+    }
+
+    if (parsed.protocol !== 'https:' || !PROXY_ALLOWED_HOSTS.has(parsed.hostname)) {
+        res.status(403).send('Host not allowed');
+        return;
+    }
+
+    let upstream;
+    try {
+        upstream = await fetch(parsed.toString(), { signal: AbortSignal.timeout(10_000) });
+    } catch (err) {
+        logger.error('proxyArtworkImage: upstream fetch failed', { url: parsed.toString(), message: err.message });
+        res.status(502).send('Upstream fetch failed');
+        return;
+    }
+
+    if (!upstream.ok) {
+        res.status(upstream.status).send('Upstream returned an error');
+        return;
+    }
+
+    const contentType = upstream.headers.get('content-type') || 'application/octet-stream';
+    const bytes = Buffer.from(await upstream.arrayBuffer());
+
+    res.set('Access-Control-Allow-Origin', '*');
+    res.set('Content-Type', contentType);
+    // Upstream art doesn't change once published — safe to cache hard and
+    // skip re-fetching bymuseum.com on every AR open.
+    res.set('Cache-Control', 'public, max-age=86400, immutable');
+    res.status(200).send(bytes);
+});

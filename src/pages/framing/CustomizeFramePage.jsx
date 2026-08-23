@@ -1723,11 +1723,19 @@ const CustomizeFramePage = ({
                     closely, and the only things that earn their place then are
                     the piece itself and the approximation note. Faded rather
                     than unmounted so it's a smooth part of the same transition
-                    instead of an instant pop. */}
+                    instead of an instant pop.
+
+                    Hover only counts here when it's actually doing something:
+                    in Plain scene the frame already renders at its zoomed
+                    size by default (see isZoomedByDefault above), so hover
+                    has nothing left to reveal there — fading the chrome on a
+                    no-op hover just made it flicker away for no reason. Room
+                    scenes still fade on hover since that's the real
+                    reveal-zoom transition. */}
                 <div
                     data-testid="visualizer-chrome"
                     className={`absolute top-1.5 left-1.5 right-[-4px] sm:top-2 sm:left-2 sm:right-[-4px] z-20 grid grid-cols-[auto_minmax(0,1fr)_auto] items-start gap-2 sm:gap-3 transition-opacity ${CHROME_MOTION} ${
-                        (isHovered || isFullScreen || isMaxZoom) ? 'opacity-0 pointer-events-none' : 'opacity-100'
+                        ((isHovered && activeRoom) || isFullScreen || isMaxZoom) ? 'opacity-0 pointer-events-none' : 'opacity-100'
                     }`}
                 >
 
@@ -2971,12 +2979,16 @@ const CustomizeFramePage = ({
                     transition resets zoom state first by design), so the
                     button has nothing useful to do there and just clutters
                     the deep-inspection view. Stays visible in isFullScreen
-                    itself, since it's the only way to exit. */}
+                    itself, since it's the only way to exit. Hover only hides
+                    it in room scenes — in Plain scene hover doesn't zoom
+                    anything (isZoomedByDefault is already true there), so
+                    there's nothing for the button to be clearing out of the
+                    way of. */}
                 <button
                     onClick={() => (isFullScreen ? exitFullScreen() : enterFullScreen())}
                     data-testid="visualizer-chrome"
                     className={`absolute ${isFullScreen ? 'bottom-[max(1.5rem,env(safe-area-inset-bottom))] right-5 sm:bottom-6 sm:right-6' : 'bottom-1 right-3 sm:bottom-2 sm:right-6'} z-30 w-10 h-10 flex items-center justify-center rounded-full border border-stone-200 shadow-sm hover:shadow-md transition-all ${CHROME_MOTION} bg-white/95 backdrop-blur text-stone-700 ${
-                        (isHovered || isMaxZoom) && !isFullScreen ? 'opacity-0 scale-75 pointer-events-none' : 'opacity-100 scale-100'
+                        ((isHovered && activeRoom) || isMaxZoom) && !isFullScreen ? 'opacity-0 scale-75 pointer-events-none' : 'opacity-100 scale-100'
                     }`}
                     title={isFullScreen ? 'Exit full screen' : 'Full screen'}
                     aria-label={isFullScreen ? 'Exit full screen' : 'Full screen'}
@@ -3000,13 +3012,17 @@ const CustomizeFramePage = ({
                     full-screen button opposite it. Unmounting made it vanish
                     on the same frame the piece started growing — a hard cut
                     against a 260ms move, which is exactly the kind of
-                    mismatch that reads as a glitch rather than a transition. */}
+                    mismatch that reads as a glitch rather than a transition.
+                    Hover only hides it in room scenes, same reasoning as the
+                    full-screen button — Plain scene hover doesn't zoom
+                    anything, so the button has nothing to get out of the
+                    way of there. */}
                 {!isFullScreen && selectedFrame?.id !== 'frame-canvas' && (
                     <button
                         onClick={() => setIsArOpen(true)}
                         data-testid="visualizer-chrome"
                         className={`absolute bottom-1 left-3 sm:bottom-2 sm:left-6 z-30 w-10 h-10 flex items-center justify-center rounded-full border border-stone-200 shadow-sm hover:shadow-md transition-all ${CHROME_MOTION} bg-white/95 backdrop-blur text-stone-700 ${
-                            (isHovered || isMaxZoom) ? 'opacity-0 scale-75 pointer-events-none' : 'opacity-100 scale-100'
+                            ((isHovered && activeRoom) || isMaxZoom) ? 'opacity-0 scale-75 pointer-events-none' : 'opacity-100 scale-100'
                         }`}
                         title="View on your wall"
                         aria-label="View this frame on your wall in AR"

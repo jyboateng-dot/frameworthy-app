@@ -2,7 +2,7 @@ import SOURCE_DIMS from './source_dims.json';
 import { FRAME_STYLES } from './constants';
 import { getThumbnailUrl } from '../services/storage';
 
-export const BASE = 'https://res.cloudinary.com/uucoqdzr/image/upload/framed_prints/';
+export const BASE = 'https://ik.imagekit.io/jybooboo187/framed_prints/';
 
 export const dimsFromFile = (file) => {
     if (SOURCE_DIMS[file]) return SOURCE_DIMS[file];

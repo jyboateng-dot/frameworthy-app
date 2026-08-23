@@ -24,7 +24,22 @@ import FRAME_RENDER_PROFILES from '../../data/frameRenderProfiles.json';
 const MAX_RAIL_PX = 1024;
 const MAX_ART_PX = 1024;
 
-function loadImage(src) {
+// Server-to-server fetches aren't CORS-restricted the way browser ones are
+// — see the function's own comment in functions/index.js for why this
+// exists (bymuseum.com, the Artists & Masterpieces source, sends no CORS
+// headers at all, which otherwise leaves the AR texture load blocked even
+// though the same URL displays fine in a plain <img>).
+//
+// Routed through Hosting (see firebase.json's rewrites) rather than the
+// function's own Cloud Functions URL — this project's org policy blocks
+// granting public (allUsers) invoker access directly on the Cloud Run
+// service, which left a direct-URL deploy technically live but answering
+// every request with a platform-level 403 before it ever reached the
+// function's own code. Hosting invokes functions via its own pre-
+// authorized service account, which sidesteps that restriction entirely.
+const PROXY_BASE = '/api/proxy-artwork';
+
+function loadImageWithCors(src) {
     return new Promise((resolve, reject) => {
         const img = new Image();
         // Every one of these ends up drawn into a canvas that then has
@@ -35,6 +50,19 @@ function loadImage(src) {
         img.onerror = () => reject(new Error(`AR texture failed to load: ${src}`));
         img.src = src;
     });
+}
+
+async function loadImage(src) {
+    try {
+        return await loadImageWithCors(src);
+    } catch (err) {
+        // Only worth a second attempt for http(s) sources the proxy might
+        // actually be allowlisted for — retrying a data:/blob: URL (which
+        // can't be a CORS problem in the first place) would just repeat
+        // the same failure.
+        if (!/^https?:\/\//i.test(src)) throw err;
+        return loadImageWithCors(`${PROXY_BASE}?url=${encodeURIComponent(src)}`);
+    }
 }
 
 export function canvasToPngBytes(canvas) {

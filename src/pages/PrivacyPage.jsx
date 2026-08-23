@@ -33,7 +33,7 @@ const PrivacyPage = ({ navigate }) => (
             </p>
             <p><strong>Firebase (Google)</strong> — account authentication and our order/customer database.</p>
             <p><strong>Paystack</strong> — secure payment processing for card and mobile money transactions.</p>
-            <p><strong>Cloudinary</strong> — hosting for the photos you upload and the production files used to print your order.</p>
+            <p><strong>ImageKit and Cloudinary</strong> — hosting for the photos you upload, the production files used to print your order, and our image catalogue.</p>
             <p><strong>EmailJS</strong> — sending order confirmations, password resets, and related transactional emails.</p>
             <p>
                 Each of these providers has its own privacy practices governing the data they process

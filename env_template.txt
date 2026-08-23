@@ -8,6 +8,13 @@ VITE_FIREBASE_APP_ID=replace-with-your-app-id
 VITE_CLOUDINARY_CLOUD_NAME=replace-with-your-cloud-name
 VITE_CLOUDINARY_UPLOAD_PRESET=replace-with-your-unsigned-upload-preset
 
+# ImageKit is the active upload provider by default (see
+# src/services/storage.js). Set VITE_IMAGE_UPLOAD_PROVIDER=cloudinary to
+# fall back to Cloudinary instead, with no code changes needed.
+VITE_IMAGE_UPLOAD_PROVIDER=imagekit
+VITE_IMAGEKIT_PUBLIC_KEY=replace-with-your-imagekit-public-key
+VITE_IMAGEKIT_URL_ENDPOINT=replace-with-your-imagekit-url-endpoint
+
 VITE_PAYSTACK_PUBLIC_KEY=replace-with-your-paystack-public-key
 
 VITE_EMAILJS_SERVICE_ID=replace-with-your-emailjs-service-id

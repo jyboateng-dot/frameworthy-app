@@ -68,6 +68,11 @@ frameworthy_codebase.zip
 # Stray pre-Cloudinary-migration backup copy of Met Museum images, not source content
 /met_collection/
 
+# Staging area for the Cloudinary -> ImageKit catalogue re-hosting (fetched
+# source images awaiting upload) — working material, not source content.
+/.migration-staging/
+/migration_fetch_progress*.json
+
 # Supplier frame-asset working material (~930MB of binaries). "frame assets/"
 # is the curated supplier drop the catalogue is generated FROM; catalog_downloads/
 # is the raw scrape archive it was reconciled against. Both are source material

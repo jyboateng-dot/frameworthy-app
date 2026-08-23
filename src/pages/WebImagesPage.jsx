@@ -106,8 +106,8 @@ const WebImagesPage = ({ setProductMode, setSelectedFrame, setSelectedSize, navi
             id: imgObj.id,
             title: `Unsplash Collection #${i + 1}`,
             artist: imgObj.artist || 'Unsplash Contributor',
-            image: `https://res.cloudinary.com/uucoqdzr/image/upload/unsplash_collection/${imgObj.filename}`,
-            productionImage: `https://res.cloudinary.com/uucoqdzr/image/upload/unsplash_collection/${imgObj.filename}`,
+            image: `https://ik.imagekit.io/jybooboo187/unsplash_collection/${imgObj.filename}`,
+            productionImage: `https://ik.imagekit.io/jybooboo187/unsplash_collection/${imgObj.filename}`,
             description: `Beautiful high-resolution photograph by ${imgObj.artist || 'Unsplash Contributor'}.`,
             dims: WEB_MET_DIMS[imgObj.filename] || '40 x 50 cm'
         }));
