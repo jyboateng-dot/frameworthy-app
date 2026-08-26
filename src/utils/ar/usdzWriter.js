@@ -146,6 +146,16 @@ export function buildUsda({ parts, materials }) {
     // metersPerUnit = 1 with geometry already in metres is what makes
     // Quick Look place the piece at true size. upAxis Y matches the
     // mesh, which is built standing up in XY with Z out of the wall.
+    //
+    // Deliberately no Preliminary_AnchoringAPI / planeAnchoring hint here.
+    // It was tried (forcing alignment="vertical") to make Quick Look
+    // suggest a wall on open, but on a real device it placed the piece
+    // off the surface rather than flush and dropped the usual drag/
+    // rotate/scale manipulation gestures — worse than Quick Look's own
+    // default free placement, where the object drops in flat and fully
+    // manipulable, and still sticks to a wall on approach the same way
+    // any placed object does. Revisit only with on-device confirmation
+    // that a specific hint fixes both regressions, not just one.
     return `#usda 1.0
 (
     defaultPrim = "Frame"
@@ -155,17 +165,8 @@ export function buildUsda({ parts, materials }) {
 
 def Xform "Frame" (
     kind = "component"
-    prepend apiSchemas = ["Preliminary_AnchoringAPI"]
 )
 {
-    // Without this hint Quick Look falls back to its own shape heuristic
-    // for floor vs. wall placement, which reads a frame as floor-able
-    // furniture often enough to be the actual bug behind "AR doesn't
-    // place on the wall" — a framed piece is never meant to stand on
-    // the floor, so this is asserted rather than guessed at.
-    uniform token preliminary:anchoring:type = "plane"
-    uniform token preliminary:planeAnchoring:alignment = "vertical"
-
 ${meshes}
 
     def Scope "Materials"

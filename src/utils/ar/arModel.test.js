@@ -329,15 +329,14 @@ describe('usdz container', () => {
         }
     });
 
-    it('hints Quick Look to anchor the frame on a wall, not the floor', () => {
-        // Without this, Quick Look falls back to its own shape heuristic
-        // for surface placement — the actual bug behind "AR doesn't cast
-        // on the wall" on iOS.
+    it('does not force a plane-anchoring hint, so Quick Look keeps its default free placement/manipulation', () => {
+        // A vertical-anchoring hint was tried here and reverted — on a real
+        // device it placed the piece off the wall surface and disabled the
+        // usual drag/rotate/scale gestures. See buildUsda's own comment.
         const mesh = sampleMesh();
         const usda = buildUsda({ parts: mesh.parts, materials: solidMaterials(mesh.parts) });
 
-        expect(usda).toContain('prepend apiSchemas = ["Preliminary_AnchoringAPI"]');
-        expect(usda).toContain('uniform token preliminary:anchoring:type = "plane"');
-        expect(usda).toContain('uniform token preliminary:planeAnchoring:alignment = "vertical"');
+        expect(usda).not.toContain('Preliminary_AnchoringAPI');
+        expect(usda).not.toContain('preliminary:anchoring');
     });
 });
