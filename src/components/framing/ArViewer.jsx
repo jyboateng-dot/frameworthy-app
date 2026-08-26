@@ -9,30 +9,33 @@ import {
     createAndroidSceneViewerIntent,
 } from '../../utils/ar/arCapabilities';
 import { relayArModel } from '../../utils/ar/arModelRelay';
+import { presentNativeQuickLook } from '../../utils/ar/nativeQuickLook';
 
 /**
  * "See it on your wall" — the AR entry point from the visualizer.
  *
  * Every device gets the orbit preview; what changes per platform is
- * what the button under it does. iOS hands the .usdz to AR Quick Look,
- * WebXR devices open a session in this same canvas, and desktop is told
- * plainly that it's a 3D preview rather than being shown a button that
- * would do nothing. The two native-app modes (see arCapabilities.js)
- * need one extra step first — relaying the model to a real URL — before
- * their button can do anything at all, which is why they get their own
- * render branch below instead of sharing the generic CTA button.
+ * what happens next. WebXR devices open a session in this same canvas.
+ * Mobile Safari hands the .usdz to AR Quick Look over a blob: URL, which
+ * works there but not inside the native app's WKWebView — Capacitor's
+ * WebView doesn't hand a tapped `rel="ar"` link to Quick Look the way
+ * Safari does, and just shows its own generic in-page model preview
+ * instead (confirmed on hardware as the extra "view 3D object, then tap
+ * AR" steps a customer had to take to get into AR at all). So the two
+ * native-app modes (see arCapabilities.js) skip the web entirely: iOS
+ * calls a native plugin that presents Quick Look directly from Swift
+ * (nativeQuickLook.js / ios/App/App/QuickLookPlugin.swift), and Android
+ * launches Google's Scene Viewer app. Both need the model relayed to a
+ * real HTTPS URL first — arRelay.js — since neither can read the blob:
+ * URL this page built the model into.
  *
- * Three of those four modes launch themselves the instant they're ready,
- * rather than waiting for a second tap on the CTA underneath — the
- * customer already asked for AR by opening this screen, so the orbit
- * preview shows only as long as the model takes to build. The CTA stays
- * mounted regardless, as the manual retry path for whichever of those
- * auto-launches the browser silently refuses (a real possibility for
- * anything gated on user-activation timing, which is browser-dependent).
- * NATIVE_QUICK_LOOK is the one exception, and can't join them: its whole
- * fix was routing through a real, directly-tapped <a> rather than a
- * script-driven click (see the anchor below) — auto-firing it would
- * mean clicking that anchor from script, undoing the fix.
+ * Every mode launches itself the instant it's ready, rather than waiting
+ * for a second tap on the CTA underneath — the customer already asked
+ * for AR by opening this screen, so the orbit preview shows only as long
+ * as the model takes to build (and, for the native modes, to relay). The
+ * CTA stays mounted regardless, as the manual retry path for whichever
+ * auto-launch a browser's user-activation rules silently refuse — a real
+ * possibility for the two web modes specifically, and browser-dependent.
  */
 
 const CTA_LABEL = {
@@ -44,6 +47,24 @@ const RELAY_KIND_BY_MODE = {
     [AR_MODE.NATIVE_QUICK_LOOK]: 'usdz',
     [AR_MODE.NATIVE_SCENE_VIEWER]: 'glb',
 };
+
+// What "launch AR" means for each native mode, once arRelay has handed
+// back a real URL for it. Scene Viewer is a plain intent:// navigation;
+// Quick Look goes through the native plugin instead of a web link — see
+// the module comment for why.
+const NATIVE_LAUNCH = {
+    [AR_MODE.NATIVE_QUICK_LOOK]: (url) => presentNativeQuickLook(url),
+    [AR_MODE.NATIVE_SCENE_VIEWER]: (url) => window.location.assign(createAndroidSceneViewerIntent(url)),
+};
+
+// Scene Viewer's launcher returns nothing; Quick Look's returns a promise
+// from the native bridge — this covers both without the caller needing
+// to know which.
+function launchNative(mode, url) {
+    Promise.resolve(NATIVE_LAUNCH[mode]?.(url)).catch((error) => {
+        console.warn('Native AR launch failed:', error);
+    });
+}
 
 export default function ArViewer({
     isOpen,
@@ -121,11 +142,12 @@ export default function ArViewer({
                 scene.startPreview();
                 setStatus('ready');
 
-                // Straight into AR the moment it's ready, for every mode
-                // that can do that safely from here (see the module
-                // comment for why NATIVE_QUICK_LOOK can't join them). Not
-                // awaited — a rejection here just leaves the manual CTA as
-                // the way in, same as if this block didn't exist.
+                // Straight into AR the moment it's ready, for the two web
+                // modes — the native modes launch further down, once
+                // their relay resolves, since there's nothing to launch
+                // yet at this point for them. Not awaited — a rejection
+                // here just leaves the manual CTA as the way in, same as
+                // if this block didn't exist.
                 if (detected === AR_MODE.QUICK_LOOK) {
                     openQuickLook(built.usdzUrl);
                 } else if (detected === AR_MODE.WEBXR) {
@@ -138,11 +160,10 @@ export default function ArViewer({
                 }
 
                 // Kicked off here, right away, rather than waiting for the
-                // tap — Quick Look wants a real <a href> already sitting in
-                // the DOM to activate, not one that only resolves after the
-                // gesture, and Scene Viewer's launch is smoother without an
-                // extra spinner-on-tap for a customer who's already waited
-                // for the model to build.
+                // tap — both native launch mechanisms are plain function
+                // calls, not gesture-gated hand-offs, so there's no reason
+                // to make a customer who's already waited for the model to
+                // build wait through an extra tap too.
                 const relayKind = RELAY_KIND_BY_MODE[detected];
                 if (relayKind) {
                     setNativeRelayStatus('loading');
@@ -152,13 +173,7 @@ export default function ArViewer({
                             if (cancelled) return;
                             setNativeRelayUrl(url);
                             setNativeRelayStatus('ready');
-                            // Scene Viewer is a plain navigation, not a
-                            // gesture-gated hand-off like Quick Look's —
-                            // safe to fire as soon as the relay resolves,
-                            // however long after the original tap that is.
-                            if (detected === AR_MODE.NATIVE_SCENE_VIEWER) {
-                                window.location.assign(createAndroidSceneViewerIntent(url));
-                            }
+                            launchNative(detected, url);
                         })
                         .catch((error) => {
                             if (cancelled) return;
@@ -300,55 +315,15 @@ export default function ArViewer({
 
             {status === 'ready' && !inSession && (
                 <div className="shrink-0 px-5 pb-6 pt-2 flex flex-col items-center gap-2">
-                    {mode === AR_MODE.NATIVE_QUICK_LOOK ? (
-                        nativeRelayUrl ? (
-                            // A real, directly-tapped <a rel="ar"> — not a
-                            // JS-created one clicked programmatically. That
-                            // distinction is what made this work at all
-                            // inside the app's WKWebView (confirmed against
-                            // an earlier build of this same AR flow).
-                            //
-                            // The anchor's *only* child may be the <img> —
-                            // Quick Look requires exactly one, and a second
-                            // child (the visible label, if it lived in here
-                            // too) makes it fall back to a generic file
-                            // preview instead of full AR, with its own
-                            // separate AR button buried inside — the extra
-                            // steps this was built to remove. So the label
-                            // renders as a sibling instead, with the anchor
-                            // stretched over it to stay the tap target.
-                            <div className="relative w-full max-w-xs">
-                                <div
-                                    aria-hidden="true"
-                                    className="pointer-events-none py-3.5 rounded-full bg-white text-stone-900 text-xs font-bold uppercase tracking-wider text-center"
-                                >
-                                    View on your wall
-                                </div>
-                                <a
-                                    rel="ar"
-                                    href={nativeRelayUrl}
-                                    aria-label="View on your wall"
-                                    className="absolute inset-0 rounded-full active:bg-black/5"
-                                >
-                                    <img alt="" className="hidden" />
-                                </a>
-                            </div>
-                        ) : (
-                            <button
-                                type="button"
-                                disabled
-                                className="w-full max-w-xs py-3.5 rounded-full bg-white/40 text-stone-900/60 text-xs font-bold uppercase tracking-wider cursor-wait"
-                            >
-                                {nativeRelayStatus === 'error' ? "Couldn't prepare AR preview" : 'Preparing…'}
-                            </button>
-                        )
-                    ) : mode === AR_MODE.NATIVE_SCENE_VIEWER ? (
+                    {mode === AR_MODE.NATIVE_QUICK_LOOK || mode === AR_MODE.NATIVE_SCENE_VIEWER ? (
+                        // Already auto-launched once the relay resolved
+                        // (see the effect above) — this is purely the
+                        // manual retry for whichever customer dismissed
+                        // that and wants back in.
                         <button
                             type="button"
                             disabled={!nativeRelayUrl}
-                            onClick={() => {
-                                if (nativeRelayUrl) window.location.assign(createAndroidSceneViewerIntent(nativeRelayUrl));
-                            }}
+                            onClick={() => nativeRelayUrl && launchNative(mode, nativeRelayUrl)}
                             className="w-full max-w-xs py-3.5 rounded-full bg-white text-stone-900 text-xs font-bold uppercase tracking-wider hover:bg-stone-100 transition-colors disabled:bg-white/40 disabled:text-stone-900/60 disabled:cursor-wait"
                         >
                             {nativeRelayUrl ? 'View on your wall' : (nativeRelayStatus === 'error' ? "Couldn't prepare AR preview" : 'Preparing…')}
