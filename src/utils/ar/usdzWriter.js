@@ -155,8 +155,17 @@ export function buildUsda({ parts, materials }) {
 
 def Xform "Frame" (
     kind = "component"
+    prepend apiSchemas = ["Preliminary_AnchoringAPI"]
 )
 {
+    // Without this hint Quick Look falls back to its own shape heuristic
+    // for floor vs. wall placement, which reads a frame as floor-able
+    // furniture often enough to be the actual bug behind "AR doesn't
+    // place on the wall" — a framed piece is never meant to stand on
+    // the floor, so this is asserted rather than guessed at.
+    uniform token preliminary:anchoring:type = "plane"
+    uniform token preliminary:planeAnchoring:alignment = "vertical"
+
 ${meshes}
 
     def Scope "Materials"

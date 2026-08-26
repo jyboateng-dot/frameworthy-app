@@ -328,4 +328,16 @@ describe('usdz container', () => {
             expect(usda).toContain(`def Material "${part.material}"`);
         }
     });
+
+    it('hints Quick Look to anchor the frame on a wall, not the floor', () => {
+        // Without this, Quick Look falls back to its own shape heuristic
+        // for surface placement — the actual bug behind "AR doesn't cast
+        // on the wall" on iOS.
+        const mesh = sampleMesh();
+        const usda = buildUsda({ parts: mesh.parts, materials: solidMaterials(mesh.parts) });
+
+        expect(usda).toContain('prepend apiSchemas = ["Preliminary_AnchoringAPI"]');
+        expect(usda).toContain('uniform token preliminary:anchoring:type = "plane"');
+        expect(usda).toContain('uniform token preliminary:planeAnchoring:alignment = "vertical"');
+    });
 });

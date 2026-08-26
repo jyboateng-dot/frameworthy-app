@@ -137,7 +137,7 @@ export default function ArViewer({
 
     return (
         <div className="fixed inset-0 z-[100] bg-stone-950/95 backdrop-blur-sm flex flex-col">
-            <div className="flex items-center justify-between px-4 py-3 shrink-0">
+            <div className="flex items-center justify-between px-4 pb-3 pt-[calc(0.75rem+env(safe-area-inset-top,0px))] shrink-0">
                 <div className="text-white">
                     <p className="text-sm font-bold">See it on your wall</p>
                     {model && (
