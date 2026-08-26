@@ -1,7 +1,14 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { X, Loader, RotateCcw } from 'lucide-react';
 import { buildArModel } from '../../utils/ar/buildArModel';
-import { AR_MODE, detectArMode, openQuickLook, isMobileDevice } from '../../utils/ar/arCapabilities';
+import {
+    AR_MODE,
+    detectArMode,
+    openQuickLook,
+    isMobileDevice,
+    createAndroidSceneViewerIntent,
+} from '../../utils/ar/arCapabilities';
+import { relayArModel } from '../../utils/ar/arModelRelay';
 
 /**
  * "See it on your wall" — the AR entry point from the visualizer.
@@ -10,12 +17,20 @@ import { AR_MODE, detectArMode, openQuickLook, isMobileDevice } from '../../util
  * what the button under it does. iOS hands the .usdz to AR Quick Look,
  * WebXR devices open a session in this same canvas, and desktop is told
  * plainly that it's a 3D preview rather than being shown a button that
- * would do nothing.
+ * would do nothing. The two native-app modes (see arCapabilities.js)
+ * need one extra step first — relaying the model to a real URL — before
+ * their button can do anything at all, which is why they get their own
+ * render branch below instead of sharing the generic CTA button.
  */
 
 const CTA_LABEL = {
     [AR_MODE.QUICK_LOOK]: 'View on your wall',
     [AR_MODE.WEBXR]: 'View on your wall',
+};
+
+const RELAY_KIND_BY_MODE = {
+    [AR_MODE.NATIVE_QUICK_LOOK]: 'usdz',
+    [AR_MODE.NATIVE_SCENE_VIEWER]: 'glb',
 };
 
 export default function ArViewer({
@@ -38,6 +53,10 @@ export default function ArViewer({
     const [status, setStatus] = useState('loading');
     const [inSession, setInSession] = useState(false);
     const [hasPlaced, setHasPlaced] = useState(false);
+    // Only ever touched for the two native-app modes — a real HTTPS URL
+    // standing in for the blob: one, once arRelay has stored the model.
+    const [nativeRelayUrl, setNativeRelayUrl] = useState(null);
+    const [nativeRelayStatus, setNativeRelayStatus] = useState('idle');
 
     useEffect(() => {
         if (!isOpen) return undefined;
@@ -47,6 +66,8 @@ export default function ArViewer({
         setStatus('loading');
         setInSession(false);
         setHasPlaced(false);
+        setNativeRelayUrl(null);
+        setNativeRelayStatus('idle');
 
         (async () => {
             try {
@@ -87,6 +108,29 @@ export default function ArViewer({
 
                 scene.startPreview();
                 setStatus('ready');
+
+                // Kicked off here, right away, rather than waiting for the
+                // tap — Quick Look wants a real <a href> already sitting in
+                // the DOM to activate, not one that only resolves after the
+                // gesture, and Scene Viewer's launch is smoother without an
+                // extra spinner-on-tap for a customer who's already waited
+                // for the model to build.
+                const relayKind = RELAY_KIND_BY_MODE[detected];
+                if (relayKind) {
+                    setNativeRelayStatus('loading');
+                    const relaySrc = relayKind === 'usdz' ? built.usdzUrl : built.glbUrl;
+                    relayArModel(relaySrc, relayKind)
+                        .then((url) => {
+                            if (cancelled) return;
+                            setNativeRelayUrl(url);
+                            setNativeRelayStatus('ready');
+                        })
+                        .catch((error) => {
+                            if (cancelled) return;
+                            console.warn('AR model relay failed:', error);
+                            setNativeRelayStatus('error');
+                        });
+                }
             } catch (error) {
                 if (!cancelled) {
                     console.warn('AR preview failed to build:', error);
@@ -221,7 +265,43 @@ export default function ArViewer({
 
             {status === 'ready' && !inSession && (
                 <div className="shrink-0 px-5 pb-6 pt-2 flex flex-col items-center gap-2">
-                    {ctaLabel ? (
+                    {mode === AR_MODE.NATIVE_QUICK_LOOK ? (
+                        nativeRelayUrl ? (
+                            // A real, directly-tapped <a rel="ar"> — not a
+                            // JS-created one clicked programmatically. That
+                            // distinction is what made this work at all
+                            // inside the app's WKWebView (confirmed against
+                            // an earlier build of this same AR flow).
+                            <a
+                                rel="ar"
+                                href={nativeRelayUrl}
+                                className="w-full max-w-xs py-3.5 rounded-full bg-white text-stone-900 text-xs font-bold uppercase tracking-wider hover:bg-stone-100 transition-colors text-center"
+                            >
+                                {/* Required direct child for Quick Look to recognise this as an AR link. */}
+                                <img alt="" className="hidden" />
+                                View on your wall
+                            </a>
+                        ) : (
+                            <button
+                                type="button"
+                                disabled
+                                className="w-full max-w-xs py-3.5 rounded-full bg-white/40 text-stone-900/60 text-xs font-bold uppercase tracking-wider cursor-wait"
+                            >
+                                {nativeRelayStatus === 'error' ? "Couldn't prepare AR preview" : 'Preparing…'}
+                            </button>
+                        )
+                    ) : mode === AR_MODE.NATIVE_SCENE_VIEWER ? (
+                        <button
+                            type="button"
+                            disabled={!nativeRelayUrl}
+                            onClick={() => {
+                                if (nativeRelayUrl) window.location.assign(createAndroidSceneViewerIntent(nativeRelayUrl));
+                            }}
+                            className="w-full max-w-xs py-3.5 rounded-full bg-white text-stone-900 text-xs font-bold uppercase tracking-wider hover:bg-stone-100 transition-colors disabled:bg-white/40 disabled:text-stone-900/60 disabled:cursor-wait"
+                        >
+                            {nativeRelayUrl ? 'View on your wall' : (nativeRelayStatus === 'error' ? "Couldn't prepare AR preview" : 'Preparing…')}
+                        </button>
+                    ) : ctaLabel ? (
                         <button
                             type="button"
                             onClick={launchAr}

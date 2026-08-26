@@ -3,6 +3,9 @@
     "rules": "firestore.rules",
     "indexes": "firestore.indexes.json"
   },
+  "storage": {
+    "rules": "storage.rules"
+  },
   "functions": [
     {
       "source": "functions",
@@ -39,6 +42,20 @@
         "source": "/api/proxy-artwork",
         "function": {
           "functionId": "proxyArtworkImage",
+          "region": "us-central1"
+        }
+      },
+      {
+        "source": "/api/ar-relay",
+        "function": {
+          "functionId": "arRelay",
+          "region": "us-central1"
+        }
+      },
+      {
+        "source": "/api/ar-relay/**",
+        "function": {
+          "functionId": "arRelay",
           "region": "us-central1"
         }
       },

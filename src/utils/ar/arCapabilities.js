@@ -1,25 +1,39 @@
 /**
  * Which AR mechanism this device can actually use.
  *
- * The three platforms take genuinely different routes, and the choice
- * is forced by what each one supports rather than by preference:
+ * The platforms take genuinely different routes, and the choice is
+ * forced by what each one supports rather than by preference:
  *
- *   quick-look   iOS hands a .usdz to the system AR viewer. iOS has no
- *                WebXR at all — Safari doesn't implement it and every
- *                other iOS browser is WebKit underneath — so this is
- *                the only route there, not the preferred one.
+ *   quick-look          iOS hands a .usdz to the system AR viewer, over
+ *                        a blob: URL. Works in mobile Safari (and any
+ *                        WebKit browser there, since it's all Safari
+ *                        underneath) — but not inside the native app's
+ *                        WKWebView, which is native-quick-look below.
  *
- *   webxr        Android Chrome and desktop headset browsers run the
- *                session in-page. Chosen over Android's Scene Viewer
- *                because Scene Viewer is a separate app and can only
- *                fetch a public URL, which would mean uploading a
- *                model per preview; an in-page session reads the blob
- *                we already built locally.
+ *   native-quick-look    iOS, inside the Capacitor app. WKWebView does
+ *                        not hand a blob: URL to Quick Look the way
+ *                        Safari does — there is no real HTTP response
+ *                        for it to key the hand-off off. The model is
+ *                        relayed through arRelay (functions/index.js)
+ *                        to get a real HTTPS URL first.
  *
- *   viewer-only  Everything else — the desktop case. No major desktop
- *                browser implements immersive-ar without a headset
- *                attached, so this is an orbit preview, honestly
- *                labelled as one rather than dressed up as AR.
+ *   webxr                Android Chrome and desktop headset browsers
+ *                        run the session in-page, reading the blob we
+ *                        already built locally — no relay needed.
+ *
+ *   native-scene-viewer   Android, inside the Capacitor app. Chrome's
+ *                        WebXR isn't available in a bare Android
+ *                        WebView, so this hands the (also relayed)
+ *                        .glb to Google's Scene Viewer app instead —
+ *                        the same relay endpoint as iOS, different
+ *                        hand-off mechanism on the other side.
+ *
+ *   viewer-only          Everything else — the desktop case, and any
+ *                        mobile browser with neither WebXR nor Quick
+ *                        Look. No major desktop browser implements
+ *                        immersive-ar without a headset attached, so
+ *                        this is an orbit preview, honestly labelled
+ *                        as one rather than dressed up as AR.
  *
  * iOS is decided by user-agent alone, not by feature-probing —
  * `HTMLAnchorElement.relList.supports('ar')`, the capability check
@@ -35,9 +49,25 @@
 
 export const AR_MODE = {
     QUICK_LOOK: 'quick-look',
+    NATIVE_QUICK_LOOK: 'native-quick-look',
     WEBXR: 'webxr',
+    NATIVE_SCENE_VIEWER: 'native-scene-viewer',
     VIEWER_ONLY: 'viewer-only',
 };
+
+import { Capacitor } from '@capacitor/core';
+
+/**
+ * True only inside the native iOS/Android app shell (Capacitor), never in
+ * a browser tab — including the exact same site loaded in mobile Safari
+ * or Chrome. This is the signal that decides whether a blob: URL is
+ * usable as-is (a browser) or needs relaying to a real HTTPS URL first
+ * (the native WebView/Scene Viewer hand-off — see the AR_MODE comment
+ * above).
+ */
+export function isCapacitorNative() {
+    return Capacitor.isNativePlatform();
+}
 
 export function isIosDevice() {
     if (typeof navigator === 'undefined') return false;
@@ -81,12 +111,19 @@ async function supportsWebXrAr() {
  * support check is a promise — there is no synchronous equivalent.
  *
  * iOS is decided outright, before any feature probe — see the module
- * comment for why. Everything else (Android, desktop, headset
- * browsers) goes through the real WebXR capability check, since that
- * one has proven reliable; it's Apple's own probe that lied.
+ * comment for why. Android takes the native-app branch outright too,
+ * for a different reason: a bare Android WebView doesn't carry WebXR
+ * the way Chrome does, so probing would just correctly report "no" and
+ * silently drop native Android to the desktop-style viewer-only
+ * fallback — Scene Viewer is the real capability there, it just isn't
+ * reachable through navigator.xr. Everything else (Android web, desktop,
+ * headset browsers) goes through the real WebXR capability check, since
+ * that one has proven reliable; it's Apple's own probe that lied.
  */
 export async function detectArMode() {
-    if (isIosDevice()) return AR_MODE.QUICK_LOOK;
+    const native = isCapacitorNative();
+    if (isIosDevice()) return native ? AR_MODE.NATIVE_QUICK_LOOK : AR_MODE.QUICK_LOOK;
+    if (isAndroidDevice() && native) return AR_MODE.NATIVE_SCENE_VIEWER;
     if (await supportsWebXrAr()) return AR_MODE.WEBXR;
     return AR_MODE.VIEWER_ONLY;
 }
@@ -121,4 +158,19 @@ export function openQuickLook(usdzUrl) {
     // Left for a tick so Safari can read the anchor during its own
     // activation handling before it disappears.
     setTimeout(() => anchor.remove(), 1000);
+}
+
+/**
+ * Builds the intent:// URL that launches Google's Scene Viewer app on a
+ * .glb hosted at a real, publicly-fetchable URL — Scene Viewer runs as a
+ * separate app and fetches the model itself, so it can never read a
+ * blob: URL scoped to this page (hence relaying through arRelay first to
+ * get `modelUrl`). `browser_fallback_url` is where Play Services sends
+ * the user if Scene Viewer/ARCore isn't installed, so it points back at
+ * this same AR screen rather than a dead end.
+ */
+export function createAndroidSceneViewerIntent(modelUrl) {
+    const fallback = typeof window !== 'undefined' ? window.location.href : 'https://frameworthyco.com';
+    const query = new URLSearchParams({ file: modelUrl, mode: 'ar_only' });
+    return `intent://arvr.google.com/scene-viewer/1.0?${query}#Intent;scheme=https;package=com.google.ar.core;action=android.intent.action.VIEW;S.browser_fallback_url=${encodeURIComponent(fallback)};end;`;
 }

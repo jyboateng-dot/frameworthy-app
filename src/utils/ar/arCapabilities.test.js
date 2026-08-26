@@ -5,7 +5,22 @@
 // by user agent alone, with no feature probe that could reintroduce the
 // same silent failure.
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { AR_MODE, detectArMode, isIosDevice, isAndroidDevice, isMobileDevice, openQuickLook } from './arCapabilities';
+
+vi.mock('@capacitor/core', () => ({
+    Capacitor: { isNativePlatform: vi.fn(() => false) },
+}));
+
+import { Capacitor } from '@capacitor/core';
+import {
+    AR_MODE,
+    detectArMode,
+    isIosDevice,
+    isAndroidDevice,
+    isMobileDevice,
+    isCapacitorNative,
+    openQuickLook,
+    createAndroidSceneViewerIntent,
+} from './arCapabilities';
 
 const REAL_IPHONE_UA = 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1';
 const REAL_IPAD_UA = 'Mozilla/5.0 (iPad; CPU OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1';
@@ -78,6 +93,27 @@ describe('detectArMode', () => {
         // navigator.xr is deleted between tests rather than left stubbed,
         // since its mere presence changes detectArMode's branch.
         delete window.navigator.xr;
+        Capacitor.isNativePlatform.mockReturnValue(false);
+    });
+
+    it('returns native-quick-look for iOS inside the Capacitor app', async () => {
+        // The whole reason this mode exists: a blob: USDZ opens fine in
+        // Safari but silently no-ops in the app's WKWebView, so the native
+        // shell needs its own mode even though it's still "iOS".
+        mockNavigator({ userAgent: REAL_IPHONE_UA });
+        Capacitor.isNativePlatform.mockReturnValue(true);
+        expect(await detectArMode()).toBe(AR_MODE.NATIVE_QUICK_LOOK);
+    });
+
+    it('returns native-scene-viewer for Android inside the Capacitor app, even if WebXR would report support', async () => {
+        // Native must win outright, the same way iOS wins outright above —
+        // a bare Android WebView reporting navigator.xr support (it never
+        // actually does, but the point is the native check can't be a
+        // priority tiebreaker that a stray polyfill could subvert).
+        mockNavigator({ userAgent: REAL_ANDROID_UA });
+        Capacitor.isNativePlatform.mockReturnValue(true);
+        window.navigator.xr = { isSessionSupported: vi.fn().mockResolvedValue(true) };
+        expect(await detectArMode()).toBe(AR_MODE.NATIVE_SCENE_VIEWER);
     });
 
     it('returns quick-look for iOS regardless of any WebXR/relList state', () => {
@@ -137,5 +173,28 @@ describe('openQuickLook', () => {
         expect(anchor.firstChild?.tagName).toBe('IMG');
 
         appendChild.mockRestore();
+    });
+});
+
+describe('isCapacitorNative', () => {
+    afterEach(() => Capacitor.isNativePlatform.mockReturnValue(false));
+
+    it('mirrors Capacitor.isNativePlatform()', () => {
+        Capacitor.isNativePlatform.mockReturnValue(false);
+        expect(isCapacitorNative()).toBe(false);
+        Capacitor.isNativePlatform.mockReturnValue(true);
+        expect(isCapacitorNative()).toBe(true);
+    });
+});
+
+describe('createAndroidSceneViewerIntent', () => {
+    it('builds a Scene Viewer intent carrying the relayed model URL and an ar_only mode', () => {
+        const intent = createAndroidSceneViewerIntent('https://frameworthyco-9c78c.web.app/api/ar-relay/abc.glb');
+
+        expect(intent).toMatch(/^intent:\/\/arvr\.google\.com\/scene-viewer\/1\.0\?/);
+        expect(intent).toContain(encodeURIComponent('https://frameworthyco-9c78c.web.app/api/ar-relay/abc.glb'));
+        expect(intent).toContain('mode=ar_only');
+        expect(intent).toContain('package=com.google.ar.core');
+        expect(intent).toContain('S.browser_fallback_url=');
     });
 });

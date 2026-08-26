@@ -1,0 +1,13 @@
+rules_version = '2';
+
+// Every object under this bucket is written and read exclusively through
+// Cloud Functions using the Admin SDK, which bypasses these rules entirely —
+// deny-all here is what stops a client from reading or writing the bucket
+// directly, not what grants the server access.
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

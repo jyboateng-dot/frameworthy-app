@@ -1,4 +1,5 @@
 const { onCall, onRequest, HttpsError } = require('firebase-functions/v2/https');
+const { onSchedule } = require('firebase-functions/v2/scheduler');
 const { defineSecret } = require('firebase-functions/params');
 const { logger } = require('firebase-functions');
 const admin = require('firebase-admin');
@@ -837,4 +838,108 @@ exports.proxyArtworkImage = onRequest({ region: 'us-central1', timeoutSeconds: 1
     // skip re-fetching bymuseum.com on every AR open.
     res.set('Cache-Control', 'public, max-age=86400, immutable');
     res.status(200).send(bytes);
+});
+
+// ---------------------------------------------------------------------------
+// arRelay — hands a client-built AR model (USDZ/GLB) a real HTTPS URL.
+//
+// The model itself is built entirely client-side (src/utils/ar/buildArModel.js)
+// and normally lives only as a blob: URL — fine for mobile Safari, which
+// hands blob: USDZs to AR Quick Look directly. It is NOT fine inside the
+// native iOS/Android app: Capacitor's WKWebView (iOS) and Android's Scene
+// Viewer (a separate app) both need to hand off to a real system AR viewer,
+// and that hand-off is keyed off an actual HTTP response — a blob: URL,
+// being pure in-page JS memory, never produces one. This endpoint doesn't
+// build or alter the model at all; it just stores the exact bytes the
+// client already generated and answers with a URL a real navigation (POST
+// to store, then GET to fetch back) or a wholly separate app (Scene Viewer)
+// can retrieve independently of the WebView that created it.
+//
+// Deliberately not a long-lived asset: nothing here is meant to outlive the
+// few seconds between a customer opening AR and their device's own viewer
+// fetching it once, so age alone (pruneArRelayObjects, below) is a safe
+// deletion signal — there's no completion state worth tracking.
+const AR_RELAY_CONTENT_TYPES = {
+    usdz: 'model/vnd.usdz+zip',
+    glb: 'model/gltf-binary',
+};
+const AR_RELAY_MAX_BYTES = 20 * 1024 * 1024; // generous — real models run low single-digit MB
+const AR_RELAY_PATH_RE = /^\/api\/ar-relay\/([a-f0-9-]+)\.(usdz|glb)$/;
+const AR_RELAY_BASE_URL = 'https://frameworthyco-9c78c.web.app';
+
+exports.arRelay = onRequest({ region: 'us-central1', timeoutSeconds: 30, maxInstances: 10 }, async (req, res) => {
+    res.set('Access-Control-Allow-Origin', '*');
+
+    if (req.method === 'OPTIONS') {
+        res.set('Access-Control-Allow-Methods', 'POST, GET');
+        res.set('Access-Control-Allow-Headers', 'Content-Type, X-Relay-Kind');
+        res.status(204).send('');
+        return;
+    }
+
+    if (req.method === 'GET') {
+        const match = AR_RELAY_PATH_RE.exec(req.path);
+        if (!match) {
+            res.status(400).send('Invalid relay path');
+            return;
+        }
+        const [, id, kind] = match;
+        try {
+            const [bytes] = await admin.storage().bucket().file(`ar-relay/${id}.${kind}`).download();
+            res.set('Content-Type', AR_RELAY_CONTENT_TYPES[kind]);
+            res.set('Cache-Control', 'private, max-age=900');
+            res.status(200).send(bytes);
+        } catch (err) {
+            logger.warn('arRelay: object not found or unreadable', { id, kind, message: err.message });
+            res.status(404).send('Not found or expired');
+        }
+        return;
+    }
+
+    if (req.method !== 'POST') {
+        res.status(405).send('Method not allowed');
+        return;
+    }
+
+    const kind = req.get('X-Relay-Kind');
+    if (!AR_RELAY_CONTENT_TYPES[kind]) {
+        res.status(400).send('Missing or unrecognised X-Relay-Kind header');
+        return;
+    }
+
+    const bytes = req.rawBody;
+    if (!bytes || !bytes.length) {
+        res.status(400).send('Empty body');
+        return;
+    }
+    if (bytes.length > AR_RELAY_MAX_BYTES) {
+        res.status(413).send('Model too large');
+        return;
+    }
+
+    const id = crypto.randomUUID();
+    try {
+        await admin.storage().bucket().file(`ar-relay/${id}.${kind}`).save(bytes, {
+            contentType: AR_RELAY_CONTENT_TYPES[kind],
+            metadata: { cacheControl: 'private, max-age=900' },
+        });
+        res.status(200).json({ url: `${AR_RELAY_BASE_URL}/api/ar-relay/${id}.${kind}` });
+    } catch (err) {
+        logger.error('arRelay: storage write failed', { id, kind, message: err.message });
+        res.status(502).send('Could not relay model');
+    }
+});
+
+// Sweeps ar-relay/ objects older than an hour. Nothing legitimate should
+// still need one this old (see arRelay's own comment), so object age alone
+// is a safe, stateless deletion signal.
+exports.pruneArRelayObjects = onSchedule({ schedule: 'every 60 minutes', region: 'us-central1', timeoutSeconds: 120 }, async () => {
+    const [files] = await admin.storage().bucket().getFiles({ prefix: 'ar-relay/' });
+    const cutoff = Date.now() - 60 * 60 * 1000;
+    await Promise.all(files.map(async (file) => {
+        const created = new Date(file.metadata.timeCreated).getTime();
+        if (created < cutoff) {
+            await file.delete().catch((err) => logger.warn('pruneArRelayObjects: delete failed', { name: file.name, message: err.message }));
+        }
+    }));
 });
