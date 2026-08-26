@@ -307,15 +307,32 @@ export default function ArViewer({
                             // distinction is what made this work at all
                             // inside the app's WKWebView (confirmed against
                             // an earlier build of this same AR flow).
-                            <a
-                                rel="ar"
-                                href={nativeRelayUrl}
-                                className="w-full max-w-xs py-3.5 rounded-full bg-white text-stone-900 text-xs font-bold uppercase tracking-wider hover:bg-stone-100 transition-colors text-center"
-                            >
-                                {/* Required direct child for Quick Look to recognise this as an AR link. */}
-                                <img alt="" className="hidden" />
-                                View on your wall
-                            </a>
+                            //
+                            // The anchor's *only* child may be the <img> —
+                            // Quick Look requires exactly one, and a second
+                            // child (the visible label, if it lived in here
+                            // too) makes it fall back to a generic file
+                            // preview instead of full AR, with its own
+                            // separate AR button buried inside — the extra
+                            // steps this was built to remove. So the label
+                            // renders as a sibling instead, with the anchor
+                            // stretched over it to stay the tap target.
+                            <div className="relative w-full max-w-xs">
+                                <div
+                                    aria-hidden="true"
+                                    className="pointer-events-none py-3.5 rounded-full bg-white text-stone-900 text-xs font-bold uppercase tracking-wider text-center"
+                                >
+                                    View on your wall
+                                </div>
+                                <a
+                                    rel="ar"
+                                    href={nativeRelayUrl}
+                                    aria-label="View on your wall"
+                                    className="absolute inset-0 rounded-full active:bg-black/5"
+                                >
+                                    <img alt="" className="hidden" />
+                                </a>
+                            </div>
                         ) : (
                             <button
                                 type="button"
