@@ -21,6 +21,18 @@ import { relayArModel } from '../../utils/ar/arModelRelay';
  * need one extra step first — relaying the model to a real URL — before
  * their button can do anything at all, which is why they get their own
  * render branch below instead of sharing the generic CTA button.
+ *
+ * Three of those four modes launch themselves the instant they're ready,
+ * rather than waiting for a second tap on the CTA underneath — the
+ * customer already asked for AR by opening this screen, so the orbit
+ * preview shows only as long as the model takes to build. The CTA stays
+ * mounted regardless, as the manual retry path for whichever of those
+ * auto-launches the browser silently refuses (a real possibility for
+ * anything gated on user-activation timing, which is browser-dependent).
+ * NATIVE_QUICK_LOOK is the one exception, and can't join them: its whole
+ * fix was routing through a real, directly-tapped <a> rather than a
+ * script-driven click (see the anchor below) — auto-firing it would
+ * mean clicking that anchor from script, undoing the fix.
  */
 
 const CTA_LABEL = {
@@ -109,6 +121,22 @@ export default function ArViewer({
                 scene.startPreview();
                 setStatus('ready');
 
+                // Straight into AR the moment it's ready, for every mode
+                // that can do that safely from here (see the module
+                // comment for why NATIVE_QUICK_LOOK can't join them). Not
+                // awaited — a rejection here just leaves the manual CTA as
+                // the way in, same as if this block didn't exist.
+                if (detected === AR_MODE.QUICK_LOOK) {
+                    openQuickLook(built.usdzUrl);
+                } else if (detected === AR_MODE.WEBXR) {
+                    setInSession(true);
+                    scene.startAr(overlayRef.current).catch((error) => {
+                        if (cancelled) return;
+                        console.warn('AR session refused:', error);
+                        setInSession(false);
+                    });
+                }
+
                 // Kicked off here, right away, rather than waiting for the
                 // tap — Quick Look wants a real <a href> already sitting in
                 // the DOM to activate, not one that only resolves after the
@@ -124,6 +152,13 @@ export default function ArViewer({
                             if (cancelled) return;
                             setNativeRelayUrl(url);
                             setNativeRelayStatus('ready');
+                            // Scene Viewer is a plain navigation, not a
+                            // gesture-gated hand-off like Quick Look's —
+                            // safe to fire as soon as the relay resolves,
+                            // however long after the original tap that is.
+                            if (detected === AR_MODE.NATIVE_SCENE_VIEWER) {
+                                window.location.assign(createAndroidSceneViewerIntent(url));
+                            }
                         })
                         .catch((error) => {
                             if (cancelled) return;
