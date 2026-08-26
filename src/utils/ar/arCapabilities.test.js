@@ -5,7 +5,7 @@
 // by user agent alone, with no feature probe that could reintroduce the
 // same silent failure.
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { AR_MODE, detectArMode, isIosDevice, isAndroidDevice, isMobileDevice } from './arCapabilities';
+import { AR_MODE, detectArMode, isIosDevice, isAndroidDevice, isMobileDevice, openQuickLook } from './arCapabilities';
 
 const REAL_IPHONE_UA = 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1';
 const REAL_IPAD_UA = 'Mozilla/5.0 (iPad; CPU OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1';
@@ -114,5 +114,28 @@ describe('detectArMode', () => {
         mockNavigator({ userAgent: REAL_ANDROID_UA });
         window.navigator.xr = { isSessionSupported: vi.fn().mockRejectedValue(new Error('policy disabled')) };
         expect(await detectArMode()).toBe(AR_MODE.VIEWER_ONLY);
+    });
+});
+
+describe('openQuickLook', () => {
+    it('sets download="model.usdz" so iOS 17+ can infer the extension a blob: URL lacks', () => {
+        // Without this, Quick Look opens and silently closes again for a
+        // blob href on iOS 17+ — the actual bug behind "nothing happens"
+        // when tapping the AR button, confirmed against model-viewer's
+        // own launcher setting the same attribute for the same reason.
+        let anchor;
+        const appendChild = vi.spyOn(document.body, 'appendChild').mockImplementation((el) => {
+            anchor = el;
+            return el;
+        });
+        vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
+
+        openQuickLook('blob:https://example.com/some-uuid');
+
+        expect(anchor.getAttribute('rel')).toBe('ar');
+        expect(anchor.getAttribute('download')).toBe('model.usdz');
+        expect(anchor.firstChild?.tagName).toBe('IMG');
+
+        appendChild.mockRestore();
     });
 });

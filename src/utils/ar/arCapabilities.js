@@ -99,11 +99,21 @@ export async function detectArMode() {
  * clicked. The child <img> is not decorative: Safari ignores a
  * `rel="ar"` anchor with no content, treating it as a normal link and
  * downloading the file instead of opening it in AR.
+ *
+ * `download` is not decorative either, despite this never actually
+ * downloading anything — a `blob:` URL is opaque and carries no file
+ * extension of its own, and iOS 17 made Quick Look depend on seeing
+ * one: without it, Quick Look opens and immediately closes again for a
+ * blob href, silently, with nothing in the console. The `download`
+ * attribute is where Safari finds the `.usdz` it's otherwise missing
+ * (confirmed against model-viewer's own AR launcher, which sets the
+ * same attribute for exactly this reason).
  */
 export function openQuickLook(usdzUrl) {
     const anchor = document.createElement('a');
     anchor.setAttribute('rel', 'ar');
     anchor.href = usdzUrl;
+    anchor.setAttribute('download', 'model.usdz');
     anchor.appendChild(document.createElement('img'));
     anchor.style.display = 'none';
     document.body.appendChild(anchor);
