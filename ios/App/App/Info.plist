@@ -20,22 +20,6 @@
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
 	<string>$(MARKETING_VERSION)</string>
-	<key>CFBundleURLTypes</key>
-	<array>
-		<dict>
-			<key>CFBundleURLName</key>
-			<string>com.frameworthyco.app.ar-return</string>
-			<key>CFBundleURLSchemes</key>
-			<array>
-				<!-- Dedicated rather than reusing the app's bundle id as the
-				     scheme, so a future OAuth-style provider that wants that
-				     convention can't collide with it. Navigated to by
-				     public/ar-launch.html's "Back to your frame" button —
-				     see AppDelegate.swift for the other end of this. -->
-				<string>frameworthyco-ar</string>
-			</array>
-		</dict>
-	</array>
 	<key>CFBundleVersion</key>
 	<string>$(CURRENT_PROJECT_VERSION)</string>
 	<key>ITSAppUsesNonExemptEncryption</key>

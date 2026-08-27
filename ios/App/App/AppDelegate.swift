@@ -34,18 +34,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     }
 
     func application(_ app: UIApplication, open url: URL, options: [UIApplication.OpenURLOptionsKey: Any] = [:]) -> Bool {
-        // The AR hand-off's way back: public/ar-launch.html runs inside an
-        // SFSafariViewController (Browser.open(), from nativeQuickLook.js),
-        // and there is no web API for a page to dismiss the sheet it's
-        // running inside — only this delegate, holding the real view
-        // controller, can. The customer's tap on that page's "Back to your
-        // frame" button is what navigates here; Apple's own docs note a
-        // fully automatic redirect (no tap) can be silently ignored, which
-        // is why that page waits for one rather than firing this itself.
-        if url.scheme == "frameworthyco-ar" {
-            window?.rootViewController?.presentedViewController?.dismiss(animated: true)
-            return true
-        }
         // Called when the app was launched with a url. Feel free to add additional processing here,
         // but if you want the App API to support tracking app url opens, make sure to keep this call
         return ApplicationDelegateProxy.shared.application(app, open: url, options: options)
