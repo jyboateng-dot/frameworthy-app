@@ -12,68 +12,69 @@ import { relayArModel } from '../../utils/ar/arModelRelay';
 import { openQuickLookViaSafari } from '../../utils/ar/nativeQuickLook';
 
 /**
- * "See it on your wall" — the AR entry point from the visualizer.
+ * The AR entry point from the visualizer.
  *
- * Every device gets the orbit preview; what changes per platform is
- * what happens next. WebXR devices open a session in this same canvas.
- * Mobile Safari hands the .usdz to AR Quick Look over a blob: URL, which
- * works there but not inside the native app's WKWebView — Capacitor's
- * WebView doesn't hand a tapped `rel="ar"` link to Quick Look the way
- * Safari does, and just shows its own generic in-page model preview
- * instead (confirmed on hardware as the extra "view 3D object, then tap
- * AR" steps a customer had to take to get into AR at all). So the two
- * native-app modes (see arCapabilities.js) hand the model to something
- * outside this WebView: iOS to Safari, which does honour rel="ar"
- * (nativeQuickLook.js), and Android to Google's Scene Viewer app. Both
- * need the model relayed to a real HTTPS URL first — arModelRelay.js —
- * since neither can read the blob: URL this page built it into.
+ * Two shapes, decided by whether this device's AR lives somewhere else:
  *
- * Every mode launches itself the instant it's ready, rather than waiting
- * for a second tap on the CTA underneath — the customer already asked
- * for AR by opening this screen, so the orbit preview shows only as long
- * as the model takes to build (and, for the native modes, to relay). The
- * CTA stays mounted regardless, as the manual retry path for whichever
- * auto-launch a browser's user-activation rules silently refuse — a real
- * possibility for the two web modes specifically, and browser-dependent.
+ *   hand-off    iOS and Android both end up in a viewer that isn't this
+ *               page — Quick Look, or the Scene Viewer app. There is
+ *               nothing for a customer to do in here while that is being
+ *               prepared, so they get a bare "opening" overlay that
+ *               dismisses itself the moment the hand-off lands, and they
+ *               come back from AR to the customizer they left. No preview,
+ *               no button, no screen to read.
+ *
+ *   in-page     WebXR runs the session on this component's own canvas, and
+ *               desktop has no AR at all, so both genuinely need the orbit
+ *               preview — for WebXR it *is* the AR surface, and on desktop
+ *               it's the whole feature.
+ *
+ * The hand-off path deliberately never imports arScene: three.js is ~600KB
+ * that would only ever render a preview covered a moment later by the AR
+ * viewer, delaying the thing the customer actually asked for.
+ *
+ * Why the hand-off exists at all: WKWebView, which the native app runs in,
+ * won't give a tapped rel="ar" link to Quick Look the way Safari does — it
+ * renders its own inline model preview with AR buried inside, the "view 3D
+ * object, then tap AR" detour reported from the app. So the model is
+ * relayed to a real HTTPS URL (arModelRelay.js — neither viewer can read a
+ * blob: URL belonging to this page) and handed to Safari or Scene Viewer.
  */
 
-const CTA_LABEL = {
-    [AR_MODE.QUICK_LOOK]: 'View on your wall',
-    [AR_MODE.WEBXR]: 'View on your wall',
-};
+// Modes whose AR happens outside this page, and which therefore have no use
+// for the preview screen.
+const HANDOFF_MODES = new Set([
+    AR_MODE.QUICK_LOOK,
+    AR_MODE.NATIVE_QUICK_LOOK,
+    AR_MODE.NATIVE_SCENE_VIEWER,
+]);
 
 const RELAY_KIND_BY_MODE = {
     [AR_MODE.NATIVE_QUICK_LOOK]: 'usdz',
     [AR_MODE.NATIVE_SCENE_VIEWER]: 'glb',
 };
 
-// What "launch AR" means for each native mode, once arRelay has handed back
-// a real URL for it. Both get the model in front of something that isn't
-// this WebView — Safari for Quick Look, the Scene Viewer app for Android —
-// because the WebView is precisely what can't hand off to AR.
+// Both get the model in front of something that isn't this WebView — Safari
+// for Quick Look, the Scene Viewer app for Android — because the WebView is
+// precisely what can't hand off to AR.
 const NATIVE_LAUNCH = {
     [AR_MODE.NATIVE_QUICK_LOOK]: (url) => openQuickLookViaSafari(url),
     [AR_MODE.NATIVE_SCENE_VIEWER]: (url) => window.location.assign(createAndroidSceneViewerIntent(url)),
 };
 
-// Scene Viewer's launcher returns nothing; Quick Look's returns a promise
-// from the native bridge — this covers both without the caller needing to
-// know which.
-//
-// The race is a hang detector, not a deadline. Capacitor answers a call for
-// a plugin it can't resolve by returning *without* settling the promise, so
-// a bridge-side mismatch presents as the button doing nothing at all, with
-// nothing logged and no rejection to catch — which is exactly how a broken
-// build of this reached TestFlight. Scene Viewer's navigation settles at
-// once and Quick Look's resolves when its sheet is up, so anything past
-// this bound is a fault worth surfacing rather than waiting on.
-const NATIVE_LAUNCH_TIMEOUT_MS = 30_000;
+// A hang detector, not a deadline. Capacitor answers a call it can't route
+// by returning *without* settling the promise, so a bridge-side fault
+// presents as nothing happening at all — no error, nothing to catch, which
+// is exactly how a broken build of this reached TestFlight. Scene Viewer's
+// navigation settles at once and Safari's sheet resolves when presented, so
+// anything past this bound is a fault worth surfacing rather than waiting on.
+const NATIVE_LAUNCH_TIMEOUT_MS = 20_000;
 
 function launchNative(mode, url) {
     return Promise.race([
         Promise.resolve(NATIVE_LAUNCH[mode]?.(url)),
         new Promise((_, reject) => {
-            setTimeout(() => reject(new Error(`Native AR launch (${mode}) never responded`)), NATIVE_LAUNCH_TIMEOUT_MS);
+            setTimeout(() => reject(new Error(`AR launch (${mode}) never responded`)), NATIVE_LAUNCH_TIMEOUT_MS);
         }),
     ]);
 }
@@ -93,15 +94,18 @@ export default function ArViewer({
     const overlayRef = useRef(null);
     const sceneRef = useRef(null);
 
+    // Read inside the effect without being a dependency of it — the parent
+    // rebuilds this closure every render, so depending on it would restart
+    // the whole build/launch on any unrelated re-render.
+    const onCloseRef = useRef(onClose);
+    onCloseRef.current = onClose;
+
     const [mode, setMode] = useState(null);
-    const [model, setModel] = useState(null);
     const [status, setStatus] = useState('loading');
+    const [model, setModel] = useState(null);
     const [inSession, setInSession] = useState(false);
     const [hasPlaced, setHasPlaced] = useState(false);
-    // Only ever touched for the two native-app modes — a real HTTPS URL
-    // standing in for the blob: one, once arRelay has stored the model.
-    const [nativeRelayUrl, setNativeRelayUrl] = useState(null);
-    const [nativeRelayStatus, setNativeRelayStatus] = useState('idle');
+    const [attempt, setAttempt] = useState(0);
 
     useEffect(() => {
         if (!isOpen) return undefined;
@@ -111,61 +115,55 @@ export default function ArViewer({
         setStatus('loading');
         setInSession(false);
         setHasPlaced(false);
-        setNativeRelayUrl(null);
-        setNativeRelayStatus('idle');
 
         (async () => {
             try {
-                const [detected, built] = await Promise.all([
-                    detectArMode(),
-                    buildArModel({
-                        frame,
-                        widthIn,
-                        heightIn,
-                        matIn: matInches || 0,
-                        matColorHex,
-                        artworkUrl,
-                        hardwareType,
-                    }),
-                ]);
+                // Resolved before the model is built, unlike the two running
+                // together: which chrome to show depends on it, and detection
+                // is a user-agent read (or one quick WebXR probe) against a
+                // build that takes far longer. Knowing first means the
+                // hand-off overlay is what shows from the outset, rather than
+                // a preview screen that flashes up and is then replaced.
+                const detected = await detectArMode();
                 if (cancelled) return;
-
                 setMode(detected);
+
+                const built = await buildArModel({
+                    frame,
+                    widthIn,
+                    heightIn,
+                    matIn: matInches || 0,
+                    matColorHex,
+                    artworkUrl,
+                    hardwareType,
+                });
+                if (cancelled) return;
                 setModel(built);
 
-                // Ahead of the three.js import below, deliberately. Both
-                // native modes hand off to something that replaces this
-                // screen outright, so every millisecond spent pulling a
-                // ~600KB renderer chunk and parsing a GLB first is time the
-                // customer waits to see nothing. Kicking the upload off here
-                // overlaps it with that download instead of queueing behind
-                // it, and the preview still ends up built for whoever backs
-                // out of AR and lands here again.
-                const relayKind = RELAY_KIND_BY_MODE[detected];
-                if (relayKind) {
-                    setNativeRelayStatus('loading');
-                    const relaySrc = relayKind === 'usdz' ? built.usdzUrl : built.glbUrl;
-                    relayArModel(relaySrc, relayKind)
-                        .then((url) => {
-                            if (cancelled) return;
-                            setNativeRelayUrl(url);
-                            setNativeRelayStatus('ready');
-                            return launchNative(detected, url);
-                        })
-                        .catch((error) => {
-                            if (cancelled) return;
-                            console.warn('Native AR failed:', error);
-                            // Distinguished so the button can stay tappable
-                            // for a retry when the model itself relayed fine
-                            // and only the hand-off fell over.
-                            setNativeRelayStatus((current) => (current === 'ready' ? 'launch-failed' : 'error'));
-                        });
+                if (HANDOFF_MODES.has(detected)) {
+                    const relayKind = RELAY_KIND_BY_MODE[detected];
+                    if (relayKind) {
+                        const relaySrc = relayKind === 'usdz' ? built.usdzUrl : built.glbUrl;
+                        const url = await relayArModel(relaySrc, relayKind);
+                        if (cancelled) return;
+                        await launchNative(detected, url);
+                    } else {
+                        // Mobile Safari, straight off the blob — no relay,
+                        // and no promise either, since this is an anchor
+                        // activation rather than a call that reports back.
+                        openQuickLook(built.usdzUrl);
+                    }
+                    if (cancelled) return;
+                    // AR owns the screen now. Dismissing means backing out of
+                    // it returns to the customizer rather than to a stale
+                    // "opening" overlay with nothing left to do.
+                    onCloseRef.current();
+                    return;
                 }
 
-                // Imported here rather than at module scope so three.js
-                // and its loaders stay out of the main bundle — this is
-                // the only screen that needs them, and most sessions
-                // never open it.
+                // Imported here rather than at module scope so three.js and
+                // its loaders stay out of the main bundle — and skipped
+                // entirely above, since a hand-off never shows this canvas.
                 const { ArScene } = await import('../../utils/ar/arScene');
                 if (cancelled || !canvasRef.current) return;
 
@@ -183,14 +181,7 @@ export default function ArViewer({
                 scene.startPreview();
                 setStatus('ready');
 
-                // Straight into AR the moment it's ready, for the two web
-                // modes — the native pair already launched themselves above,
-                // off the back of their relay. Not awaited: a rejection here
-                // just leaves the manual CTA as the way in, same as if this
-                // block didn't exist.
-                if (detected === AR_MODE.QUICK_LOOK) {
-                    openQuickLook(built.usdzUrl);
-                } else if (detected === AR_MODE.WEBXR) {
+                if (detected === AR_MODE.WEBXR) {
                     setInSession(true);
                     scene.startAr(overlayRef.current).catch((error) => {
                         if (cancelled) return;
@@ -200,7 +191,7 @@ export default function ArViewer({
                 }
             } catch (error) {
                 if (!cancelled) {
-                    console.warn('AR preview failed to build:', error);
+                    console.warn('AR failed:', error);
                     setStatus('error');
                 }
             }
@@ -211,7 +202,7 @@ export default function ArViewer({
             scene?.dispose();
             sceneRef.current = null;
         };
-    }, [isOpen, frame, widthIn, heightIn, matInches, matColorHex, artworkUrl, hardwareType]);
+    }, [isOpen, attempt, frame, widthIn, heightIn, matInches, matColorHex, artworkUrl, hardwareType]);
 
     useEffect(() => {
         if (!isOpen) return undefined;
@@ -224,27 +215,54 @@ export default function ArViewer({
 
     if (!isOpen) return null;
 
-    const launchAr = async () => {
-        if (mode === AR_MODE.QUICK_LOOK) {
-            openQuickLook(model.usdzUrl);
-            return;
-        }
-        if (mode === AR_MODE.WEBXR && sceneRef.current) {
-            try {
-                setInSession(true);
-                await sceneRef.current.startAr(overlayRef.current);
-            } catch (error) {
-                console.warn('AR session refused:', error);
-                setInSession(false);
-            }
-        }
-    };
-
     const placePiece = () => {
         if (sceneRef.current?.place()) setHasPlaced(true);
     };
 
-    const ctaLabel = CTA_LABEL[mode];
+    // Until detection resolves, assume hand-off: it's the common case on the
+    // devices that can actually do AR, and guessing the preview screen would
+    // mean flashing up the exact screen this is meant to skip.
+    if (mode === null || HANDOFF_MODES.has(mode)) {
+        return (
+            <div className="fixed inset-0 z-[100] bg-stone-950 flex flex-col items-center justify-center gap-5 px-8">
+                {status === 'error' ? (
+                    <>
+                        <p className="text-center text-xs text-stone-300 max-w-xs">
+                            AR couldn&apos;t be opened. Your frame settings are unaffected.
+                        </p>
+                        <div className="flex items-center gap-2">
+                            <button
+                                type="button"
+                                onClick={() => setAttempt((n) => n + 1)}
+                                className="px-6 py-3 rounded-full bg-white text-stone-900 text-xs font-bold uppercase tracking-wider"
+                            >
+                                Try again
+                            </button>
+                            <button
+                                type="button"
+                                onClick={onClose}
+                                className="px-6 py-3 rounded-full bg-white/15 text-white text-xs font-bold uppercase tracking-wider"
+                            >
+                                Close
+                            </button>
+                        </div>
+                    </>
+                ) : (
+                    <>
+                        <Loader size={24} className="animate-spin text-stone-300" />
+                        <p className="text-xs text-stone-300">Opening AR…</p>
+                        <button
+                            type="button"
+                            onClick={onClose}
+                            className="text-[11px] text-stone-500 underline underline-offset-4"
+                        >
+                            Cancel
+                        </button>
+                    </>
+                )}
+            </div>
+        );
+    }
 
     return (
         <div className="fixed inset-0 z-[100] bg-stone-950/95 backdrop-blur-sm flex flex-col">
@@ -332,40 +350,22 @@ export default function ArViewer({
 
             {status === 'ready' && !inSession && (
                 <div className="shrink-0 px-5 pb-6 pt-2 flex flex-col items-center gap-2">
-                    {mode === AR_MODE.NATIVE_QUICK_LOOK || mode === AR_MODE.NATIVE_SCENE_VIEWER ? (
-                        // Already auto-launched once the relay resolved
-                        // (see the effect above) — this is purely the
-                        // manual retry for whichever customer dismissed
-                        // that and wants back in.
-                        <>
-                            <button
-                                type="button"
-                                disabled={!nativeRelayUrl}
-                                onClick={() => nativeRelayUrl && launchNative(mode, nativeRelayUrl).catch((error) => {
-                                    console.warn('Native AR failed:', error);
-                                    setNativeRelayStatus('launch-failed');
-                                })}
-                                className="w-full max-w-xs py-3.5 rounded-full bg-white text-stone-900 text-xs font-bold uppercase tracking-wider hover:bg-stone-100 transition-colors disabled:bg-white/40 disabled:text-stone-900/60 disabled:cursor-wait"
-                            >
-                                {nativeRelayUrl ? 'View on your wall' : (nativeRelayStatus === 'error' ? "Couldn't prepare AR preview" : 'Preparing…')}
-                            </button>
-                            {nativeRelayStatus === 'launch-failed' && (
-                                // Says nothing opened rather than leaving a
-                                // tapped button looking like it worked — the
-                                // failure mode this whole screen has been bitten
-                                // by twice is one that shows no sign of itself.
-                                <p className="text-[11px] text-amber-300/90 text-center max-w-xs">
-                                    AR didn&apos;t open on this device. Tap again to retry.
-                                </p>
-                            )}
-                        </>
-                    ) : ctaLabel ? (
+                    {mode === AR_MODE.WEBXR ? (
                         <button
                             type="button"
-                            onClick={launchAr}
+                            onClick={async () => {
+                                if (!sceneRef.current) return;
+                                try {
+                                    setInSession(true);
+                                    await sceneRef.current.startAr(overlayRef.current);
+                                } catch (error) {
+                                    console.warn('AR session refused:', error);
+                                    setInSession(false);
+                                }
+                            }}
                             className="w-full max-w-xs py-3.5 rounded-full bg-white text-stone-900 text-xs font-bold uppercase tracking-wider hover:bg-stone-100 transition-colors"
                         >
-                            {ctaLabel}
+                            View on your wall
                         </button>
                     ) : (
                         <p className="text-[11px] text-stone-400 text-center max-w-xs">
