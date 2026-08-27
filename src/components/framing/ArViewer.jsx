@@ -58,12 +58,25 @@ const NATIVE_LAUNCH = {
 };
 
 // Scene Viewer's launcher returns nothing; Quick Look's returns a promise
-// from the native bridge — this covers both without the caller needing
-// to know which.
+// from the native bridge — this covers both without the caller needing to
+// know which.
+//
+// The race is a hang detector, not a deadline. Capacitor answers a call for
+// a plugin it can't resolve by returning *without* settling the promise, so
+// a bridge-side mismatch presents as the button doing nothing at all, with
+// nothing logged and no rejection to catch — which is exactly how a broken
+// build of this reached TestFlight. Scene Viewer's navigation settles at
+// once and Quick Look's resolves when its sheet is up, so anything past
+// this bound is a fault worth surfacing rather than waiting on.
+const NATIVE_LAUNCH_TIMEOUT_MS = 30_000;
+
 function launchNative(mode, url) {
-    Promise.resolve(NATIVE_LAUNCH[mode]?.(url)).catch((error) => {
-        console.warn('Native AR launch failed:', error);
-    });
+    return Promise.race([
+        Promise.resolve(NATIVE_LAUNCH[mode]?.(url)),
+        new Promise((_, reject) => {
+            setTimeout(() => reject(new Error(`Native AR launch (${mode}) never responded`)), NATIVE_LAUNCH_TIMEOUT_MS);
+        }),
+    ]);
 }
 
 export default function ArViewer({
@@ -121,6 +134,35 @@ export default function ArViewer({
                 setMode(detected);
                 setModel(built);
 
+                // Ahead of the three.js import below, deliberately. Both
+                // native modes hand off to something that replaces this
+                // screen outright, so every millisecond spent pulling a
+                // ~600KB renderer chunk and parsing a GLB first is time the
+                // customer waits to see nothing. Kicking the upload off here
+                // overlaps it with that download instead of queueing behind
+                // it, and the preview still ends up built for whoever backs
+                // out of AR and lands here again.
+                const relayKind = RELAY_KIND_BY_MODE[detected];
+                if (relayKind) {
+                    setNativeRelayStatus('loading');
+                    const relaySrc = relayKind === 'usdz' ? built.usdzUrl : built.glbUrl;
+                    relayArModel(relaySrc, relayKind)
+                        .then((url) => {
+                            if (cancelled) return;
+                            setNativeRelayUrl(url);
+                            setNativeRelayStatus('ready');
+                            return launchNative(detected, url);
+                        })
+                        .catch((error) => {
+                            if (cancelled) return;
+                            console.warn('Native AR failed:', error);
+                            // Distinguished so the button can stay tappable
+                            // for a retry when the model itself relayed fine
+                            // and only the hand-off fell over.
+                            setNativeRelayStatus((current) => (current === 'ready' ? 'launch-failed' : 'error'));
+                        });
+                }
+
                 // Imported here rather than at module scope so three.js
                 // and its loaders stay out of the main bundle — this is
                 // the only screen that needs them, and most sessions
@@ -143,11 +185,10 @@ export default function ArViewer({
                 setStatus('ready');
 
                 // Straight into AR the moment it's ready, for the two web
-                // modes — the native modes launch further down, once
-                // their relay resolves, since there's nothing to launch
-                // yet at this point for them. Not awaited — a rejection
-                // here just leaves the manual CTA as the way in, same as
-                // if this block didn't exist.
+                // modes — the native pair already launched themselves above,
+                // off the back of their relay. Not awaited: a rejection here
+                // just leaves the manual CTA as the way in, same as if this
+                // block didn't exist.
                 if (detected === AR_MODE.QUICK_LOOK) {
                     openQuickLook(built.usdzUrl);
                 } else if (detected === AR_MODE.WEBXR) {
@@ -157,29 +198,6 @@ export default function ArViewer({
                         console.warn('AR session refused:', error);
                         setInSession(false);
                     });
-                }
-
-                // Kicked off here, right away, rather than waiting for the
-                // tap — both native launch mechanisms are plain function
-                // calls, not gesture-gated hand-offs, so there's no reason
-                // to make a customer who's already waited for the model to
-                // build wait through an extra tap too.
-                const relayKind = RELAY_KIND_BY_MODE[detected];
-                if (relayKind) {
-                    setNativeRelayStatus('loading');
-                    const relaySrc = relayKind === 'usdz' ? built.usdzUrl : built.glbUrl;
-                    relayArModel(relaySrc, relayKind)
-                        .then((url) => {
-                            if (cancelled) return;
-                            setNativeRelayUrl(url);
-                            setNativeRelayStatus('ready');
-                            launchNative(detected, url);
-                        })
-                        .catch((error) => {
-                            if (cancelled) return;
-                            console.warn('AR model relay failed:', error);
-                            setNativeRelayStatus('error');
-                        });
                 }
             } catch (error) {
                 if (!cancelled) {
@@ -320,14 +338,28 @@ export default function ArViewer({
                         // (see the effect above) — this is purely the
                         // manual retry for whichever customer dismissed
                         // that and wants back in.
-                        <button
-                            type="button"
-                            disabled={!nativeRelayUrl}
-                            onClick={() => nativeRelayUrl && launchNative(mode, nativeRelayUrl)}
-                            className="w-full max-w-xs py-3.5 rounded-full bg-white text-stone-900 text-xs font-bold uppercase tracking-wider hover:bg-stone-100 transition-colors disabled:bg-white/40 disabled:text-stone-900/60 disabled:cursor-wait"
-                        >
-                            {nativeRelayUrl ? 'View on your wall' : (nativeRelayStatus === 'error' ? "Couldn't prepare AR preview" : 'Preparing…')}
-                        </button>
+                        <>
+                            <button
+                                type="button"
+                                disabled={!nativeRelayUrl}
+                                onClick={() => nativeRelayUrl && launchNative(mode, nativeRelayUrl).catch((error) => {
+                                    console.warn('Native AR failed:', error);
+                                    setNativeRelayStatus('launch-failed');
+                                })}
+                                className="w-full max-w-xs py-3.5 rounded-full bg-white text-stone-900 text-xs font-bold uppercase tracking-wider hover:bg-stone-100 transition-colors disabled:bg-white/40 disabled:text-stone-900/60 disabled:cursor-wait"
+                            >
+                                {nativeRelayUrl ? 'View on your wall' : (nativeRelayStatus === 'error' ? "Couldn't prepare AR preview" : 'Preparing…')}
+                            </button>
+                            {nativeRelayStatus === 'launch-failed' && (
+                                // Says nothing opened rather than leaving a
+                                // tapped button looking like it worked — the
+                                // failure mode this whole screen has been bitten
+                                // by twice is one that shows no sign of itself.
+                                <p className="text-[11px] text-amber-300/90 text-center max-w-xs">
+                                    AR didn&apos;t open on this device. Tap again to retry.
+                                </p>
+                            )}
+                        </>
                     ) : ctaLabel ? (
                         <button
                             type="button"

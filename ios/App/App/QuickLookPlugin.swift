@@ -1,5 +1,6 @@
 import Foundation
 import UIKit
+import ARKit
 import QuickLook
 import Capacitor
 
@@ -27,10 +28,26 @@ import Capacitor
  * (functions/index.js's arRelay) already exists for the web build's own
  * AR path; this plugin is simply a second consumer of the same URL.
  */
-@objc(QuickLookPlugin)
+/// The `@objc` name, `jsName`, and the string passed to `registerPlugin` in
+/// nativeQuickLook.js must all be the *same* string, and that is load-bearing
+/// rather than stylistic. Capacitor only auto-registers plugins listed in
+/// `packageClassList` in the generated ios/App/App/capacitor.config.json, and
+/// that list is rebuilt from installed npm packages by `npx cap sync ios` on
+/// every CI build — an app-local plugin like this one can never be in it.
+/// What makes app-local plugins work is CapacitorBridge's fallback:
+/// `NSClassFromString(call.pluginId)`, where pluginId is the JS-side name. So
+/// the Objective-C class name has to match it exactly or the lookup misses.
+///
+/// A miss here is silent and total: the bridge logs and `return`s *without*
+/// resolving or rejecting, so the JS promise never settles — no error, no
+/// timeout, nothing. That exact mismatch (`QuickLookPlugin` vs `QuickLook`)
+/// is why the first build of this shipped doing nothing at all when tapped.
+/// Prefixed rather than a bare "QuickLook" so it can't collide with anything
+/// in Apple's own QuickLook framework.
+@objc(FrameWorthyQuickLook)
 public class QuickLookPlugin: CAPPlugin, CAPBridgedPlugin, QLPreviewControllerDataSource, QLPreviewControllerDelegate {
-    public let identifier = "QuickLookPlugin"
-    public let jsName = "QuickLook"
+    public let identifier = "FrameWorthyQuickLook"
+    public let jsName = "FrameWorthyQuickLook"
     public let pluginMethods: [CAPPluginMethod] = [
         CAPPluginMethod(name: "present", returnType: CAPPluginReturnPromise)
     ]
