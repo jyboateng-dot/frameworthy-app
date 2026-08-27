@@ -9,7 +9,7 @@ import {
     createAndroidSceneViewerIntent,
 } from '../../utils/ar/arCapabilities';
 import { relayArModel } from '../../utils/ar/arModelRelay';
-import { presentNativeQuickLook } from '../../utils/ar/nativeQuickLook';
+import { openQuickLookViaSafari } from '../../utils/ar/nativeQuickLook';
 
 /**
  * "See it on your wall" — the AR entry point from the visualizer.
@@ -22,12 +22,11 @@ import { presentNativeQuickLook } from '../../utils/ar/nativeQuickLook';
  * Safari does, and just shows its own generic in-page model preview
  * instead (confirmed on hardware as the extra "view 3D object, then tap
  * AR" steps a customer had to take to get into AR at all). So the two
- * native-app modes (see arCapabilities.js) skip the web entirely: iOS
- * calls a native plugin that presents Quick Look directly from Swift
- * (nativeQuickLook.js / ios/App/App/QuickLookPlugin.swift), and Android
- * launches Google's Scene Viewer app. Both need the model relayed to a
- * real HTTPS URL first — arRelay.js — since neither can read the blob:
- * URL this page built the model into.
+ * native-app modes (see arCapabilities.js) hand the model to something
+ * outside this WebView: iOS to Safari, which does honour rel="ar"
+ * (nativeQuickLook.js), and Android to Google's Scene Viewer app. Both
+ * need the model relayed to a real HTTPS URL first — arModelRelay.js —
+ * since neither can read the blob: URL this page built it into.
  *
  * Every mode launches itself the instant it's ready, rather than waiting
  * for a second tap on the CTA underneath — the customer already asked
@@ -48,12 +47,12 @@ const RELAY_KIND_BY_MODE = {
     [AR_MODE.NATIVE_SCENE_VIEWER]: 'glb',
 };
 
-// What "launch AR" means for each native mode, once arRelay has handed
-// back a real URL for it. Scene Viewer is a plain intent:// navigation;
-// Quick Look goes through the native plugin instead of a web link — see
-// the module comment for why.
+// What "launch AR" means for each native mode, once arRelay has handed back
+// a real URL for it. Both get the model in front of something that isn't
+// this WebView — Safari for Quick Look, the Scene Viewer app for Android —
+// because the WebView is precisely what can't hand off to AR.
 const NATIVE_LAUNCH = {
-    [AR_MODE.NATIVE_QUICK_LOOK]: (url) => presentNativeQuickLook(url),
+    [AR_MODE.NATIVE_QUICK_LOOK]: (url) => openQuickLookViaSafari(url),
     [AR_MODE.NATIVE_SCENE_VIEWER]: (url) => window.location.assign(createAndroidSceneViewerIntent(url)),
 };
 

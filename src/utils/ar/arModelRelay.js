@@ -22,5 +22,12 @@ export async function relayArModel(blobUrl, kind) {
         throw new Error(`AR model relay failed (${response.status})`);
     }
     const { url } = await response.json();
-    return url;
+
+    // Re-anchored to whichever host actually served this page. The function
+    // can only name one canonical origin, but the app is reachable on more
+    // than one (the custom domain and the web.app default), and the relay
+    // path is rewritten identically on both. Keeping the model same-origin
+    // is what lets ar-launch.html refuse every URL except our own without
+    // also refusing the real one.
+    return new URL(new URL(url, window.location.origin).pathname, window.location.origin).toString();
 }

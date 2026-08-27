@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Opening AR…</title>
+<!--
+  A launch pad for iOS AR Quick Look, opened inside SFSafariViewController by
+  the native app (see nativeQuickLook.js).
+
+  It exists because the app's own WebView can't do this. WKWebView does not
+  hand a tapped rel="ar" link to Quick Look the way Safari does — it renders
+  its own inline model preview instead, with AR demoted to a control buried
+  inside it. That is the "view 3D object, then tap AR" detour reported from
+  the app. Real Safari, and SFSafariViewController with it (iOS 13+), honours
+  rel="ar" by going straight to the AR camera, so the fix is to get the link
+  in front of Safari rather than to keep fighting the WebView.
+
+  Kept as a plain static file rather than a route in the SPA deliberately:
+  this page has to be the whole document Safari loads, parse instantly, and
+  survive with no bundle, no framework and no network beyond the model.
+-->
+<style>
+    :root { color-scheme: light dark; }
+    body {
+        margin: 0;
+        min-height: 100svh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 1.25rem;
+        padding: 2rem 1.5rem calc(2rem + env(safe-area-inset-bottom, 0px));
+        background: #0c0a09;
+        color: #e7e5e4;
+        font: 400 15px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        text-align: center;
+    }
+    #status { color: #a8a29e; font-size: 13px; margin: 0; }
+    #open {
+        display: inline-block;
+        padding: 14px 28px;
+        border-radius: 999px;
+        background: #fafaf9;
+        color: #1c1917;
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: .09em;
+        text-transform: uppercase;
+        text-decoration: none;
+    }
+    #error { color: #fca5a5; font-size: 13px; max-width: 22rem; }
+    [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+    <p id="status">Opening AR…</p>
+    <!-- The <img> must be this anchor's one and only child: Quick Look wants
+         exactly one, and a second (a text label, say) makes Safari fall back
+         to treating it as an ordinary download link. The visible wording is
+         therefore a sibling, not something nested in here. -->
+    <a id="open" rel="ar" href="" hidden><img alt=""></a>
+    <p id="error" hidden></p>
+
+<script>
+(function () {
+    var status = document.getElementById('status');
+    var anchor = document.getElementById('open');
+    var errorEl = document.getElementById('error');
+
+    function fail(message) {
+        status.hidden = true;
+        anchor.hidden = true;
+        errorEl.textContent = message;
+        errorEl.hidden = false;
+    }
+
+    var model = new URLSearchParams(location.search).get('model');
+    if (!model) {
+        fail('No model was supplied to preview.');
+        return;
+    }
+
+    // Only ever point Quick Look at our own origin. This page's URL is
+    // attacker-supplied by construction — anyone can craft one — so without
+    // this it would happily hand Safari any file on any host under our own
+    // domain's name.
+    var target;
+    try {
+        target = new URL(model, location.origin);
+    } catch (e) {
+        fail('That model link is not valid.');
+        return;
+    }
+    if (target.protocol !== 'https:' || target.origin !== location.origin) {
+        fail('That model link is not allowed.');
+        return;
+    }
+
+    anchor.href = target.toString();
+    // Not decorative: a blob:/extension-less URL leaves Quick Look with no
+    // file type to infer, and iOS 17+ answers that by opening and closing
+    // again with nothing logged.
+    anchor.setAttribute('download', 'model.usdz');
+
+    // Safari may decline a click it doesn't consider user-driven, so the
+    // anchor is revealed as a real button at the same time rather than only
+    // after a failure we have no way to detect — a tap on it is the same
+    // activation, just one the customer performs.
+    anchor.hidden = false;
+    anchor.click();
+
+    // If Quick Look took over, this page is already covered and nobody reads
+    // this. If it didn't, the wording shouldn't still claim it's opening.
+    setTimeout(function () {
+        status.textContent = 'Tap below to view this piece on your wall.';
+    }, 1200);
+}());
+</script>
+</body>
+</html>

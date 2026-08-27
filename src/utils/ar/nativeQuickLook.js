@@ -1,24 +1,30 @@
-import { registerPlugin } from '@capacitor/core';
+import { Browser } from '@capacitor/browser';
+
+const AR_LAUNCH_PATH = '/ar-launch.html';
 
 /**
- * Bridges to QuickLookPlugin.swift (ios/App/App/QuickLookPlugin.swift), which
- * presents Apple's native QLPreviewController — see that file's own comment
- * for why this exists instead of a web `rel="ar"` link, and why this exact
- * string has to match its `@objc` class name (a mismatch makes the call hang
- * forever rather than fail).
+ * Opens iOS AR Quick Look for a relayed model, from inside the native app.
  *
- * Going through QLPreviewController rather than a URL is also what lands the
- * customer *in* AR rather than on Quick Look's object-preview screen with an
- * AR button to press — Apple's own guidance is that the preview screen is an
- * artifact of URL-opening paths, which is what the WebView hand-off had been
- * doing.
+ * Routed through SFSafariViewController (what @capacitor/browser presents)
+ * rather than the app's own WebView, because WKWebView is the one place a
+ * rel="ar" link doesn't reach Quick Look — it renders an inline model
+ * preview with AR buried inside instead, which is the detour reported from
+ * the app. Safari honours rel="ar" by going straight to the AR camera, and
+ * SFSafariViewController has carried that same support since iOS 13.
+ *
+ * A native QLPreviewController plugin (ios/App/App/QuickLookPlugin.swift) was
+ * built for this first and is still compiled into the app, but shelved: it
+ * went out in two TestFlight builds without ever opening, and the Capacitor
+ * bridge answers a call it can't route by returning without settling the
+ * promise, so it fails invisibly and can't be diagnosed without a device.
+ * This path needs no native build at all to change, which is why it's the
+ * one in use — revisit the plugin only with device logs in hand.
  *
  * There is no Android counterpart: Scene Viewer is launched by a plain
- * intent:// navigation, which needs no native plugin — see
- * createAndroidSceneViewerIntent.
+ * intent:// navigation — see createAndroidSceneViewerIntent.
  */
-const QuickLook = registerPlugin('FrameWorthyQuickLook');
-
-export function presentNativeQuickLook(url) {
-    return QuickLook.present({ url });
+export function openQuickLookViaSafari(modelUrl) {
+    const launcher = new URL(AR_LAUNCH_PATH, window.location.origin);
+    launcher.searchParams.set('model', modelUrl);
+    return Browser.open({ url: launcher.toString() });
 }

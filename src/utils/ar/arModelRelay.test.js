@@ -16,7 +16,10 @@ describe('relayArModel', () => {
 
         const url = await relayArModel('blob:https://frameworthyco.com/some-uuid', 'usdz');
 
-        expect(url).toBe('https://frameworthyco-9c78c.web.app/api/ar-relay/abc.usdz');
+        // Re-anchored onto this page's own origin rather than the host the
+        // function names, so the model stays same-origin with the launcher
+        // page that will only accept it on those terms.
+        expect(url).toBe(`${window.location.origin}/api/ar-relay/abc.usdz`);
         expect(global.fetch).toHaveBeenNthCalledWith(1, 'blob:https://frameworthyco.com/some-uuid');
         const [postUrl, postOpts] = global.fetch.mock.calls[1];
         expect(postUrl).toBe('/api/ar-relay');

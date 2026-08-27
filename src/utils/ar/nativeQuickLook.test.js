@@ -1,26 +1,27 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-// vi.mock is hoisted above this file's own const declarations, so the mock
-// fn has to be created inside vi.hoisted to exist by the time it runs.
-const { present, registerPlugin } = vi.hoisted(() => {
-    const present = vi.fn().mockResolvedValue(undefined);
-    return { present, registerPlugin: vi.fn(() => ({ present })) };
-});
-vi.mock('@capacitor/core', () => ({ registerPlugin }));
+const { open } = vi.hoisted(() => ({ open: vi.fn().mockResolvedValue(undefined) }));
+vi.mock('@capacitor/browser', () => ({ Browser: { open } }));
 
-import { presentNativeQuickLook } from './nativeQuickLook';
+import { openQuickLookViaSafari } from './nativeQuickLook';
 
-describe('presentNativeQuickLook', () => {
-    it('registers under the same name as the plugin\'s @objc class', () => {
-        // Capacitor resolves an app-local plugin by NSClassFromString on this
-        // exact string (see QuickLookPlugin.swift). A mismatch doesn't throw —
-        // the bridge returns without settling the promise, so the AR button
-        // just silently does nothing, which is how this shipped broken once.
-        expect(registerPlugin).toHaveBeenCalledWith('FrameWorthyQuickLook');
+describe('openQuickLookViaSafari', () => {
+    beforeEach(() => open.mockClear());
+
+    it('opens the launcher page with the model as a query parameter', async () => {
+        await openQuickLookViaSafari('https://frameworthyco.com/api/ar-relay/abc.usdz');
+
+        const opened = new URL(open.mock.calls[0][0].url);
+        expect(opened.pathname).toBe('/ar-launch.html');
+        expect(opened.searchParams.get('model')).toBe('https://frameworthyco.com/api/ar-relay/abc.usdz');
     });
 
-    it('calls the native plugin with the relayed url', async () => {
-        await presentNativeQuickLook('https://frameworthyco-9c78c.web.app/api/ar-relay/abc.usdz');
-        expect(present).toHaveBeenCalledWith({ url: 'https://frameworthyco-9c78c.web.app/api/ar-relay/abc.usdz' });
+    it('builds the launcher on the page\'s own origin', async () => {
+        // ar-launch.html refuses any model that isn't same-origin, so pointing
+        // at the wrong host would make it reject the real model — the launcher
+        // and the model have to agree on origin.
+        await openQuickLookViaSafari('https://frameworthyco.com/api/ar-relay/abc.usdz');
+
+        expect(new URL(open.mock.calls[0][0].url).origin).toBe(window.location.origin);
     });
 });
