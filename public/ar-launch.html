@@ -50,6 +50,18 @@
         text-decoration: none;
     }
     #error { color: #fca5a5; font-size: 13px; max-width: 22rem; }
+    #back {
+        display: inline-block;
+        padding: 14px 28px;
+        border-radius: 999px;
+        background: #fafaf9;
+        color: #1c1917;
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: .09em;
+        text-transform: uppercase;
+        border: none;
+    }
     [hidden] { display: none !important; }
 </style>
 </head>
@@ -61,12 +73,22 @@
          therefore a sibling, not something nested in here. -->
     <a id="open" rel="ar" href="" hidden><img alt=""></a>
     <p id="error" hidden></p>
+    <!-- Shown only once Quick Look has been opened and dismissed (see the
+         visibilitychange handler below). Navigating to this custom scheme
+         is caught by AppDelegate.swift, which is the only thing that can
+         dismiss the SFSafariViewController this whole page is running
+         inside — closing it and returning the customer to the visualizer
+         exactly where they left it, rather than to Safari's own generic
+         "Done" control. -->
+    <button id="back" type="button" hidden>Back to your frame</button>
 
 <script>
 (function () {
     var status = document.getElementById('status');
     var anchor = document.getElementById('open');
     var errorEl = document.getElementById('error');
+    var backButton = document.getElementById('back');
+    var arWasOpened = false;
 
     function fail(message) {
         status.hidden = true;
@@ -74,6 +96,29 @@
         errorEl.textContent = message;
         errorEl.hidden = false;
     }
+
+    backButton.addEventListener('click', function () {
+        location.href = 'frameworthyco-ar://done';
+    });
+
+    // Quick Look is a native modal covering this page, not a navigation
+    // away from it, so its whole lifecycle shows up here as one visibility
+    // round-trip: hidden while it's up, visible again the moment it's
+    // dismissed. That transition is the only signal available that AR was
+    // actually shown, which is what gates the real "Back to your frame"
+    // button rather than showing it up front for a hand-off that hasn't
+    // happened yet.
+    document.addEventListener('visibilitychange', function () {
+        if (document.visibilityState === 'hidden') {
+            arWasOpened = true;
+            return;
+        }
+        if (!arWasOpened) return;
+        status.hidden = true;
+        anchor.hidden = true;
+        errorEl.hidden = true;
+        backButton.hidden = false;
+    });
 
     var model = new URLSearchParams(location.search).get('model');
     if (!model) {

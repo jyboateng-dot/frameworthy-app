@@ -26,5 +26,14 @@ const AR_LAUNCH_PATH = '/ar-launch.html';
 export function openQuickLookViaSafari(modelUrl) {
     const launcher = new URL(AR_LAUNCH_PATH, window.location.origin);
     launcher.searchParams.set('model', modelUrl);
-    return Browser.open({ url: launcher.toString() });
+    return Browser.open({
+        url: launcher.toString(),
+        // Apple doesn't let an app remove SFSafariViewController's own URL
+        // bar — it's a mandatory anti-phishing control, no API suppresses
+        // it — so this can't stop looking like Safari. It can stop looking
+        // like a *different app*: matching the toolbar to ar-launch.html's
+        // own background keeps the transition from reading as a jump to
+        // somewhere else, even with the address bar still showing.
+        toolbarColor: '#0c0a09',
+    });
 }
