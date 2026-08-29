@@ -1111,6 +1111,14 @@ const CustomizeFramePage = ({
         setIsMoviePoster(false);
         setIsMoviePosterPrint(false);
         setPosterData(null);
+        // Canvas glazing (Traditional/Floater) hides matting entirely — a
+        // real physical constraint for whichever photo it was chosen for,
+        // but glassType lives above this page and survives a fresh upload,
+        // so a canvas choice made for a previous photo was silently
+        // carrying over and hiding matting for an unrelated new one. A new
+        // upload is a new configuration; it shouldn't inherit a glazing
+        // decision that was about a different picture.
+        setGlassType('standard');
         const file = e.target.files[0];
         if (!file) return;
         setIsUploading(true);
