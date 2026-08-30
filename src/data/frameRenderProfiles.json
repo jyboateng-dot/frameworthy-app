@@ -1985,8 +1985,10 @@
       "frameType": "Picture Frame",
       "sourceProductName": "Cherry Flat Picture Frame",
       "frontTexture": {
-        "horizontalPath": "/frames/render-assets/frame-10484-front-h.webp",
-        "verticalPath": "/frames/render-assets/frame-10484-front-v.webp"
+        "horizontalPath": "/frames/rails/frame-10484-rail-h.webp",
+        "verticalPath": "/frames/rails/frame-10484-rail-v.webp",
+        "sourceOverride": "rails-pipeline",
+        "overriddenAt": "2026-08-30"
       },
       "profileTexturePath": null,
       "profileReferenceUrl": null,
