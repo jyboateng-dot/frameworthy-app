@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 
 /**
  * The renderer behind both the orbit preview and the in-page WebXR
@@ -35,11 +36,30 @@ export class ArScene {
         this.scene = new THREE.Scene();
         this.camera = new THREE.PerspectiveCamera(38, 1, 0.01, 40);
 
-        // Gilding and lacquer need something with direction to catch, or
-        // a metallic moulding renders as flat grey however high its
-        // metallic factor is. A hemisphere fill plus one key light is
-        // enough to read as a lit room without shipping an HDR
-        // environment map alongside every model.
+        // A metal's colour IS its environment reflection — a PBR metal has
+        // essentially no diffuse response, so at metallic: 0.85
+        // (buildArModel's own value for gilded/gold finishes) direct
+        // lights alone leave every unlit-facing patch of the moulding
+        // reading as flat black, confirmed on a real gold frame in the
+        // desktop orbit preview. This was the original assumption here —
+        // "a hemisphere fill plus one key light is enough... without
+        // shipping an HDR environment map" — which holds for the matte
+        // and low-metalness finishes but not for metallic ones.
+        // RoomEnvironment is a small procedural room three.js generates
+        // on the fly (no network fetch, no bundled asset), which is the
+        // standard fix for exactly this — it gives a metal something
+        // plausible to reflect without needing a real HDRI. Real AR
+        // viewers (Quick Look, Scene Viewer) already supply their own
+        // environment via the device camera feed, which is why the same
+        // material only ever looked wrong in this in-page preview.
+        const pmremGenerator = new THREE.PMREMGenerator(this.renderer);
+        this.environmentTexture = pmremGenerator.fromScene(new RoomEnvironment(), 0.04).texture;
+        this.scene.environment = this.environmentTexture;
+        pmremGenerator.dispose();
+
+        // Gilding and lacquer still need something with direction to
+        // catch beyond the environment's soft fill, or a metallic
+        // moulding reads as a flat, shadowless disc.
         this.scene.add(new THREE.HemisphereLight(0xffffff, 0x8a8880, 2.1));
         const key = new THREE.DirectionalLight(0xffffff, 2.4);
         key.position.set(-1.4, 2.2, 2.6);
@@ -233,6 +253,7 @@ export class ArScene {
         this.renderer.setAnimationLoop(null);
         this.controls?.dispose();
         this.session?.end().catch(() => {});
+        this.environmentTexture?.dispose();
         this.scene.traverse((obj) => {
             if (obj.geometry) obj.geometry.dispose();
             if (obj.material) {
