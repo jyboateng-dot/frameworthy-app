@@ -98,8 +98,10 @@
       "frameType": "Picture Frame",
       "sourceProductName": "Aged Black Picture Frame",
       "frontTexture": {
-        "horizontalPath": "/frames/render-assets/frame-10871-front-h.webp",
-        "verticalPath": "/frames/render-assets/frame-10871-front-v.webp"
+        "horizontalPath": "/frames/rails/frame-10871-rail-h.webp",
+        "verticalPath": "/frames/rails/frame-10871-rail-v.webp",
+        "sourceOverride": "rails-pipeline",
+        "overriddenAt": "2026-08-30"
       },
       "profileTexturePath": null,
       "profileReferenceUrl": null,
@@ -792,8 +794,10 @@
       "frameType": "Picture Frame",
       "sourceProductName": "Antique Silver With Distressed Black Panel Picture Frame",
       "frontTexture": {
-        "horizontalPath": "/frames/render-assets/frame-9600-front-h.webp",
-        "verticalPath": "/frames/render-assets/frame-9600-front-v.webp"
+        "horizontalPath": "/frames/rails/frame-9600-rail-h.webp",
+        "verticalPath": "/frames/rails/frame-9600-rail-v.webp",
+        "sourceOverride": "rails-pipeline",
+        "overriddenAt": "2026-08-30"
       },
       "profileTexturePath": null,
       "profileReferenceUrl": null,
@@ -836,8 +840,10 @@
       "frameType": "Picture Frame",
       "sourceProductName": "Barnwood White Scoop Picture Frame",
       "frontTexture": {
-        "horizontalPath": "/frames/render-assets/frame-83530-front-h.webp",
-        "verticalPath": "/frames/render-assets/frame-83530-front-v.webp"
+        "horizontalPath": "/frames/rails/frame-83530-rail-h.webp",
+        "verticalPath": "/frames/rails/frame-83530-rail-v.webp",
+        "sourceOverride": "rails-pipeline",
+        "overriddenAt": "2026-08-30"
       },
       "profileTexturePath": null,
       "profileReferenceUrl": null,
@@ -884,8 +890,10 @@
       "frameType": "Picture Frame",
       "sourceProductName": "Beveled Black Contemporary Picture Frame",
       "frontTexture": {
-        "horizontalPath": "/frames/render-assets/frame-9885-front-h.webp",
-        "verticalPath": "/frames/render-assets/frame-9885-front-v.webp"
+        "horizontalPath": "/frames/rails/frame-9885-rail-h.webp",
+        "verticalPath": "/frames/rails/frame-9885-rail-v.webp",
+        "sourceOverride": "rails-pipeline",
+        "overriddenAt": "2026-08-30"
       },
       "profileTexturePath": null,
       "profileReferenceUrl": null,
@@ -1064,8 +1072,10 @@
       "frameType": "Picture Frame",
       "sourceProductName": "Black Scoop with Pewter Lip Picture Frame",
       "frontTexture": {
-        "horizontalPath": "/frames/render-assets/frame-10937-front-h.webp",
-        "verticalPath": "/frames/render-assets/frame-10937-front-v.webp"
+        "horizontalPath": "/frames/rails/frame-10937-rail-h.webp",
+        "verticalPath": "/frames/rails/frame-10937-rail-v.webp",
+        "sourceOverride": "rails-pipeline",
+        "overriddenAt": "2026-08-30"
       },
       "profileTexturePath": null,
       "profileReferenceUrl": null,
@@ -1086,8 +1096,10 @@
       "frameType": "Picture Frame",
       "sourceProductName": "Black Slope Picture Frame",
       "frontTexture": {
-        "horizontalPath": "/frames/render-assets/frame-8613-front-h.webp",
-        "verticalPath": "/frames/render-assets/frame-8613-front-v.webp"
+        "horizontalPath": "/frames/rails/frame-8613-rail-h.webp",
+        "verticalPath": "/frames/rails/frame-8613-rail-v.webp",
+        "sourceOverride": "rails-pipeline",
+        "overriddenAt": "2026-08-30"
       },
       "profileTexturePath": null,
       "profileReferenceUrl": null,
@@ -1162,8 +1174,10 @@
       "frameType": "Picture Frame",
       "sourceProductName": "Black Tier With Blue Pinstripes Picture Frame",
       "frontTexture": {
-        "horizontalPath": "/frames/render-assets/frame-10168-front-h.webp",
-        "verticalPath": "/frames/render-assets/frame-10168-front-v.webp"
+        "horizontalPath": "/frames/rails/frame-10168-rail-h.webp",
+        "verticalPath": "/frames/rails/frame-10168-rail-v.webp",
+        "sourceOverride": "rails-pipeline",
+        "overriddenAt": "2026-08-30"
       },
       "profileTexturePath": null,
       "profileReferenceUrl": null,
@@ -1180,8 +1194,10 @@
       "frameType": "Picture Frame",
       "sourceProductName": "Black Tier With Gold Pinstripes Picture Frame",
       "frontTexture": {
-        "horizontalPath": "/frames/render-assets/frame-10165-front-h.webp",
-        "verticalPath": "/frames/render-assets/frame-10165-front-v.webp"
+        "horizontalPath": "/frames/rails/frame-10165-rail-h.webp",
+        "verticalPath": "/frames/rails/frame-10165-rail-v.webp",
+        "sourceOverride": "rails-pipeline",
+        "overriddenAt": "2026-08-30"
       },
       "profileTexturePath": null,
       "profileReferenceUrl": null,
@@ -1198,8 +1214,10 @@
       "frameType": "Picture Frame",
       "sourceProductName": "Black Tier With Green Pinstripes Picture Frame",
       "frontTexture": {
-        "horizontalPath": "/frames/render-assets/frame-10169-front-h.webp",
-        "verticalPath": "/frames/render-assets/frame-10169-front-v.webp"
+        "horizontalPath": "/frames/rails/frame-10169-rail-h.webp",
+        "verticalPath": "/frames/rails/frame-10169-rail-v.webp",
+        "sourceOverride": "rails-pipeline",
+        "overriddenAt": "2026-08-30"
       },
       "profileTexturePath": null,
       "profileReferenceUrl": null,
@@ -1216,8 +1234,10 @@
       "frameType": "Picture Frame",
       "sourceProductName": "Black Tier With Red Pinstripes Picture Frame",
       "frontTexture": {
-        "horizontalPath": "/frames/render-assets/frame-10167-front-h.webp",
-        "verticalPath": "/frames/render-assets/frame-10167-front-v.webp"
+        "horizontalPath": "/frames/rails/frame-10167-rail-h.webp",
+        "verticalPath": "/frames/rails/frame-10167-rail-v.webp",
+        "sourceOverride": "rails-pipeline",
+        "overriddenAt": "2026-08-30"
       },
       "profileTexturePath": null,
       "profileReferenceUrl": null,
@@ -1304,8 +1324,10 @@
       "frameType": "Picture Frame",
       "sourceProductName": "Black with Beaded Lip Picture Frame",
       "frontTexture": {
-        "horizontalPath": "/frames/render-assets/frame-9169-front-h.webp",
-        "verticalPath": "/frames/render-assets/frame-9169-front-v.webp"
+        "horizontalPath": "/frames/rails/frame-9169-rail-h.webp",
+        "verticalPath": "/frames/rails/frame-9169-rail-v.webp",
+        "sourceOverride": "rails-pipeline",
+        "overriddenAt": "2026-08-30"
       },
       "profileTexturePath": null,
       "profileReferenceUrl": null,
@@ -1326,8 +1348,10 @@
       "frameType": "Picture Frame",
       "sourceProductName": "Black with Bronze Bevel Picture Frame",
       "frontTexture": {
-        "horizontalPath": "/frames/render-assets/frame-10652-front-h.webp",
-        "verticalPath": "/frames/render-assets/frame-10652-front-v.webp"
+        "horizontalPath": "/frames/rails/frame-10652-rail-h.webp",
+        "verticalPath": "/frames/rails/frame-10652-rail-v.webp",
+        "sourceOverride": "rails-pipeline",
+        "overriddenAt": "2026-08-30"
       },
       "profileTexturePath": null,
       "profileReferenceUrl": null,
@@ -1524,8 +1548,10 @@
       "frameType": "Picture Frame",
       "sourceProductName": "Black with Weathered Lip Picture Frame",
       "frontTexture": {
-        "horizontalPath": "/frames/render-assets/frame-10926-front-h.webp",
-        "verticalPath": "/frames/render-assets/frame-10926-front-v.webp"
+        "horizontalPath": "/frames/rails/frame-10926-rail-h.webp",
+        "verticalPath": "/frames/rails/frame-10926-rail-v.webp",
+        "sourceOverride": "rails-pipeline",
+        "overriddenAt": "2026-08-30"
       },
       "profileTexturePath": null,
       "profileReferenceUrl": null,
@@ -2107,8 +2133,10 @@
       "frameType": "Picture Frame",
       "sourceProductName": "Clear Wood With Angled Lip Deep Picture Frame",
       "frontTexture": {
-        "horizontalPath": "/frames/render-assets/frame-83997-front-h.webp",
-        "verticalPath": "/frames/render-assets/frame-83997-front-v.webp"
+        "horizontalPath": "/frames/rails/frame-83997-rail-h.webp",
+        "verticalPath": "/frames/rails/frame-83997-rail-v.webp",
+        "sourceOverride": "rails-pipeline",
+        "overriddenAt": "2026-08-30"
       },
       "profileTexturePath": null,
       "profileReferenceUrl": null,
@@ -2297,8 +2325,10 @@
       "frameType": "Picture Frame",
       "sourceProductName": "Distressed Black Beaded Picture Frame",
       "frontTexture": {
-        "horizontalPath": "/frames/render-assets/frame-9172-front-h.webp",
-        "verticalPath": "/frames/render-assets/frame-9172-front-v.webp"
+        "horizontalPath": "/frames/rails/frame-9172-rail-h.webp",
+        "verticalPath": "/frames/rails/frame-9172-rail-v.webp",
+        "sourceOverride": "rails-pipeline",
+        "overriddenAt": "2026-08-30"
       },
       "profileTexturePath": null,
       "profileReferenceUrl": null,
@@ -2787,8 +2817,10 @@
       "frameType": "Picture Frame",
       "sourceProductName": "Flat Black Contemporary Picture Frame",
       "frontTexture": {
-        "horizontalPath": "/frames/render-assets/frame-10439-front-h.webp",
-        "verticalPath": "/frames/render-assets/frame-10439-front-v.webp"
+        "horizontalPath": "/frames/rails/frame-10439-rail-h.webp",
+        "verticalPath": "/frames/rails/frame-10439-rail-v.webp",
+        "sourceOverride": "rails-pipeline",
+        "overriddenAt": "2026-08-30"
       },
       "profileTexturePath": null,
       "profileReferenceUrl": null,
@@ -3107,8 +3139,10 @@
       "frameType": "Picture Frame",
       "sourceProductName": "Glossy Black Picture Frame",
       "frontTexture": {
-        "horizontalPath": "/frames/render-assets/frame-10779-front-h.webp",
-        "verticalPath": "/frames/render-assets/frame-10779-front-v.webp"
+        "horizontalPath": "/frames/rails/frame-10779-rail-h.webp",
+        "verticalPath": "/frames/rails/frame-10779-rail-v.webp",
+        "sourceOverride": "rails-pipeline",
+        "overriddenAt": "2026-08-30"
       },
       "profileTexturePath": null,
       "profileReferenceUrl": null,
@@ -3125,8 +3159,10 @@
       "frameType": "Picture Frame",
       "sourceProductName": "Glossy Black Round Top Picture Frame",
       "frontTexture": {
-        "horizontalPath": "/frames/render-assets/frame-9684-front-h.webp",
-        "verticalPath": "/frames/render-assets/frame-9684-front-v.webp"
+        "horizontalPath": "/frames/rails/frame-9684-rail-h.webp",
+        "verticalPath": "/frames/rails/frame-9684-rail-v.webp",
+        "sourceOverride": "rails-pipeline",
+        "overriddenAt": "2026-08-30"
       },
       "profileTexturePath": null,
       "profileReferenceUrl": null,
@@ -3759,8 +3795,10 @@
       "frameType": "Picture Frame",
       "sourceProductName": "Gold With Black Flat Picture Frame",
       "frontTexture": {
-        "horizontalPath": "/frames/render-assets/frame-10623-front-h.webp",
-        "verticalPath": "/frames/render-assets/frame-10623-front-v.webp"
+        "horizontalPath": "/frames/rails/frame-10623-rail-h.webp",
+        "verticalPath": "/frames/rails/frame-10623-rail-v.webp",
+        "sourceOverride": "rails-pipeline",
+        "overriddenAt": "2026-08-30"
       },
       "profileTexturePath": null,
       "profileReferenceUrl": null,
@@ -4159,8 +4197,10 @@
       "frameType": "Picture Frame",
       "sourceProductName": "Honey Pecan Burl and Black Picture Frame",
       "frontTexture": {
-        "horizontalPath": "/frames/render-assets/frame-9073-front-h.webp",
-        "verticalPath": "/frames/render-assets/frame-9073-front-v.webp"
+        "horizontalPath": "/frames/rails/frame-9073-rail-h.webp",
+        "verticalPath": "/frames/rails/frame-9073-rail-v.webp",
+        "sourceOverride": "rails-pipeline",
+        "overriddenAt": "2026-08-30"
       },
       "profileTexturePath": null,
       "profileReferenceUrl": null,
@@ -4697,8 +4737,10 @@
       "frameType": "Picture Frame",
       "sourceProductName": "Mosaic Black Picture Frame",
       "frontTexture": {
-        "horizontalPath": "/frames/render-assets/frame-10254-front-h.webp",
-        "verticalPath": "/frames/render-assets/frame-10254-front-v.webp"
+        "horizontalPath": "/frames/rails/frame-10254-rail-h.webp",
+        "verticalPath": "/frames/rails/frame-10254-rail-v.webp",
+        "sourceOverride": "rails-pipeline",
+        "overriddenAt": "2026-08-30"
       },
       "profileTexturePath": null,
       "profileReferenceUrl": null,
@@ -5265,8 +5307,10 @@
       "frameType": "Picture Frame",
       "sourceProductName": "Red Square Picture Frame",
       "frontTexture": {
-        "horizontalPath": "/frames/render-assets/frame-9163-front-h.webp",
-        "verticalPath": "/frames/render-assets/frame-9163-front-v.webp"
+        "horizontalPath": "/frames/rails/frame-9163-rail-h.webp",
+        "verticalPath": "/frames/rails/frame-9163-rail-v.webp",
+        "sourceOverride": "rails-pipeline",
+        "overriddenAt": "2026-08-30"
       },
       "profileTexturePath": null,
       "profileReferenceUrl": null,
@@ -6283,8 +6327,10 @@
       "frameType": "Picture Frame",
       "sourceProductName": "Textured Black Contemporary Picture Frame",
       "frontTexture": {
-        "horizontalPath": "/frames/render-assets/frame-9213-front-h.webp",
-        "verticalPath": "/frames/render-assets/frame-9213-front-v.webp"
+        "horizontalPath": "/frames/rails/frame-9213-rail-h.webp",
+        "verticalPath": "/frames/rails/frame-9213-rail-v.webp",
+        "sourceOverride": "rails-pipeline",
+        "overriddenAt": "2026-08-30"
       },
       "profileTexturePath": null,
       "profileReferenceUrl": null,
@@ -6305,8 +6351,10 @@
       "frameType": "Picture Frame",
       "sourceProductName": "Textured Silver Foil Picture Frame",
       "frontTexture": {
-        "horizontalPath": "/frames/render-assets/frame-7169-front-h.webp",
-        "verticalPath": "/frames/render-assets/frame-7169-front-v.webp"
+        "horizontalPath": "/frames/rails/frame-7169-rail-h.webp",
+        "verticalPath": "/frames/rails/frame-7169-rail-v.webp",
+        "sourceOverride": "rails-pipeline",
+        "overriddenAt": "2026-08-30"
       },
       "profileTexturePath": null,
       "profileReferenceUrl": null,
@@ -6407,8 +6455,10 @@
       "frameType": "Picture Frame",
       "sourceProductName": "Waffle Weave Black Picture Frame",
       "frontTexture": {
-        "horizontalPath": "/frames/render-assets/frame-10171-front-h.webp",
-        "verticalPath": "/frames/render-assets/frame-10171-front-v.webp"
+        "horizontalPath": "/frames/rails/frame-10171-rail-h.webp",
+        "verticalPath": "/frames/rails/frame-10171-rail-v.webp",
+        "sourceOverride": "rails-pipeline",
+        "overriddenAt": "2026-08-30"
       },
       "profileTexturePath": null,
       "profileReferenceUrl": null,
@@ -6641,8 +6691,10 @@
       "frameType": "Picture Frame",
       "sourceProductName": "Weathered Black Picture Frame",
       "frontTexture": {
-        "horizontalPath": "/frames/render-assets/frame-10397-front-h.webp",
-        "verticalPath": "/frames/render-assets/frame-10397-front-v.webp"
+        "horizontalPath": "/frames/rails/frame-10397-rail-h.webp",
+        "verticalPath": "/frames/rails/frame-10397-rail-v.webp",
+        "sourceOverride": "rails-pipeline",
+        "overriddenAt": "2026-08-30"
       },
       "profileTexturePath": null,
       "profileReferenceUrl": null,
@@ -6819,8 +6871,10 @@
       "frameType": "Picture Frame",
       "sourceProductName": "White Wash Sloped Picture Frame",
       "frontTexture": {
-        "horizontalPath": "/frames/render-assets/frame-11197-front-h.webp",
-        "verticalPath": "/frames/render-assets/frame-11197-front-v.webp"
+        "horizontalPath": "/frames/rails/frame-11197-rail-h.webp",
+        "verticalPath": "/frames/rails/frame-11197-rail-v.webp",
+        "sourceOverride": "rails-pipeline",
+        "overriddenAt": "2026-08-30"
       },
       "profileTexturePath": null,
       "profileReferenceUrl": null,
@@ -6881,8 +6935,10 @@
       "frameType": "Picture Frame",
       "sourceProductName": "White With Clear Wood Picture Frame",
       "frontTexture": {
-        "horizontalPath": "/frames/render-assets/frame-84159-front-h.webp",
-        "verticalPath": "/frames/render-assets/frame-84159-front-v.webp"
+        "horizontalPath": "/frames/rails/frame-84159-rail-h.webp",
+        "verticalPath": "/frames/rails/frame-84159-rail-v.webp",
+        "sourceOverride": "rails-pipeline",
+        "overriddenAt": "2026-08-30"
       },
       "profileTexturePath": null,
       "profileReferenceUrl": null,
@@ -7301,8 +7357,10 @@
       "frameType": "Picture Frame",
       "sourceProductName": "Wide Rustic Grey Picture Frame",
       "frontTexture": {
-        "horizontalPath": "/frames/render-assets/frame-10838-front-h.webp",
-        "verticalPath": "/frames/render-assets/frame-10838-front-v.webp"
+        "horizontalPath": "/frames/rails/frame-10838-rail-h.webp",
+        "verticalPath": "/frames/rails/frame-10838-rail-v.webp",
+        "sourceOverride": "rails-pipeline",
+        "overriddenAt": "2026-08-30"
       },
       "profileTexturePath": null,
       "profileReferenceUrl": null,
@@ -7551,8 +7609,10 @@
       "frameType": "Picture Frame",
       "sourceProductName": "Yellow Square With Bevel Lip Picture Frame",
       "frontTexture": {
-        "horizontalPath": "/frames/render-assets/frame-80299-front-h.webp",
-        "verticalPath": "/frames/render-assets/frame-80299-front-v.webp"
+        "horizontalPath": "/frames/rails/frame-80299-rail-h.webp",
+        "verticalPath": "/frames/rails/frame-80299-rail-v.webp",
+        "sourceOverride": "rails-pipeline",
+        "overriddenAt": "2026-08-30"
       },
       "profileTexturePath": null,
       "profileReferenceUrl": null,
