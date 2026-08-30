@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-11T19:38:22.136Z",
+  "generatedAt": "2026-08-30T23:54:32.497Z",
   "stripLength": 1024,
   "byQuality": {
     "cropped-from-frame": 40,
@@ -11,21 +11,21 @@
     "frame-83811": {
       "h": "/frames/rails/frame-83811-rail-h.webp",
       "v": "/frames/rails/frame-83811-rail-v.webp",
-      "thickness": 256,
+      "thickness": 76,
       "sourceRole": "assembled",
       "quality": "cropped-from-frame"
     },
     "frame-83812": {
       "h": "/frames/rails/frame-83812-rail-h.webp",
       "v": "/frames/rails/frame-83812-rail-v.webp",
-      "thickness": 256,
+      "thickness": 76,
       "sourceRole": "assembled",
       "quality": "cropped-from-frame"
     },
     "frame-83813": {
       "h": "/frames/rails/frame-83813-rail-h.webp",
       "v": "/frames/rails/frame-83813-rail-v.webp",
-      "thickness": 256,
+      "thickness": 76,
       "sourceRole": "assembled",
       "quality": "cropped-from-frame"
     },
@@ -151,7 +151,7 @@
     "frame-6526": {
       "h": "/frames/rails/frame-6526-rail-h.webp",
       "v": "/frames/rails/frame-6526-rail-v.webp",
-      "thickness": 256,
+      "thickness": 58,
       "sourceRole": "assembled",
       "quality": "cropped-from-frame"
     },
@@ -214,7 +214,7 @@
     "frame-10717": {
       "h": "/frames/rails/frame-10717-rail-h.webp",
       "v": "/frames/rails/frame-10717-rail-v.webp",
-      "thickness": 256,
+      "thickness": 18,
       "sourceRole": "assembled",
       "quality": "cropped-from-frame"
     },
@@ -270,7 +270,7 @@
     "frame-79668": {
       "h": "/frames/rails/frame-79668-rail-h.webp",
       "v": "/frames/rails/frame-79668-rail-v.webp",
-      "thickness": 256,
+      "thickness": 59,
       "sourceRole": "assembled",
       "quality": "cropped-from-frame"
     },
@@ -291,7 +291,7 @@
     "frame-80984": {
       "h": "/frames/rails/frame-80984-rail-h.webp",
       "v": "/frames/rails/frame-80984-rail-v.webp",
-      "thickness": 256,
+      "thickness": 56,
       "sourceRole": "assembled",
       "quality": "cropped-from-frame"
     },
@@ -312,7 +312,7 @@
     "frame-9582": {
       "h": "/frames/rails/frame-9582-rail-h.webp",
       "v": "/frames/rails/frame-9582-rail-v.webp",
-      "thickness": 256,
+      "thickness": 59,
       "sourceRole": "assembled",
       "quality": "cropped-from-frame"
     },
@@ -487,7 +487,7 @@
     "frame-80301": {
       "h": "/frames/rails/frame-80301-rail-h.webp",
       "v": "/frames/rails/frame-80301-rail-v.webp",
-      "thickness": 256,
+      "thickness": 51,
       "sourceRole": "assembled",
       "quality": "cropped-from-frame"
     },
@@ -683,7 +683,7 @@
     "frame-80997": {
       "h": "/frames/rails/frame-80997-rail-h.webp",
       "v": "/frames/rails/frame-80997-rail-v.webp",
-      "thickness": 256,
+      "thickness": 59,
       "sourceRole": "assembled",
       "quality": "cropped-from-frame"
     },
@@ -704,7 +704,7 @@
     "frame-9878": {
       "h": "/frames/rails/frame-9878-rail-h.webp",
       "v": "/frames/rails/frame-9878-rail-v.webp",
-      "thickness": 256,
+      "thickness": 18,
       "sourceRole": "assembled",
       "quality": "cropped-from-frame"
     },
@@ -774,7 +774,7 @@
     "frame-83753": {
       "h": "/frames/rails/frame-83753-rail-h.webp",
       "v": "/frames/rails/frame-83753-rail-v.webp",
-      "thickness": 256,
+      "thickness": 59,
       "sourceRole": "assembled",
       "quality": "cropped-from-frame"
     },
@@ -872,7 +872,7 @@
     "frame-8446": {
       "h": "/frames/rails/frame-8446-rail-h.webp",
       "v": "/frames/rails/frame-8446-rail-v.webp",
-      "thickness": 256,
+      "thickness": 59,
       "sourceRole": "assembled",
       "quality": "cropped-from-frame"
     },
@@ -907,7 +907,7 @@
     "frame-8753": {
       "h": "/frames/rails/frame-8753-rail-h.webp",
       "v": "/frames/rails/frame-8753-rail-v.webp",
-      "thickness": 256,
+      "thickness": 60,
       "sourceRole": "assembled",
       "quality": "cropped-from-frame"
     },
@@ -921,7 +921,7 @@
     "frame-8752": {
       "h": "/frames/rails/frame-8752-rail-h.webp",
       "v": "/frames/rails/frame-8752-rail-v.webp",
-      "thickness": 256,
+      "thickness": 59,
       "sourceRole": "assembled",
       "quality": "cropped-from-frame"
     },
@@ -977,14 +977,14 @@
     "frame-83736": {
       "h": "/frames/rails/frame-83736-rail-h.webp",
       "v": "/frames/rails/frame-83736-rail-v.webp",
-      "thickness": 256,
+      "thickness": 40,
       "sourceRole": "assembled",
       "quality": "cropped-from-frame"
     },
     "frame-83735": {
       "h": "/frames/rails/frame-83735-rail-h.webp",
       "v": "/frames/rails/frame-83735-rail-v.webp",
-      "thickness": 256,
+      "thickness": 40,
       "sourceRole": "assembled",
       "quality": "cropped-from-frame"
     },
@@ -1012,7 +1012,7 @@
     "frame-83733": {
       "h": "/frames/rails/frame-83733-rail-h.webp",
       "v": "/frames/rails/frame-83733-rail-v.webp",
-      "thickness": 256,
+      "thickness": 40,
       "sourceRole": "assembled",
       "quality": "cropped-from-frame"
     },
@@ -1026,7 +1026,7 @@
     "frame-83732": {
       "h": "/frames/rails/frame-83732-rail-h.webp",
       "v": "/frames/rails/frame-83732-rail-v.webp",
-      "thickness": 256,
+      "thickness": 40,
       "sourceRole": "assembled",
       "quality": "cropped-from-frame"
     },
@@ -1061,7 +1061,7 @@
     "frame-83734": {
       "h": "/frames/rails/frame-83734-rail-h.webp",
       "v": "/frames/rails/frame-83734-rail-v.webp",
-      "thickness": 256,
+      "thickness": 40,
       "sourceRole": "assembled",
       "quality": "cropped-from-frame"
     },
@@ -1334,7 +1334,7 @@
     "frame-10618": {
       "h": "/frames/rails/frame-10618-rail-h.webp",
       "v": "/frames/rails/frame-10618-rail-v.webp",
-      "thickness": 256,
+      "thickness": 59,
       "sourceRole": "assembled",
       "quality": "cropped-from-frame"
     },
@@ -1348,7 +1348,7 @@
     "frame-81045": {
       "h": "/frames/rails/frame-81045-rail-h.webp",
       "v": "/frames/rails/frame-81045-rail-v.webp",
-      "thickness": 256,
+      "thickness": 59,
       "sourceRole": "assembled",
       "quality": "cropped-from-frame"
     },
@@ -1432,14 +1432,14 @@
     "frame-83711": {
       "h": "/frames/rails/frame-83711-rail-h.webp",
       "v": "/frames/rails/frame-83711-rail-v.webp",
-      "thickness": 256,
+      "thickness": 60,
       "sourceRole": "assembled",
       "quality": "cropped-from-frame"
     },
     "frame-83712": {
       "h": "/frames/rails/frame-83712-rail-h.webp",
       "v": "/frames/rails/frame-83712-rail-v.webp",
-      "thickness": 256,
+      "thickness": 59,
       "sourceRole": "assembled",
       "quality": "cropped-from-frame"
     },
@@ -1530,7 +1530,7 @@
     "frame-9732": {
       "h": "/frames/rails/frame-9732-rail-h.webp",
       "v": "/frames/rails/frame-9732-rail-v.webp",
-      "thickness": 256,
+      "thickness": 18,
       "sourceRole": "assembled",
       "quality": "cropped-from-frame"
     },
@@ -1586,7 +1586,7 @@
     "frame-80302": {
       "h": "/frames/rails/frame-80302-rail-h.webp",
       "v": "/frames/rails/frame-80302-rail-v.webp",
-      "thickness": 256,
+      "thickness": 51,
       "sourceRole": "assembled",
       "quality": "cropped-from-frame"
     },
@@ -1614,14 +1614,14 @@
     "frame-80298": {
       "h": "/frames/rails/frame-80298-rail-h.webp",
       "v": "/frames/rails/frame-80298-rail-v.webp",
-      "thickness": 256,
+      "thickness": 51,
       "sourceRole": "assembled",
       "quality": "cropped-from-frame"
     },
     "frame-10590": {
       "h": "/frames/rails/frame-10590-rail-h.webp",
       "v": "/frames/rails/frame-10590-rail-v.webp",
-      "thickness": 256,
+      "thickness": 59,
       "sourceRole": "assembled",
       "quality": "cropped-from-frame"
     },
@@ -1726,7 +1726,7 @@
     "frame-83887": {
       "h": "/frames/rails/frame-83887-rail-h.webp",
       "v": "/frames/rails/frame-83887-rail-v.webp",
-      "thickness": 256,
+      "thickness": 60,
       "sourceRole": "assembled",
       "quality": "cropped-from-frame"
     },
@@ -1754,7 +1754,7 @@
     "frame-10319": {
       "h": "/frames/rails/frame-10319-rail-h.webp",
       "v": "/frames/rails/frame-10319-rail-v.webp",
-      "thickness": 256,
+      "thickness": 58,
       "sourceRole": "assembled",
       "quality": "cropped-from-frame"
     },
@@ -1992,7 +1992,7 @@
     "frame-81047": {
       "h": "/frames/rails/frame-81047-rail-h.webp",
       "v": "/frames/rails/frame-81047-rail-v.webp",
-      "thickness": 256,
+      "thickness": 60,
       "sourceRole": "assembled",
       "quality": "cropped-from-frame"
     },
@@ -2153,7 +2153,7 @@
     "frame-9479": {
       "h": "/frames/rails/frame-9479-rail-h.webp",
       "v": "/frames/rails/frame-9479-rail-v.webp",
-      "thickness": 256,
+      "thickness": 59,
       "sourceRole": "assembled",
       "quality": "cropped-from-frame"
     },
@@ -2181,42 +2181,42 @@
     "frame-83730": {
       "h": "/frames/rails/frame-83730-rail-h.webp",
       "v": "/frames/rails/frame-83730-rail-v.webp",
-      "thickness": 256,
+      "thickness": 61,
       "sourceRole": "assembled",
       "quality": "cropped-from-frame"
     },
     "frame-83731": {
       "h": "/frames/rails/frame-83731-rail-h.webp",
       "v": "/frames/rails/frame-83731-rail-v.webp",
-      "thickness": 256,
+      "thickness": 61,
       "sourceRole": "assembled",
       "quality": "cropped-from-frame"
     },
     "frame-83729": {
       "h": "/frames/rails/frame-83729-rail-h.webp",
       "v": "/frames/rails/frame-83729-rail-v.webp",
-      "thickness": 256,
+      "thickness": 61,
       "sourceRole": "assembled",
       "quality": "cropped-from-frame"
     },
     "frame-83727": {
       "h": "/frames/rails/frame-83727-rail-h.webp",
       "v": "/frames/rails/frame-83727-rail-v.webp",
-      "thickness": 256,
+      "thickness": 61,
       "sourceRole": "assembled",
       "quality": "cropped-from-frame"
     },
     "frame-83726": {
       "h": "/frames/rails/frame-83726-rail-h.webp",
       "v": "/frames/rails/frame-83726-rail-v.webp",
-      "thickness": 256,
+      "thickness": 61,
       "sourceRole": "assembled",
       "quality": "cropped-from-frame"
     },
     "frame-83728": {
       "h": "/frames/rails/frame-83728-rail-h.webp",
       "v": "/frames/rails/frame-83728-rail-v.webp",
-      "thickness": 256,
+      "thickness": 61,
       "sourceRole": "assembled",
       "quality": "cropped-from-frame"
     },
@@ -2300,7 +2300,7 @@
     "frame-9654": {
       "h": "/frames/rails/frame-9654-rail-h.webp",
       "v": "/frames/rails/frame-9654-rail-v.webp",
-      "thickness": 256,
+      "thickness": 59,
       "sourceRole": "assembled",
       "quality": "cropped-from-frame"
     },
@@ -2328,7 +2328,7 @@
     "frame-9658": {
       "h": "/frames/rails/frame-9658-rail-h.webp",
       "v": "/frames/rails/frame-9658-rail-v.webp",
-      "thickness": 256,
+      "thickness": 59,
       "sourceRole": "assembled",
       "quality": "cropped-from-frame"
     },

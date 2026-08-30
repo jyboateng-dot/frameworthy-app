@@ -132,6 +132,61 @@ async function fromFlatScan(file) {
 }
 
 /**
+ * The extracted band still carries the source photo's own directional
+ * studio lighting: a smooth brightness ramp running the length of the
+ * crop (bright where the key light grazes it, darker toward the far end).
+ * That's invisible in a single still, but the rail tiles — so the ramp
+ * repeats every cycle and shows up as a hard bright/dark seam at each
+ * repeat, a "barcode" of banding across the rendered rail. A photographed
+ * rail scan or straight strip doesn't have this because it's lit evenly
+ * along its length by construction; a crop crossing a whole studio photo
+ * of the assembled frame is not. Dividing out a heavily-smoothed version
+ * of the lengthwise brightness profile removes that slow ramp while
+ * leaving the wood-grain/texture detail — a fast deviation from the local
+ * mean — intact.
+ */
+function flattenLengthwiseGradient(data, width, height, channels) {
+    const colMean = new Float64Array(width);
+    for (let x = 0; x < width; x++) {
+        let sum = 0;
+        for (let y = 0; y < height; y++) {
+            const i = (y * width + x) * channels;
+            sum += (data[i] + data[i + 1] + data[i + 2]) / 3;
+        }
+        colMean[x] = sum / height;
+    }
+    // A wide moving average isolates the slow lighting ramp from the
+    // faster grain texture riding on top of it.
+    const window = Math.max(8, Math.floor(width / 6));
+    const trend = new Float64Array(width);
+    for (let x = 0; x < width; x++) {
+        const lo = Math.max(0, x - window);
+        const hi = Math.min(width, x + window + 1);
+        let sum = 0;
+        for (let k = lo; k < hi; k++) sum += colMean[k];
+        trend[x] = sum / (hi - lo);
+    }
+    let target = 0;
+    for (let x = 0; x < width; x++) target += trend[x];
+    target /= width;
+
+    const out = Buffer.from(data);
+    for (let x = 0; x < width; x++) {
+        // Clamped so a stray highlight/shadow in the trend can't blow out
+        // or crush a column instead of gently levelling it.
+        const ratio = Math.min(1.6, Math.max(0.65, target / Math.max(8, trend[x])));
+        if (Math.abs(ratio - 1) < 0.01) continue;
+        for (let y = 0; y < height; y++) {
+            const i = (y * width + x) * channels;
+            out[i] = Math.min(255, Math.max(0, Math.round(data[i] * ratio)));
+            out[i + 1] = Math.min(255, Math.max(0, Math.round(data[i + 1] * ratio)));
+            out[i + 2] = Math.min(255, Math.max(0, Math.round(data[i + 2] * ratio)));
+        }
+    }
+    return out;
+}
+
+/**
  * The `swap` renders show a complete frame around a flat placeholder
  * interior. The top rail is the band between the outer edge and the
  * opening; sampling it only across the opening's width keeps both mitred
@@ -168,9 +223,15 @@ async function fromAssembled(file) {
     const height = openTop - outerTop;
     const width = openRight - openLeft;
     if (height < 8 || width < 32) return null;
-    return sharp(file)
-        .removeAlpha()
-        .extract({ left: openLeft, top: outerTop, width, height });
+
+    const cropped = Buffer.alloc(width * height * info.channels);
+    for (let y = 0; y < height; y++) {
+        const srcStart = ((outerTop + y) * info.width + openLeft) * info.channels;
+        const dstStart = y * width * info.channels;
+        data.copy(cropped, dstStart, srcStart, srcStart + width * info.channels);
+    }
+    const flattened = flattenLengthwiseGradient(cropped, width, height, info.channels);
+    return sharp(flattened, { raw: { width, height, channels: info.channels } });
 }
 
 /**
@@ -374,11 +435,24 @@ const QUALITY = {
 const catalogue = JSON.parse(fs.readFileSync(CATALOGUE, 'utf8'));
 fs.mkdirSync(OUT_DIR, { recursive: true });
 
-const rails = {};
-const failures = [];
+// Reprocessing every frame touches sources (strip/corner/rail) that
+// already look right, for no reason, on every unrelated fix. Scoping to
+// specific ids merges into the existing manifest instead of starting from
+// {} so frames outside the filter keep their current entries verbatim.
+const onlyIds = process.argv.find((a) => a.startsWith('--only-ids='))?.slice('--only-ids='.length).split(',').filter(Boolean);
+const existingManifest = onlyIds && fs.existsSync(MANIFEST) ? JSON.parse(fs.readFileSync(MANIFEST, 'utf8')) : null;
+
+const rails = existingManifest ? { ...existingManifest.rails } : {};
+const failures = existingManifest ? [...(existingManifest.failures || [])] : [];
 let done = 0;
 
-for (const frame of catalogue.frames) {
+const framesToProcess = onlyIds ? catalogue.frames.filter((f) => onlyIds.includes(f.id)) : catalogue.frames;
+if (onlyIds) {
+    const missing = onlyIds.filter((id) => !framesToProcess.some((f) => f.id === id));
+    if (missing.length) console.warn('Not found in catalogue, skipping:', missing);
+}
+
+for (const frame of framesToProcess) {
     // Try the frame's preferred source, then fall back through the
     // remaining ones — a scan can still fail detection (an unusually dark
     // moulding against a dark sweep), and a lower-fidelity strip beats no
@@ -448,14 +522,15 @@ const byQuality = Object.values(rails).reduce((acc, r) => {
     acc[r.quality] = (acc[r.quality] || 0) + 1;
     return acc;
 }, {});
+const dedupedFailures = [...new Set(failures)].filter((id) => !rails[id]);
 
 fs.writeFileSync(
     MANIFEST,
-    JSON.stringify({ generatedAt: new Date().toISOString(), stripLength: STRIP_LENGTH, byQuality, failures, rails }, null, 2),
+    JSON.stringify({ generatedAt: new Date().toISOString(), stripLength: STRIP_LENGTH, byQuality, failures: dedupedFailures, rails }, null, 2),
     'utf8'
 );
 
 console.log(`\nWrote ${done} rail pairs to ${OUT_DIR}`);
 console.log('  by quality:', byQuality);
-console.log(`  failed    : ${failures.length}${failures.length ? ' -> ' + failures.join(', ') : ''}`);
+console.log(`  failed    : ${dedupedFailures.length}${dedupedFailures.length ? ' -> ' + dedupedFailures.join(', ') : ''}`);
 console.log(`  manifest  : ${MANIFEST}`);
