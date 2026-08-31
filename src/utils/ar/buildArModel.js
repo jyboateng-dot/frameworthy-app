@@ -88,6 +88,10 @@ export async function buildArModel({ frame, widthIn, heightIn, matIn, matColorHe
     const renderProfile = getFrameRenderProfile(frame);
     const surface = FINISH_SURFACE[renderProfile.finish] || FINISH_SURFACE.matte;
 
+    // Corner-photo texturing is temporarily disabled — see the long
+    // comment on hasCorner below. Still loaded (rather than skipping
+    // the fetch) so re-enabling this is the one-line change described
+    // there once the underlying texture-mapping problem has a real fix.
     const [railTexture, cornerTexture, artTexture] = await Promise.all([
         loadRailTexture(frame),
         loadCornerTexture(frame),
@@ -105,7 +109,26 @@ export async function buildArModel({ frame, widthIn, heightIn, matIn, matColorHe
         // which only affects how often a texture that isn't there would
         // have repeated.
         railTileAspect: railTexture?.aspect || 4,
-        hasCorner: Boolean(cornerTexture),
+        // Disabled (2026-08-31, the day it shipped): the corner photo is
+        // an oblique product shot, and mapping it via the wedge's UV —
+        // (u: tip-to-middle along the rail, v: outer-to-inner across the
+        // profile) — implicitly assumes a front-on, fully-packed texture
+        // the same way the straight rail texture is. An oblique photo
+        // isn't that: large parts of its frame are the photo's own
+        // white studio background, which the UV mapping stretches across
+        // the wedge as if it were material. Rendering the actual result
+        // (not just checking the geometry, which is correct) showed an
+        // obvious white-and-jagged artifact at every corner, in both an
+        // orthographic front view and a realistic angled AR perspective
+        // — this is live in production right now and needs to come back
+        // out immediately. The corner-splitting geometry itself stays
+        // (harmless with hasCorner false, and it's still correct — see
+        // arModel.test.js), so re-enabling is just flipping this back to
+        // Boolean(cornerTexture) once the texture side has a real fix:
+        // most likely rectifying the photo into a front-on tile first,
+        // the same unstarted piece already flagged for the 2D visualizer
+        // in the ar-frame-asset-gap memory note.
+        hasCorner: false,
     });
 
     // Hanging hardware mounts to the back, so it needs the frame's
