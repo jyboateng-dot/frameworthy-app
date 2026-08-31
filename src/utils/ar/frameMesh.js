@@ -173,6 +173,11 @@ function addBevelRing(part, frontW, frontH, frontZ, backW, backH, backZ) {
  * @param {number} spec.matIn            mat reveal per side, 0 for no mat
  * @param {number} spec.railTileAspect   rail texture's length/thickness ratio,
  *                                       used to tile it at true physical scale
+ * @param {boolean} spec.hasCorner       real photographed mitre-corner texture
+ *                                       is available for this frame — carves a
+ *                                       one-moulding-width block at each of the
+ *                                       4 corners onto its own material instead
+ *                                       of tiling the rail strip through them
  * @returns {{parts: MeshPart[], outerWidthM: number, outerHeightM: number, depthM: number}}
  */
 export function buildFrameMesh({
@@ -183,6 +188,7 @@ export function buildFrameMesh({
     profile,
     matIn = 0,
     railTileAspect = 4,
+    hasCorner = false,
 }) {
     const mat = Math.max(0, matIn);
     const sightWidthIn = artworkWidthIn + mat * 2;
@@ -208,6 +214,14 @@ export function buildFrameMesh({
     const repeatFor = (lengthM) => Math.max(1, Math.round(lengthM / Math.max(tileLengthM, 1e-4)));
 
     const railPart = new MeshPart('rail');
+    const cornerPart = new MeshPart('railCorner');
+
+    // A real photographed corner shot is one specific mitre, not a
+    // repeating pattern, so it is draped once over a block this wide
+    // measured back from each outer corner — the same "one moulding
+    // width" a framer would think of as the corner of the stick — rather
+    // than tiled like the straight run.
+    const cornerLenM = railWidthM;
 
     // Each rail: which way `s` advances in world space, which axis the
     // rail runs along, and which side of the frame it sits on.
@@ -223,6 +237,11 @@ export function buildFrameMesh({
         const isHorizontal = rail.axis === 'x';
         const spanM = isHorizontal ? outerHalfW * 2 : outerHalfH * 2;
         const repeat = repeatFor(spanM);
+        // Computed once per rail from its nominal (s=0) length, same as
+        // `repeat` above, rather than refit per cross-section band — a
+        // handful of bands tiling at a very slightly different scale
+        // near the inner edge is not worth the added complexity.
+        const middleRepeat = repeatFor(Math.max(spanM - cornerLenM * 2, tileLengthM));
 
         // Walks every consecutive pair including the wrap from the last
         // station back to the first, which closes the loop across the
@@ -271,39 +290,60 @@ export function buildFrameMesh({
                 ds * railWidthM,
             ]);
 
-            let p0;
-            let p1;
-            let p2;
-            let p3;
+            // Unifies both axes: `length` is the coordinate that runs
+            // along the rail (repeats/carries the corner blocks),
+            // `lateral` is the one that's constant across this station's
+            // whole quad. makePoint puts them back in (x, y, z) order
+            // per axis, matching the two branches this replaced.
+            const halfLenA = isHorizontal ? outerHalfW - insetA : outerHalfH - insetA;
+            const halfLenB = isHorizontal ? outerHalfW - insetB : outerHalfH - insetB;
+            const latA = isHorizontal ? rail.sign * (outerHalfH - insetA) : rail.sign * (outerHalfW - insetA);
+            const latB = isHorizontal ? rail.sign * (outerHalfH - insetB) : rail.sign * (outerHalfW - insetB);
+            const makePoint = isHorizontal
+                ? (length, lat, z) => [length, lat, z]
+                : (length, lat, z) => [lat, length, z];
 
-            if (isHorizontal) {
-                const yA = rail.sign * (outerHalfH - insetA);
-                const yB = rail.sign * (outerHalfH - insetB);
-                const xA = outerHalfW - insetA;
-                const xB = outerHalfW - insetB;
-                p0 = [-xA, yA, zA];
-                p1 = [xA, yA, zA];
-                p2 = [xB, yB, zB];
-                p3 = [-xB, yB, zB];
-            } else {
-                const xA = rail.sign * (outerHalfW - insetA);
-                const xB = rail.sign * (outerHalfW - insetB);
-                const yA = outerHalfH - insetA;
-                const yB = outerHalfH - insetB;
-                p0 = [xA, -yA, zA];
-                p1 = [xA, yA, zA];
-                p2 = [xB, yB, zB];
-                p3 = [xB, -yB, zB];
+            if (!hasCorner) {
+                railPart.addQuad(
+                    makePoint(-halfLenA, latA, zA), makePoint(halfLenA, latA, zA),
+                    makePoint(halfLenB, latB, zB), makePoint(-halfLenB, latB, zB),
+                    [0, a.s], [repeat, a.s], [repeat, b.s], [0, b.s],
+                    outward
+                );
+                continue;
             }
 
-            // v runs across the moulding face so it lines up with the
-            // rail strip's short axis, where the texture builder puts
-            // the outer edge at v=0. u runs along the rail and repeats.
-            railPart.addQuad(
-                p0, p1, p2, p3,
-                [0, a.s], [repeat, a.s], [repeat, b.s], [0, b.s],
-                outward
-            );
+            // Clamped per band so a narrow frame or an unusually wide
+            // moulding — where one end's corner block would overlap the
+            // other — degrades to "this whole band is corner" instead of
+            // producing an inverted or negative-length middle segment.
+            const cutA = Math.min(cornerLenM, halfLenA);
+            const cutB = Math.min(cornerLenM, halfLenB);
+
+            const segments = [
+                { fromA: -halfLenA, toA: -halfLenA + cutA, fromB: -halfLenB, toB: -halfLenB + cutB, corner: true },
+                { fromA: -halfLenA + cutA, toA: halfLenA - cutA, fromB: -halfLenB + cutB, toB: halfLenB - cutB, corner: false },
+                { fromA: halfLenA - cutA, toA: halfLenA, fromB: halfLenB - cutB, toB: halfLenB, corner: true },
+            ];
+
+            for (const seg of segments) {
+                if (seg.toA - seg.fromA < 1e-6 && seg.toB - seg.fromB < 1e-6) continue;
+
+                const p0 = makePoint(seg.fromA, latA, zA);
+                const p1 = makePoint(seg.toA, latA, zA);
+                const p2 = makePoint(seg.toB, latB, zB);
+                const p3 = makePoint(seg.fromB, latB, zB);
+
+                // v runs across the moulding face either way, matching
+                // the outer-edge-at-v=0 convention both texture builders
+                // use. u repeats along the straight run; a corner block
+                // gets the whole photographed tile once, uncropped.
+                if (seg.corner) {
+                    cornerPart.addQuad(p0, p1, p2, p3, [0, a.s], [1, a.s], [1, b.s], [0, b.s], outward);
+                } else {
+                    railPart.addQuad(p0, p1, p2, p3, [0, a.s], [middleRepeat, a.s], [middleRepeat, b.s], [0, b.s], outward);
+                }
+            }
         }
     }
 
@@ -321,7 +361,7 @@ export function buildFrameMesh({
     const artWidthM = artworkWidthIn * IN_TO_M;
     const artHeightM = artworkHeightIn * IN_TO_M;
 
-    const parts = [railPart];
+    const parts = [railPart, cornerPart];
 
     let artZ = glazingZ;
 

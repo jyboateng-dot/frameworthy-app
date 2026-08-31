@@ -133,6 +133,73 @@ describe('frame mesh', () => {
         }
     });
 
+    it('leaves geometry untouched when no corner texture resolved', () => {
+        // hasCorner defaults to false, so every existing caller — and
+        // every frame without a corner photo — must render exactly as it
+        // did before this material existed.
+        const withoutFlag = sampleMesh();
+        const explicitFalse = sampleMesh({ hasCorner: false });
+        expect(withoutFlag.parts.map((p) => p.material)).not.toContain('railCorner');
+        expect(explicitFalse.parts.map((p) => p.material)).not.toContain('railCorner');
+    });
+
+    it('carves a corner block at each of the 4 corners when hasCorner is set', () => {
+        for (const profile of SUPPORTED_PROFILES) {
+            const mesh = sampleMesh({ profile, hasCorner: true });
+            const corner = mesh.parts.find((p) => p.material === 'railCorner');
+            expect(corner, profile).toBeDefined();
+            expect(corner.indices.length, profile).toBeGreaterThan(0);
+            // 4 corners x 2 rail-ends each x however many cross-section
+            // bands the profile has, one quad (2 triangles) apiece.
+            const section = buildCrossSection(profile);
+            expect(corner.indices.length / 3).toBe(section.length * 8 * 2);
+        }
+    });
+
+    it('keeps corner geometry sane: no degenerate normals, valid indices, front-facing', () => {
+        const mesh = sampleMesh({ hasCorner: true });
+        for (const part of mesh.parts) {
+            expect(part.indices.length % 3).toBe(0);
+            const vertexCount = part.positions.length / 3;
+            for (const index of part.indices) {
+                expect(index).toBeLessThan(vertexCount);
+                expect(index).toBeGreaterThanOrEqual(0);
+            }
+            for (let i = 0; i < part.normals.length; i += 3) {
+                expect(Number.isFinite(part.normals[i])).toBe(true);
+                const len = Math.hypot(part.normals[i], part.normals[i + 1], part.normals[i + 2]);
+                expect(len).toBeCloseTo(1, 4);
+            }
+            for (const value of part.positions) {
+                expect(Number.isFinite(value)).toBe(true);
+            }
+        }
+    });
+
+    it('keeps the corner block inside the rail it replaces, never poking past the outer edge', () => {
+        const mesh = sampleMesh({ hasCorner: true });
+        const corner = mesh.parts.find((p) => p.material === 'railCorner');
+        for (let i = 0; i < corner.positions.length; i += 3) {
+            expect(Math.abs(corner.positions[i])).toBeLessThanOrEqual(mesh.outerWidthM / 2 + 1e-9);
+            expect(Math.abs(corner.positions[i + 1])).toBeLessThanOrEqual(mesh.outerHeightM / 2 + 1e-9);
+        }
+    });
+
+    it('shrinks the middle rail run to make room for the corner blocks, without a gap', () => {
+        // The two are complementary halves of the same rail band, so their
+        // combined lateral extent at the outer edge should still reach the
+        // full outer width/height — a gap would be a stripe of missing
+        // geometry running the length of the frame.
+        const mesh = sampleMesh({ hasCorner: true });
+        const rail = mesh.parts.find((p) => p.material === 'rail');
+        const corner = mesh.parts.find((p) => p.material === 'railCorner');
+        const maxAbs = (part, axis) => part.positions
+            .filter((_, i) => i % 3 === axis)
+            .reduce((m, v) => Math.max(m, Math.abs(v)), 0);
+        expect(Math.max(maxAbs(rail, 0), maxAbs(corner, 0))).toBeCloseTo(mesh.outerWidthM / 2, 6);
+        expect(Math.max(maxAbs(rail, 1), maxAbs(corner, 1))).toBeCloseTo(mesh.outerHeightM / 2, 6);
+    });
+
     it('tiles the rail more times across a longer moulding', () => {
         const short = sampleMesh({ artworkWidthIn: 8, artworkHeightIn: 10 });
         const long = sampleMesh({ artworkWidthIn: 40, artworkHeightIn: 50 });

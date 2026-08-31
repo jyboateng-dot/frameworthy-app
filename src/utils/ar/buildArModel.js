@@ -3,7 +3,7 @@ import { buildFrameMesh } from './frameMesh';
 import { buildHardwareParts } from './frameHardware';
 import { buildGlb } from './glbWriter';
 import { buildUsda, packUsdz } from './usdzWriter';
-import { loadRailTexture, renderArtworkTexture, renderSolidTexture } from './arTextures';
+import { loadRailTexture, loadCornerTexture, renderArtworkTexture, renderSolidTexture } from './arTextures';
 
 /**
  * Builds the pair of models the AR viewer needs — .glb for Android and
@@ -88,8 +88,9 @@ export async function buildArModel({ frame, widthIn, heightIn, matIn, matColorHe
     const renderProfile = getFrameRenderProfile(frame);
     const surface = FINISH_SURFACE[renderProfile.finish] || FINISH_SURFACE.matte;
 
-    const [railTexture, artTexture] = await Promise.all([
+    const [railTexture, cornerTexture, artTexture] = await Promise.all([
         loadRailTexture(frame),
+        loadCornerTexture(frame),
         renderArtworkTexture(artworkUrl, widthIn, heightIn),
     ]);
 
@@ -104,6 +105,7 @@ export async function buildArModel({ frame, widthIn, heightIn, matIn, matColorHe
         // which only affects how often a texture that isn't there would
         // have repeated.
         railTileAspect: railTexture?.aspect || 4,
+        hasCorner: Boolean(cornerTexture),
     });
 
     // Hanging hardware mounts to the back, so it needs the frame's
@@ -115,6 +117,10 @@ export async function buildArModel({ frame, widthIn, heightIn, matIn, matColorHe
         rail: railTexture
             ? { texture: railTexture.bytes, ...surface }
             : { baseColor: [...hexToRgb(frame?.baseColor), 1], ...surface },
+        // Only ever referenced by the mesh when loadCornerTexture actually
+        // resolved (hasCorner above), so there is no baseColor fallback
+        // branch to write here the way there is for `rail`.
+        railCorner: { texture: cornerTexture?.bytes, ...surface },
         art: { texture: artTexture, metallic: 0, roughness: 0.55 },
         // Mat board is uncoated stock — flat, and never shiny.
         mat: { baseColor: [...hexToRgb(matColorHex || '#ffffff'), 1], metallic: 0, roughness: 0.94 },

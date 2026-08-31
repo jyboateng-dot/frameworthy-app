@@ -138,6 +138,48 @@ export async function loadRailTexture(frame) {
 }
 
 /**
+ * A frame's real photographed mitre corner, pre-cropped to a square tile
+ * by scripts/build-corner-textures.mjs. Draped over the small wedge of
+ * geometry at each of the 4 corners (see frameMesh.js) so the join shows
+ * actual photographed material and lighting instead of the tiled rail
+ * strip continuing unbroken through the mitre.
+ *
+ * Returns null for the 91/341 frames with no corner photography, or if
+ * the one candidate fails to load — the caller falls back to the plain
+ * full-length rail sweep it already had before this existed.
+ */
+function cornerCandidates(frame) {
+    const id = frame?.id;
+    const rail = FRAME_RAILS.rails?.[id];
+    const version = encodeURIComponent(FRAME_RAILS.generatedAt || 'current');
+    return rail?.corner ? [`${rail.corner}?v=${version}`] : [];
+}
+
+export async function loadCornerTexture(frame) {
+    for (const src of cornerCandidates(frame)) {
+        try {
+            const img = await loadImage(src);
+            if (!img.naturalWidth || !img.naturalHeight) continue;
+
+            const scale = Math.min(1, MAX_RAIL_PX / Math.max(img.naturalWidth, img.naturalHeight));
+            const w = Math.max(2, Math.round(img.naturalWidth * scale));
+            const h = Math.max(2, Math.round(img.naturalHeight * scale));
+
+            const canvas = document.createElement('canvas');
+            canvas.width = w;
+            canvas.height = h;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, w, h);
+
+            return { bytes: await canvasToPngBytes(canvas) };
+        } catch {
+            // Try the next candidate rather than failing the whole model.
+        }
+    }
+    return null;
+}
+
+/**
  * The artwork panel, composited to the artwork's own aspect ratio.
  *
  * Cover-fits rather than letterboxes, because the panel's geometry is
