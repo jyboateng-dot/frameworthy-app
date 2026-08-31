@@ -21,7 +21,7 @@ const CAROUSEL_SLIDES = [
         text: "Turn your empty corridors into a beautiful walking gallery of your life's greatest moments and art."
     },
     {
-        img: 'https://res.cloudinary.com/uucoqdzr/image/upload/v1785108111/landing_carousel/album-cover.jpg',
+        img: '/landing_carousel/album-cover.jpg',
         title: "Frame Your Favorite Album Covers",
         text: "Search for your favorite artist and easily frame their iconic album covers."
     },
