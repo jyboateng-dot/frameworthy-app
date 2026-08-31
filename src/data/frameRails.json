@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-31T00:14:41.489Z",
+  "generatedAt": "2026-08-31T00:46:10.107Z",
   "stripLength": 1024,
   "byQuality": {
     "cropped-from-frame": 40,
@@ -109,8 +109,7 @@
       "v": "/frames/rails/frame-10875-rail-v.webp",
       "thickness": 104,
       "sourceRole": "strip",
-      "quality": "scanned",
-      "corner": "/frames/rails/frame-10875-corner.webp"
+      "quality": "scanned"
     },
     "frame-9565": {
       "h": "/frames/rails/frame-9565-rail-h.webp",
@@ -263,8 +262,7 @@
       "v": "/frames/rails/frame-83885-rail-v.webp",
       "thickness": 87,
       "sourceRole": "corner",
-      "quality": "derived-from-corner",
-      "corner": "/frames/rails/frame-83885-corner.webp"
+      "quality": "derived-from-corner"
     },
     "frame-9136": {
       "h": "/frames/rails/frame-9136-rail-h.webp",
@@ -547,8 +545,7 @@
       "v": "/frames/rails/frame-11168-rail-v.webp",
       "thickness": 164,
       "sourceRole": "rail",
-      "quality": "scanned",
-      "corner": "/frames/rails/frame-11168-corner.webp"
+      "quality": "scanned"
     },
     "frame-10236": {
       "h": "/frames/rails/frame-10236-rail-h.webp",
@@ -633,16 +630,14 @@
       "v": "/frames/rails/frame-10954-rail-v.webp",
       "thickness": 256,
       "sourceRole": "rail",
-      "quality": "scanned",
-      "corner": "/frames/rails/frame-10954-corner.webp"
+      "quality": "scanned"
     },
     "frame-11219": {
       "h": "/frames/rails/frame-11219-rail-h.webp",
       "v": "/frames/rails/frame-11219-rail-v.webp",
       "thickness": 256,
       "sourceRole": "corner",
-      "quality": "derived-from-corner",
-      "corner": "/frames/rails/frame-11219-corner.webp"
+      "quality": "derived-from-corner"
     },
     "frame-10486": {
       "h": "/frames/rails/frame-10486-rail-h.webp",
@@ -712,8 +707,7 @@
       "v": "/frames/rails/frame-10812-rail-v.webp",
       "thickness": 224,
       "sourceRole": "rail",
-      "quality": "scanned",
-      "corner": "/frames/rails/frame-10812-corner.webp"
+      "quality": "scanned"
     },
     "frame-83997": {
       "h": "/frames/rails/frame-83997-rail-h.webp",
@@ -742,16 +736,14 @@
       "v": "/frames/rails/frame-84089-rail-v.webp",
       "thickness": 256,
       "sourceRole": "corner",
-      "quality": "derived-from-corner",
-      "corner": "/frames/rails/frame-84089-corner.webp"
+      "quality": "derived-from-corner"
     },
     "frame-84090": {
       "h": "/frames/rails/frame-84090-rail-h.webp",
       "v": "/frames/rails/frame-84090-rail-v.webp",
       "thickness": 256,
       "sourceRole": "corner",
-      "quality": "derived-from-corner",
-      "corner": "/frames/rails/frame-84090-corner.webp"
+      "quality": "derived-from-corner"
     },
     "frame-80997": {
       "h": "/frames/rails/frame-80997-rail-h.webp",
@@ -865,8 +857,7 @@
       "v": "/frames/rails/frame-84164-rail-v.webp",
       "thickness": 217,
       "sourceRole": "corner",
-      "quality": "derived-from-corner",
-      "corner": "/frames/rails/frame-84164-corner.webp"
+      "quality": "derived-from-corner"
     },
     "frame-1831": {
       "h": "/frames/rails/frame-1831-rail-h.webp",
@@ -912,16 +903,14 @@
       "v": "/frames/rails/frame-11136-rail-v.webp",
       "thickness": 256,
       "sourceRole": "rail",
-      "quality": "scanned",
-      "corner": "/frames/rails/frame-11136-corner.webp"
+      "quality": "scanned"
     },
     "frame-11137": {
       "h": "/frames/rails/frame-11137-rail-h.webp",
       "v": "/frames/rails/frame-11137-rail-v.webp",
       "thickness": 199,
       "sourceRole": "rail",
-      "quality": "scanned",
-      "corner": "/frames/rails/frame-11137-corner.webp"
+      "quality": "scanned"
     },
     "frame-11004": {
       "h": "/frames/rails/frame-11004-rail-h.webp",
@@ -1010,8 +999,7 @@
       "v": "/frames/rails/frame-10898-rail-v.webp",
       "thickness": 238,
       "sourceRole": "rail",
-      "quality": "scanned",
-      "corner": "/frames/rails/frame-10898-corner.webp"
+      "quality": "scanned"
     },
     "frame-8752": {
       "h": "/frames/rails/frame-8752-rail-h.webp",
@@ -1025,8 +1013,7 @@
       "v": "/frames/rails/frame-10728-rail-v.webp",
       "thickness": 186,
       "sourceRole": "rail",
-      "quality": "scanned",
-      "corner": "/frames/rails/frame-10728-corner.webp"
+      "quality": "scanned"
     },
     "frame-7111": {
       "h": "/frames/rails/frame-7111-rail-h.webp",
@@ -1165,8 +1152,7 @@
       "v": "/frames/rails/frame-10772-rail-v.webp",
       "thickness": 194,
       "sourceRole": "corner",
-      "quality": "derived-from-corner",
-      "corner": "/frames/rails/frame-10772-corner.webp"
+      "quality": "derived-from-corner"
     },
     "frame-83734": {
       "h": "/frames/rails/frame-83734-rail-h.webp",
@@ -1250,8 +1236,7 @@
       "v": "/frames/rails/frame-84038-rail-v.webp",
       "thickness": 256,
       "sourceRole": "corner",
-      "quality": "derived-from-corner",
-      "corner": "/frames/rails/frame-84038-corner.webp"
+      "quality": "derived-from-corner"
     },
     "frame-84068": {
       "h": "/frames/rails/frame-84068-rail-h.webp",
@@ -1528,8 +1513,7 @@
       "v": "/frames/rails/frame-203-rail-v.webp",
       "thickness": 256,
       "sourceRole": "rail",
-      "quality": "scanned",
-      "corner": "/frames/rails/frame-203-corner.webp"
+      "quality": "scanned"
     },
     "frame-202": {
       "h": "/frames/rails/frame-202-rail-h.webp",
@@ -1605,8 +1589,7 @@
       "v": "/frames/rails/frame-10487-rail-v.webp",
       "thickness": 256,
       "sourceRole": "rail",
-      "quality": "scanned",
-      "corner": "/frames/rails/frame-10487-corner.webp"
+      "quality": "scanned"
     },
     "frame-8372": {
       "h": "/frames/rails/frame-8372-rail-h.webp",
@@ -1886,8 +1869,7 @@
       "v": "/frames/rails/frame-11250-rail-v.webp",
       "thickness": 247,
       "sourceRole": "rail",
-      "quality": "scanned",
-      "corner": "/frames/rails/frame-11250-corner.webp"
+      "quality": "scanned"
     },
     "frame-11254": {
       "h": "/frames/rails/frame-11254-rail-h.webp",
@@ -1948,32 +1930,28 @@
       "v": "/frames/rails/frame-84024-rail-v.webp",
       "thickness": 236,
       "sourceRole": "corner",
-      "quality": "derived-from-corner",
-      "corner": "/frames/rails/frame-84024-corner.webp"
+      "quality": "derived-from-corner"
     },
     "frame-11259": {
       "h": "/frames/rails/frame-11259-rail-h.webp",
       "v": "/frames/rails/frame-11259-rail-v.webp",
       "thickness": 166,
       "sourceRole": "corner",
-      "quality": "derived-from-corner",
-      "corner": "/frames/rails/frame-11259-corner.webp"
+      "quality": "derived-from-corner"
     },
     "frame-11258": {
       "h": "/frames/rails/frame-11258-rail-h.webp",
       "v": "/frames/rails/frame-11258-rail-v.webp",
       "thickness": 256,
       "sourceRole": "corner",
-      "quality": "derived-from-corner",
-      "corner": "/frames/rails/frame-11258-corner.webp"
+      "quality": "derived-from-corner"
     },
     "frame-84027": {
       "h": "/frames/rails/frame-84027-rail-h.webp",
       "v": "/frames/rails/frame-84027-rail-v.webp",
       "thickness": 256,
       "sourceRole": "corner",
-      "quality": "derived-from-corner",
-      "corner": "/frames/rails/frame-84027-corner.webp"
+      "quality": "derived-from-corner"
     },
     "frame-6711": {
       "h": "/frames/rails/frame-6711-rail-h.webp",
@@ -2020,8 +1998,7 @@
       "v": "/frames/rails/frame-11164-rail-v.webp",
       "thickness": 167,
       "sourceRole": "rail",
-      "quality": "scanned",
-      "corner": "/frames/rails/frame-11164-corner.webp"
+      "quality": "scanned"
     },
     "frame-83961": {
       "h": "/frames/rails/frame-83961-rail-h.webp",
@@ -2036,8 +2013,7 @@
       "v": "/frames/rails/frame-84039-rail-v.webp",
       "thickness": 256,
       "sourceRole": "corner",
-      "quality": "derived-from-corner",
-      "corner": "/frames/rails/frame-84039-corner.webp"
+      "quality": "derived-from-corner"
     },
     "frame-84069": {
       "h": "/frames/rails/frame-84069-rail-h.webp",
@@ -2143,8 +2119,7 @@
       "v": "/frames/rails/frame-84082-rail-v.webp",
       "thickness": 256,
       "sourceRole": "corner",
-      "quality": "derived-from-corner",
-      "corner": "/frames/rails/frame-84082-corner.webp"
+      "quality": "derived-from-corner"
     },
     "frame-6301": {
       "h": "/frames/rails/frame-6301-rail-h.webp",
@@ -2281,8 +2256,7 @@
       "v": "/frames/rails/frame-10587-rail-v.webp",
       "thickness": 256,
       "sourceRole": "rail",
-      "quality": "scanned",
-      "corner": "/frames/rails/frame-10587-corner.webp"
+      "quality": "scanned"
     },
     "frame-10643": {
       "h": "/frames/rails/frame-10643-rail-h.webp",
@@ -2297,8 +2271,7 @@
       "v": "/frames/rails/frame-8989-rail-v.webp",
       "thickness": 212,
       "sourceRole": "rail",
-      "quality": "scanned",
-      "corner": "/frames/rails/frame-8989-corner.webp"
+      "quality": "scanned"
     },
     "frame-10732": {
       "h": "/frames/rails/frame-10732-rail-h.webp",
@@ -2320,8 +2293,7 @@
       "v": "/frames/rails/frame-10485-rail-v.webp",
       "thickness": 256,
       "sourceRole": "rail",
-      "quality": "scanned",
-      "corner": "/frames/rails/frame-10485-corner.webp"
+      "quality": "scanned"
     },
     "frame-11234": {
       "h": "/frames/rails/frame-11234-rail-h.webp",
@@ -2357,8 +2329,7 @@
       "v": "/frames/rails/frame-84131-rail-v.webp",
       "thickness": 256,
       "sourceRole": "corner",
-      "quality": "derived-from-corner",
-      "corner": "/frames/rails/frame-84131-corner.webp"
+      "quality": "derived-from-corner"
     },
     "frame-83536": {
       "h": "/frames/rails/frame-83536-rail-h.webp",
@@ -2535,8 +2506,7 @@
       "v": "/frames/rails/frame-10835-rail-v.webp",
       "thickness": 256,
       "sourceRole": "rail",
-      "quality": "scanned",
-      "corner": "/frames/rails/frame-10835-corner.webp"
+      "quality": "scanned"
     },
     "frame-9654": {
       "h": "/frames/rails/frame-9654-rail-h.webp",
@@ -2565,8 +2535,7 @@
       "v": "/frames/rails/frame-9945-rail-v.webp",
       "thickness": 256,
       "sourceRole": "rail",
-      "quality": "scanned",
-      "corner": "/frames/rails/frame-9945-corner.webp"
+      "quality": "scanned"
     },
     "frame-9658": {
       "h": "/frames/rails/frame-9658-rail-h.webp",
@@ -2580,24 +2549,21 @@
       "v": "/frames/rails/frame-8991-rail-v.webp",
       "thickness": 256,
       "sourceRole": "rail",
-      "quality": "scanned",
-      "corner": "/frames/rails/frame-8991-corner.webp"
+      "quality": "scanned"
     },
     "frame-80299": {
       "h": "/frames/rails/frame-80299-rail-h.webp",
       "v": "/frames/rails/frame-80299-rail-v.webp",
       "thickness": 256,
       "sourceRole": "corner",
-      "quality": "derived-from-corner",
-      "corner": "/frames/rails/frame-80299-corner.webp"
+      "quality": "derived-from-corner"
     },
     "frame-83530": {
       "h": "/frames/rails/frame-83530-rail-h.webp",
       "v": "/frames/rails/frame-83530-rail-v.webp",
       "thickness": 246,
       "sourceRole": "corner",
-      "quality": "derived-from-corner",
-      "corner": "/frames/rails/frame-83530-corner.webp"
+      "quality": "derived-from-corner"
     },
     "frame-6540": {
       "h": "/frames/rails/frame-6540-rail-h.webp",
@@ -2620,8 +2586,7 @@
       "v": "/frames/rails/frame-11211-rail-v.webp",
       "thickness": 124,
       "sourceRole": "strip",
-      "quality": "scanned",
-      "corner": "/frames/rails/frame-11211-corner.webp"
+      "quality": "scanned"
     },
     "frame-11235": {
       "h": "/frames/rails/frame-11235-rail-h.webp",
@@ -2642,8 +2607,7 @@
       "v": "/frames/rails/frame-84163-rail-v.webp",
       "thickness": 166,
       "sourceRole": "strip",
-      "quality": "scanned",
-      "corner": "/frames/rails/frame-84163-corner.webp"
+      "quality": "scanned"
     }
   }
 }
