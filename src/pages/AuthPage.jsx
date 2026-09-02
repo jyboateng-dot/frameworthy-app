@@ -26,7 +26,7 @@ const CAROUSEL_SLIDES = [
         text: "Search for your favorite artist and easily frame their iconic album covers."
     },
     {
-        img: '/landing_carousel/slide-3.jpg',
+        img: '/hero_slide_1.jpg',
         title: "Endless Possibilities",
         text: "Choose from over 300 different premium frame styles."
     },

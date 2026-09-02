@@ -25,7 +25,7 @@ export const CAROUSEL_SLIDES = [
         text: "Search for your favorite movies and easily frame their iconic posters ready for your wall."
     },
     {
-        img: '/landing_carousel/slide-3.jpg',
+        img: '/hero_slide_1.jpg',
         title: "Endless Possibilities",
         text: "Choose from over 300 different premium frame styles."
     },
