@@ -46,6 +46,13 @@
         }
       },
       {
+        "source": "/api/import-image-url",
+        "function": {
+          "functionId": "importImageFromUrl",
+          "region": "us-central1"
+        }
+      },
+      {
         "source": "/api/ar-relay",
         "function": {
           "functionId": "arRelay",

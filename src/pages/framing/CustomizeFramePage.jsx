@@ -26,6 +26,7 @@ import { useCart } from '../../context/CartContext';
 import { uploadImageToCloud, getThumbnailUrl } from '../../services/storage';
 import FrameSelectionModal from '../../components/FrameSelectionModal';
 import ImageUploadField from '../../components/framing/ImageUploadField';
+import ImageUrlImportField from '../../components/framing/ImageUrlImportField';
 import SizeGuidePanel from '../../components/framing/SizeGuidePanel';
 import ArViewer from '../../components/framing/ArViewer';
 import { clearArModelCache } from '../../utils/ar/buildArModel';
@@ -3127,6 +3128,11 @@ const CustomizeFramePage = ({
                                 <span className="mt-1 text-[10px] font-bold uppercase tracking-wider text-stone-700 truncate w-full">Inspiration</span>
                             </button>
                         </div>
+
+                        {/* Third upload path: paste a link, fetched server-side (see
+                            functions/index.js's importImageFromUrl) rather than through
+                            Uploadcare's own "From link" source, which is paid-locked. */}
+                        <ImageUrlImportField onFile={applyImageFile} disabled={isUploading} />
                     </section>
 
 

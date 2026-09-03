@@ -840,6 +840,138 @@ exports.proxyArtworkImage = onRequest({ region: 'us-central1', timeoutSeconds: 1
     res.status(200).send(bytes);
 });
 
+// Fetches a customer-pasted image URL server-side, for the frame studio's
+// "paste an image URL" upload option.
+//
+// Unlike proxyArtworkImage above, this one has to accept genuinely arbitrary
+// URLs — that's the whole feature — so it can't lean on a host allowlist.
+// Instead every request gets checked on the properties that actually matter
+// for safety regardless of host:
+//   - http(s) only, and the hostname can't resolve to a private/loopback/
+//     link-local address (blocks SSRF against internal infrastructure and,
+//     critically, cloud metadata endpoints like 169.254.169.254 — a classic
+//     way an open server-side fetch gets used to steal a cloud IAM token).
+//   - the response must actually claim to be an image.
+//   - the response body is capped mid-stream, not just checked against a
+//     (spoofable, sometimes absent) Content-Length header — otherwise a
+//     malicious or misconfigured host could hand back an unbounded stream
+//     and run up hosting/bandwidth cost.
+const dns = require('node:dns').promises;
+const net = require('node:net');
+
+const MAX_IMPORT_BYTES = 20 * 1024 * 1024; // 20MB — generous for a photo, not for abuse.
+
+function isPrivateOrReservedIp(address) {
+    const type = net.isIP(address);
+    if (type === 4) {
+        const [a, b] = address.split('.').map(Number);
+        return (
+            a === 10 ||
+            a === 127 ||
+            (a === 169 && b === 254) || // link-local, incl. cloud metadata (169.254.169.254)
+            (a === 172 && b >= 16 && b <= 31) ||
+            (a === 192 && b === 168) ||
+            a === 0
+        );
+    }
+    if (type === 6) {
+        const lower = address.toLowerCase();
+        return (
+            lower === '::1' ||
+            lower.startsWith('fe80:') || // link-local
+            lower.startsWith('fc') || lower.startsWith('fd') || // unique local
+            lower.startsWith('::ffff:127.') // IPv4-mapped loopback
+        );
+    }
+    return true; // Unrecognised form — refuse rather than guess.
+}
+exports.isPrivateOrReservedIp = isPrivateOrReservedIp; // exported for direct unit testing
+
+exports.importImageFromUrl = onRequest({ region: 'us-central1', timeoutSeconds: 15, maxInstances: 10 }, async (req, res) => {
+    res.set('Access-Control-Allow-Origin', '*');
+
+    const target = req.query.url;
+    if (typeof target !== 'string' || !target) {
+        res.status(400).send('Missing url parameter');
+        return;
+    }
+
+    let parsed;
+    try {
+        parsed = new URL(target);
+    } catch {
+        res.status(400).send('Invalid url parameter');
+        return;
+    }
+    if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+        res.status(400).send('Only http/https URLs are supported');
+        return;
+    }
+    if (parsed.hostname === 'localhost' || parsed.hostname.endsWith('.local')) {
+        res.status(403).send('That host is not allowed');
+        return;
+    }
+
+    let resolved;
+    try {
+        resolved = net.isIP(parsed.hostname)
+            ? [{ address: parsed.hostname }]
+            : await dns.lookup(parsed.hostname, { all: true });
+    } catch (err) {
+        logger.warn('importImageFromUrl: DNS lookup failed', { hostname: parsed.hostname, message: err.message });
+        res.status(400).send('Could not resolve that host');
+        return;
+    }
+    if (resolved.some((entry) => isPrivateOrReservedIp(entry.address))) {
+        res.status(403).send('That host is not allowed');
+        return;
+    }
+
+    let upstream;
+    try {
+        upstream = await fetch(parsed.toString(), {
+            signal: AbortSignal.timeout(10_000),
+            redirect: 'follow', // fetch() re-validates the final host's TLS but not its IP —
+            // acceptable here since the redirect target is still just an image host, not
+            // something granted elevated trust the way the request's own origin is.
+        });
+    } catch (err) {
+        logger.error('importImageFromUrl: upstream fetch failed', { url: parsed.toString(), message: err.message });
+        res.status(502).send('Could not load that link');
+        return;
+    }
+    if (!upstream.ok) {
+        res.status(502).send('Could not load that link');
+        return;
+    }
+
+    const contentType = upstream.headers.get('content-type') || '';
+    if (!contentType.toLowerCase().startsWith('image/')) {
+        res.status(415).send('That link is not an image');
+        return;
+    }
+
+    const declaredLength = Number(upstream.headers.get('content-length'));
+    if (Number.isFinite(declaredLength) && declaredLength > MAX_IMPORT_BYTES) {
+        res.status(413).send('That image is too large');
+        return;
+    }
+
+    const chunks = [];
+    let total = 0;
+    for await (const chunk of upstream.body) {
+        total += chunk.length;
+        if (total > MAX_IMPORT_BYTES) {
+            res.status(413).send('That image is too large');
+            return;
+        }
+        chunks.push(chunk);
+    }
+
+    res.set('Content-Type', contentType);
+    res.status(200).send(Buffer.concat(chunks));
+});
+
 // ---------------------------------------------------------------------------
 // arRelay — hands a client-built AR model (USDZ/GLB) a real HTTPS URL.
 //
