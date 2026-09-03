@@ -15,14 +15,13 @@ const GOOGLE_PHOTOS_CLIENT_ID = import.meta.env.VITE_GOOGLE_PHOTOS_CLIENT_ID;
 // change. See cloud-upload-feature memory.
 const SHOW_EXTRA_SOURCES = false;
 
-// Sources shown inside Uploadcare's own popup. The cloud ones (gdrive,
-// dropbox) must ALSO be switched on in the Uploadcare dashboard (Settings →
-// File Uploader → Upload sources) or they won't appear. gphotos/url are
-// listed too, but both are locked behind Uploadcare's paid plan — they're
-// left in the list in case that ever changes, but "Paste an image link" and
-// "Import from Google Photos" below are this app's own free replacements
-// for those two, not duplicates.
-const SOURCE_LIST = 'local, camera, url, gdrive, gphotos, dropbox, onedrive';
+// Sources shown inside Uploadcare's own popup. Deliberately excludes url,
+// gphotos and onedrive — all three are locked behind Uploadcare's paid plan
+// on this account, so listing them just shows customers a tab that doesn't
+// work. gdrive/dropbox must ALSO be switched on in the Uploadcare dashboard
+// (Settings → File Uploader → Upload sources) or they won't appear either.
+// If Uploadcare's plan is ever upgraded, add the locked ones back here.
+const SOURCE_LIST = 'local, camera, gdrive, dropbox';
 
 /**
  * The single "Upload Image / Replace Image" tile in the frame studio.
