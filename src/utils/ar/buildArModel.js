@@ -3,7 +3,7 @@ import { buildFrameMesh } from './frameMesh';
 import { buildHardwareParts } from './frameHardware';
 import { buildGlb } from './glbWriter';
 import { buildUsda, packUsdz } from './usdzWriter';
-import { loadRailTexture, loadCornerTexture, renderArtworkTexture, renderSolidTexture } from './arTextures';
+import { loadRailTexture, renderArtworkTexture } from './arTextures';
 
 /**
  * Builds the pair of models the AR viewer needs — .glb for Android and
@@ -88,13 +88,10 @@ export async function buildArModel({ frame, widthIn, heightIn, matIn, matColorHe
     const renderProfile = getFrameRenderProfile(frame);
     const surface = FINISH_SURFACE[renderProfile.finish] || FINISH_SURFACE.matte;
 
-    // Corner-photo texturing is temporarily disabled — see the long
-    // comment on hasCorner below. Still loaded (rather than skipping
-    // the fetch) so re-enabling this is the one-line change described
-    // there once the underlying texture-mapping problem has a real fix.
-    const [railTexture, cornerTexture, artTexture] = await Promise.all([
-        loadRailTexture(frame),
-        loadCornerTexture(frame),
+    const [railTexture, artTexture] = await Promise.all([
+        // Exposure parity with the 2D asset makes a dynamic normal map
+        // inappropriate here: unlit materials intentionally ignore it.
+        loadRailTexture(frame, { includeNormal: false }),
         renderArtworkTexture(artworkUrl, widthIn, heightIn),
     ]);
 
@@ -138,22 +135,30 @@ export async function buildArModel({ frame, widthIn, heightIn, matIn, matColorHe
 
     const materials = {
         rail: railTexture
-            ? { texture: railTexture.bytes, ...surface }
-            : { baseColor: [...hexToRgb(frame?.baseColor), 1], ...surface },
-        // Only ever referenced by the mesh when loadCornerTexture actually
-        // resolved (hasCorner above), so there is no baseColor fallback
-        // branch to write here the way there is for `rail`.
-        railCorner: { texture: cornerTexture?.bytes, ...surface },
-        art: { texture: artTexture, metallic: 0, roughness: 0.55 },
+            ? {
+                texture: railTexture.bytes,
+                unlit: true,
+                ...surface,
+            }
+            : { baseColor: [...hexToRgb(frame?.baseColor), 1], unlit: true, ...surface },
+        art: {
+            texture: artTexture,
+            // Match the colour-managed 2D preview exactly. Lighting is
+            // reserved for the physical frame construction; otherwise
+            // AR environment probes alter artwork exposure and colour.
+            unlit: true,
+            metallic: 0,
+            roughness: 1,
+        },
         // Mat board is uncoated stock — flat, and never shiny.
-        mat: { baseColor: [...hexToRgb(matColorHex || '#ffffff'), 1], metallic: 0, roughness: 0.94 },
+        mat: { baseColor: [...hexToRgb(matColorHex || '#ffffff'), 1], unlit: true, metallic: 0, roughness: 0.94 },
         // The bevel is the board's own cut core, which is near-white on
         // conservation stock whatever the surface colour is.
-        matBevel: { baseColor: [...hexToRgb('#f7f4ee'), 1], metallic: 0, roughness: 0.88 },
-        backing: { baseColor: [...hexToRgb('#2e2a26'), 1], metallic: 0, roughness: 1 },
+        matBevel: { baseColor: [...hexToRgb('#f7f4ee'), 1], unlit: true, metallic: 0, roughness: 0.88 },
+        backing: { baseColor: [...hexToRgb('#2e2a26'), 1], unlit: true, metallic: 0, roughness: 1 },
         // Plated steel fittings — bright enough to separate from the
         // dark backing board behind them, but not mirror-polished.
-        hardware: { baseColor: [...hexToRgb('#9a9ea3'), 1], metallic: 0.9, roughness: 0.34 },
+        hardware: { baseColor: [...hexToRgb('#9a9ea3'), 1], unlit: true, metallic: 0.9, roughness: 0.34 },
     };
 
     // Only ship materials the mesh actually references — a matless
@@ -169,9 +174,12 @@ export async function buildArModel({ frame, widthIn, heightIn, matIn, matColorHe
     const usda = buildUsda({ parts: mesh.parts, materials: activeMaterials });
     const usdzEntries = [
         { name: 'frame.usda', bytes: new TextEncoder().encode(usda) },
-        ...Object.entries(activeMaterials)
-            .filter(([, spec]) => spec.texture)
-            .map(([name, spec]) => ({ name: `textures/${name}.png`, bytes: spec.texture })),
+        ...Object.entries(activeMaterials).flatMap(([name, spec]) => [
+            spec.texture ? { name: `textures/${name}.png`, bytes: spec.texture } : null,
+            spec.normalTexture
+                ? { name: `textures/${name}-normal.png`, bytes: spec.normalTexture }
+                : null,
+        ].filter(Boolean)),
     ];
     const usdz = packUsdz(usdzEntries);
 

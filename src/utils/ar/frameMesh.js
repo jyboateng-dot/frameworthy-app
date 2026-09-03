@@ -211,7 +211,10 @@ export function buildFrameMesh({
     // gallery moulding shows its grain at 4in scale rather than at
     // whatever looked right on a 1in sample.
     const tileLengthM = mouldingWidthIn * railTileAspect * IN_TO_M;
-    const repeatFor = (lengthM) => Math.max(1, Math.round(lengthM / Math.max(tileLengthM, 1e-4)));
+    // Preserve the photographed strip's physical scale. Rounding to a
+    // whole repeat stretched or compressed moulding details differently
+    // at every frame size; fractional repeat is valid with REPEAT wrap.
+    const repeatFor = (lengthM) => Math.max(0.01, lengthM / Math.max(tileLengthM, 1e-4));
 
     const railPart = new MeshPart('rail');
     const cornerPart = new MeshPart('railCorner');

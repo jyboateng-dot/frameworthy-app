@@ -96,11 +96,23 @@ function materialBlock(name, spec) {
     const path = `/Frame/Materials/${name}`;
     const [r, g, b] = spec.baseColor || [1, 1, 1, 1];
 
-    const diffuse = spec.texture
-        ? `color3f inputs:diffuseColor.connect = <${path}/Texture.outputs:rgb>`
-        : `color3f inputs:diffuseColor = (${fmt(r)}, ${fmt(g)}, ${fmt(b)})`;
+    const diffuse = spec.unlit
+        ? 'color3f inputs:diffuseColor = (0, 0, 0)'
+        : spec.texture
+            ? `color3f inputs:diffuseColor.connect = <${path}/Texture.outputs:rgb>`
+            : `color3f inputs:diffuseColor = (${fmt(r)}, ${fmt(g)}, ${fmt(b)})`;
+    const emissive = spec.unlit
+        ? spec.texture
+            ? `color3f inputs:emissiveColor.connect = <${path}/Texture.outputs:rgb>`
+            : `color3f inputs:emissiveColor = (${fmt(r)}, ${fmt(g)}, ${fmt(b)})`
+        : '';
 
-    const textureShaders = spec.texture
+    const normalInput = spec.normalTexture
+        ? `normal3f inputs:normal.connect = <${path}/NormalTexture.outputs:rgb>`
+        : '';
+    const needsUvReader = spec.texture || spec.normalTexture;
+    const textureFactor = spec.textureFactor || [1, 1, 1, 1];
+    const textureShaders = needsUvReader
         ? `
         def Shader "uvReader"
         {
@@ -109,15 +121,29 @@ function materialBlock(name, spec) {
             float2 outputs:result
         }
 
-        def Shader "Texture"
+        ${spec.texture ? `def Shader "Texture"
         {
             uniform token info:id = "UsdUVTexture"
             asset inputs:file = @textures/${name}.png@
+            float4 inputs:scale = (${textureFactor.map(fmt).join(', ')})
+            token inputs:sourceColorSpace = "sRGB"
             float2 inputs:st.connect = <${path}/uvReader.outputs:result>
             token inputs:wrapS = "repeat"
             token inputs:wrapT = "repeat"
             float3 outputs:rgb
-        }`
+        }` : ''}
+        ${spec.normalTexture ? `def Shader "NormalTexture"
+        {
+            uniform token info:id = "UsdUVTexture"
+            asset inputs:file = @textures/${name}-normal.png@
+            float4 inputs:scale = (2, 2, 2, 2)
+            float4 inputs:bias = (-1, -1, -1, -1)
+            token inputs:sourceColorSpace = "raw"
+            float2 inputs:st.connect = <${path}/uvReader.outputs:result>
+            token inputs:wrapS = "repeat"
+            token inputs:wrapT = "repeat"
+            float3 outputs:rgb
+        }` : ''}`
         : '';
 
     return `
@@ -129,6 +155,8 @@ function materialBlock(name, spec) {
         {
             uniform token info:id = "UsdPreviewSurface"
             ${diffuse}
+            ${emissive}
+            ${normalInput}
             float inputs:metallic = ${fmt(spec.metallic ?? 0)}
             float inputs:roughness = ${fmt(spec.roughness ?? 0.8)}
             float inputs:opacity = 1

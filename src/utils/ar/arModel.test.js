@@ -11,6 +11,7 @@ import { buildGlb } from './glbWriter';
 import { buildUsda, packUsdz } from './usdzWriter';
 import { buildCrossSection, SUPPORTED_PROFILES } from './frameProfiles';
 import { buildHardwareParts } from './frameHardware';
+import { buildNormalPixels } from './arTextures';
 
 const IN_TO_M = 0.0254;
 
@@ -209,6 +210,47 @@ describe('frame mesh', () => {
             .reduce((m, u) => Math.max(m, u), 0);
         expect(maxU(long)).toBeGreaterThan(maxU(short));
     });
+
+    it('keeps rail photography at its measured physical scale', () => {
+        const railTileAspect = 4;
+        const mouldingWidthIn = 1.25;
+        const mesh = sampleMesh({ railTileAspect, mouldingWidthIn });
+        const maxU = mesh.parts
+            .find((p) => p.material === 'rail')
+            .uvs.filter((_, i) => i % 2 === 0)
+            .reduce((m, u) => Math.max(m, u), 0);
+        const tileLengthM = railTileAspect * mouldingWidthIn * IN_TO_M;
+        const longestRailM = Math.max(mesh.outerWidthM, mesh.outerHeightM);
+        expect(maxU).toBeCloseTo(longestRailM / tileLengthM, 6);
+    });
+});
+
+describe('asset-derived normal maps', () => {
+    it('keeps a flat photograph neutral', () => {
+        const rgba = new Uint8ClampedArray([
+            120, 120, 120, 255, 120, 120, 120, 255,
+            120, 120, 120, 255, 120, 120, 120, 255,
+        ]);
+        const normal = buildNormalPixels(rgba, 2, 2);
+        for (let i = 0; i < normal.length; i += 4) {
+            expect(normal[i]).toBeCloseTo(128, 0);
+            expect(normal[i + 1]).toBeCloseTo(128, 0);
+            expect(normal[i + 2]).toBe(255);
+            expect(normal[i + 3]).toBe(255);
+        }
+    });
+
+    it('turns a photographed edge into restrained surface relief', () => {
+        const rgba = new Uint8ClampedArray([
+            0, 0, 0, 255, 0, 0, 0, 255, 255, 255, 255, 255,
+            0, 0, 0, 255, 0, 0, 0, 255, 255, 255, 255, 255,
+            0, 0, 0, 255, 0, 0, 0, 255, 255, 255, 255, 255,
+        ]);
+        const normal = buildNormalPixels(rgba, 3, 3);
+        const center = (1 * 3 + 1) * 4;
+        expect(normal[center]).not.toBe(128);
+        expect(normal[center + 2]).toBeGreaterThan(200);
+    });
 });
 
 describe('hanging hardware', () => {
@@ -338,6 +380,40 @@ describe('glb container', () => {
             expect(primitive.material).toBeLessThan(json.materials.length);
         }
     });
+
+    it('embeds and binds a lighting-responsive rail normal map', () => {
+        const mesh = sampleMesh({ matIn: 0 });
+        const materials = solidMaterials(mesh.parts);
+        materials.rail = {
+            texture: new Uint8Array([1, 2, 3, 4]),
+            normalTexture: new Uint8Array([5, 6, 7, 8]),
+            normalScale: 0.65,
+            metallic: 0,
+            roughness: 0.7,
+        };
+        const { json } = parse(buildGlb({ parts: mesh.parts, materials }));
+        const rail = json.materials.find((material) => material.name === 'rail');
+        expect(json.images).toHaveLength(2);
+        expect(json.textures).toHaveLength(2);
+        expect(rail.pbrMetallicRoughness.baseColorTexture.index).toBe(0);
+        expect(rail.normalTexture).toEqual({ index: 1, scale: 0.65 });
+    });
+
+    it('marks artwork unlit so AR lighting cannot alter its 2D exposure', () => {
+        const mesh = sampleMesh({ matIn: 0 });
+        const materials = solidMaterials(mesh.parts);
+        materials.art = {
+            texture: new Uint8Array([1, 2, 3, 4]),
+            unlit: true,
+            metallic: 0,
+            roughness: 1,
+        };
+        const { json } = parse(buildGlb({ parts: mesh.parts, materials }));
+        const art = json.materials.find((material) => material.name === 'art');
+        expect(art.pbrMetallicRoughness.baseColorFactor).toEqual([1, 1, 1, 1]);
+        expect(art.extensions).toEqual({ KHR_materials_unlit: {} });
+        expect(json.extensionsUsed).toContain('KHR_materials_unlit');
+    });
 });
 
 describe('usdz container', () => {
@@ -405,5 +481,51 @@ describe('usdz container', () => {
 
         expect(usda).not.toContain('Preliminary_AnchoringAPI');
         expect(usda).not.toContain('preliminary:anchoring');
+    });
+
+    it('binds rail relief as a raw tangent-space normal texture', () => {
+        const mesh = sampleMesh({ matIn: 0 });
+        const materials = solidMaterials(mesh.parts);
+        materials.rail = {
+            texture: new Uint8Array([1]),
+            normalTexture: new Uint8Array([2]),
+            metallic: 0,
+            roughness: 0.7,
+        };
+        const usda = buildUsda({ parts: mesh.parts, materials });
+        expect(usda).toContain('normal3f inputs:normal.connect = </Frame/Materials/rail/NormalTexture.outputs:rgb>');
+        expect(usda).toContain('asset inputs:file = @textures/rail-normal.png@');
+        expect(usda).toContain('token inputs:sourceColorSpace = "raw"');
+        expect(usda).toContain('float4 inputs:scale = (2, 2, 2, 2)');
+        expect(usda).toContain('float4 inputs:bias = (-1, -1, -1, -1)');
+    });
+
+    it('declares artwork colour space and keeps it independent of lighting', () => {
+        const mesh = sampleMesh({ matIn: 0 });
+        const materials = solidMaterials(mesh.parts);
+        materials.art = {
+            texture: new Uint8Array([1]),
+            unlit: true,
+            metallic: 0,
+            roughness: 1,
+        };
+        const usda = buildUsda({ parts: mesh.parts, materials });
+        expect(usda).toContain('asset inputs:file = @textures/art.png@');
+        expect(usda).toContain('token inputs:sourceColorSpace = "sRGB"');
+        expect(usda).toContain('color3f inputs:diffuseColor = (0, 0, 0)');
+        expect(usda).toContain('color3f inputs:emissiveColor.connect = </Frame/Materials/art/Texture.outputs:rgb>');
+    });
+
+    it('keeps flat untextured materials independent of AR lighting too', () => {
+        const mesh = sampleMesh({ matIn: 0 });
+        const materials = solidMaterials(mesh.parts);
+        materials.backing = {
+            baseColor: [0.2, 0.3, 0.4, 1],
+            unlit: true,
+            metallic: 0,
+            roughness: 1,
+        };
+        const usda = buildUsda({ parts: mesh.parts, materials });
+        expect(usda).toContain('color3f inputs:emissiveColor = (0.2, 0.3, 0.4)');
     });
 });

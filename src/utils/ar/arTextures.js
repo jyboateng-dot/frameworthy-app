@@ -80,9 +80,10 @@ export function canvasToPngBytes(canvas) {
 /**
  * Ordered candidates for a frame's rail photography, best first.
  *
- * The curated render asset wins over the generated rail because it was
- * cut against the moulding's own straight run; the generated rail is a
- * reconstruction from whatever source photo existed.
+ * The generated rail wins because the asset pipeline has already
+ * straightened, edge-filled, colour-normalised, and checked it for
+ * seamless repetition. The curated front strip remains the fallback
+ * for catalogues that have not yet been through that pipeline.
  */
 function railCandidates(frame) {
     const id = frame?.id;
@@ -91,9 +92,40 @@ function railCandidates(frame) {
     const version = encodeURIComponent(FRAME_RAILS.generatedAt || 'current');
 
     return [
-        profile?.frontTexture?.horizontalPath,
         rail?.h ? `${rail.h}?v=${version}` : null,
+        profile?.frontTexture?.horizontalPath,
     ].filter(Boolean);
+}
+
+/**
+ * Derive a conservative tangent-space normal map from photographed
+ * moulding luminance. This is deliberately shallow: it makes grain,
+ * grooves, embossing, and bevel lines respond to AR lighting without
+ * pretending broad colour changes are real displacement.
+ */
+export function buildNormalPixels(rgba, width, height, strength = 0.65) {
+    const out = new Uint8ClampedArray(rgba.length);
+    const luminanceAt = (x, y) => {
+        const px = Math.max(0, Math.min(width - 1, x));
+        const py = Math.max(0, Math.min(height - 1, y));
+        const i = (py * width + px) * 4;
+        return (rgba[i] * 0.2126 + rgba[i + 1] * 0.7152 + rgba[i + 2] * 0.0722) / 255;
+    };
+
+    for (let y = 0; y < height; y++) {
+        for (let x = 0; x < width; x++) {
+            // Central differences suppress single-pixel JPEG noise.
+            const dx = (luminanceAt(x + 1, y) - luminanceAt(x - 1, y)) * strength;
+            const dy = (luminanceAt(x, y + 1) - luminanceAt(x, y - 1)) * strength;
+            const invLength = 1 / Math.hypot(dx, dy, 1);
+            const i = (y * width + x) * 4;
+            out[i] = Math.round((-dx * invLength * 0.5 + 0.5) * 255);
+            out[i + 1] = Math.round((-dy * invLength * 0.5 + 0.5) * 255);
+            out[i + 2] = Math.round(invLength * 255);
+            out[i + 3] = 255;
+        }
+    }
+    return out;
 }
 
 /**
@@ -111,7 +143,7 @@ function railCandidates(frame) {
  * Returns null when no rail photography exists, leaving the caller to
  * fall back to the frame's flat catalogue colour.
  */
-export async function loadRailTexture(frame) {
+export async function loadRailTexture(frame, { includeNormal = true } = {}) {
     for (const src of railCandidates(frame)) {
         try {
             const img = await loadImage(src);
@@ -128,7 +160,24 @@ export async function loadRailTexture(frame) {
             const ctx = canvas.getContext('2d');
             ctx.drawImage(img, 0, 0, w, h);
 
-            return { bytes: await canvasToPngBytes(canvas), aspect };
+            if (!includeNormal) {
+                return { bytes: await canvasToPngBytes(canvas), normalBytes: null, aspect };
+            }
+
+            const pixels = ctx.getImageData(0, 0, w, h);
+            const normalCanvas = document.createElement('canvas');
+            normalCanvas.width = w;
+            normalCanvas.height = h;
+            const normalCtx = normalCanvas.getContext('2d');
+            const normalPixels = normalCtx.createImageData(w, h);
+            normalPixels.data.set(buildNormalPixels(pixels.data, w, h));
+            normalCtx.putImageData(normalPixels, 0, 0);
+
+            const [bytes, normalBytes] = await Promise.all([
+                canvasToPngBytes(canvas),
+                canvasToPngBytes(normalCanvas),
+            ]);
+            return { bytes, normalBytes, aspect };
         } catch {
             // Try the next candidate rather than failing the whole
             // model — a missing rail costs texture fidelity, not AR.

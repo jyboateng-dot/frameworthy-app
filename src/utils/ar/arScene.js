@@ -30,8 +30,13 @@ export class ArScene {
         });
         this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
         this.renderer.outputColorSpace = THREE.SRGBColorSpace;
-        this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
-        this.renderer.toneMappingExposure = 1.05;
+        // The 2D visualizer is ordinary colour-managed sRGB. ACES
+        // filmic tone mapping compressed whites and upper midtones even
+        // on unlit materials, making the same rail asset look darker in
+        // the 3D/AR preview. No tone mapping preserves pixel parity;
+        // photographed rail shading still supplies the visible detail.
+        this.renderer.toneMapping = THREE.NoToneMapping;
+        this.renderer.toneMappingExposure = 1;
 
         this.scene = new THREE.Scene();
         this.camera = new THREE.PerspectiveCamera(38, 1, 0.01, 40);

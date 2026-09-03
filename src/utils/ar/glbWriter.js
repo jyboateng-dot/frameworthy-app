@@ -100,6 +100,14 @@ export function buildGlb({ parts, materials }) {
     const textures = [];
     const gltfMaterials = [];
     const materialIndex = new Map();
+    let hasUnlitMaterial = false;
+
+    const packTexture = (bytes) => {
+        const viewIndex = packer.add(bytes);
+        images.push({ bufferView: viewIndex, mimeType: 'image/png' });
+        textures.push({ source: images.length - 1, sampler: 0 });
+        return textures.length - 1;
+    };
 
     const pushAccessor = (accessor) => {
         accessors.push(accessor);
@@ -117,21 +125,30 @@ export function buildGlb({ parts, materials }) {
         };
 
         if (spec.texture) {
-            const viewIndex = packer.add(spec.texture);
-            images.push({ bufferView: viewIndex, mimeType: 'image/png' });
-            textures.push({ source: images.length - 1, sampler: 0 });
-            pbr.baseColorTexture = { index: textures.length - 1 };
+            pbr.baseColorTexture = { index: packTexture(spec.texture) };
             // A texture supplies the colour; leaving a tint in the
             // factor would multiply against it and darken the
-            // photography.
-            pbr.baseColorFactor = [1, 1, 1, 1];
+            // photography. Artwork can opt into a calibrated factor to
+            // keep paper whites below clipping in bright AR probes.
+            pbr.baseColorFactor = spec.textureFactor || [1, 1, 1, 1];
         }
 
-        gltfMaterials.push({
+        const material = {
             name,
             pbrMetallicRoughness: pbr,
             doubleSided: false,
-        });
+        };
+        if (spec.normalTexture) {
+            material.normalTexture = {
+                index: packTexture(spec.normalTexture),
+                scale: spec.normalScale ?? 1,
+            };
+        }
+        if (spec.unlit) {
+            material.extensions = { KHR_materials_unlit: {} };
+            hasUnlitMaterial = true;
+        }
+        gltfMaterials.push(material);
         materialIndex.set(name, gltfMaterials.length - 1);
     }
 
@@ -206,6 +223,7 @@ export function buildGlb({ parts, materials }) {
         json.images = images;
         json.textures = textures;
     }
+    if (hasUnlitMaterial) json.extensionsUsed = ['KHR_materials_unlit'];
 
     // JSON pads with spaces and BIN pads with zeroes; both are required
     // to be 4-byte aligned, and the padding byte for each is specified
