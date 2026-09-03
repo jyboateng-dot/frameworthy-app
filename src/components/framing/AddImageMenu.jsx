@@ -1,36 +1,37 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { ImageUp, Link2, Image as ImageIcon, ArrowLeft, ArrowRight, Loader2 } from 'lucide-react';
-import { FileUploaderRegular } from '@uploadcare/react-uploader';
-import '@uploadcare/react-uploader/core.css';
+import { ImageUp, Camera, HardDrive, Image as ImageIcon, Link2, ArrowLeft, ArrowRight, Loader2 } from 'lucide-react';
 import { importImageFromUrl } from '../../utils/importImageFromUrl';
 import { importFromGooglePhotos } from '../../utils/importFromGooglePhotos';
+import { importFromGoogleDrive } from '../../utils/importFromGoogleDrive';
+import { importFromDropbox } from '../../utils/importFromDropbox';
 
-const UPLOADCARE_PUBLIC_KEY = import.meta.env.VITE_UPLOADCARE_PUBLIC_KEY;
-const GOOGLE_PHOTOS_CLIENT_ID = import.meta.env.VITE_GOOGLE_PHOTOS_CLIENT_ID;
+const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+const GOOGLE_DRIVE_API_KEY = import.meta.env.VITE_GOOGLE_DRIVE_API_KEY;
+const DROPBOX_APP_KEY = import.meta.env.VITE_DROPBOX_APP_KEY;
 
-// Parked 2026-09-03 at the user's request — both flows are fully built and
-// tested (see importImageFromUrl.js / importFromGooglePhotos.js and their
-// tests), just not surfaced in the UI for now. Flip this back to true to
-// bring the dropdown back with all three options; nothing else needs to
-// change. See cloud-upload-feature memory.
-const SHOW_EXTRA_SOURCES = false;
+const DRIVE_ENABLED = Boolean(GOOGLE_CLIENT_ID && GOOGLE_DRIVE_API_KEY);
+const PHOTOS_ENABLED = Boolean(GOOGLE_CLIENT_ID);
+const DROPBOX_ENABLED = Boolean(DROPBOX_APP_KEY);
 
-// Sources shown inside Uploadcare's own popup. Deliberately excludes url,
-// gphotos and onedrive — all three are locked behind Uploadcare's paid plan
-// on this account, so listing them just shows customers a tab that doesn't
-// work. gdrive/dropbox must ALSO be switched on in the Uploadcare dashboard
-// (Settings → File Uploader → Upload sources) or they won't appear either.
-// If Uploadcare's plan is ever upgraded, add the locked ones back here.
-const SOURCE_LIST = 'local, camera, gdrive, dropbox';
+// Fire-and-wait cloud sources: click the row, a picker opens outside this
+// app (Google's, Dropbox's), and this app waits for the result. All three
+// share the same loading/error UI in the dropdown — see handlePickFromSource.
+const CLOUD_SOURCES = {
+    drive: { label: 'Google Drive', importer: importFromGoogleDrive },
+    photos: { label: 'Google Photos', importer: importFromGooglePhotos },
+    dropbox: { label: 'Dropbox', importer: importFromDropbox },
+};
 
 /**
  * The single "Upload Image / Replace Image" tile in the frame studio.
  *
- * One tile, one dropdown, every source in one place — even though under the
- * hood two of the options ("Paste an image link", "Import from Google
- * Photos") are this app's own free-built flows and the rest come from
- * Uploadcare's own popup window (a separate, third-party widget we can't
- * inject custom sources into). See cloud-upload-feature memory for why.
+ * Entirely self-built — no third-party picker widget (Uploadcare was
+ * dropped; see cloud-upload-feature memory for why and what it cost to
+ * build each source directly). One tile, one dropdown: device and camera
+ * always work (plain file inputs, no config); each cloud source
+ * (Drive/Photos/Dropbox) independently disappears from the menu if its
+ * config isn't set, rather than erroring; "Paste an image link" always
+ * works (it's this app's own Firebase Function, always deployed).
  *
  * Either way the chosen image is handed back as a `File` via `onFile`, and
  * the caller's existing upload pipeline (local preview + background upload
@@ -38,16 +39,14 @@ const SOURCE_LIST = 'local, camera, gdrive, dropbox';
  */
 export default function AddImageMenu({ isPlaceholder, isUploading, onFile, disabled }) {
     const [open, setOpen] = useState(false);
-    const [panel, setPanel] = useState('menu'); // 'menu' | 'url' | 'google-photos'
+    const [panel, setPanel] = useState('menu'); // 'menu' | 'url' | 'drive' | 'photos' | 'dropbox'
     const [urlValue, setUrlValue] = useState('');
     const [urlStatus, setUrlStatus] = useState('idle'); // idle | loading | error
     const [urlError, setUrlError] = useState('');
-    const [googleStatus, setGoogleStatus] = useState('idle'); // idle | loading | error
-    const [googleError, setGoogleError] = useState('');
+    const [sourceStatus, setSourceStatus] = useState('idle'); // idle | loading | error
+    const [sourceError, setSourceError] = useState('');
 
     const rootRef = useRef(null);
-    const apiRef = useRef(null);
-    const busyRef = useRef(false);
     const urlInputRef = useRef(null);
 
     const label = isPlaceholder ? 'Upload Image' : 'Replace Image';
@@ -58,8 +57,8 @@ export default function AddImageMenu({ isPlaceholder, isUploading, onFile, disab
         setUrlValue('');
         setUrlStatus('idle');
         setUrlError('');
-        setGoogleStatus('idle');
-        setGoogleError('');
+        setSourceStatus('idle');
+        setSourceError('');
     };
 
     const closeMenu = () => {
@@ -88,20 +87,8 @@ export default function AddImageMenu({ isPlaceholder, isUploading, onFile, disab
         if (panel === 'url') requestAnimationFrame(() => urlInputRef.current?.focus());
     }, [panel]);
 
-    const openUploadcarePicker = () => {
-        closeMenu();
-        apiRef.current?.getAPI?.()?.initFlow?.();
-    };
-
     const toggleMenu = () => {
         if (busy) return;
-        // Parked: skip the dropdown entirely and go straight to Uploadcare's
-        // popup, same single-click behavior as before the two extra sources
-        // existed.
-        if (!SHOW_EXTRA_SOURCES) {
-            openUploadcarePicker();
-            return;
-        }
         setOpen((prev) => {
             const next = !prev;
             if (!next) resetPanel();
@@ -109,24 +96,12 @@ export default function AddImageMenu({ isPlaceholder, isUploading, onFile, disab
         });
     };
 
-    const handleUploadcareSuccess = async (entry) => {
-        const url = entry?.cdnUrl;
-        if (!url || busyRef.current) return;
-        busyRef.current = true;
-        try {
-            const resp = await fetch(url);
-            const blob = await resp.blob();
-            const ext = (entry.mimeType || blob.type || '').split('/')[1];
-            const name = entry.name || (ext ? `upload.${ext}` : 'upload.jpg');
-            const file = new File([blob], name, { type: entry.mimeType || blob.type || 'image/jpeg' });
+    const handleDeviceOrCameraFile = (e) => {
+        const file = e.target.files?.[0];
+        e.target.value = '';
+        if (file) {
             onFile(file);
-        } catch (err) {
-            console.error('Failed to retrieve the picked image from Uploadcare:', err);
-        } finally {
-            const api = apiRef.current?.getAPI?.();
-            api?.doneFlow?.();
-            api?.removeAllFiles?.();
-            busyRef.current = false;
+            closeMenu();
         }
     };
 
@@ -145,17 +120,18 @@ export default function AddImageMenu({ isPlaceholder, isUploading, onFile, disab
         }
     };
 
-    const handleGooglePhotos = async () => {
-        setPanel('google-photos');
-        setGoogleStatus('loading');
-        setGoogleError('');
+    const handlePickFromSource = async (sourceKey) => {
+        const { importer, label: sourceLabel } = CLOUD_SOURCES[sourceKey];
+        setPanel(sourceKey);
+        setSourceStatus('loading');
+        setSourceError('');
         try {
-            const file = await importFromGooglePhotos();
+            const file = await importer();
             onFile(file);
             closeMenu();
         } catch (err) {
-            setGoogleStatus('error');
-            setGoogleError(err.message || 'Couldn’t import from Google Photos.');
+            setSourceStatus('error');
+            setSourceError(err.message || `Couldn’t import from ${sourceLabel}.`);
         }
     };
 
@@ -179,98 +155,34 @@ export default function AddImageMenu({ isPlaceholder, isUploading, onFile, disab
         </>
     );
 
-    // Nothing configured at all → the plain OS file dialog, same as always.
-    // (Google Photos only matters to this check once SHOW_EXTRA_SOURCES is
-    // back on — while parked, Uploadcare alone decides the fallback.)
-    const noSourcesConfigured = SHOW_EXTRA_SOURCES
-        ? !UPLOADCARE_PUBLIC_KEY && !GOOGLE_PHOTOS_CLIENT_ID
-        : !UPLOADCARE_PUBLIC_KEY;
-    if (noSourcesConfigured) {
-        return (
-            <label className={tileClass}>
-                <input
-                    type="file"
-                    className="hidden"
-                    accept="image/*"
-                    disabled={busy}
-                    onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        e.target.value = '';
-                        if (file) onFile(file);
-                    }}
-                />
-                {inner}
-            </label>
-        );
-    }
-
     return (
         <div ref={rootRef} className="relative">
             <button type="button" onClick={toggleMenu} disabled={busy} className={tileClass}>
                 {inner}
             </button>
 
-            {UPLOADCARE_PUBLIC_KEY && (
-                <FileUploaderRegular
-                    apiRef={apiRef}
-                    headless
-                    pubkey={UPLOADCARE_PUBLIC_KEY}
-                    sourceList={SOURCE_LIST}
-                    imgOnly
-                    multiple={false}
-                    confirmUpload={false}
-                    useCloudImageEditor={false}
-                    removeCopyright
-                    accept="image/*"
-                    onFileUploadSuccess={handleUploadcareSuccess}
-                />
-            )}
-
             {open && (
                 <div className="absolute z-20 top-full left-0 mt-1.5 w-64 bg-white border border-stone-200 rounded-xl shadow-lg overflow-hidden">
                     {panel === 'menu' && (
                         <div className="py-1">
-                            {UPLOADCARE_PUBLIC_KEY ? (
-                                <MenuRow icon={ImageUp} label="Device, camera, or cloud storage" onClick={openUploadcarePicker} />
-                            ) : (
-                                <label className="flex items-center gap-2.5 px-3 py-2.5 text-xs text-stone-700 hover:bg-stone-50 cursor-pointer">
-                                    <ImageUp size={14} className="text-stone-400 shrink-0" />
-                                    Choose a file
-                                    <input
-                                        type="file"
-                                        className="hidden"
-                                        accept="image/*"
-                                        onChange={(e) => {
-                                            const file = e.target.files?.[0];
-                                            e.target.value = '';
-                                            if (file) {
-                                                onFile(file);
-                                                closeMenu();
-                                            }
-                                        }}
-                                    />
-                                </label>
+                            <FileMenuRow icon={ImageUp} label="Device" onChange={handleDeviceOrCameraFile} />
+                            <FileMenuRow icon={Camera} label="Camera" capture="environment" onChange={handleDeviceOrCameraFile} />
+                            {DRIVE_ENABLED && (
+                                <MenuRow icon={HardDrive} label="Google Drive" onClick={() => handlePickFromSource('drive')} />
+                            )}
+                            {PHOTOS_ENABLED && (
+                                <MenuRow icon={ImageIcon} label="Google Photos" onClick={() => handlePickFromSource('photos')} />
+                            )}
+                            {DROPBOX_ENABLED && (
+                                <MenuRow icon={HardDrive} label="Dropbox" onClick={() => handlePickFromSource('dropbox')} />
                             )}
                             <MenuRow icon={Link2} label="Paste an image link" onClick={() => setPanel('url')} />
-                            {GOOGLE_PHOTOS_CLIENT_ID && (
-                                <MenuRow icon={ImageIcon} label="Import from Google Photos" onClick={handleGooglePhotos} />
-                            )}
                         </div>
                     )}
 
                     {panel === 'url' && (
                         <form onSubmit={handleUrlSubmit} className="p-2.5">
-                            <div className="flex items-center gap-1.5 mb-1.5">
-                                <button
-                                    type="button"
-                                    onClick={() => setPanel('menu')}
-                                    className="text-stone-400 hover:text-stone-700 shrink-0"
-                                    aria-label="Back"
-                                >
-                                    <ArrowLeft size={13} />
-                                </button>
-                                <span className="text-[11px] font-bold uppercase tracking-wider text-stone-500">Paste an image link</span>
-                            </div>
+                            <PanelHeader label="Paste an image link" onBack={() => setPanel('menu')} />
                             <div className="flex items-center gap-1.5">
                                 <input
                                     ref={urlInputRef}
@@ -295,17 +207,17 @@ export default function AddImageMenu({ isPlaceholder, isUploading, onFile, disab
                         </form>
                     )}
 
-                    {panel === 'google-photos' && (
+                    {panel in CLOUD_SOURCES && (
                         <div className="p-3">
-                            {googleStatus === 'loading' && (
+                            {sourceStatus === 'loading' && (
                                 <div className="flex items-center gap-2 text-xs text-stone-600">
                                     <Loader2 size={13} className="animate-spin shrink-0" />
-                                    Waiting for Google Photos…
+                                    Waiting for {CLOUD_SOURCES[panel].label}…
                                 </div>
                             )}
-                            {googleStatus === 'error' && (
+                            {sourceStatus === 'error' && (
                                 <div>
-                                    <p className="text-[11px] text-red-600 mb-2">{googleError}</p>
+                                    <p className="text-[11px] text-red-600 mb-2">{sourceError}</p>
                                     <button
                                         type="button"
                                         onClick={() => setPanel('menu')}
@@ -333,5 +245,26 @@ function MenuRow({ icon: Icon, label, onClick }) {
             <Icon size={14} className="text-stone-400 shrink-0" />
             {label}
         </button>
+    );
+}
+
+function FileMenuRow({ icon: Icon, label, capture, onChange }) {
+    return (
+        <label className="flex items-center gap-2.5 px-3 py-2.5 text-xs text-stone-700 hover:bg-stone-50 cursor-pointer">
+            <Icon size={14} className="text-stone-400 shrink-0" />
+            {label}
+            <input type="file" className="hidden" accept="image/*" capture={capture} onChange={onChange} />
+        </label>
+    );
+}
+
+function PanelHeader({ label, onBack }) {
+    return (
+        <div className="flex items-center gap-1.5 mb-1.5">
+            <button type="button" onClick={onBack} className="text-stone-400 hover:text-stone-700 shrink-0" aria-label="Back">
+                <ArrowLeft size={13} />
+            </button>
+            <span className="text-[11px] font-bold uppercase tracking-wider text-stone-500">{label}</span>
+        </div>
     );
 }

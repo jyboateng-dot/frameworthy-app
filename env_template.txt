@@ -15,20 +15,36 @@ VITE_IMAGE_UPLOAD_PROVIDER=imagekit
 VITE_IMAGEKIT_PUBLIC_KEY=replace-with-your-imagekit-public-key
 VITE_IMAGEKIT_URL_ENDPOINT=replace-with-your-imagekit-url-endpoint
 
-# Uploadcare — powers the "Upload / Replace Image" picker window in the frame
-# studio (device, camera, Google Drive, Dropbox on the free tier). Just the
-# public key. Cloud sources must also be enabled in the Uploadcare dashboard:
-# Settings > File Uploader > Upload sources. Leave blank/unset and the picker
-# falls back to the plain OS file dialog (device only).
-VITE_UPLOADCARE_PUBLIC_KEY=replace-with-your-uploadcare-public-key
+# The frame studio's "Upload Image" menu (src/components/framing/AddImageMenu.jsx)
+# is entirely self-built — no Uploadcare or other third-party picker widget.
+# Device and camera always work (plain file input, no config needed). Each
+# cloud source below is independently optional: leave its var(s) blank/unset
+# and that option just disappears from the menu instead of erroring.
 
-# Google Photos picker (separate from Uploadcare — that source is paywalled on
-# Uploadcare's free tier, so this is a self-built replacement). OAuth 2.0
-# Client ID, type "Web application", from Google Cloud Console > APIs &
-# Services > Credentials, on a project with the Google Photos Picker API
-# enabled. Leave blank/unset and the "import from Google Photos" option
-# disappears from the picker.
-VITE_GOOGLE_PHOTOS_CLIENT_ID=replace-with-your-google-oauth-client-id
+# Shared Google OAuth client (Cloud Console > APIs & Services > Credentials >
+# OAuth client ID, type "Web application"), used for both Google Photos and
+# Google Drive below.
+VITE_GOOGLE_CLIENT_ID=replace-with-your-google-oauth-client-id
+
+# Google Photos picker (src/utils/importFromGooglePhotos.js) — needs the
+# Google Photos Picker API enabled on the project, and scope
+# photospicker.mediaitems.readonly added under OAuth consent screen > Data
+# access. This scope is "sensitive": works for up to 100 users with no
+# per-user allowlisting, needs Google's app-verification review to lift that.
+# (No separate var — uses VITE_GOOGLE_CLIENT_ID above.)
+
+# Google Drive picker (src/utils/importFromGoogleDrive.js) — needs the Google
+# Drive API and Google Picker API both enabled, and scope
+# .../auth/drive.file added under OAuth consent screen > Data access (this
+# one is non-sensitive, no verification needed). Also needs a restricted
+# "API key" (Credentials > Create credentials > API key), scoped to only the
+# Google Picker API and only your site's domain(s).
+VITE_GOOGLE_DRIVE_API_KEY=replace-with-your-restricted-picker-api-key
+
+# Dropbox Chooser (src/utils/importFromDropbox.js) — an App key from
+# dropbox.com/developers/apps (free, no payment). Chooser type app, no special
+# permissions needed since it only reads whatever file the user picks.
+VITE_DROPBOX_APP_KEY=replace-with-your-dropbox-app-key
 
 VITE_PAYSTACK_PUBLIC_KEY=replace-with-your-paystack-public-key
 

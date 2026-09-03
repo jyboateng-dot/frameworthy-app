@@ -9,7 +9,7 @@ async function freshModule() {
 
 describe('getGooglePhotosAccessToken', () => {
     beforeEach(() => {
-        vi.stubEnv('VITE_GOOGLE_PHOTOS_CLIENT_ID', CLIENT_ID);
+        vi.stubEnv('VITE_GOOGLE_CLIENT_ID', CLIENT_ID);
         delete window.google;
     });
 
@@ -19,7 +19,7 @@ describe('getGooglePhotosAccessToken', () => {
     });
 
     it('rejects when the client id is not configured', async () => {
-        vi.stubEnv('VITE_GOOGLE_PHOTOS_CLIENT_ID', '');
+        vi.stubEnv('VITE_GOOGLE_CLIENT_ID', '');
         const { getGooglePhotosAccessToken } = await freshModule();
         await expect(getGooglePhotosAccessToken()).rejects.toThrow('isn’t set up yet');
     });

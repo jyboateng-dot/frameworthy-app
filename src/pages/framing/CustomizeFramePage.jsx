@@ -3112,9 +3112,9 @@ const CustomizeFramePage = ({
                         
                         <div className="grid grid-cols-2 gap-3">
                             {/* Upload Trigger — one tile, one dropdown menu covering
-                                device/camera/cloud-storage (Uploadcare's popup) plus
-                                this app's own free "paste a link" and "Google Photos"
-                                flows (Uploadcare paywalls both of those sources). */}
+                                every source (device, camera, Google Drive, Google
+                                Photos, Dropbox, paste-a-link), all self-built. See
+                                AddImageMenu.jsx / cloud-upload-feature memory. */}
                             <AddImageMenu
                                 isPlaceholder={isPlaceholder}
                                 isUploading={isUploading}
