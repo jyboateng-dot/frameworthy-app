@@ -27,6 +27,7 @@ import { uploadImageToCloud, getThumbnailUrl } from '../../services/storage';
 import FrameSelectionModal from '../../components/FrameSelectionModal';
 import ImageUploadField from '../../components/framing/ImageUploadField';
 import ImageUrlImportField from '../../components/framing/ImageUrlImportField';
+import GooglePhotosPickerField from '../../components/framing/GooglePhotosPickerField';
 import SizeGuidePanel from '../../components/framing/SizeGuidePanel';
 import ArViewer from '../../components/framing/ArViewer';
 import { clearArModelCache } from '../../utils/ar/buildArModel';
@@ -3129,10 +3130,13 @@ const CustomizeFramePage = ({
                             </button>
                         </div>
 
-                        {/* Third upload path: paste a link, fetched server-side (see
-                            functions/index.js's importImageFromUrl) rather than through
-                            Uploadcare's own "From link" source, which is paid-locked. */}
+                        {/* Third and fourth upload paths: paste a link (fetched
+                            server-side, see functions/index.js's importImageFromUrl)
+                            and Google Photos (Photos Picker API) — both self-built
+                            because Uploadcare paywalls its own "From link" and
+                            Google Photos sources. */}
                         <ImageUrlImportField onFile={applyImageFile} disabled={isUploading} />
+                        <GooglePhotosPickerField onFile={applyImageFile} disabled={isUploading} />
                     </section>
 
 
