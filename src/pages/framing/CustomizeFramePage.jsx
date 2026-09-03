@@ -326,7 +326,7 @@ const CustomizeFramePage = ({
     const [isCloudUploadPending, setIsCloudUploadPending] = useState(false);
     const [isFrameModalOpen, setIsFrameModalOpen] = useState(false);
     const [isSizeGuideOpen, setIsSizeGuideOpen] = useState(false);
-    const { open: isWallPickerOpen, setOpen: setIsWallPickerOpen, hoverProps: wallPickerHoverProps, closeOnSelect: closeWallPickerOnSelect } = useHoverDropdown();
+    const { open: isWallPickerOpen, setOpen: setIsWallPickerOpen, hoverProps: wallPickerHoverProps, closeOnSelect: closeWallPickerOnSelect, containerRef: wallPickerContainerRef } = useHoverDropdown();
     const [isMetModalOpen, setIsMetModalOpen] = useState(false);
     const [isArOpen, setIsArOpen] = useState(false);
     const [isHovered, setIsHovered] = useState(false);
@@ -1784,7 +1784,7 @@ const CustomizeFramePage = ({
                     as ScenePicker) so the popover always draws over whatever
                     it collides with, not just the scene pill it happens to
                     sit near; z-20 at rest otherwise. */}
-                <div className={`relative ${isWallPickerOpen ? 'z-50' : 'z-20'}`} {...wallPickerHoverProps}>
+                <div ref={wallPickerContainerRef} className={`relative ${isWallPickerOpen ? 'z-50' : 'z-20'}`} {...wallPickerHoverProps}>
                     <button
                         onClick={() => setIsWallPickerOpen(!isWallPickerOpen)}
                         className="flex h-[30px] items-center gap-1 sm:gap-1.5 px-2 sm:px-3 rounded-full border border-stone-200 shadow-sm hover:shadow-md transition-all bg-white/95 backdrop-blur text-stone-700 font-bold text-xs ml-auto"
@@ -2997,12 +2997,18 @@ const CustomizeFramePage = ({
                 <button
                     onClick={() => (isFullScreen ? exitFullScreen() : enterFullScreen())}
                     data-testid="visualizer-chrome"
-                    className={`absolute ${isFullScreen ? 'bottom-[max(1.5rem,env(safe-area-inset-bottom))] right-5 sm:bottom-6 sm:right-6' : 'bottom-1 right-3 sm:bottom-2 sm:right-6'} z-30 w-10 h-10 flex items-center justify-center rounded-full border border-stone-200 shadow-sm hover:shadow-md transition-all ${CHROME_MOTION} bg-white/95 backdrop-blur text-stone-700 ${
+                    className={`group absolute ${isFullScreen ? 'bottom-[max(1.5rem,env(safe-area-inset-bottom))] right-5 sm:bottom-6 sm:right-6' : 'bottom-1 right-3 sm:bottom-2 sm:right-6'} z-30 w-10 h-10 flex items-center justify-center rounded-full border border-stone-200 shadow-sm hover:shadow-md transition-all ${CHROME_MOTION} bg-white/95 backdrop-blur text-stone-700 ${
                         ((isHovered && activeRoom) || isMaxZoom) && !isFullScreen ? 'opacity-0 scale-75 pointer-events-none' : 'opacity-100 scale-100'
                     }`}
-                    title={isFullScreen ? 'Exit full screen' : 'Full screen'}
                     aria-label={isFullScreen ? 'Exit full screen' : 'Full screen'}
                 >
+                    {/* Hover hint — same glassmorphic pill style as InfoTooltip
+                        above. Native `title` was dropped in favor of this: it's
+                        instant and consistently styled, where title's tooltip
+                        is browser-dependent and shows only after a ~1s delay. */}
+                    <span className="pointer-events-none absolute bottom-full right-0 mb-2 hidden group-hover:block whitespace-nowrap px-2.5 py-1 bg-stone-900/95 backdrop-blur-sm text-stone-100 text-[10px] font-medium rounded-lg shadow-xl border border-stone-850 z-50">
+                        {isFullScreen ? 'Exit full screen' : 'Full screen'}
+                    </span>
                     <span className="relative w-[18px] h-[18px] flex items-center justify-center">
                         <Maximize2 size={16} strokeWidth={1.3} className={`absolute transition-all duration-300 ${isFullScreen ? 'opacity-0 rotate-45 scale-75' : 'opacity-100 rotate-0 scale-100'}`} />
                         <X size={18} className={`absolute transition-all duration-300 ${isFullScreen ? 'opacity-100 rotate-0 scale-100' : 'opacity-0 -rotate-45 scale-75'}`} />
@@ -3031,12 +3037,16 @@ const CustomizeFramePage = ({
                     <button
                         onClick={() => setIsArOpen(true)}
                         data-testid="visualizer-chrome"
-                        className={`absolute bottom-1 left-3 sm:bottom-2 sm:left-6 z-30 w-10 h-10 flex items-center justify-center rounded-full border border-stone-200 shadow-sm hover:shadow-md transition-all ${CHROME_MOTION} bg-white/95 backdrop-blur text-stone-700 ${
+                        className={`group absolute bottom-1 left-3 sm:bottom-2 sm:left-6 z-30 w-10 h-10 flex items-center justify-center rounded-full border border-stone-200 shadow-sm hover:shadow-md transition-all ${CHROME_MOTION} bg-white/95 backdrop-blur text-stone-700 ${
                             ((isHovered && activeRoom) || isMaxZoom) ? 'opacity-0 scale-75 pointer-events-none' : 'opacity-100 scale-100'
                         }`}
-                        title="View on your wall"
                         aria-label="View this frame on your wall in AR"
                     >
+                        {/* Hover hint — same style as the full-screen button's;
+                            see that one's comment for why title was dropped. */}
+                        <span className="pointer-events-none absolute bottom-full left-0 mb-2 hidden group-hover:block whitespace-nowrap px-2.5 py-1 bg-stone-900/95 backdrop-blur-sm text-stone-100 text-[10px] font-medium rounded-lg shadow-xl border border-stone-850 z-50">
+                            View on your wall
+                        </span>
                         <img
                             src="/icons/ar-spatial-cube.png"
                             alt=""

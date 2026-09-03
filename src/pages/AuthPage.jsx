@@ -267,8 +267,10 @@ const AuthPage = ({ navigate }) => {
                     </div>
                 </div>
 
-                {/* Mobile Header (Hidden on LG) */}
-                <div className="lg:hidden p-6 flex justify-between items-center w-full">
+                {/* Mobile Header (Hidden on LG) — pt uses env(safe-area-inset-top)
+                    so the close button clears the iOS status bar/notch instead
+                    of sitting underneath it (same pattern as Header.jsx / ArViewer.jsx). */}
+                <div className="lg:hidden px-6 pb-6 pt-[calc(1.5rem+env(safe-area-inset-top,0px))] flex justify-between items-center w-full">
                     <div onClick={() => navigate('/')}>
                         <Wordmark size={18} ink="#ffffff" markClassName="drop-shadow-md" textClassName="text-lg drop-shadow-md" />
                     </div>

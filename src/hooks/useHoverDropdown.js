@@ -14,6 +14,9 @@ export const isHoverCapable = () =>
 export const useHoverDropdown = () => {
     const [open, setOpen] = useState(false);
     const closeTimer = useRef(null);
+    // Attach to the pill+panel's outer wrapper — lets the outside-click
+    // listener below tell "inside this dropdown" apart from "anywhere else".
+    const containerRef = useRef(null);
 
     useEffect(() => () => clearTimeout(closeTimer.current), []);
 
@@ -31,5 +34,24 @@ export const useHoverDropdown = () => {
         if (!isHoverCapable()) setOpen(false);
     }, []);
 
-    return { open, setOpen, hoverProps, closeOnSelect };
+    // Selecting or tapping anywhere outside the pill/panel collapses it.
+    // Matters most on touch devices: there's no hover-out to close it there,
+    // so without this the only way to dismiss an open dropdown was picking
+    // an option — tapping elsewhere on the page just left it hanging open.
+    useEffect(() => {
+        if (!open) return undefined;
+        const handlePointerDown = (e) => {
+            if (containerRef.current && !containerRef.current.contains(e.target)) {
+                setOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', handlePointerDown);
+        document.addEventListener('touchstart', handlePointerDown);
+        return () => {
+            document.removeEventListener('mousedown', handlePointerDown);
+            document.removeEventListener('touchstart', handlePointerDown);
+        };
+    }, [open]);
+
+    return { open, setOpen, hoverProps, closeOnSelect, containerRef };
 };

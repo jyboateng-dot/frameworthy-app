@@ -38,7 +38,7 @@ const OPTIONS = [
 const titleFor = (o) => (o.wallSpanCm ? `${o.name} — ${o.wallSpanCm}cm wall` : 'Plain wall with sofa scale cue');
 
 const ScenePicker = ({ activeId, onSelect, autoOpenSignal, className = '', style }) => {
-    const { open, setOpen, hoverProps, closeOnSelect } = useHoverDropdown();
+    const { open, setOpen, hoverProps, closeOnSelect, containerRef } = useHoverDropdown();
     const active = OPTIONS.find((o) => o.id === activeId) || OPTIONS[0];
     const ActiveIcon = active.icon;
 
@@ -63,7 +63,7 @@ const ScenePicker = ({ activeId, onSelect, autoOpenSignal, className = '', style
         // z-50 while open — above every other pill/chrome element it could
         // otherwise sit behind (they're all z-20 or lower); back to z-20,
         // its resting stacking order, once closed.
-        <div className={`relative ${open ? 'z-50' : 'z-20'} ${className}`} style={style} {...hoverProps}>
+        <div ref={containerRef} className={`relative ${open ? 'z-50' : 'z-20'} ${className}`} style={style} {...hoverProps}>
             <button
                 type="button"
                 onClick={() => setOpen((o) => !o)}
