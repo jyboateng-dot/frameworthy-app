@@ -17,7 +17,7 @@ import { FRAME_STYLES, FRAME_SIZES, MAT_COLORS, formatDimensions, findSizeByDime
 import { ROOM_SCENES, computeRoomPlacement } from '../../data/roomScenes';
 import { ROOM_SCENE_COMPONENTS, ROOM_SCENE_FOREGROUND_COMPONENTS } from '../../components/framing/roomSceneComponents';
 import ScenePicker from '../../components/framing/ScenePicker';
-import { useHoverDropdown } from '../../hooks/useHoverDropdown';
+import { useHoverDropdown, isHoverCapable } from '../../hooks/useHoverDropdown';
 import { getFrameRail, getRailTextureStyle, getRailShading } from '../../utils/frameRail';
 import { getMatReveal } from '../../utils/matting';
 import WEB_MET_DIMS from '../../data/web_met_dims.json';
@@ -3043,9 +3043,15 @@ const CustomizeFramePage = ({
                         aria-label="View this frame on your wall in AR"
                     >
                         {/* Hover hint — same style as the full-screen button's;
-                            see that one's comment for why title was dropped. */}
+                            see that one's comment for why title was dropped.
+                            Wording differs by input: a mouse-and-keyboard
+                            desktop can only ever get the 3D viewer (AR needs a
+                            phone's camera+gyro), so promising "on your wall"
+                            there would be a hint for something that can't
+                            happen on that device. Touch devices get both,
+                            since ArViewer itself offers a 3D/AR choice there. */}
                         <span className="pointer-events-none absolute bottom-full left-0 mb-2 hidden group-hover:block whitespace-nowrap px-2.5 py-1 bg-stone-900/95 backdrop-blur-sm text-stone-100 text-[10px] font-medium rounded-lg shadow-xl border border-stone-850 z-50">
-                            View on your wall
+                            {isHoverCapable() ? 'View in 3D' : 'View in 3D or on your wall'}
                         </span>
                         <img
                             src="/icons/ar-spatial-cube.png"
