@@ -25,9 +25,7 @@ import { useUnit } from '../../context/UnitContext';
 import { useCart } from '../../context/CartContext';
 import { uploadImageToCloud, getThumbnailUrl } from '../../services/storage';
 import FrameSelectionModal from '../../components/FrameSelectionModal';
-import ImageUploadField from '../../components/framing/ImageUploadField';
-import ImageUrlImportField from '../../components/framing/ImageUrlImportField';
-import GooglePhotosPickerField from '../../components/framing/GooglePhotosPickerField';
+import AddImageMenu from '../../components/framing/AddImageMenu';
 import SizeGuidePanel from '../../components/framing/SizeGuidePanel';
 import ArViewer from '../../components/framing/ArViewer';
 import { clearArModelCache } from '../../utils/ar/buildArModel';
@@ -3113,8 +3111,11 @@ const CustomizeFramePage = ({
                         </h2>
                         
                         <div className="grid grid-cols-2 gap-3">
-                            {/* Upload Trigger — opens the device / cloud-storage picker */}
-                            <ImageUploadField
+                            {/* Upload Trigger — one tile, one dropdown menu covering
+                                device/camera/cloud-storage (Uploadcare's popup) plus
+                                this app's own free "paste a link" and "Google Photos"
+                                flows (Uploadcare paywalls both of those sources). */}
+                            <AddImageMenu
                                 isPlaceholder={isPlaceholder}
                                 isUploading={isUploading}
                                 onFile={applyImageFile}
@@ -3129,14 +3130,6 @@ const CustomizeFramePage = ({
                                 <span className="mt-1 text-[10px] font-bold uppercase tracking-wider text-stone-700 truncate w-full">Inspiration</span>
                             </button>
                         </div>
-
-                        {/* Third and fourth upload paths: paste a link (fetched
-                            server-side, see functions/index.js's importImageFromUrl)
-                            and Google Photos (Photos Picker API) — both self-built
-                            because Uploadcare paywalls its own "From link" and
-                            Google Photos sources. */}
-                        <ImageUrlImportField onFile={applyImageFile} disabled={isUploading} />
-                        <GooglePhotosPickerField onFile={applyImageFile} disabled={isUploading} />
                     </section>
 
 
