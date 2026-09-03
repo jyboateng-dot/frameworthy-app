@@ -61,12 +61,16 @@ const ProductCard = ({ product, onGetThis }) => {
 };
 
 const InspirationPage = ({ setProductMode, setSelectedFrame, setSelectedSize, navigate, isModal = false }) => {
-    // Framed Prints ('inspiration') is shelved — not in the tab row below —
-    // but a session that had it active before the shelving shouldn't land on
-    // an unreachable tab with no pill to select it back out of.
+    // Shelved categories — not in the tab row below (see renderTabs) — but a
+    // session that had one active before the shelving shouldn't land on an
+    // unreachable tab with no pill to select it back out of. Framed Prints
+    // ('inspiration') was shelved first; Original/Prestige Paintings, Canvas
+    // Art, and Glossy Art ('originals'/'prestige'/'canvas'/'glossy') joined
+    // it 2026-09-03.
+    const SHELVED_SECTIONS = ['inspiration', 'originals', 'prestige', 'canvas', 'glossy'];
     const [currentSection, setCurrentSection] = useState(() => {
         const stored = sessionStorage.getItem('fw_insp_section');
-        return stored && stored !== 'inspiration' ? stored : 'originals';
+        return stored && !SHELVED_SECTIONS.includes(stored) ? stored : 'museum';
     });
     // A result picked from the cross-category Search tab that needs its
     // native category's "Choose Framing Style" modal opened immediately —
@@ -187,19 +191,17 @@ const InspirationPage = ({ setProductMode, setSelectedFrame, setSelectedSize, na
     function renderTabs() {
         const sections = [
             { id: 'search', label: 'Search' },
-            { id: 'originals', label: 'Original Paintings' },
             { id: 'museum', label: 'Artists & Masterpieces' },
-            { id: 'prestige', label: 'Prestige Paintings' },
             { id: 'albums', label: 'Album Artwork' },
             { id: 'movies', label: 'Movie Posters' },
             { id: 'met', label: 'Met Museum Collection' },
-            { id: 'canvas', label: 'Canvas Art' },
-            { id: 'glossy', label: 'Glossy Art' },
             { id: 'web', label: 'Web Images' },
-            // 'inspiration' (Framed Prints) is shelved — intentionally
-            // omitted from the tab row. Its content block, data, and the
-            // currentSection fallback guard above are left in place so it
-            // can be restored by re-adding this entry.
+            // Shelved — intentionally omitted from the tab row: 'inspiration'
+            // (Framed Prints), 'originals' (Original Paintings), 'prestige'
+            // (Prestige Paintings), 'canvas' (Canvas Art), 'glossy' (Glossy
+            // Art). Each one's content block, data, and the SHELVED_SECTIONS
+            // fallback guard above are left in place so any of them can be
+            // restored by re-adding its entry here.
         ];
         return (
             <>
