@@ -191,10 +191,10 @@ const InspirationPage = ({ setProductMode, setSelectedFrame, setSelectedSize, na
     function renderTabs() {
         const sections = [
             { id: 'search', label: 'Search' },
+            { id: 'met', label: 'Met Museum Collection' },
             { id: 'museum', label: 'Artists & Masterpieces' },
             { id: 'albums', label: 'Album Artwork' },
             { id: 'movies', label: 'Movie Posters' },
-            { id: 'met', label: 'Met Museum Collection' },
             { id: 'web', label: 'Web Images' },
             // Shelved — intentionally omitted from the tab row: 'inspiration'
             // (Framed Prints), 'originals' (Original Paintings), 'prestige'
