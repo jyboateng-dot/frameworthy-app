@@ -8,6 +8,13 @@ import { importFromGooglePhotos } from '../../utils/importFromGooglePhotos';
 const UPLOADCARE_PUBLIC_KEY = import.meta.env.VITE_UPLOADCARE_PUBLIC_KEY;
 const GOOGLE_PHOTOS_CLIENT_ID = import.meta.env.VITE_GOOGLE_PHOTOS_CLIENT_ID;
 
+// Parked 2026-09-03 at the user's request — both flows are fully built and
+// tested (see importImageFromUrl.js / importFromGooglePhotos.js and their
+// tests), just not surfaced in the UI for now. Flip this back to true to
+// bring the dropdown back with all three options; nothing else needs to
+// change. See cloud-upload-feature memory.
+const SHOW_EXTRA_SOURCES = false;
+
 // Sources shown inside Uploadcare's own popup. The cloud ones (gdrive,
 // dropbox) must ALSO be switched on in the Uploadcare dashboard (Settings →
 // File Uploader → Upload sources) or they won't appear. gphotos/url are
@@ -82,18 +89,25 @@ export default function AddImageMenu({ isPlaceholder, isUploading, onFile, disab
         if (panel === 'url') requestAnimationFrame(() => urlInputRef.current?.focus());
     }, [panel]);
 
+    const openUploadcarePicker = () => {
+        closeMenu();
+        apiRef.current?.getAPI?.()?.initFlow?.();
+    };
+
     const toggleMenu = () => {
         if (busy) return;
+        // Parked: skip the dropdown entirely and go straight to Uploadcare's
+        // popup, same single-click behavior as before the two extra sources
+        // existed.
+        if (!SHOW_EXTRA_SOURCES) {
+            openUploadcarePicker();
+            return;
+        }
         setOpen((prev) => {
             const next = !prev;
             if (!next) resetPanel();
             return next;
         });
-    };
-
-    const openUploadcarePicker = () => {
-        closeMenu();
-        apiRef.current?.getAPI?.()?.initFlow?.();
     };
 
     const handleUploadcareSuccess = async (entry) => {
@@ -167,7 +181,12 @@ export default function AddImageMenu({ isPlaceholder, isUploading, onFile, disab
     );
 
     // Nothing configured at all → the plain OS file dialog, same as always.
-    if (!UPLOADCARE_PUBLIC_KEY && !GOOGLE_PHOTOS_CLIENT_ID) {
+    // (Google Photos only matters to this check once SHOW_EXTRA_SOURCES is
+    // back on — while parked, Uploadcare alone decides the fallback.)
+    const noSourcesConfigured = SHOW_EXTRA_SOURCES
+        ? !UPLOADCARE_PUBLIC_KEY && !GOOGLE_PHOTOS_CLIENT_ID
+        : !UPLOADCARE_PUBLIC_KEY;
+    if (noSourcesConfigured) {
         return (
             <label className={tileClass}>
                 <input
