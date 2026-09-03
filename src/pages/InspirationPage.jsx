@@ -191,8 +191,8 @@ const InspirationPage = ({ setProductMode, setSelectedFrame, setSelectedSize, na
     function renderTabs() {
         const sections = [
             { id: 'search', label: 'Search' },
-            { id: 'met', label: 'Met Museum Collection' },
             { id: 'museum', label: 'Artists & Masterpieces' },
+            { id: 'met', label: 'Met Museum Collection' },
             { id: 'albums', label: 'Album Artwork' },
             { id: 'movies', label: 'Movie Posters' },
             { id: 'web', label: 'Web Images' },
