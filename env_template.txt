@@ -15,6 +15,13 @@ VITE_IMAGE_UPLOAD_PROVIDER=imagekit
 VITE_IMAGEKIT_PUBLIC_KEY=replace-with-your-imagekit-public-key
 VITE_IMAGEKIT_URL_ENDPOINT=replace-with-your-imagekit-url-endpoint
 
+# Uploadcare — powers the "Upload / Replace Image" picker window in the frame
+# studio (device, camera, URL, Google Drive, Google Photos, Dropbox, OneDrive).
+# Just the public key. Cloud sources must also be enabled in the Uploadcare
+# dashboard: Settings > File Uploader > Upload sources. Leave blank/unset and
+# the picker falls back to the plain OS file dialog (device only).
+VITE_UPLOADCARE_PUBLIC_KEY=replace-with-your-uploadcare-public-key
+
 VITE_PAYSTACK_PUBLIC_KEY=replace-with-your-paystack-public-key
 
 VITE_EMAILJS_SERVICE_ID=replace-with-your-emailjs-service-id

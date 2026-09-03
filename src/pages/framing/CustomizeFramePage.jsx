@@ -7,7 +7,6 @@ import {
     Ruler,
     Palette,
     Frame,
-    ImageUp,
     ChevronDown,
     Info,
     Loader,
@@ -26,6 +25,7 @@ import { useUnit } from '../../context/UnitContext';
 import { useCart } from '../../context/CartContext';
 import { uploadImageToCloud, getThumbnailUrl } from '../../services/storage';
 import FrameSelectionModal from '../../components/FrameSelectionModal';
+import ImageUploadField from '../../components/framing/ImageUploadField';
 import SizeGuidePanel from '../../components/framing/SizeGuidePanel';
 import ArViewer from '../../components/framing/ArViewer';
 import { clearArModelCache } from '../../utils/ar/buildArModel';
@@ -1103,7 +1103,11 @@ const CustomizeFramePage = ({
         };
     }, [uploadedImage, setOrientation, setSelectedSize, isAlbumPoster, isMoviePoster, isMoviePosterPrint]);
 
-    const handleImageUpload = async (e) => {
+    // Takes a picked image File (from the device dialog OR the cloud-storage
+    // picker) and drops it into the studio: instant local preview now, then a
+    // background upload to the cloud image host for the print-quality version.
+    const applyImageFile = async (file) => {
+        if (!file) return;
         setIsPreset(false);
         setPresetTitle('');
         setIsAlbumArt(false);
@@ -1119,8 +1123,6 @@ const CustomizeFramePage = ({
         // upload is a new configuration; it shouldn't inherit a glazing
         // decision that was about a different picture.
         setGlassType('standard');
-        const file = e.target.files[0];
-        if (!file) return;
         setIsUploading(true);
         try {
             // Instantly generate local URL for immediate visual rendering in the frame studio
@@ -3109,20 +3111,12 @@ const CustomizeFramePage = ({
                         </h2>
                         
                         <div className="grid grid-cols-2 gap-3">
-                            {/* Upload Trigger */}
-                            <label className={`relative border-2 border-dashed ${isPlaceholder ? 'border-stone-300 hover:border-stone-400' : 'border-stone-950 bg-stone-50/50'} rounded-xl p-3 flex flex-col items-center justify-center cursor-pointer transition-colors h-[72px] text-center`}>
-                                <input type="file" className="hidden" accept="image/*" onChange={handleImageUpload} disabled={isUploading} />
-                                {isUploading ? (
-                                    <div className="w-4 h-4 border-2 border-stone-300 border-t-stone-900 rounded-full animate-spin" />
-                                ) : (
-                                    <>
-                                        <ImageUp size={16} className={isPlaceholder ? 'text-stone-500' : 'text-stone-950'} />
-                                        <span className="mt-1 text-[10px] font-bold uppercase tracking-wider text-stone-700 truncate w-full">
-                                            {isPlaceholder ? 'Upload Image' : 'Replace Image'}
-                                        </span>
-                                    </>
-                                )}
-                            </label>
+                            {/* Upload Trigger — opens the device / cloud-storage picker */}
+                            <ImageUploadField
+                                isPlaceholder={isPlaceholder}
+                                isUploading={isUploading}
+                                onFile={applyImageFile}
+                            />
 
                             {/* Inspiration Trigger */}
                             <button

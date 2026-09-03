@@ -8,6 +8,13 @@ export default defineConfig({
   server: {
     port: process.env.PORT ? Number(process.env.PORT) : 5173,
   },
+  optimizeDeps: {
+    // Uploadcare's file-uploader lazy-imports its own web-component modules
+    // at runtime; letting Vite pre-bundle it breaks those dynamic imports in
+    // dev (404/403 on .vite/deps/web-*.js). Excluding it lets the browser
+    // load its ESM directly, which resolves the nested imports correctly.
+    exclude: ['@uploadcare/file-uploader', '@uploadcare/react-uploader'],
+  },
   build: {
     // FrameWorthy intentionally ships several large, static catalogue datasets
     // (album artwork, Met archive, movie posters, and frame-strip metadata).
