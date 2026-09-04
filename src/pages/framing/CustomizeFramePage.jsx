@@ -3204,21 +3204,21 @@ const CustomizeFramePage = ({
                                     </button>
                                     <button
                                         type="button"
-                                        onClick={() => setUnit('in')}
-                                        className={`w-6 border-r border-stone-200 transition-colors ${
-                                            unit === 'in' ? 'bg-stone-100 text-stone-900' : 'text-stone-400 hover:bg-stone-50 hover:text-stone-700'
-                                        }`}
-                                    >
-                                        in
-                                    </button>
-                                    <button
-                                        type="button"
                                         onClick={() => setUnit('cm')}
-                                        className={`w-7 transition-colors ${
+                                        className={`w-7 border-r border-stone-200 transition-colors ${
                                             unit === 'cm' ? 'bg-stone-100 text-stone-900' : 'text-stone-400 hover:bg-stone-50 hover:text-stone-700'
                                         }`}
                                     >
                                         cm
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setUnit('in')}
+                                        className={`w-6 transition-colors ${
+                                            unit === 'in' ? 'bg-stone-100 text-stone-900' : 'text-stone-400 hover:bg-stone-50 hover:text-stone-700'
+                                        }`}
+                                    >
+                                        in
                                     </button>
                                 </div>
                             </span>
