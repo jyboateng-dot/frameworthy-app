@@ -19,7 +19,7 @@ import { ROOM_SCENE_COMPONENTS, ROOM_SCENE_FOREGROUND_COMPONENTS } from '../../c
 import ScenePicker from '../../components/framing/ScenePicker';
 import { useHoverDropdown, isHoverCapable } from '../../hooks/useHoverDropdown';
 import { getFrameRail, getRailTextureStyle, getRailShading } from '../../utils/frameRail';
-import { getMatReveal, clampMatWidthIn, MAT_WIDTH_MIN_IN, MAT_WIDTH_MAX_IN, MAT_WIDTH_STEP_IN, MAT_WIDTH_DEFAULT_IN } from '../../utils/matting';
+import { getMatReveal } from '../../utils/matting';
 import WEB_MET_DIMS from '../../data/web_met_dims.json';
 import { useUnit } from '../../context/UnitContext';
 import { useCart } from '../../context/CartContext';
@@ -1180,16 +1180,13 @@ const CustomizeFramePage = ({
 
         setOrientation(recOrientation);
 
-        // Decide mat width based on the optimal orientation's mismatch. Fixed
-        // inch values rather than the old 'narrow'/'standard' presets — mat
-        // width is now a free-form slider, independent of print size (see
-        // matting.js) — chosen to feel equivalently "minor" vs "significant".
+        // Decide mat width based on the optimal orientation's mismatch
         if (recMismatch < 0.08) {
-            setMatWidth('none');   // Perfect or near-perfect fit — fill the frame (No Mat)
+            setMatWidth('none');      // Perfect or near-perfect fit — fill the frame (No Mat)
         } else if (recMismatch < 0.22) {
-            setMatWidth(1.5);      // Minor aspect ratio mismatch
+            setMatWidth('narrow');    // Minor aspect ratio mismatch
         } else {
-            setMatWidth(2.5);      // Significant aspect ratio mismatch
+            setMatWidth('standard');  // Significant aspect ratio mismatch
         }
 
         setIsOptimized(true);
@@ -3416,64 +3413,26 @@ const CustomizeFramePage = ({
                                         </span>
                                     </h2>
                                     
-                                    {/* Mat Width — a free-form slider (styled after
-                                        custompictureframes.com's own mat-width picker)
-                                        rather than fixed Narrow/Standard/Wide presets,
-                                        so the customer sets the exact reveal they want.
-                                        See matting.js for the range/step/default and
-                                        why the bottom edge ends up a bit wider than
-                                        this number (the standard "weighted mat"
-                                        convention). Defensive Number(...) covers a
-                                        session restored from before this change, when
-                                        matWidth was still 'narrow'/'standard'/'wide'. */}
+                                    {/* Mat Width */}
                                     <div className="flex bg-stone-100 p-1 rounded-xl mb-3">
-                                        <button
-                                            onClick={() => {
-                                                setMatWidth('none');
-                                                setIsOptimized(false);
-                                            }}
-                                            className={`flex-1 py-1.5 text-[10px] sm:text-xs font-semibold rounded-lg transition-all ${matWidth === 'none' ? 'bg-white shadow-sm text-stone-900' : 'text-stone-500 hover:text-stone-700'}`}
-                                        >
-                                            No Mat
-                                        </button>
-                                        <button
-                                            onClick={() => {
-                                                if (matWidth === 'none') setMatWidth(MAT_WIDTH_DEFAULT_IN);
-                                                setIsOptimized(false);
-                                            }}
-                                            className={`flex-1 py-1.5 text-[10px] sm:text-xs font-semibold rounded-lg transition-all ${matWidth !== 'none' ? 'bg-white shadow-sm text-stone-900' : 'text-stone-500 hover:text-stone-700'}`}
-                                        >
-                                            Mat
-                                        </button>
+                                        {[
+                                            { val: 'none', label: 'No Mat' },
+                                            { val: 'narrow', label: 'Narrow' },
+                                            { val: 'standard', label: 'Standard' },
+                                            { val: 'wide', label: 'Wide' }
+                                        ].map(opt => (
+                                            <button
+                                                key={opt.val}
+                                                onClick={() => {
+                                                    setMatWidth(opt.val);
+                                                    setIsOptimized(false);
+                                                }}
+                                                className={`flex-1 py-1.5 text-[10px] sm:text-xs font-semibold rounded-lg transition-all ${matWidth === opt.val ? 'bg-white shadow-sm text-stone-900' : 'text-stone-500 hover:text-stone-700'}`}
+                                            >
+                                                {opt.label}
+                                            </button>
+                                        ))}
                                     </div>
-
-                                    {matWidth !== 'none' && (() => {
-                                        const widthIn = clampMatWidthIn(Number(matWidth) || MAT_WIDTH_DEFAULT_IN);
-                                        return (
-                                            <div className="mb-3">
-                                                <div className="flex items-center justify-between mb-1.5">
-                                                    <span className="text-[10px] sm:text-xs font-semibold text-stone-600">Mat Width</span>
-                                                    <span className="text-[10px] sm:text-xs font-bold text-stone-900 tabular-nums">
-                                                        {unit === 'cm' ? `${(widthIn * 2.54).toFixed(1)} cm` : `${widthIn.toFixed(2)} in`}
-                                                    </span>
-                                                </div>
-                                                <input
-                                                    type="range"
-                                                    min={MAT_WIDTH_MIN_IN}
-                                                    max={MAT_WIDTH_MAX_IN}
-                                                    step={MAT_WIDTH_STEP_IN}
-                                                    value={widthIn}
-                                                    onChange={(e) => {
-                                                        setMatWidth(clampMatWidthIn(parseFloat(e.target.value)));
-                                                        setIsOptimized(false);
-                                                    }}
-                                                    className="w-full h-1.5 accent-fw-gold cursor-pointer"
-                                                    aria-label="Mat width"
-                                                />
-                                                <p className="mt-1 text-[9px] text-stone-400">Applied to each side of the artwork</p>
-                                            </div>
-                                        );
-                                    })()}
 
                                     {/* Mat Color */}
                                     {matWidth !== 'none' && (

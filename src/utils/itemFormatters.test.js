@@ -12,7 +12,6 @@ import {
     GLASS_LABELS,
     HARDWARE_LABELS,
     MAT_WIDTH_LABELS,
-    matWidthLabel,
 } from './itemFormatters';
 
 describe('generateItemDescription', () => {
@@ -143,28 +142,5 @@ describe('label maps stay in sync with the values used elsewhere in the app', ()
         expect(Object.keys(GLASS_LABELS)).toEqual(['standard', 'non-glare', 'museum', 'canvas-traditional', 'canvas-floater']);
         expect(Object.keys(HARDWARE_LABELS)).toEqual(['wire', 'sawtooth', 'french-cleat', 'easel']);
         expect(Object.keys(MAT_WIDTH_LABELS)).toEqual(['none', 'narrow', 'standard', 'wide']);
-    });
-});
-
-describe('matWidthLabel', () => {
-    it('labels "none" and a missing value both as "No Mat"', () => {
-        expect(matWidthLabel('none')).toBe('No Mat');
-        expect(matWidthLabel(null)).toBe('No Mat');
-        expect(matWidthLabel(undefined)).toBe('No Mat');
-    });
-
-    it('still labels the three legacy presets from before the mat-width slider', () => {
-        expect(matWidthLabel('narrow')).toBe('Narrow Mat');
-        expect(matWidthLabel('standard')).toBe('Standard Mat');
-        expect(matWidthLabel('wide')).toBe('Wide Mat');
-    });
-
-    it('labels a numeric width (the current, slider-set shape) with its inch value', () => {
-        expect(matWidthLabel(2)).toBe('2" Mat');
-        expect(matWidthLabel(2.5)).toBe('2.5" Mat');
-    });
-
-    it('labels a numeric-string width the same as a number (Firestore round-trips can store either)', () => {
-        expect(matWidthLabel('2.5')).toBe('2.5" Mat');
     });
 });
