@@ -3448,11 +3448,14 @@ const CustomizeFramePage = ({
                                         const sliderIndex = matWidthToSliderIndex(matWidth);
                                         const sizeMaxSliderIndex = matWidthToSliderIndex(sizeMaxMatWidthIn);
                                         const isNoMat = matWidth === 'none';
+                                        const rangeLabel = unit === 'cm'
+                                            ? `${(MAT_WIDTH_MIN_IN * 2.54).toFixed(1)}–${(sizeMaxMatWidthIn * 2.54).toFixed(1)} cm range`
+                                            : `${MAT_WIDTH_MIN_IN}"–${sizeMaxMatWidthIn}" range`;
                                         return (
                                             <div>
                                                 <div className="flex items-center justify-between mb-1.5">
                                                     <span className="text-[10px] sm:text-xs font-semibold text-stone-500">
-                                                        {isNoMat ? 'No Mat' : `${MAT_WIDTH_MIN_IN}"–${sizeMaxMatWidthIn}" range`}
+                                                        {isNoMat ? 'No Mat' : rangeLabel}
                                                     </span>
                                                     <span className="text-[10px] sm:text-xs font-bold text-stone-900 tabular-nums">
                                                         {isNoMat
