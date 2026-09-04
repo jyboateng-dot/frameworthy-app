@@ -1,10 +1,4 @@
-/**
- * Shared Google Identity Services (GIS) token helper — the client-side OAuth
- * token popup, not the old server-redirect flow. Used by both
- * googlePhotosAuth.js and googleDriveAuth.js, each requesting their own
- * scope against the same OAuth client. No backend involved: the token comes
- * straight back to the browser.
- */
+/** Loads Google Identity Services and keeps short-lived access tokens in memory. */
 
 const GIS_SCRIPT_SRC = 'https://accounts.google.com/gsi/client';
 
@@ -37,10 +31,7 @@ function loadGis() {
     return gisLoadPromise;
 }
 
-// Cached in memory only (not localStorage), keyed by scope — a fresh popup
-// per scope on page load is an acceptable trade for not persisting tokens
-// client-side longer than they need to live.
-const tokenCache = new Map(); // scope -> { token, expiresAt }
+const tokenCache = new Map();
 
 export async function getGoogleAccessToken(clientId, scope) {
     if (!clientId) {

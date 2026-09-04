@@ -46,9 +46,9 @@
         }
       },
       {
-        "source": "/api/import-image-url",
+        "source": "/api/artwork/import-url",
         "function": {
-          "functionId": "importImageFromUrl",
+          "functionId": "importArtworkFromUrl",
           "region": "us-central1"
         }
       },

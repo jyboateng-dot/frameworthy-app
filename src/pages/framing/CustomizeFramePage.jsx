@@ -32,7 +32,7 @@ import { useUnit } from '../../context/UnitContext';
 import { useCart } from '../../context/CartContext';
 import { uploadImageToCloud, getThumbnailUrl } from '../../services/storage';
 import FrameSelectionModal from '../../components/FrameSelectionModal';
-import AddImageMenu from '../../components/framing/AddImageMenu';
+import ArtworkImportMenu from '../../components/framing/ArtworkImportMenu';
 import SizeGuidePanel from '../../components/framing/SizeGuidePanel';
 import ArViewer from '../../components/framing/ArViewer';
 import { clearArModelCache } from '../../utils/ar/buildArModel';
@@ -3152,11 +3152,7 @@ const CustomizeFramePage = ({
                         </h2>
                         
                         <div className="grid grid-cols-2 gap-3">
-                            {/* Upload Trigger — one tile, one dropdown menu covering
-                                every source (device, camera, Google Drive, Google
-                                Photos, Dropbox, paste-a-link), all self-built. See
-                                AddImageMenu.jsx / cloud-upload-feature memory. */}
-                            <AddImageMenu
+                            <ArtworkImportMenu
                                 isPlaceholder={isPlaceholder}
                                 isUploading={isUploading}
                                 onFile={applyImageFile}

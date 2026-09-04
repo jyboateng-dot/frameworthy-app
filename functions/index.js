@@ -840,26 +840,11 @@ exports.proxyArtworkImage = onRequest({ region: 'us-central1', timeoutSeconds: 1
     res.status(200).send(bytes);
 });
 
-// Fetches a customer-pasted image URL server-side, for the frame studio's
-// "paste an image URL" upload option.
-//
-// Unlike proxyArtworkImage above, this one has to accept genuinely arbitrary
-// URLs — that's the whole feature — so it can't lean on a host allowlist.
-// Instead every request gets checked on the properties that actually matter
-// for safety regardless of host:
-//   - http(s) only, and the hostname can't resolve to a private/loopback/
-//     link-local address (blocks SSRF against internal infrastructure and,
-//     critically, cloud metadata endpoints like 169.254.169.254 — a classic
-//     way an open server-side fetch gets used to steal a cloud IAM token).
-//   - the response must actually claim to be an image.
-//   - the response body is capped mid-stream, not just checked against a
-//     (spoofable, sometimes absent) Content-Length header — otherwise a
-//     malicious or misconfigured host could hand back an unbounded stream
-//     and run up hosting/bandwidth cost.
 const dns = require('node:dns').promises;
 const net = require('node:net');
 
-const MAX_IMPORT_BYTES = 20 * 1024 * 1024; // 20MB — generous for a photo, not for abuse.
+const MAX_ARTWORK_IMPORT_BYTES = 20 * 1024 * 1024;
+const MAX_ARTWORK_REDIRECTS = 4;
 
 function isPrivateOrReservedIp(address) {
     const type = net.isIP(address);
@@ -870,13 +855,17 @@ function isPrivateOrReservedIp(address) {
             a === 127 ||
             (a === 169 && b === 254) || // link-local, incl. cloud metadata (169.254.169.254)
             (a === 172 && b >= 16 && b <= 31) ||
+            (a === 100 && b >= 64 && b <= 127) ||
             (a === 192 && b === 168) ||
-            a === 0
+            (a === 198 && (b === 18 || b === 19)) ||
+            a === 0 ||
+            a >= 224
         );
     }
     if (type === 6) {
         const lower = address.toLowerCase();
         return (
+            lower === '::' ||
             lower === '::1' ||
             lower.startsWith('fe80:') || // link-local
             lower.startsWith('fc') || lower.startsWith('fd') || // unique local
@@ -887,29 +876,24 @@ function isPrivateOrReservedIp(address) {
 }
 exports.isPrivateOrReservedIp = isPrivateOrReservedIp; // exported for direct unit testing
 
-exports.importImageFromUrl = onRequest({ region: 'us-central1', timeoutSeconds: 15, maxInstances: 10 }, async (req, res) => {
-    res.set('Access-Control-Allow-Origin', '*');
-
-    const target = req.query.url;
-    if (typeof target !== 'string' || !target) {
-        res.status(400).send('Missing url parameter');
-        return;
-    }
-
+async function validateArtworkUrl(rawUrl) {
     let parsed;
     try {
-        parsed = new URL(target);
+        parsed = new URL(rawUrl);
     } catch {
-        res.status(400).send('Invalid url parameter');
-        return;
+        const error = new Error('Invalid URL');
+        error.status = 400;
+        throw error;
     }
-    if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
-        res.status(400).send('Only http/https URLs are supported');
-        return;
+    if (!['http:', 'https:'].includes(parsed.protocol)) {
+        const error = new Error('Unsupported protocol');
+        error.status = 400;
+        throw error;
     }
-    if (parsed.hostname === 'localhost' || parsed.hostname.endsWith('.local')) {
-        res.status(403).send('That host is not allowed');
-        return;
+    if (parsed.username || parsed.password || parsed.hostname === 'localhost' || parsed.hostname.endsWith('.local')) {
+        const error = new Error('Host is not allowed');
+        error.status = 403;
+        throw error;
     }
 
     let resolved;
@@ -917,31 +901,84 @@ exports.importImageFromUrl = onRequest({ region: 'us-central1', timeoutSeconds: 
         resolved = net.isIP(parsed.hostname)
             ? [{ address: parsed.hostname }]
             : await dns.lookup(parsed.hostname, { all: true });
-    } catch (err) {
-        logger.warn('importImageFromUrl: DNS lookup failed', { hostname: parsed.hostname, message: err.message });
-        res.status(400).send('Could not resolve that host');
+    } catch {
+        const error = new Error('Host could not be resolved');
+        error.status = 400;
+        throw error;
+    }
+    if (!resolved.length || resolved.some(({ address }) => isPrivateOrReservedIp(address))) {
+        const error = new Error('Host is not allowed');
+        error.status = 403;
+        throw error;
+    }
+    return parsed;
+}
+
+async function fetchArtworkUrl(rawUrl) {
+    let currentUrl = rawUrl;
+    for (let redirectCount = 0; redirectCount <= MAX_ARTWORK_REDIRECTS; redirectCount += 1) {
+        const parsed = await validateArtworkUrl(currentUrl);
+        const response = await fetch(parsed.toString(), {
+            signal: AbortSignal.timeout(10_000),
+            redirect: 'manual',
+            headers: { Accept: 'image/*' },
+        });
+        if (response.status < 300 || response.status >= 400) return { response, finalUrl: parsed };
+
+        const location = response.headers.get('location');
+        if (!location || redirectCount === MAX_ARTWORK_REDIRECTS) {
+            const error = new Error('Too many redirects');
+            error.status = 502;
+            throw error;
+        }
+        currentUrl = new URL(location, parsed).toString();
+    }
+    throw new Error('Could not load image');
+}
+
+function filenameFromArtworkUrl(url, contentType) {
+    let filename = '';
+    try {
+        filename = decodeURIComponent(url.pathname.split('/').filter(Boolean).pop() || '');
+    } catch {
+        filename = '';
+    }
+    filename = filename.replace(/[^a-zA-Z0-9._-]/g, '-').slice(0, 100);
+    if (filename && filename.includes('.')) return filename;
+    const subtype = contentType.split(';')[0].split('/')[1] || 'jpg';
+    return `linked-image.${subtype === 'jpeg' ? 'jpg' : subtype}`;
+}
+
+exports.importArtworkFromUrl = onRequest({ region: 'us-central1', timeoutSeconds: 15, maxInstances: 10 }, async (req, res) => {
+    res.set('Access-Control-Allow-Origin', '*');
+    res.set('Access-Control-Allow-Headers', 'Content-Type');
+    res.set('Access-Control-Allow-Methods', 'POST, OPTIONS');
+    if (req.method === 'OPTIONS') {
+        res.status(204).send('');
         return;
     }
-    if (resolved.some((entry) => isPrivateOrReservedIp(entry.address))) {
-        res.status(403).send('That host is not allowed');
+    if (req.method !== 'POST') {
+        res.status(405).send('Method not allowed');
+        return;
+    }
+    const target = req.body?.url;
+    if (typeof target !== 'string' || !target.trim()) {
+        res.status(400).send('Missing URL');
         return;
     }
 
     let upstream;
+    let finalUrl;
     try {
-        upstream = await fetch(parsed.toString(), {
-            signal: AbortSignal.timeout(10_000),
-            redirect: 'follow', // fetch() re-validates the final host's TLS but not its IP —
-            // acceptable here since the redirect target is still just an image host, not
-            // something granted elevated trust the way the request's own origin is.
-        });
+        ({ response: upstream, finalUrl } = await fetchArtworkUrl(target.trim()));
     } catch (err) {
-        logger.error('importImageFromUrl: upstream fetch failed', { url: parsed.toString(), message: err.message });
-        res.status(502).send('Could not load that link');
+        const status = err.status || 502;
+        logger.warn('importArtworkFromUrl failed', { message: err.message, status });
+        res.status(status).send(status === 403 ? 'Host is not allowed' : 'Could not load image');
         return;
     }
     if (!upstream.ok) {
-        res.status(502).send('Could not load that link');
+        res.status(upstream.status === 404 ? 404 : 502).send('Could not load image');
         return;
     }
 
@@ -952,8 +989,8 @@ exports.importImageFromUrl = onRequest({ region: 'us-central1', timeoutSeconds: 
     }
 
     const declaredLength = Number(upstream.headers.get('content-length'));
-    if (Number.isFinite(declaredLength) && declaredLength > MAX_IMPORT_BYTES) {
-        res.status(413).send('That image is too large');
+    if (Number.isFinite(declaredLength) && declaredLength > MAX_ARTWORK_IMPORT_BYTES) {
+        res.status(413).send('Image is too large');
         return;
     }
 
@@ -961,14 +998,16 @@ exports.importImageFromUrl = onRequest({ region: 'us-central1', timeoutSeconds: 
     let total = 0;
     for await (const chunk of upstream.body) {
         total += chunk.length;
-        if (total > MAX_IMPORT_BYTES) {
-            res.status(413).send('That image is too large');
+        if (total > MAX_ARTWORK_IMPORT_BYTES) {
+            res.status(413).send('Image is too large');
             return;
         }
         chunks.push(chunk);
     }
 
     res.set('Content-Type', contentType);
+    res.set('X-Artwork-Filename', filenameFromArtworkUrl(finalUrl, contentType));
+    res.set('Cache-Control', 'no-store');
     res.status(200).send(Buffer.concat(chunks));
 });
 
