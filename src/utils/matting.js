@@ -57,6 +57,39 @@ const roundToEighth = (inches) => Math.round(inches * 8) / 8;
 export const clampMatWidthIn = (inches) =>
     Math.min(MAT_WIDTH_MAX_IN, Math.max(MAT_WIDTH_MIN_IN, inches));
 
+// Must match the safety clamp CustomizeFramePage.jsx applies to the
+// rendered mat percentage (matPctW/matPctTop/matPctBottom) — that clamp
+// stops the on-screen mat from swallowing the artwork on a small print,
+// but by itself it only affects the DRAWING. It never touched the
+// customer's chosen matWidth number, so without maxMatWidthForSize below,
+// a customer could pick a mat wide enough to trigger that clamp, see a
+// smaller, clamped mat on screen, and still have the raw, un-clamped
+// width sent to the production house — a mat that looks nothing like
+// what they approved. maxMatWidthForSize caps the SLIDER at the same
+// threshold instead, so whatever the customer can select is guaranteed
+// to render without clamping and to match exactly what ships.
+export const MAT_RENDER_MAX_PCT = 45;
+
+/**
+ * The largest mat width (in inches, snapped to the slider's own
+ * quarter-inch steps) this print size + frame moulding can take before
+ * the render clamp above would kick in. Mirrors the clamp's math — the
+ * bottom edge is the binding constraint, since MAT_BOTTOM_WEIGHT always
+ * makes it the widest of the three — without needing to be pixel-exact;
+ * this only has to be a safe, same-ballpark cap for a slider limit, not
+ * a re-derivation of the live render.
+ */
+export function maxMatWidthForSize(wInch, hInch, railWidthIn) {
+    if (!wInch || !hInch) return MAT_WIDTH_MAX_IN;
+    const widthOuterIn = wInch + 2 * railWidthIn;
+    const heightOuterIn = hInch + 2 * railWidthIn;
+    const widthLimitIn = (MAT_RENDER_MAX_PCT / 100) * widthOuterIn - railWidthIn;
+    const bottomLimitIn = ((MAT_RENDER_MAX_PCT / 100) * heightOuterIn - railWidthIn) / MAT_BOTTOM_WEIGHT;
+    const limitIn = Math.min(widthLimitIn, bottomLimitIn);
+    const steppedDownIn = Math.floor((limitIn - MAT_WIDTH_MIN_IN) / MAT_WIDTH_STEP_IN) * MAT_WIDTH_STEP_IN + MAT_WIDTH_MIN_IN;
+    return clampMatWidthIn(steppedDownIn);
+}
+
 /** Slider position (0..MAT_WIDTH_MAX_INDEX) -> matWidth ('none' or inches). */
 export function sliderIndexToMatWidth(index) {
     if (index <= 0) return 'none';

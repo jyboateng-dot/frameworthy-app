@@ -4,6 +4,7 @@ import {
     clampMatWidthIn,
     sliderIndexToMatWidth,
     matWidthToSliderIndex,
+    maxMatWidthForSize,
     MAT_WIDTH_MIN_IN,
     MAT_WIDTH_MAX_IN,
     MAT_WIDTH_MAX_INDEX,
@@ -100,5 +101,37 @@ describe('matWidthToSliderIndex', () => {
             const width = sliderIndexToMatWidth(i);
             expect(matWidthToSliderIndex(width)).toBe(i);
         }
+    });
+});
+
+describe('maxMatWidthForSize', () => {
+    it('returns the global max when there is no size to frame yet', () => {
+        expect(maxMatWidthForSize(null, null, 1)).toBe(MAT_WIDTH_MAX_IN);
+        expect(maxMatWidthForSize(5, undefined, 1)).toBe(MAT_WIDTH_MAX_IN);
+    });
+
+    it('caps a small print well below the global 8" max', () => {
+        // 5x7in print, 1in rail: width-axis is the binding constraint.
+        expect(maxMatWidthForSize(5, 7, 1)).toBe(2);
+    });
+
+    it('leaves a large print at the global max, never over it', () => {
+        expect(maxMatWidthForSize(40, 60, 1)).toBe(MAT_WIDTH_MAX_IN);
+    });
+
+    it('never drops below the slider minimum, even for a tiny print', () => {
+        expect(maxMatWidthForSize(2, 2, 1)).toBe(MAT_WIDTH_MIN_IN);
+    });
+
+    it('keeps the render clamp (matPctW/matPctTop/matPctBottom in CustomizeFramePage.jsx) from ever engaging at the returned cap', () => {
+        // At the cap this returns, neither the side ratio nor the
+        // (heavier) bottom ratio should exceed MAT_RENDER_MAX_PCT.
+        const wInch = 8, hInch = 11, railWidthIn = 0.75;
+        const cap = maxMatWidthForSize(wInch, hInch, railWidthIn);
+        const reveal = getMatReveal(cap, { width: wInch, height: hInch });
+        const sidePct = (reveal.sideIn / (wInch + 2 * railWidthIn)) * 100;
+        const bottomPct = (reveal.bottomIn / (hInch + 2 * railWidthIn)) * 100;
+        expect(sidePct).toBeLessThanOrEqual(45 - (railWidthIn / (wInch + 2 * railWidthIn)) * 100 + 0.01);
+        expect(bottomPct).toBeLessThanOrEqual(45 - (railWidthIn / (hInch + 2 * railWidthIn)) * 100 + 0.01);
     });
 });

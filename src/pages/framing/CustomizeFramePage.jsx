@@ -23,9 +23,9 @@ import {
     getMatReveal,
     sliderIndexToMatWidth,
     matWidthToSliderIndex,
-    MAT_WIDTH_MAX_INDEX,
+    maxMatWidthForSize,
     MAT_WIDTH_MIN_IN,
-    MAT_WIDTH_MAX_IN,
+    MAT_RENDER_MAX_PCT,
 } from '../../utils/matting';
 import WEB_MET_DIMS from '../../data/web_met_dims.json';
 import { useUnit } from '../../context/UnitContext';
@@ -918,11 +918,29 @@ const CustomizeFramePage = ({
     const hInch = orientation === 'portrait' ? selectedSize?.height : selectedSize?.width;
     const isSquareFrame = Boolean(wInch && hInch && Math.abs(wInch - hInch) < 0.01);
     const railWidthIn = getMouldingWidthIn(selectedFrame);
+    // The most the mat-width slider can offer for this print size + frame
+    // without the render's own 45%-of-frame safety clamp kicking in — see
+    // maxMatWidthForSize's own comment in matting.js for why this needs to
+    // exist at all (otherwise a customer could pick a mat wider than what
+    // actually gets drawn, and production would receive that wider,
+    // un-clamped number instead of what was approved on screen).
+    const sizeMaxMatWidthIn = maxMatWidthForSize(wInch, hInch, railWidthIn);
     const innerWidthCm = (wInch || 0) * 2.54;
     const innerHeightCm = (hInch || 0) * 2.54;
     const railWidthCm = railWidthIn * 2.54;
     const outerFrameWidthCm = innerWidthCm + (railWidthCm * 2);
     const outerFrameHeightCm = innerHeightCm + (railWidthCm * 2);
+
+    // If switching size/orientation/frame drops sizeMaxMatWidthIn below the
+    // customer's current mat width (e.g. they set a wide mat, then picked a
+    // much smaller print), pull it back down to what's actually selectable
+    // on the slider now — otherwise the stored value would sit above what
+    // the slider itself allows, out of sync with what's drawn on screen.
+    useEffect(() => {
+        if (typeof matWidth === 'number' && matWidth > sizeMaxMatWidthIn) {
+            setMatWidth(sizeMaxMatWidthIn);
+        }
+    }, [sizeMaxMatWidthIn, matWidth, setMatWidth]);
 
     const visualizerMetrics = (() => {
         if (!wInch || !hInch) return { height: undefined, scale: 1 };
@@ -2397,9 +2415,9 @@ const CustomizeFramePage = ({
                             const rawMatPctW = (matReveal.sideIn / (wInch + 2 * railWidthIn)) * 100;
                             const rawMatPctTop = (matReveal.topIn / (hInch + 2 * railWidthIn)) * 100;
                             const rawMatPctBottom = (matReveal.bottomIn / (hInch + 2 * railWidthIn)) * 100;
-                            const matPctW = Math.max(0, Math.min(rawMatPctW, 45 - mouldingPctW));
-                            const matPctTop = Math.max(0, Math.min(rawMatPctTop, 45 - mouldingPctH));
-                            const matPctBottom = Math.max(0, Math.min(rawMatPctBottom, 45 - mouldingPctH));
+                            const matPctW = Math.max(0, Math.min(rawMatPctW, MAT_RENDER_MAX_PCT - mouldingPctW));
+                            const matPctTop = Math.max(0, Math.min(rawMatPctTop, MAT_RENDER_MAX_PCT - mouldingPctH));
+                            const matPctBottom = Math.max(0, Math.min(rawMatPctBottom, MAT_RENDER_MAX_PCT - mouldingPctH));
 
                             // Canvas Print mount styles (glassType 'canvas'): Floater reveals a
                             // small gap between the canvas edge and the frame's inner wall;
@@ -3422,18 +3440,19 @@ const CustomizeFramePage = ({
                                         <span className="bg-stone-100 text-stone-500 w-5 h-5 rounded-full flex items-center justify-center text-[10px]">{stepMatting}</span>
                                         <span>
                                             Mat Width
-                                            <InfoTooltip text="Drag to the far left for no mat. The first step right is a 1 inch mat; each step after adds a quarter inch, up to 8 inches." />
+                                            <InfoTooltip text="Drag to the far left for no mat. The first step right is a 1 inch mat; each step after adds a quarter inch, up to 8 inches (less on smaller prints, so the mat never overwhelms the artwork)." />
                                         </span>
                                     </h2>
 
                                     {(() => {
                                         const sliderIndex = matWidthToSliderIndex(matWidth);
+                                        const sizeMaxSliderIndex = matWidthToSliderIndex(sizeMaxMatWidthIn);
                                         const isNoMat = matWidth === 'none';
                                         return (
                                             <div>
                                                 <div className="flex items-center justify-between mb-1.5">
                                                     <span className="text-[10px] sm:text-xs font-semibold text-stone-500">
-                                                        {isNoMat ? 'No Mat' : `${MAT_WIDTH_MIN_IN}"–${MAT_WIDTH_MAX_IN}" range`}
+                                                        {isNoMat ? 'No Mat' : `${MAT_WIDTH_MIN_IN}"–${sizeMaxMatWidthIn}" range`}
                                                     </span>
                                                     <span className="text-[10px] sm:text-xs font-bold text-stone-900 tabular-nums">
                                                         {isNoMat
@@ -3446,7 +3465,7 @@ const CustomizeFramePage = ({
                                                 <input
                                                     type="range"
                                                     min={0}
-                                                    max={MAT_WIDTH_MAX_INDEX}
+                                                    max={sizeMaxSliderIndex}
                                                     step={1}
                                                     value={sliderIndex}
                                                     onChange={(e) => {
