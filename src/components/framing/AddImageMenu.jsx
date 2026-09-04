@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { ImageUp, Camera, HardDrive, Image as ImageIcon, Link2, ArrowLeft, ArrowRight, Loader2 } from 'lucide-react';
+import { ImageUp, HardDrive, Image as ImageIcon, Link2, ArrowLeft, ArrowRight, Loader2 } from 'lucide-react';
 import { importImageFromUrl } from '../../utils/importImageFromUrl';
 import { importFromGooglePhotos } from '../../utils/importFromGooglePhotos';
 import { importFromGoogleDrive } from '../../utils/importFromGoogleDrive';
@@ -27,8 +27,9 @@ const CLOUD_SOURCES = {
  *
  * Entirely self-built — no third-party picker widget (Uploadcare was
  * dropped; see cloud-upload-feature memory for why and what it cost to
- * build each source directly). One tile, one dropdown: device and camera
- * always work (plain file inputs, no config); each cloud source
+ * build each source directly). One tile, one dropdown: Device always works
+ * (a plain file input, no config — its own OS picker already offers the
+ * camera on mobile, so there's no separate Camera row); each cloud source
  * (Drive/Photos/Dropbox) independently disappears from the menu if its
  * config isn't set, rather than erroring; "Paste an image link" always
  * works (it's this app's own Firebase Function, always deployed).
@@ -96,7 +97,7 @@ export default function AddImageMenu({ isPlaceholder, isUploading, onFile, disab
         });
     };
 
-    const handleDeviceOrCameraFile = (e) => {
+    const handleDeviceFile = (e) => {
         const file = e.target.files?.[0];
         e.target.value = '';
         if (file) {
@@ -165,8 +166,12 @@ export default function AddImageMenu({ isPlaceholder, isUploading, onFile, disab
                 <div className="absolute z-20 top-full left-0 mt-1.5 w-64 bg-white border border-stone-200 rounded-xl shadow-lg overflow-hidden">
                     {panel === 'menu' && (
                         <div className="py-1">
-                            <FileMenuRow icon={ImageUp} label="Device" onChange={handleDeviceOrCameraFile} />
-                            <FileMenuRow icon={Camera} label="Camera" capture="environment" onChange={handleDeviceOrCameraFile} />
+                            {/* No separate "Camera" row — the device file
+                                input's own OS picker already offers "Take
+                                Photo" alongside the photo library on mobile,
+                                so a dedicated Camera entry was a duplicate
+                                path to the same native chooser. */}
+                            <FileMenuRow icon={ImageUp} label="Device" onChange={handleDeviceFile} />
                             {DRIVE_ENABLED && (
                                 <MenuRow icon={HardDrive} label="Google Drive" onClick={() => handlePickFromSource('drive')} />
                             )}
@@ -248,12 +253,12 @@ function MenuRow({ icon: Icon, label, onClick }) {
     );
 }
 
-function FileMenuRow({ icon: Icon, label, capture, onChange }) {
+function FileMenuRow({ icon: Icon, label, onChange }) {
     return (
         <label className="flex items-center gap-2.5 px-3 py-2.5 text-xs text-stone-700 hover:bg-stone-50 cursor-pointer">
             <Icon size={14} className="text-stone-400 shrink-0" />
             {label}
-            <input type="file" className="hidden" accept="image/*" capture={capture} onChange={onChange} />
+            <input type="file" className="hidden" accept="image/*" onChange={onChange} />
         </label>
     );
 }
