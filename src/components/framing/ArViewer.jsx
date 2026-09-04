@@ -85,7 +85,7 @@ export default function ArViewer({
     frame,
     widthIn,
     heightIn,
-    matInches,
+    matReveal,
     matColorHex,
     artworkUrl,
     hardwareType,
@@ -132,7 +132,7 @@ export default function ArViewer({
                     frame,
                     widthIn,
                     heightIn,
-                    matIn: matInches || 0,
+                    matReveal: matReveal || { topIn: 0, sideIn: 0, bottomIn: 0 },
                     matColorHex,
                     artworkUrl,
                     hardwareType,
@@ -202,7 +202,11 @@ export default function ArViewer({
             scene?.dispose();
             sceneRef.current = null;
         };
-    }, [isOpen, attempt, frame, widthIn, heightIn, matInches, matColorHex, artworkUrl, hardwareType]);
+    // matReveal's three numbers, not the object itself — the parent
+    // recomputes a fresh matReveal object every render, so depending on
+    // its reference would rebuild the AR model (an image decode + canvas
+    // work) on every unrelated re-render while this stays open.
+    }, [isOpen, attempt, frame, widthIn, heightIn, matReveal?.topIn, matReveal?.sideIn, matReveal?.bottomIn, matColorHex, artworkUrl, hardwareType]);
 
     useEffect(() => {
         if (!isOpen) return undefined;

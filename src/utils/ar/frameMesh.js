@@ -98,12 +98,20 @@ export class MeshPart {
 /**
  * A flat rectangular ring (rectangle with a rectangular hole) as four
  * trapezoids. Used for the mat's face; `z` is constant across it.
+ *
+ * `innerOffsetY` shifts the inner hole up/down relative to the outer
+ * rectangle's centre, without moving the outer rectangle itself — how a
+ * bottom-weighted mat is built: the sight opening (outer) stays centred
+ * in the rabbet, but the window around the artwork (inner) sits closer
+ * to the top, leaving the wider reveal at the bottom. 0 reproduces the
+ * old centred ring exactly.
  */
-function addFlatRing(part, outerW, outerH, innerW, innerH, z, uvScale = null) {
+function addFlatRing(part, outerW, outerH, innerW, innerH, z, uvScale = null, innerOffsetY = 0) {
     const ow = outerW / 2;
     const oh = outerH / 2;
     const iw = innerW / 2;
-    const ih = innerH / 2;
+    const ihTop = innerH / 2 + innerOffsetY;
+    const ihBottom = -innerH / 2 + innerOffsetY;
     const up = [0, 0, 1];
 
     // UVs only matter when the ring carries a texture rather than a
@@ -114,13 +122,13 @@ function addFlatRing(part, outerW, outerH, innerW, innerH, z, uvScale = null) {
 
     const corners = [
         // top strip
-        [[-ow, oh], [ow, oh], [iw, ih], [-iw, ih]],
+        [[-ow, oh], [ow, oh], [iw, ihTop], [-iw, ihTop]],
         // bottom strip
-        [[-iw, -ih], [iw, -ih], [ow, -oh], [-ow, -oh]],
+        [[-iw, ihBottom], [iw, ihBottom], [ow, -oh], [-ow, -oh]],
         // left strip
-        [[-ow, -oh], [-iw, -ih], [-iw, ih], [-ow, oh]],
+        [[-ow, -oh], [-iw, ihBottom], [-iw, ihTop], [-ow, oh]],
         // right strip
-        [[ow, -oh], [ow, oh], [iw, ih], [iw, -ih]],
+        [[ow, -oh], [ow, oh], [iw, ihTop], [iw, ihBottom]],
     ];
 
     for (const quad of corners) {
@@ -131,22 +139,28 @@ function addFlatRing(part, outerW, outerH, innerW, innerH, z, uvScale = null) {
 
 /**
  * The angled band of exposed board between a mat's face and the artwork
- * behind it — the white core line.
+ * behind it — the white core line. `offsetY` shifts both the front and
+ * back rectangles together (they stay concentric — the bevel is a
+ * straight-through cut, uniformly wider at the front by the board's own
+ * thickness), matching whatever offset addFlatRing's inner hole used for
+ * the same mat, so the bevel lines up with the window it borders.
  */
-function addBevelRing(part, frontW, frontH, frontZ, backW, backH, backZ) {
+function addBevelRing(part, frontW, frontH, frontZ, backW, backH, backZ, offsetY = 0) {
     const fw = frontW / 2;
-    const fh = frontH / 2;
+    const fh = frontH / 2 + offsetY;
+    const fh2 = -frontH / 2 + offsetY;
     const bw = backW / 2;
-    const bh = backH / 2;
+    const bh = backH / 2 + offsetY;
+    const bh2 = -backH / 2 + offsetY;
     const uv = [0, 0];
 
     // Each band faces inward toward the artwork's centre line, which is
     // what makes it visible when looking at the piece straight on.
     const bands = [
         { front: [[-fw, fh], [fw, fh]], back: [[bw, bh], [-bw, bh]], out: [0, -1, 0.6] },
-        { front: [[fw, -fh], [-fw, -fh]], back: [[-bw, -bh], [bw, -bh]], out: [0, 1, 0.6] },
-        { front: [[-fw, -fh], [-fw, fh]], back: [[-bw, bh], [-bw, -bh]], out: [1, 0, 0.6] },
-        { front: [[fw, fh], [fw, -fh]], back: [[bw, -bh], [bw, bh]], out: [-1, 0, 0.6] },
+        { front: [[fw, fh2], [-fw, fh2]], back: [[-bw, bh2], [bw, bh2]], out: [0, 1, 0.6] },
+        { front: [[-fw, fh2], [-fw, fh]], back: [[-bw, bh], [-bw, bh2]], out: [1, 0, 0.6] },
+        { front: [[fw, fh], [fw, fh2]], back: [[bw, bh2], [bw, bh]], out: [-1, 0, 0.6] },
     ];
 
     for (const band of bands) {
@@ -170,7 +184,15 @@ function addBevelRing(part, frontW, frontH, frontZ, backW, backH, backZ) {
  * @param {number} spec.mouldingWidthIn  catalogue face width
  * @param {number} spec.rabbetDepthIn    catalogue rabbet depth
  * @param {string} spec.profile          one of frameProfiles' silhouettes
- * @param {number} spec.matIn            mat reveal per side, 0 for no mat
+ * @param {{topIn: number, sideIn: number, bottomIn: number}} [spec.matReveal]
+ *                                       mat reveal per edge, all 0 for no mat —
+ *                                       the same shape matting.js's getMatReveal
+ *                                       returns. left/right always use sideIn;
+ *                                       top and bottom are independent so the
+ *                                       standard bottom-weighted mat (bottom
+ *                                       wider than top/sides) matches the 2D
+ *                                       visualizer exactly instead of coming out
+ *                                       symmetric here.
  * @param {number} spec.railTileAspect   rail texture's length/thickness ratio,
  *                                       used to tile it at true physical scale
  * @param {boolean} spec.hasCorner       real photographed mitre-corner texture
@@ -186,13 +208,20 @@ export function buildFrameMesh({
     mouldingWidthIn,
     rabbetDepthIn,
     profile,
-    matIn = 0,
+    matReveal = { topIn: 0, sideIn: 0, bottomIn: 0 },
     railTileAspect = 4,
     hasCorner = false,
 }) {
-    const mat = Math.max(0, matIn);
-    const sightWidthIn = artworkWidthIn + mat * 2;
-    const sightHeightIn = artworkHeightIn + mat * 2;
+    const matTopIn = Math.max(0, Number(matReveal?.topIn) || 0);
+    const matSideIn = Math.max(0, Number(matReveal?.sideIn) || 0);
+    const matBottomIn = Math.max(0, Number(matReveal?.bottomIn) || 0);
+    const hasMat = matTopIn > 0 || matSideIn > 0 || matBottomIn > 0;
+    const sightWidthIn = artworkWidthIn + matSideIn * 2;
+    const sightHeightIn = artworkHeightIn + matTopIn + matBottomIn;
+    // How far the artwork+bevel window sits off-centre within the sight
+    // opening: a wider bottom reveal than top pushes the window upward
+    // (more room left below it), by half the difference between the two.
+    const matOffsetInM = ((matBottomIn - matTopIn) / 2) * IN_TO_M;
     const outerWidthIn = sightWidthIn + mouldingWidthIn * 2;
     const outerHeightIn = sightHeightIn + mouldingWidthIn * 2;
 
@@ -368,7 +397,7 @@ export function buildFrameMesh({
 
     let artZ = glazingZ;
 
-    if (mat > 0) {
+    if (hasMat) {
         const matPart = new MeshPart('mat');
         const bevelPart = new MeshPart('matBevel');
 
@@ -378,19 +407,23 @@ export function buildFrameMesh({
         const windowFrontH = artHeightM + matBoardM * 2;
         artZ = glazingZ - matBoardM;
 
-        addFlatRing(matPart, sightWidthM, sightHeightM, windowFrontW, windowFrontH, glazingZ);
-        addBevelRing(bevelPart, windowFrontW, windowFrontH, glazingZ, artWidthM, artHeightM, artZ);
+        addFlatRing(matPart, sightWidthM, sightHeightM, windowFrontW, windowFrontH, glazingZ, null, matOffsetInM);
+        addBevelRing(bevelPart, windowFrontW, windowFrontH, glazingZ, artWidthM, artHeightM, artZ, matOffsetInM);
 
         parts.push(matPart, bevelPart);
     }
 
     // Artwork panel. UVs are a plain 0-1 fit because the texture is
-    // composited to this exact aspect ratio before it gets here.
+    // composited to this exact aspect ratio before it gets here. Offset
+    // on Y the same way the mat's own window was, above — with no mat
+    // the offset is 0 anyway (matTopIn/matBottomIn both 0), so this is a
+    // no-op in that case.
     const artPart = new MeshPart('art');
-    const aw = (mat > 0 ? artWidthM : sightWidthM) / 2;
-    const ah = (mat > 0 ? artHeightM : sightHeightM) / 2;
+    const aw = (hasMat ? artWidthM : sightWidthM) / 2;
+    const ah = (hasMat ? artHeightM : sightHeightM) / 2;
+    const ay = hasMat ? matOffsetInM : 0;
     artPart.addQuad(
-        [-aw, -ah, artZ], [aw, -ah, artZ], [aw, ah, artZ], [-aw, ah, artZ],
+        [-aw, -ah + ay, artZ], [aw, -ah + ay, artZ], [aw, ah + ay, artZ], [-aw, ah + ay, artZ],
         [0, 1], [1, 1], [1, 0], [0, 0],
         [0, 0, 1]
     );

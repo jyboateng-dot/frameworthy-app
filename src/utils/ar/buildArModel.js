@@ -67,14 +67,17 @@ export function clearArModelCache() {
  * @param {object} config.frame       catalogue frame record
  * @param {number} config.widthIn     artwork width
  * @param {number} config.heightIn    artwork height
- * @param {number} config.matIn       mat reveal per side, 0 for none
+ * @param {{topIn: number, sideIn: number, bottomIn: number}} [config.matReveal]
+ *                                    mat reveal per edge, all 0 for none — see
+ *                                    buildFrameMesh's own doc for why this is
+ *                                    three numbers rather than one.
  * @param {string} config.matColorHex
  * @param {string} config.artworkUrl
  * @returns {Promise<{glbUrl: string, usdzUrl: string, outerWidthM: number, outerHeightM: number, profile: string, isMeasured: boolean}>}
  */
-export async function buildArModel({ frame, widthIn, heightIn, matIn, matColorHex, artworkUrl, hardwareType }) {
+export async function buildArModel({ frame, widthIn, heightIn, matReveal, matColorHex, artworkUrl, hardwareType }) {
     const key = JSON.stringify([
-        frame?.id, widthIn, heightIn, matIn, matColorHex, artworkUrl, hardwareType,
+        frame?.id, widthIn, heightIn, matReveal, matColorHex, artworkUrl, hardwareType,
     ]);
 
     if (cache.has(key)) {
@@ -101,7 +104,7 @@ export async function buildArModel({ frame, widthIn, heightIn, matIn, matColorHe
         mouldingWidthIn: renderProfile.mouldingWidthIn,
         rabbetDepthIn: renderProfile.rabbetDepthIn,
         profile: renderProfile.profile,
-        matIn,
+        matReveal,
         // Falls back to a 4:1 strip when no rail photography resolved,
         // which only affects how often a texture that isn't there would
         // have repeated.

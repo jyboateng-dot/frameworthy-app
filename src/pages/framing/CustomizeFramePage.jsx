@@ -1027,9 +1027,10 @@ const CustomizeFramePage = ({
 
     // Physical mat reveal in inches, per edge — see src/utils/matting.js for
     // the size-tiered base widths and the bottom-weighting rationale. Shared
-    // with the order-thumbnail capture below so the two never disagree.
+    // with the order-thumbnail capture below AND with the AR viewer (passed
+    // through whole, not collapsed to one number) so none of the three can
+    // disagree with each other.
     const matReveal = getMatReveal(matWidth, selectedSize);
-    const currentMatInches = matReveal.topIn;
 
 
     useEffect(() => {
@@ -3674,7 +3675,7 @@ const CustomizeFramePage = ({
                 frame={selectedFrame}
                 widthIn={wInch}
                 heightIn={hInch}
-                matInches={matWidth !== 'none' ? currentMatInches : 0}
+                matReveal={matReveal}
                 matColorHex={matColor?.hex}
                 artworkUrl={productionImage || uploadedImage}
                 hardwareType={hardwareType}

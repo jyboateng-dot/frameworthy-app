@@ -21,10 +21,12 @@ const sampleMesh = (overrides = {}) => buildFrameMesh({
     mouldingWidthIn: 1.25,
     rabbetDepthIn: 0.5625,
     profile: 'scoop',
-    matIn: 2,
+    matReveal: { topIn: 2, sideIn: 2, bottomIn: 2 },
     railTileAspect: 4,
     ...overrides,
 });
+
+const NO_MAT = { topIn: 0, sideIn: 0, bottomIn: 0 };
 
 const solidMaterials = (parts) => Object.fromEntries(
     [...new Set(parts.map((p) => p.material))].map((name) => [
@@ -66,12 +68,40 @@ describe('frame mesh', () => {
     });
 
     it('emits mat geometry only when a mat is configured', () => {
-        const withMat = sampleMesh({ matIn: 2 }).parts.map((p) => p.material);
-        const without = sampleMesh({ matIn: 0 }).parts.map((p) => p.material);
+        const withMat = sampleMesh({ matReveal: { topIn: 2, sideIn: 2, bottomIn: 2 } }).parts.map((p) => p.material);
+        const without = sampleMesh({ matReveal: NO_MAT }).parts.map((p) => p.material);
         expect(withMat).toContain('mat');
         expect(withMat).toContain('matBevel');
         expect(without).not.toContain('mat');
         expect(without).not.toContain('matBevel');
+    });
+
+    it('widens only the bottom edge for a bottom-weighted mat, keeping top/left/right equal', () => {
+        // Same artwork/frame as the default sample, but with a genuinely
+        // bottom-weighted reveal (matches getMatReveal's own convention:
+        // top === side, bottom wider).
+        const mesh = sampleMesh({ matReveal: { topIn: 2, sideIn: 2, bottomIn: 2.25 } });
+        // Outer size still reflects the true total reveal on each axis:
+        // 16 + 2*2 side mat + 2*1.25 moulding = 22.5in wide;
+        // 20 + 2 top + 2.25 bottom + 2*1.25 moulding = 26.75in tall.
+        expect(mesh.outerWidthM).toBeCloseTo(22.5 * IN_TO_M, 6);
+        expect(mesh.outerHeightM).toBeCloseTo(26.75 * IN_TO_M, 6);
+
+        // The artwork panel ('art' part) should sit off-centre on Y by
+        // half the top/bottom difference: (2.25 - 2) / 2 = 0.125in.
+        const artPart = mesh.parts.find((p) => p.material === 'art');
+        const ys = [];
+        for (let i = 1; i < artPart.positions.length; i += 3) ys.push(artPart.positions[i]);
+        const centreY = (Math.max(...ys) + Math.min(...ys)) / 2;
+        expect(centreY).toBeCloseTo(0.125 * IN_TO_M, 6);
+
+        // A symmetric mat (top === bottom) keeps the artwork exactly
+        // centred, same as before this change.
+        const symmetric = sampleMesh({ matReveal: { topIn: 2, sideIn: 2, bottomIn: 2 } });
+        const symmetricArt = symmetric.parts.find((p) => p.material === 'art');
+        const symmetricYs = [];
+        for (let i = 1; i < symmetricArt.positions.length; i += 3) symmetricYs.push(symmetricArt.positions[i]);
+        expect((Math.max(...symmetricYs) + Math.min(...symmetricYs)) / 2).toBeCloseTo(0, 9);
     });
 
     it('produces unit-length normals and complete triangles', () => {
@@ -382,7 +412,7 @@ describe('glb container', () => {
     });
 
     it('embeds and binds a lighting-responsive rail normal map', () => {
-        const mesh = sampleMesh({ matIn: 0 });
+        const mesh = sampleMesh({ matReveal: NO_MAT });
         const materials = solidMaterials(mesh.parts);
         materials.rail = {
             texture: new Uint8Array([1, 2, 3, 4]),
@@ -400,7 +430,7 @@ describe('glb container', () => {
     });
 
     it('marks artwork unlit so AR lighting cannot alter its 2D exposure', () => {
-        const mesh = sampleMesh({ matIn: 0 });
+        const mesh = sampleMesh({ matReveal: NO_MAT });
         const materials = solidMaterials(mesh.parts);
         materials.art = {
             texture: new Uint8Array([1, 2, 3, 4]),
@@ -484,7 +514,7 @@ describe('usdz container', () => {
     });
 
     it('binds rail relief as a raw tangent-space normal texture', () => {
-        const mesh = sampleMesh({ matIn: 0 });
+        const mesh = sampleMesh({ matReveal: NO_MAT });
         const materials = solidMaterials(mesh.parts);
         materials.rail = {
             texture: new Uint8Array([1]),
@@ -501,7 +531,7 @@ describe('usdz container', () => {
     });
 
     it('declares artwork colour space and keeps it independent of lighting', () => {
-        const mesh = sampleMesh({ matIn: 0 });
+        const mesh = sampleMesh({ matReveal: NO_MAT });
         const materials = solidMaterials(mesh.parts);
         materials.art = {
             texture: new Uint8Array([1]),
@@ -517,7 +547,7 @@ describe('usdz container', () => {
     });
 
     it('keeps flat untextured materials independent of AR lighting too', () => {
-        const mesh = sampleMesh({ matIn: 0 });
+        const mesh = sampleMesh({ matReveal: NO_MAT });
         const materials = solidMaterials(mesh.parts);
         materials.backing = {
             baseColor: [0.2, 0.3, 0.4, 1],
