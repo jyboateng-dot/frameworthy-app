@@ -34,6 +34,7 @@ import { CartProvider, useCart } from './context/CartContext';
 import { WishlistProvider } from './context/WishlistContext';
 
 import { FRAME_STYLES, FRAME_SIZES, WALL_TEXTURES, MAT_COLORS, DEFAULT_DEMO_IMAGE } from './data/constants';
+import { MAT_WIDTH_DEFAULT_IN } from './utils/matting';
 import { Capacitor } from '@capacitor/core';
 import { App as CapacitorApp } from '@capacitor/app';
 import { StatusBar, Style } from '@capacitor/status-bar';
@@ -83,7 +84,9 @@ const AppLayout = () => {
   // HOISTED FRAMING CUSTOMIZATIONS
   const [orientation, setOrientation] = useState('portrait');
   const [matColor, setMatColor] = useState(MAT_COLORS[0]);
-  const [matWidth, setMatWidth] = useState('narrow');
+  // A number (inches) now, not one of the old 'narrow'/'standard'/'wide'
+  // presets — see matting.js. 'none' is still the sentinel for "no mat".
+  const [matWidth, setMatWidth] = useState(MAT_WIDTH_DEFAULT_IN);
   const [glassType, setGlassType] = useState('standard');
   const [hardwareType, setHardwareType] = useState('wire');
   const [isPreset, setIsPreset] = useState(false);

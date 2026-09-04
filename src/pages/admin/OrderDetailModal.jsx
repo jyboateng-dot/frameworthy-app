@@ -1,6 +1,6 @@
 import React from 'react';
 import { X, Download, Layers, ImageOff } from 'lucide-react';
-import { GLASS_LABELS, HARDWARE_LABELS, MAT_WIDTH_LABELS } from '../../utils/itemFormatters';
+import { GLASS_LABELS, HARDWARE_LABELS, matWidthLabel } from '../../utils/itemFormatters';
 import { getPrintQualityJpegUrl } from '../../services/storage';
 import { openExternalLinkFromEvent } from '../../utils/nativeLinks';
 
@@ -93,7 +93,7 @@ const ItemFulfillmentCard = ({ item }) => {
                                         style={{ backgroundColor: item.matColor.hex }}
                                         title={item.matColor.hex}
                                     />
-                                    {item.matColor.name} ({MAT_WIDTH_LABELS[item.matWidth] || item.matWidth})
+                                    {item.matColor.name} ({matWidthLabel(item.matWidth)})
                                 </span>
                             ) : (
                                 <span className="text-gray-400">No Mat</span>

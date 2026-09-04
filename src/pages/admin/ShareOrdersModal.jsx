@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { X, Copy, Mail, MessageCircle, Check, Send, Lock, User } from 'lucide-react';
 import emailjs from '@emailjs/browser';
-import { formatOrdersForSharing, formatOrderForClient, generateItemDescription, GLASS_LABELS, HARDWARE_LABELS, MAT_WIDTH_LABELS } from '../../utils/itemFormatters';
+import { formatOrdersForSharing, formatOrderForClient, generateItemDescription, GLASS_LABELS, HARDWARE_LABELS, matWidthLabel } from '../../utils/itemFormatters';
 import { getPrintQualityJpegUrl } from '../../services/storage';
 import { openExternalLink } from '../../utils/nativeLinks';
 
@@ -376,7 +376,7 @@ const ShareOrdersModal = ({ orders, onClose }) => {
 
                         {(order.items || []).map((item, index) => {
                             const sizeLabel = item.selectedSize?.label || item.size || 'Unknown Size';
-                            const matDesc = item.matWidth !== 'none' && item.matColor ? `${item.matColor.name} (${MAT_WIDTH_LABELS[item.matWidth]})` : 'No Mat';
+                            const matDesc = item.matWidth !== 'none' && item.matColor ? `${item.matColor.name} (${matWidthLabel(item.matWidth)})` : 'No Mat';
                             const printUrl = getPrintQualityJpegUrl(item.image, item);
 
                             return (
