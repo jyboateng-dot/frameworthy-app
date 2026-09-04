@@ -1,6 +1,4 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { importFromGoogleDrive } from './importFromGoogleDrive';
-import { getGoogleDriveAccessToken } from './googleDriveAuth';
 
 vi.mock('./googleDriveAuth', () => ({
     getGoogleDriveAccessToken: vi.fn(),
@@ -52,9 +50,23 @@ function makeFakePicker(outcome, doc) {
 const originalFetch = global.fetch;
 
 describe('importFromGoogleDrive', () => {
-    beforeEach(() => {
-        getGoogleDriveAccessToken.mockResolvedValue('tok-drive');
+    // The API key is read as a module-level constant, so a plain
+    // vi.stubEnv() alone only reaches a module that's imported AFTER the
+    // stub is in place — reusing whatever instance was cached from an
+    // earlier test (or, worse, from whatever a developer's own real
+    // .env.local happens to set) is exactly what let this suite pass
+    // locally while failing in CI, where no real key is ever present.
+    // Resetting the module registry and re-importing fresh in every
+    // beforeEach is what keeps each test's env stub actually effective.
+    let importFromGoogleDrive;
+    let getGoogleDriveAccessToken;
+
+    beforeEach(async () => {
+        vi.resetModules();
         vi.stubEnv('VITE_GOOGLE_DRIVE_API_KEY', 'test-api-key');
+        ({ importFromGoogleDrive } = await import('./importFromGoogleDrive'));
+        ({ getGoogleDriveAccessToken } = await import('./googleDriveAuth'));
+        getGoogleDriveAccessToken.mockResolvedValue('tok-drive');
     });
 
     afterEach(() => {
@@ -66,9 +78,9 @@ describe('importFromGoogleDrive', () => {
     });
 
     it('rejects without ever requesting a token when the API key is not configured', async () => {
-        // The API key is read as a module-level constant, so a plain
-        // vi.stubEnv after the module's already loaded wouldn't be seen —
-        // reset and re-import fresh with the empty value in place.
+        // Overrides beforeEach's default stub with an empty key, then
+        // re-resets and re-imports again so THIS test's module instance
+        // reflects that empty value instead.
         vi.stubEnv('VITE_GOOGLE_DRIVE_API_KEY', '');
         vi.resetModules();
         const { importFromGoogleDrive: freshImport } = await import('./importFromGoogleDrive');
