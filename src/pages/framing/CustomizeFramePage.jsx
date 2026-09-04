@@ -2362,58 +2362,41 @@ const CustomizeFramePage = ({
                                 mouldingPctH = (projectedRailPx / renderedFrameHeightPx) * 100;
                             }
 
-                            // Mat inset as % of frame width/height — held to a
-                            // CONSTANT proportion of the frame (calibrated to
-                            // the 120×120 reference size's own current
-                            // rendering) in shared-preview view, rather than
-                            // the raw physical mat-inches/frame-inches ratio.
-                            // That raw ratio shrinks as a proportion the
-                            // bigger the frame's own physical size gets (a
-                            // fixed mat reveal in real inches, over a growing
-                            // outer-inch denominator), which — measured
-                            // across the catalogue — produced a visibly noisy,
-                            // non-proportional mat rather than a consistent
-                            // one. Scoped the same way the moulding's own
-                            // 60×60-reference consistency pass above is
-                            // scoped: elsewhere (a small room-scene
-                            // thumbnail) the raw physical-ratio mat is close
-                            // enough that the extra consistency isn't worth
-                            // the risk. getMatReveal already returns all
+                            // Mat inset as % of frame width/height — the raw
+                            // physical mat-inches/frame-inches ratio, used
+                            // uniformly in every view now (EXPERIMENTAL,
+                            // 2026-09-04, see mat-width-plain-vs-room memory).
+                            // A percentage-based inset is scale-invariant: it
+                            // reads the same physical mat proportion whether
+                            // the frame itself is drawn true-to-scale (a Room
+                            // scene at rest) or blown up/shrunk to fit
+                            // Plain view's anchored size curve, because
+                            // scaling frame and mat by the same factor never
+                            // changes their ratio. That's the point — the
+                            // same mat setting now looks identical in Plain
+                            // view and in a Room scene for a given size.
+                            // The trade-off: this ratio shrinks as a
+                            // proportion the bigger the frame's own physical
+                            // size gets (a fixed mat reveal in real inches,
+                            // over a growing outer-inch denominator), so
+                            // different SIZES can now look visibly different
+                            // in mat thickness when browsed side by side in
+                            // Plain view — previously masked by a
+                            // reference-size normalization this replaces. If
+                            // that turns out to read as inconsistent across
+                            // the catalogue, revert to the prior
+                            // 120×120-reference version (see git history on
+                            // this block). getMatReveal already returns all
                             // zeros for matWidth 'none', so "No Mat" is
-                            // unaffected.
-                            const MAT_PROPORTION_REFERENCE_CM = 120;
-                            const referenceOuterWidthIn = (MAT_PROPORTION_REFERENCE_CM / 2.54) + (2 * railWidthIn);
-                            const referenceMatReveal = getMatReveal(matWidth, {
-                                width: MAT_PROPORTION_REFERENCE_CM / 2.54,
-                                height: MAT_PROPORTION_REFERENCE_CM / 2.54,
-                            });
-                            const referenceMatPctW = (referenceMatReveal.sideIn / referenceOuterWidthIn) * 100;
-                            const referenceMatPctTop = (referenceMatReveal.topIn / referenceOuterWidthIn) * 100;
-                            const referenceMatPctBottom = (referenceMatReveal.bottomIn / referenceOuterWidthIn) * 100;
-                            // referenceMatPctTop/Bottom above are computed
-                            // against the SAME (width-based) denominator as
-                            // referenceMatPctW — only correct if applied as a
-                            // percentage of WIDTH. CSS applies top/bottom as a
-                            // percentage of the frame's HEIGHT instead, so for
-                            // any non-square frame, using that number as-is
-                            // would give a visibly different absolute mat
-                            // width on top/bottom than on the sides — a
-                            // portrait piece reading mat-heavy on top and
-                            // bottom, a landscape one reading mat-heavy on
-                            // the sides, purely from its own shape. Correcting
-                            // by the current frame's own width/height ratio
-                            // converts the SAME absolute pixel reveal into
-                            // the right percentage for the height axis, so
-                            // all four sides read as one uniform mat border
-                            // (before the deliberate bottom-weighting) no
-                            // matter the frame's own aspect ratio.
-                            const currentAspectWidthOverHeight = outerFrameWidthCm / outerFrameHeightCm;
-                            // Clamp the max inset so we don't mathematically collapse the artwork to 0 or negative.
-                            // Top/bottom differ (matReveal.bottomIn > matReveal.topIn) — the
-                            // standard bottom-weighted mat convention, see src/utils/matting.js.
-                            const rawMatPctW = isSharedPreviewView ? referenceMatPctW : (matReveal.sideIn / (wInch + 2 * railWidthIn)) * 100;
-                            const rawMatPctTop = isSharedPreviewView ? referenceMatPctTop * currentAspectWidthOverHeight : (matReveal.topIn / (hInch + 2 * railWidthIn)) * 100;
-                            const rawMatPctBottom = isSharedPreviewView ? referenceMatPctBottom * currentAspectWidthOverHeight : (matReveal.bottomIn / (hInch + 2 * railWidthIn)) * 100;
+                            // unaffected. Clamp the max inset so we don't
+                            // mathematically collapse the artwork to 0 or
+                            // negative. Top/bottom differ (matReveal.bottomIn
+                            // > matReveal.topIn) — the standard
+                            // bottom-weighted mat convention, see
+                            // src/utils/matting.js.
+                            const rawMatPctW = (matReveal.sideIn / (wInch + 2 * railWidthIn)) * 100;
+                            const rawMatPctTop = (matReveal.topIn / (hInch + 2 * railWidthIn)) * 100;
+                            const rawMatPctBottom = (matReveal.bottomIn / (hInch + 2 * railWidthIn)) * 100;
                             const matPctW = Math.max(0, Math.min(rawMatPctW, 45 - mouldingPctW));
                             const matPctTop = Math.max(0, Math.min(rawMatPctTop, 45 - mouldingPctH));
                             const matPctBottom = Math.max(0, Math.min(rawMatPctBottom, 45 - mouldingPctH));
