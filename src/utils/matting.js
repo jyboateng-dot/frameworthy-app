@@ -1,54 +1,96 @@
 /**
- * Industry-standard mat-width formula, shared by the live visualizer and
- * the order-thumbnail capture so the two never disagree on how wide a
- * "Narrow"/"Standard"/"Wide" mat actually is.
+ * Mat-width math, shared by the live visualizer and the order-thumbnail
+ * capture so the two never disagree on how wide a mat actually is.
  *
- * Base reveal (top/left/right) scales with the artwork's longest edge,
- * matching the tiers professional framers commonly quote: small prints
- * wear a proportionally thinner mat, larger prints a wider one, so the mat
- * reads as balanced against the art instead of disappearing or
- * overwhelming it.
+ * EXPERIMENTAL (2026-09-04): mat width is a free-form slider the customer
+ * drags directly (styled after custompictureframes.com's own mat-width
+ * picker), not the three fixed 'narrow'/'standard'/'wide' presets this
+ * replaced. The user is still trying this out — it may get reverted back
+ * to presets, so keep this file's change self-contained and easy to
+ * back out of the same way it went in.
  *
- * The bottom edge is then widened over that base by MAT_BOTTOM_WEIGHT —
- * the standard "weighted" (or "offset") mat convention in professional
- * framing. A perfectly symmetrical mat makes framed art read as visually
- * sinking toward the bottom edge (the same optical-centering illusion
- * that's why wall-hung art looks better a little above true centre); a
- * wider bottom border compensates for it. Left, right, and top stay equal
- * to each other — only the bottom differs.
+ * The slider itself is index-based (0, 1, 2, ...), not a plain inches
+ * value, because the very first step off "no mat" must land exactly on 1in
+ * — not 0.25in — per the spec: index 0 is No Mat, index 1 is 1.00in, and
+ * every index after that adds MAT_WIDTH_STEP_IN, up to MAT_WIDTH_MAX_IN at
+ * the top of the track. A plain 0-to-8-by-0.25 range would instead pass
+ * through 0.25/0.5/0.75 on the way to 1 — sliderIndexToMatWidth/
+ * matWidthToSliderIndex below are what make that jump possible while still
+ * using a plain, evenly-stepped range input under the hood.
+ *
+ * Older orders placed before this change still have the original
+ * 'narrow'/'standard'/'wide' strings stored in Firestore — see
+ * itemFormatters.js's matWidthLabel() for how those still display
+ * correctly; this file only ever needs to handle the current, numeric
+ * shape, since getMatReveal is called from live customization, not from
+ * historical order display.
+ *
+ * The bottom edge is widened over the customer's chosen width by
+ * MAT_BOTTOM_WEIGHT — the standard "weighted" (or "offset") mat convention
+ * in professional framing. A perfectly symmetrical mat makes framed art
+ * read as visually sinking toward the bottom edge (the same optical-
+ * centering illusion that's why wall-hung art looks better a little above
+ * true centre); a wider bottom border compensates for it. Left, right, and
+ * top stay equal to each other — only the bottom differs.
  */
 
-const MAT_BOTTOM_WEIGHT = 1.1; // +10% over the base reveal — the standard professional default
+const MAT_BOTTOM_WEIGHT = 1.1; // +10% over the chosen width — the standard professional default
 
-const MAT_TABLE = {
-    // A 5 × 7 in (13 × 18 cm) print reads overwhelmed by a full 1 in
-    // narrow reveal. 5/8 in keeps the narrow option visibly intentional
-    // without taking over the small-format artwork.
-    small: { narrow: 0.625, standard: 1.5, wide: 2.0 }, // longest edge <= 12in
-    medium: { narrow: 1.5, standard: 2.0, wide: 3.0 },  // longest edge <= 20in
-    large: { narrow: 2.0, standard: 3.0, wide: 4.0 },   // longest edge > 20in
-};
+// The slider's own range/step/default — exported so CustomizeFramePage.jsx
+// (the only UI that sets this) and this file never drift apart.
+export const MAT_WIDTH_MIN_IN = 1;
+export const MAT_WIDTH_MAX_IN = 8;
+export const MAT_WIDTH_STEP_IN = 0.25;
+export const MAT_WIDTH_DEFAULT_IN = 2;
 
-const sizeTier = (maxDimIn) => (maxDimIn <= 12 ? 'small' : maxDimIn <= 20 ? 'medium' : 'large');
+// Index-space bounds for the <input type="range"> itself: 0 is "No Mat",
+// MAT_WIDTH_MAX_INDEX is MAT_WIDTH_MAX_IN. Plain integer steps in between —
+// the inch math happens in sliderIndexToMatWidth, not in the slider's own
+// min/max/step attributes.
+export const MAT_WIDTH_MAX_INDEX = 1 + Math.round((MAT_WIDTH_MAX_IN - MAT_WIDTH_MIN_IN) / MAT_WIDTH_STEP_IN);
 
 // A mat cutter works to 1/8in increments — anything finer isn't cuttable,
 // so the bottom-weighted figure is rounded back to that grid rather than
 // left as an arbitrary decimal.
 const roundToEighth = (inches) => Math.round(inches * 8) / 8;
 
+export const clampMatWidthIn = (inches) =>
+    Math.min(MAT_WIDTH_MAX_IN, Math.max(MAT_WIDTH_MIN_IN, inches));
+
+/** Slider position (0..MAT_WIDTH_MAX_INDEX) -> matWidth ('none' or inches). */
+export function sliderIndexToMatWidth(index) {
+    if (index <= 0) return 'none';
+    return Math.round((MAT_WIDTH_MIN_IN + (index - 1) * MAT_WIDTH_STEP_IN) * 100) / 100;
+}
+
+/** matWidth ('none' or inches, including a legacy preset string) -> slider position. */
+export function matWidthToSliderIndex(matWidth) {
+    if (matWidth === 'none' || matWidth == null) return 0;
+    const inches = clampMatWidthIn(Number(matWidth) || MAT_WIDTH_DEFAULT_IN);
+    return 1 + Math.round((inches - MAT_WIDTH_MIN_IN) / MAT_WIDTH_STEP_IN);
+}
+
 /**
- * @param {'none'|'narrow'|'standard'|'wide'} matWidthChoice
- * @param {{width: number, height: number}|null|undefined} sizePreset - the print size, in inches
- * @returns {{ topIn: number, sideIn: number, bottomIn: number }} reveal on each edge, in inches.
- *   All zero when matWidthChoice is 'none' or sizePreset is absent.
+ * @param {'none'|number} matWidth - 'none' for no mat, otherwise the
+ *   customer's chosen width in inches (any value — this doesn't clamp, so
+ *   pass an already-clamped number).
+ * @param {{width: number, height: number}|null|undefined} sizePreset - unused
+ *   for the math itself (width no longer scales with print size — the
+ *   customer sets it directly), kept as a parameter only so this still
+ *   reads "no mat" for a size-less/placeholder state, matching every
+ *   existing call site's expectations.
+ * @returns {{ topIn: number, sideIn: number, bottomIn: number }} reveal on
+ *   each edge, in inches. All zero when matWidth is 'none', absent, or
+ *   sizePreset is absent.
  */
-export function getMatReveal(matWidthChoice, sizePreset) {
-    if (matWidthChoice === 'none' || !sizePreset) {
+export function getMatReveal(matWidth, sizePreset) {
+    if (matWidth === 'none' || matWidth == null || !sizePreset) {
         return { topIn: 0, sideIn: 0, bottomIn: 0 };
     }
-    const maxDim = Math.max(sizePreset.width, sizePreset.height);
-    const tier = MAT_TABLE[sizeTier(maxDim)];
-    const base = tier[matWidthChoice] ?? tier.standard;
+    const base = Number(matWidth);
+    if (!Number.isFinite(base) || base <= 0) {
+        return { topIn: 0, sideIn: 0, bottomIn: 0 };
+    }
     return {
         topIn: base,
         sideIn: base,

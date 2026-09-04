@@ -19,7 +19,14 @@ import { ROOM_SCENE_COMPONENTS, ROOM_SCENE_FOREGROUND_COMPONENTS } from '../../c
 import ScenePicker from '../../components/framing/ScenePicker';
 import { useHoverDropdown, isHoverCapable } from '../../hooks/useHoverDropdown';
 import { getFrameRail, getRailTextureStyle, getRailShading } from '../../utils/frameRail';
-import { getMatReveal } from '../../utils/matting';
+import {
+    getMatReveal,
+    sliderIndexToMatWidth,
+    matWidthToSliderIndex,
+    MAT_WIDTH_MAX_INDEX,
+    MAT_WIDTH_MIN_IN,
+    MAT_WIDTH_MAX_IN,
+} from '../../utils/matting';
 import WEB_MET_DIMS from '../../data/web_met_dims.json';
 import { useUnit } from '../../context/UnitContext';
 import { useCart } from '../../context/CartContext';
@@ -1180,13 +1187,16 @@ const CustomizeFramePage = ({
 
         setOrientation(recOrientation);
 
-        // Decide mat width based on the optimal orientation's mismatch
+        // Decide mat width based on the optimal orientation's mismatch. Fixed
+        // inch values rather than the old 'narrow'/'standard' presets — mat
+        // width is now a free-form slider, independent of print size (see
+        // matting.js) — chosen to feel equivalently "minor" vs "significant".
         if (recMismatch < 0.08) {
-            setMatWidth('none');      // Perfect or near-perfect fit — fill the frame (No Mat)
+            setMatWidth('none');   // Perfect or near-perfect fit — fill the frame (No Mat)
         } else if (recMismatch < 0.22) {
-            setMatWidth('narrow');    // Minor aspect ratio mismatch
+            setMatWidth(1.5);      // Minor aspect ratio mismatch
         } else {
-            setMatWidth('standard');  // Significant aspect ratio mismatch
+            setMatWidth(2.5);      // Significant aspect ratio mismatch
         }
 
         setIsOptimized(true);
@@ -3402,40 +3412,64 @@ const CustomizeFramePage = ({
                     {/* 5. Matting & 6. Glass Type (Hidden for Canvas) */}
                     {selectedFrame?.id !== 'frame-canvas' && (
                         <>
-                            {/* 5. Matting */}
+                            {/* 5. Matting — two separate menus: Mat Width (a
+                                free-form slider, styled after
+                                custompictureframes.com's own mat-width picker)
+                                and Mat Color (unchanged). EXPERIMENTAL — the
+                                user is trying this shape out and may ask to
+                                revert to the old fixed Narrow/Standard/Wide
+                                presets, so keep this block self-contained. */}
                             {!isPreset && !isCanvasGlazing && (
+                                <>
                                 <section>
                                     <h2 className="text-xs font-bold uppercase tracking-wider text-stone-900 mb-3 flex items-center gap-2">
                                         <span className="bg-stone-100 text-stone-500 w-5 h-5 rounded-full flex items-center justify-center text-[10px]">{stepMatting}</span>
                                         <span>
-                                            Matting
-                                            <InfoTooltip text="A mat border elevates the print, drawing the eye in. Choose 'No Mat' for full-bleed." />
+                                            Mat Width
+                                            <InfoTooltip text="Drag to the far left for no mat. The first step right is a 1 inch mat; each step after adds a quarter inch, up to 8 inches." />
                                         </span>
                                     </h2>
-                                    
-                                    {/* Mat Width */}
-                                    <div className="flex bg-stone-100 p-1 rounded-xl mb-3">
-                                        {[
-                                            { val: 'none', label: 'No Mat' },
-                                            { val: 'narrow', label: 'Narrow' },
-                                            { val: 'standard', label: 'Standard' },
-                                            { val: 'wide', label: 'Wide' }
-                                        ].map(opt => (
-                                            <button
-                                                key={opt.val}
-                                                onClick={() => {
-                                                    setMatWidth(opt.val);
-                                                    setIsOptimized(false);
-                                                }}
-                                                className={`flex-1 py-1.5 text-[10px] sm:text-xs font-semibold rounded-lg transition-all ${matWidth === opt.val ? 'bg-white shadow-sm text-stone-900' : 'text-stone-500 hover:text-stone-700'}`}
-                                            >
-                                                {opt.label}
-                                            </button>
-                                        ))}
-                                    </div>
 
-                                    {/* Mat Color */}
-                                    {matWidth !== 'none' && (
+                                    {(() => {
+                                        const sliderIndex = matWidthToSliderIndex(matWidth);
+                                        const isNoMat = matWidth === 'none';
+                                        return (
+                                            <div>
+                                                <div className="flex items-center justify-between mb-1.5">
+                                                    <span className="text-[10px] sm:text-xs font-semibold text-stone-500">
+                                                        {isNoMat ? 'No Mat' : `${MAT_WIDTH_MIN_IN}"–${MAT_WIDTH_MAX_IN}" range`}
+                                                    </span>
+                                                    <span className="text-[10px] sm:text-xs font-bold text-stone-900 tabular-nums">
+                                                        {isNoMat
+                                                            ? 'No Mat'
+                                                            : unit === 'cm'
+                                                                ? `${(Number(matWidth) * 2.54).toFixed(1)} cm`
+                                                                : `${Number(matWidth).toFixed(2)} in`}
+                                                    </span>
+                                                </div>
+                                                <input
+                                                    type="range"
+                                                    min={0}
+                                                    max={MAT_WIDTH_MAX_INDEX}
+                                                    step={1}
+                                                    value={sliderIndex}
+                                                    onChange={(e) => {
+                                                        setMatWidth(sliderIndexToMatWidth(parseInt(e.target.value, 10)));
+                                                        setIsOptimized(false);
+                                                    }}
+                                                    className="w-full h-1.5 accent-fw-gold cursor-pointer"
+                                                    aria-label="Mat width"
+                                                />
+                                            </div>
+                                        );
+                                    })()}
+                                </section>
+
+                                {matWidth !== 'none' && (
+                                    <section>
+                                        <h2 className="text-xs font-bold uppercase tracking-wider text-stone-900 mb-3 flex items-center gap-2">
+                                            <span>Mat Color</span>
+                                        </h2>
                                         <div className="grid grid-cols-5 gap-2">
                                             {MAT_COLORS.map(color => (
                                                 <button
@@ -3449,8 +3483,9 @@ const CustomizeFramePage = ({
                                                 </button>
                                             ))}
                                         </div>
-                                    )}
-                                </section>
+                                    </section>
+                                )}
+                                </>
                             )}
 
                             {/* 6. Glass Type */}

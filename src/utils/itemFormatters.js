@@ -7,6 +7,18 @@ export const GLASS_LABELS = { standard: 'Standard Acrylic', 'non-glare': 'Non-Gl
 export const HARDWARE_LABELS = { wire: 'Wire Hanging', sawtooth: 'Sawtooth Hanger', 'french-cleat': 'French Cleat', easel: 'Tabletop Easel' };
 export const MAT_WIDTH_LABELS = { none: 'No Mat', narrow: 'Narrow Mat', standard: 'Standard Mat', wide: 'Wide Mat' };
 
+// matWidth used to be one of the three fixed presets above; orders placed
+// since the mat-width slider replaced them (see CustomizeFramePage.jsx and
+// matting.js) instead store the customer's own numeric width in inches.
+// This formats either shape, so order history from before the change keeps
+// reading correctly forever alongside new orders.
+export const matWidthLabel = (matWidth) => {
+    if (matWidth == null || matWidth === 'none') return 'No Mat';
+    if (MAT_WIDTH_LABELS[matWidth]) return MAT_WIDTH_LABELS[matWidth];
+    const inches = Number(matWidth);
+    return Number.isFinite(inches) ? `${inches}" Mat` : `${matWidth} Mat`;
+};
+
 // Standard nomenclature for describing an order item, used everywhere one is
 // shown (cart, wishlist-derived cart items, checkout, order confirmation
 // email): image name, Frame style, Matting, Mat color, Glazing, Hardware.
@@ -30,7 +42,7 @@ export const generateItemDescription = (item) => {
 
     // Matting (combine width and color into one string e.g. "Narrow Polar White Mat")
     if (item.matWidth && item.matWidth !== 'none') {
-        let widthStr = MAT_WIDTH_LABELS[item.matWidth] || `${item.matWidth} Mat`;
+        let widthStr = matWidthLabel(item.matWidth);
         // Strip " Mat" suffix if present so we can inject the color before it
         if (widthStr.endsWith(' Mat')) {
             widthStr = widthStr.substring(0, widthStr.length - 4);
@@ -110,8 +122,8 @@ export const formatOrdersForSharing = (orders) => {
                 orderText += `Glazing: ${GLASS_LABELS[item.glassType] || item.glassType}     Hardware: ${HARDWARE_LABELS[item.hardwareType] || item.hardwareType}\n`;
             }
             
-            const matDesc = item.matWidth !== 'none' && item.matColor 
-                ? `${item.matColor.name} (${MAT_WIDTH_LABELS[item.matWidth]})` 
+            const matDesc = item.matWidth !== 'none' && item.matColor
+                ? `${item.matColor.name} (${matWidthLabel(item.matWidth)})`
                 : 'No Mat';
                 
             orderText += `Qty: ${item.quantity}                 Mat: ${matDesc}\n\n`;
