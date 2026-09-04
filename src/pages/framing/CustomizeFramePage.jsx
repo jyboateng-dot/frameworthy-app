@@ -2540,11 +2540,24 @@ const CustomizeFramePage = ({
                             // harmless white bar, which is a worse outcome. Square
                             // images always "match" since contain and cover are
                             // visually identical at a 1:1 aspect ratio.
-                            const imageOrientationMatchesFrame = imageNaturalSize && (
+                            //
+                            // The placeholder is special-cased to always match: its
+                            // imageNaturalSize was loaded from `uploadedImage`, which
+                            // for the placeholder is always DEFAULT_DEMO_IMAGE's fixed
+                            // landscape crop — but the crop actually on screen is
+                            // getDemoImageForOrientation(orientation) a few lines up,
+                            // a *different* file already generated to match whatever
+                            // orientation is current. Comparing the wrong file's
+                            // dimensions made a real, on-screen match read as a
+                            // mismatch, so a placeholder with "No Mat" selected never
+                            // filled the opening the way an equivalent real upload
+                            // does — it's not that the placeholder's crop doesn't
+                            // match, it's that the wrong crop's size was being asked.
+                            const imageOrientationMatchesFrame = isPlaceholder || (imageNaturalSize && (
                                 imageNaturalSize.w === imageNaturalSize.h ||
                                 (imageNaturalSize.w > imageNaturalSize.h && orientation === 'landscape') ||
                                 (imageNaturalSize.h > imageNaturalSize.w && orientation === 'portrait')
-                            );
+                            ));
                             const shouldFillNoMatOpening = matWidth === 'none' && imageOrientationMatchesFrame;
                             const useOriginalDimensionPlacement = Boolean(activeRoom);
                             const dimHorizontalClass = useOriginalDimensionPlacement
