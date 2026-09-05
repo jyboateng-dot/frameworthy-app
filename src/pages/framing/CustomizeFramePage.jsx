@@ -24,7 +24,6 @@ import {
     sliderIndexToMatWidth,
     matWidthToSliderIndex,
     maxMatWidthForSize,
-    MAT_WIDTH_MIN_IN,
     MAT_RENDER_MAX_PCT,
 } from '../../utils/matting';
 import WEB_MET_DIMS from '../../data/web_met_dims.json';
@@ -43,6 +42,7 @@ import { useAuth } from '../../context/AuthContext';
 import AuthModal from '../../components/AuthModal';
 import Price from '../../components/common/Price';
 import { visualizerFullScreenState } from '../../utils/visualizerFullScreenState';
+
 
 // High-fidelity 3D side gradients for the frame
 const getSideBackground = (side, frame) => {
@@ -1025,8 +1025,7 @@ const CustomizeFramePage = ({
         return { height: finalHeight, scale };
     })();
 
-    // Physical mat reveal in inches, per edge — see src/utils/matting.js for
-    // the size-tiered base widths and the bottom-weighting rationale. Shared
+    // Physical mat reveal in inches, per edge — see src/utils/matting.js. Shared
     // with the order-thumbnail capture below AND with the AR viewer (passed
     // through whole, not collapsed to one number) so none of the three can
     // disagree with each other.
@@ -1334,7 +1333,7 @@ const CustomizeFramePage = ({
                 ctx.fillRect(offsetX, offsetY, w, h);
             }
 
-            // Same size-tiered, bottom-weighted formula the live visualizer
+            // Same equal-edge formula the live visualizer
             // uses (src/utils/matting.js) — previously this capture had its
             // own flat percentage table that could disagree with what the
             // customer actually saw on screen.
@@ -1366,15 +1365,13 @@ const CustomizeFramePage = ({
             const artW = Math.max(1, (matRight - matW - gapPx + overlapPx) - artLeft);
             const artH = Math.max(1, (matBottom - matHBottom - gapPx + overlapPx) - artTop);
 
-            // Canvas prints (both the frame-less Gallery Wrap and a regular
-            // frame with Canvas Print glazing) wrap edge-to-edge (cover);
-            // framed art is letterboxed within the mat opening (contain) —
-            // mirrors the object-fit rules used in the live visualizer.
+            // Fill the artwork opening edge-to-edge. Aspect-ratio differences
+            // use the same centered crop as the live visualizer.
             const imgAspect = img.naturalWidth / img.naturalHeight;
             const boxAspect = artW / artH;
             let drawW, drawH;
             const widthConstrained = imgAspect > boxAspect;
-            if ((isCanvasPrint || isCanvasGlazing) ? widthConstrained : !widthConstrained) {
+            if (widthConstrained) {
                 drawH = artH;
                 drawW = artH * imgAspect;
             } else {
@@ -2100,8 +2097,7 @@ const CustomizeFramePage = ({
                             
                             // Mat inset as % of frame width/height.
                             // Clamp the max inset so we don't mathematically collapse the artwork to 0 or negative.
-                            // Top/bottom differ (matReveal.bottomIn > matReveal.topIn) — the
-                            // standard bottom-weighted mat convention, see src/utils/matting.js.
+                            // The shared mat reveal keeps all four edges equal.
                             // Mat values are calculated after preview-specific
                             // moulding adjustments below.
 
@@ -2409,10 +2405,8 @@ const CustomizeFramePage = ({
                             // zeros for matWidth 'none', so "No Mat" is
                             // unaffected. Clamp the max inset so we don't
                             // mathematically collapse the artwork to 0 or
-                            // negative. Top/bottom differ (matReveal.bottomIn
-                            // > matReveal.topIn) — the standard
-                            // bottom-weighted mat convention, see
-                            // src/utils/matting.js.
+                            // negative. The shared reveal uses the same
+                            // physical width on all four edges.
                             const rawMatPctW = (matReveal.sideIn / (wInch + 2 * railWidthIn)) * 100;
                             const rawMatPctTop = (matReveal.topIn / (hInch + 2 * railWidthIn)) * 100;
                             const rawMatPctBottom = (matReveal.bottomIn / (hInch + 2 * railWidthIn)) * 100;
@@ -2534,33 +2528,8 @@ const CustomizeFramePage = ({
                             ));
                             targetImageWidthRef.current = targetImageWidthPx;
                             const displayImage = getThumbnailUrl(visualizerImage, committedImageWidthPx);
-                            // Filling the opening edge-to-edge (object-cover) only
-                            // makes sense when the image's own orientation matches
-                            // the frame's — a landscape photo forced to cover a tall
-                            // portrait opening (or vice versa) would have to crop
-                            // away most of the image instead of just leaving a
-                            // harmless white bar, which is a worse outcome. Square
-                            // images always "match" since contain and cover are
-                            // visually identical at a 1:1 aspect ratio.
-                            //
-                            // The placeholder is special-cased to always match: its
-                            // imageNaturalSize was loaded from `uploadedImage`, which
-                            // for the placeholder is always DEFAULT_DEMO_IMAGE's fixed
-                            // landscape crop — but the crop actually on screen is
-                            // getDemoImageForOrientation(orientation) a few lines up,
-                            // a *different* file already generated to match whatever
-                            // orientation is current. Comparing the wrong file's
-                            // dimensions made a real, on-screen match read as a
-                            // mismatch, so a placeholder with "No Mat" selected never
-                            // filled the opening the way an equivalent real upload
-                            // does — it's not that the placeholder's crop doesn't
-                            // match, it's that the wrong crop's size was being asked.
-                            const imageOrientationMatchesFrame = isPlaceholder || (imageNaturalSize && (
-                                imageNaturalSize.w === imageNaturalSize.h ||
-                                (imageNaturalSize.w > imageNaturalSize.h && orientation === 'landscape') ||
-                                (imageNaturalSize.h > imageNaturalSize.w && orientation === 'portrait')
-                            ));
-                            const shouldFillNoMatOpening = matWidth === 'none' && imageOrientationMatchesFrame;
+                            // Artwork fills its opening edge-to-edge. object-cover only
+                            // changes the preview crop; the uploaded source is untouched.
                             const useOriginalDimensionPlacement = Boolean(activeRoom);
                             const dimHorizontalClass = useOriginalDimensionPlacement
                                 ? (isHovered || isZoomedByDefault ? '-top-6' : '-top-4')
@@ -2891,7 +2860,7 @@ const CustomizeFramePage = ({
                                             <img
                                                 src={displayImage}
                                                 alt="Artwork"
-                                                className={`w-full h-full ${selectedFrame?.id === 'frame-canvas' || isPreset || shouldFillNoMatOpening || isCanvasGlazing ? 'object-cover' : 'object-contain'}`}
+                                                className="w-full h-full object-cover"
                                                 style={{
                                                     imageRendering: '-webkit-optimize-contrast',
                                                     transform: 'translateZ(0)',
@@ -3433,35 +3402,29 @@ const CustomizeFramePage = ({
                             {!isPreset && !isCanvasGlazing && (
                                 <>
                                 <section>
-                                    <h2 className="text-xs font-bold uppercase tracking-wider text-stone-900 mb-3 flex items-center gap-2">
-                                        <span className="bg-stone-100 text-stone-500 w-5 h-5 rounded-full flex items-center justify-center text-[10px]">{stepMatting}</span>
-                                        <span>
-                                            Mat Width
-                                            <InfoTooltip text="Drag to the far left for no mat. The first step right is a 1 inch mat; each step after adds a quarter inch, up to 8 inches (less on smaller prints, so the mat never overwhelms the artwork)." />
-                                        </span>
-                                    </h2>
-
                                     {(() => {
                                         const sliderIndex = matWidthToSliderIndex(matWidth);
                                         const sizeMaxSliderIndex = matWidthToSliderIndex(sizeMaxMatWidthIn);
                                         const isNoMat = matWidth === 'none';
-                                        const rangeLabel = unit === 'cm'
-                                            ? `${(MAT_WIDTH_MIN_IN * 2.54).toFixed(1)}–${(sizeMaxMatWidthIn * 2.54).toFixed(1)} cm range`
-                                            : `${MAT_WIDTH_MIN_IN}"–${sizeMaxMatWidthIn}" range`;
+                                        const widthLabel = isNoMat
+                                            ? 'No Mat'
+                                            : unit === 'cm'
+                                                ? `${(Number(matWidth) * 2.54).toFixed(1)} cm`
+                                                : `${Number(matWidth).toFixed(2)} in`;
                                         return (
-                                            <div>
-                                                <div className="flex items-center justify-between mb-1.5">
-                                                    <span className="text-[10px] sm:text-xs font-semibold text-stone-500">
-                                                        {isNoMat ? 'No Mat' : rangeLabel}
+                                            <>
+                                                <h2 className="text-xs font-bold uppercase tracking-wider text-stone-900 mb-3 flex items-center gap-3">
+                                                    <span className="flex min-w-0 items-center gap-2">
+                                                        <span className="bg-stone-100 text-stone-500 w-5 h-5 rounded-full flex shrink-0 items-center justify-center text-[10px]">{stepMatting}</span>
+                                                        <span>
+                                                            Mat Width
+                                                            <InfoTooltip text="Drag to the far left for no mat. The first step right is a 1 inch mat; each step after adds a quarter inch, up to 8 inches (less on smaller prints, so the mat never overwhelms the artwork)." />
+                                                        </span>
                                                     </span>
-                                                    <span className="text-[10px] sm:text-xs font-bold text-stone-900 tabular-nums">
-                                                        {isNoMat
-                                                            ? 'No Mat'
-                                                            : unit === 'cm'
-                                                                ? `${(Number(matWidth) * 2.54).toFixed(1)} cm`
-                                                                : `${Number(matWidth).toFixed(2)} in`}
+                                                    <span className="shrink-0 text-xs font-bold text-stone-900 tabular-nums normal-case">
+                                                        {widthLabel}
                                                     </span>
-                                                </div>
+                                                </h2>
                                                 <input
                                                     type="range"
                                                     min={0}
@@ -3475,7 +3438,7 @@ const CustomizeFramePage = ({
                                                     className="w-full h-1.5 accent-fw-gold cursor-pointer"
                                                     aria-label="Mat width"
                                                 />
-                                            </div>
+                                            </>
                                         );
                                     })()}
                                 </section>

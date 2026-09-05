@@ -25,16 +25,9 @@
  * shape, since getMatReveal is called from live customization, not from
  * historical order display.
  *
- * The bottom edge is widened over the customer's chosen width by
- * MAT_BOTTOM_WEIGHT — the standard "weighted" (or "offset") mat convention
- * in professional framing. A perfectly symmetrical mat makes framed art
- * read as visually sinking toward the bottom edge (the same optical-
- * centering illusion that's why wall-hung art looks better a little above
- * true centre); a wider bottom border compensates for it. Left, right, and
- * top stay equal to each other — only the bottom differs.
+ * The selected width is the physical reveal on every edge. Keeping all four
+ * sides equal makes the customer-facing value unambiguous for production.
  */
-
-const MAT_BOTTOM_WEIGHT = 1.1; // +10% over the chosen width — the standard professional default
 
 // The slider's own range/step/default — exported so CustomizeFramePage.jsx
 // (the only UI that sets this) and this file never drift apart.
@@ -48,11 +41,6 @@ export const MAT_WIDTH_DEFAULT_IN = 2;
 // the inch math happens in sliderIndexToMatWidth, not in the slider's own
 // min/max/step attributes.
 export const MAT_WIDTH_MAX_INDEX = 1 + Math.round((MAT_WIDTH_MAX_IN - MAT_WIDTH_MIN_IN) / MAT_WIDTH_STEP_IN);
-
-// A mat cutter works to 1/8in increments — anything finer isn't cuttable,
-// so the bottom-weighted figure is rounded back to that grid rather than
-// left as an arbitrary decimal.
-const roundToEighth = (inches) => Math.round(inches * 8) / 8;
 
 export const clampMatWidthIn = (inches) =>
     Math.min(MAT_WIDTH_MAX_IN, Math.max(MAT_WIDTH_MIN_IN, inches));
@@ -74,8 +62,7 @@ export const MAT_RENDER_MAX_PCT = 45;
  * The largest mat width (in inches, snapped to the slider's own
  * quarter-inch steps) this print size + frame moulding can take before
  * the render clamp above would kick in. Mirrors the clamp's math — the
- * bottom edge is the binding constraint, since MAT_BOTTOM_WEIGHT always
- * makes it the widest of the three — without needing to be pixel-exact;
+ * tightest frame axis is the binding constraint — without needing to be pixel-exact;
  * this only has to be a safe, same-ballpark cap for a slider limit, not
  * a re-derivation of the live render.
  */
@@ -84,7 +71,7 @@ export function maxMatWidthForSize(wInch, hInch, railWidthIn) {
     const widthOuterIn = wInch + 2 * railWidthIn;
     const heightOuterIn = hInch + 2 * railWidthIn;
     const widthLimitIn = (MAT_RENDER_MAX_PCT / 100) * widthOuterIn - railWidthIn;
-    const bottomLimitIn = ((MAT_RENDER_MAX_PCT / 100) * heightOuterIn - railWidthIn) / MAT_BOTTOM_WEIGHT;
+    const bottomLimitIn = (MAT_RENDER_MAX_PCT / 100) * heightOuterIn - railWidthIn;
     const limitIn = Math.min(widthLimitIn, bottomLimitIn);
     const steppedDownIn = Math.floor((limitIn - MAT_WIDTH_MIN_IN) / MAT_WIDTH_STEP_IN) * MAT_WIDTH_STEP_IN + MAT_WIDTH_MIN_IN;
     return clampMatWidthIn(steppedDownIn);
@@ -127,6 +114,6 @@ export function getMatReveal(matWidth, sizePreset) {
     return {
         topIn: base,
         sideIn: base,
-        bottomIn: roundToEighth(base * MAT_BOTTOM_WEIGHT),
+        bottomIn: base,
     };
 }

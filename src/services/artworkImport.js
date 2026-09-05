@@ -5,6 +5,7 @@ const URL_IMPORT_ENDPOINT = '/api/artwork/import-url';
 const GOOGLE_PICKER_SCRIPT = 'https://apis.google.com/js/api.js';
 const DROPBOX_SCRIPT = 'https://www.dropbox.com/static/api/2/dropins.js';
 const DROPBOX_IMAGE_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp', '.tiff', '.heic'];
+const GOOGLE_APP_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID?.split('-')[0];
 
 let googlePickerPromise;
 let dropboxPromise;
@@ -93,11 +94,13 @@ function loadGooglePicker() {
 function pickGoogleDriveFile(token) {
     return new Promise((resolve, reject) => {
         const pickerApi = window.google.picker;
-        const view = new pickerApi.DocsView(pickerApi.ViewId.DOCS_IMAGES).setMode(pickerApi.DocsViewMode.GRID);
+        // drive.file cannot read thumbnails for files the user has not selected yet.
+        const view = new pickerApi.DocsView(pickerApi.ViewId.DOCS_IMAGES).setMode(pickerApi.DocsViewMode.LIST);
         new pickerApi.PickerBuilder()
             .addView(view)
             .setOAuthToken(token)
             .setDeveloperKey(import.meta.env.VITE_GOOGLE_DRIVE_API_KEY)
+            .setAppId(GOOGLE_APP_ID)
             .setCallback((data) => {
                 if (data.action === pickerApi.Action.PICKED) resolve(data.docs[0]);
                 if (data.action === pickerApi.Action.CANCEL) reject(new Error('No image was selected.'));

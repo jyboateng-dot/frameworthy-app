@@ -26,20 +26,13 @@ describe('getMatReveal', () => {
         expect(getMatReveal(NaN, SIZE)).toEqual({ topIn: 0, sideIn: 0, bottomIn: 0 });
     });
 
-    it('uses the given width directly for top/side, independent of print size', () => {
-        expect(getMatReveal(2, SIZE)).toEqual({ topIn: 2, sideIn: 2, bottomIn: 2.25 });
-        expect(getMatReveal(2, { width: 40, height: 60 })).toEqual({ topIn: 2, sideIn: 2, bottomIn: 2.25 });
-    });
-
-    it('widens the bottom edge by the standard weighting, rounded to the nearest 1/8"', () => {
-        // 3 * 1.1 = 3.3 -> nearest eighth is 3.25
-        expect(getMatReveal(3, SIZE).bottomIn).toBe(3.25);
-        // 1.5 * 1.1 = 1.65 -> nearest eighth is 1.625
-        expect(getMatReveal(1.5, SIZE).bottomIn).toBe(1.625);
+    it('uses the given width equally on every edge, independent of print size', () => {
+        expect(getMatReveal(2, SIZE)).toEqual({ topIn: 2, sideIn: 2, bottomIn: 2 });
+        expect(getMatReveal(2, { width: 40, height: 60 })).toEqual({ topIn: 2, sideIn: 2, bottomIn: 2 });
     });
 
     it('accepts a numeric string the same as a number (form input values)', () => {
-        expect(getMatReveal('2.5', SIZE)).toEqual({ topIn: 2.5, sideIn: 2.5, bottomIn: 2.75 });
+        expect(getMatReveal('2.5', SIZE)).toEqual({ topIn: 2.5, sideIn: 2.5, bottomIn: 2.5 });
     });
 });
 
@@ -125,7 +118,7 @@ describe('maxMatWidthForSize', () => {
 
     it('keeps the render clamp (matPctW/matPctTop/matPctBottom in CustomizeFramePage.jsx) from ever engaging at the returned cap', () => {
         // At the cap this returns, neither the side ratio nor the
-        // (heavier) bottom ratio should exceed MAT_RENDER_MAX_PCT.
+        // bottom ratio should exceed MAT_RENDER_MAX_PCT.
         const wInch = 8, hInch = 11, railWidthIn = 0.75;
         const cap = maxMatWidthForSize(wInch, hInch, railWidthIn);
         const reveal = getMatReveal(cap, { width: wInch, height: hInch });
