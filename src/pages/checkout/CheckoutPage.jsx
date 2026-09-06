@@ -236,6 +236,7 @@ const CheckoutPage = () => {
                 // gets printed, so "Download Print-Ready JPEG" in the admin
                 // fulfillment view points here, not at visualizerImage below.
                 image: item.productionImage || item.uploadedImage,
+                productionSpec: item.productionSpec || null,
                 // A fair representation of artwork+mat+frame-color as seen in
                 // the visualizer — used as the thumbnail everywhere an order
                 // is previewed (cart, checkout, admin list, admin fulfillment

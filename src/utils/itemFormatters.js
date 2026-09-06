@@ -127,6 +127,12 @@ export const formatOrdersForSharing = (orders) => {
                 : 'No Mat';
                 
             orderText += `Qty: ${item.quantity}                 Mat: ${matDesc}\n\n`;
+            if (item.productionSpec?.version === 1) {
+                const spec = item.productionSpec;
+                orderText += `Print aperture: ${spec.apertureWidth.toFixed(3)} x ${spec.apertureHeight.toFixed(3)} in\n`;
+                orderText += `Mat edges (top/bottom/left/right): ${['top', 'bottom', 'left', 'right'].map(edge => spec[edge].toFixed(3)).join(' / ')} in\n`;
+                orderText += `Finished frame: ${spec.outerWidth.toFixed(3)} x ${spec.outerHeight.toFixed(3)} in\n`;
+            }
             
             const printUrl = getPrintQualityJpegUrl(item.image, item);
             if (printUrl) {

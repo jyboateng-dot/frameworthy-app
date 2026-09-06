@@ -83,6 +83,11 @@ const ItemFulfillmentCard = ({ item }) => {
                         <SpecRow label="Frame">{item.selectedFrame?.name || item.frame || '—'} {item.selectedFrame?.category && <span className="text-gray-400 font-normal">({item.selectedFrame.category})</span>}</SpecRow>
                         <SpecRow label="Size">{item.selectedSize?.label || item.size || '—'}</SpecRow>
                         <SpecRow label="Orientation"><span className="capitalize">{item.orientation || '—'}</span></SpecRow>
+                        {item.productionSpec?.version === 1 && <>
+                            <SpecRow label="Print aperture">{item.productionSpec.apertureWidth.toFixed(3)} x {item.productionSpec.apertureHeight.toFixed(3)} in</SpecRow>
+                            <SpecRow label="Mat edges (T/B/L/R)">{['top', 'bottom', 'left', 'right'].map(edge => item.productionSpec[edge].toFixed(3)).join(' / ')} in</SpecRow>
+                            <SpecRow label="Finished frame">{item.productionSpec.outerWidth.toFixed(3)} x {item.productionSpec.outerHeight.toFixed(3)} in</SpecRow>
+                        </>}
                         <SpecRow label="Glazing">{GLASS_LABELS[item.glassType] || item.glassType || '—'}</SpecRow>
                         <SpecRow label="Hardware">{HARDWARE_LABELS[item.hardwareType] || item.hardwareType || '—'}</SpecRow>
                         <SpecRow label="Mat">

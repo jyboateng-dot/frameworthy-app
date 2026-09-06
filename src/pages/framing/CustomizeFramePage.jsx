@@ -41,6 +41,9 @@ import { renderMoviePoster } from '../../utils/moviePoster';
 import { useAuth } from '../../context/AuthContext';
 import AuthModal from '../../components/AuthModal';
 import Price from '../../components/common/Price';
+import FrameFitPanel from '../../components/framing/FrameFitPanel';
+import { DEFAULT_POSITION, frameGeometry, imageCrop, cropStyle } from '../../utils/frameFit';
+import { prepareFrameOutput } from '../../services/frameFitOutput';
 import { visualizerFullScreenState } from '../../utils/visualizerFullScreenState';
 
 
@@ -297,6 +300,10 @@ const CustomizeFramePage = ({
     const { addToCart, toggleAllSelection } = useCart();
     const { user } = useAuth();
     const [showAuthModal, setShowAuthModal] = useState(false);
+    const [fitPosition, setFitPosition] = useState(DEFAULT_POSITION);
+    const [fitReview, setFitReview] = useState(null);
+    const [fitError, setFitError] = useState('');
+    useEffect(() => { setFitPosition(DEFAULT_POSITION); }, [uploadedImage]);
     
     // Also recognises the previous URL shape so an already-open dev session
     // immediately adopts the orientation-aware crop after hot reload.
@@ -930,6 +937,13 @@ const CustomizeFramePage = ({
     const railWidthCm = railWidthIn * 2.54;
     const outerFrameWidthCm = innerWidthCm + (railWidthCm * 2);
     const outerFrameHeightCm = innerHeightCm + (railWidthCm * 2);
+    const fitEnabled = !isPlaceholder && !isPreset && !isAlbumArt && !isAlbumPoster
+        && !isMoviePoster && !isMoviePosterPrint && selectedFrame?.id !== 'frame-canvas'
+        && glassType !== 'canvas-traditional' && glassType !== 'canvas-floater'
+        && imageNaturalSize?.w > 0 && !(collageImages?.length > 0);
+    const fitGeometry = selectedSize ? frameGeometry(selectedSize, orientation, matWidth, railWidthIn) : null;
+    const fitCrop = fitEnabled ? imageCrop(imageNaturalSize, fitGeometry, fitPosition) : null;
+    useEffect(() => { setWasAddedToCart(false); }, [fitPosition]);
 
     // If switching size/orientation/frame drops sizeMaxMatWidthIn below the
     // customer's current mat width (e.g. they set a wide mat, then picked a
@@ -1621,6 +1635,7 @@ const CustomizeFramePage = ({
     const stepArtwork = stepCounter++;
     const stepFrameStyle = stepCounter++;
     const stepDimensions = stepCounter++;
+    const stepImagePosition = fitEnabled ? stepCounter++ : null;
     
     const showOrientation = !isPreset && !isAlbumArt && !isAlbumPoster && !isMoviePoster && !isMoviePosterPrint;
     const stepOrientation = showOrientation ? stepCounter++ : null;
@@ -2407,6 +2422,10 @@ const CustomizeFramePage = ({
                             // mathematically collapse the artwork to 0 or
                             // negative. The shared reveal uses the same
                             // physical width on all four edges.
+                            if (fitEnabled) {
+                                mouldingPctW = railWidthIn / fitGeometry.outerWidth * 100;
+                                mouldingPctH = railWidthIn / fitGeometry.outerHeight * 100;
+                            }
                             const rawMatPctW = (matReveal.sideIn / (wInch + 2 * railWidthIn)) * 100;
                             const rawMatPctTop = (matReveal.topIn / (hInch + 2 * railWidthIn)) * 100;
                             const rawMatPctBottom = (matReveal.bottomIn / (hInch + 2 * railWidthIn)) * 100;
@@ -2865,6 +2884,7 @@ const CustomizeFramePage = ({
                                                     imageRendering: '-webkit-optimize-contrast',
                                                     transform: 'translateZ(0)',
                                                     backfaceVisibility: 'hidden',
+                                                    ...(fitEnabled ? cropStyle(imageNaturalSize, fitCrop) : {}),
                                                     backgroundColor: (selectedFrame?.id !== 'frame-canvas' && !isCanvasGlazing && matWidth !== 'none' && !isPreset) ? matColor.hex : 'transparent'
                                                 }}
                                                 // If the browser already has this image cached (e.g. it was
@@ -3348,6 +3368,27 @@ const CustomizeFramePage = ({
                     </section>
 
                     {/* 4. Orientation */}
+                    {fitEnabled && <FrameFitPanel step={stepImagePosition} image={uploadedImage} natural={imageNaturalSize}
+                        size={selectedSize} orientation={orientation} mat={matWidth} rail={railWidthIn}
+                        frame={selectedFrame} matColor={matColor.hex} matPrice={matColor.price || 75}
+                        unit={unit} price={buildCartItem(null).totalPrice} position={fitPosition} onPosition={setFitPosition}
+                        onApply={choice => { setIsOptimized(false); setSelectedSize(choice.size);
+                            setOrientation(choice.orientation); setMatWidth(choice.mat); setFitPosition(choice.position); }}
+                        review={fitReview} onCloseReview={() => { setFitReview(null); setFitError(''); }}
+                        busy={loadingAction !== null} error={fitError}
+                        onConfirm={async () => {
+                            setLoadingAction(fitReview); setFitError('');
+                            try {
+                                const output = await prepareFrameOutput(productionImage || uploadedImage, fitGeometry,
+                                    fitPosition, selectedFrame.baseColor, matColor.hex);
+                                if (fitReview === 'pay') toggleAllSelection(false);
+                                addToCart({ ...buildCartItem(output.visualizerImage), ...output });
+                                setWasAddedToCart(true);
+                                if (fitReview === 'pay') { if (!user) setShowAuthModal(true); else navigate('/checkout'); }
+                                setFitReview(null);
+                            } catch (error) { setFitError(error.message || 'Could not prepare your frame. Please try again.'); }
+                            finally { setLoadingAction(null); }
+                        }} />}
                     {!isPreset && !isAlbumArt && !isAlbumPoster && !isMoviePoster && !isMoviePosterPrint && (
                         <section>
                             <h2 className="text-xs font-bold uppercase tracking-wider text-stone-900 mb-3 flex items-center justify-between gap-2">
@@ -3557,6 +3598,7 @@ const CustomizeFramePage = ({
                     <div className={`flex w-full mt-1 ${isSideBySide ? 'gap-1.5' : 'gap-2 max-w-[300px]'}`}>
                         <button
                             onClick={async () => {
+                                if (fitEnabled) { setFitReview('cart'); return; }
                                 setLoadingAction('cart');
                                 const visualizerImage = await captureVisualizerImage();
                                 setLoadingAction(null);
@@ -3580,6 +3622,7 @@ const CustomizeFramePage = ({
                                     return;
                                 }
                                 setLoadingAction('pay');
+                                if (fitEnabled) { setLoadingAction(null); setFitReview('pay'); return; }
                                 const visualizerImage = await captureVisualizerImage();
                                 setLoadingAction(null);
                                 toggleAllSelection(false);
