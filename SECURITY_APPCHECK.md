@@ -53,3 +53,40 @@ If something breaks after enforcing, toggle **Enforce** back off in the
 console — it takes effect within minutes, no redeploy needed. To disable App
 Check on the client entirely, unset `VITE_APPCHECK_RECAPTCHA_SITE_KEY` and
 redeploy.
+
+## Current status (checked in console, 2026-09-07)
+
+Where things actually stand right now, for reference:
+
+- **Web app**: registered, reCAPTCHA provider attached — matches the client
+  code. Step 1-2 above are done.
+- **iOS app** (`com.frameworthyco.app`): **not registered at all** — shows
+  "Register" with no attestation provider. The Capacitor iOS build currently
+  gets no App Check coverage.
+- **Cloud Firestore** and **Authentication**: both in **Monitoring**, not
+  Enforce — 0% of traffic showing as verified so far (likely mostly just low
+  volume, since the site's still behind the private-preview gate — worth
+  confirming this climbs once real traffic starts, not assuming it will).
+- **Cloud Functions**: no App Check enforcement configured at all yet — the
+  console just shows a "view docs" link, not a monitoring/enforce toggle like
+  Firestore has.
+
+### The one gap App Check's own toggle won't cover
+
+`importArtworkFromUrl` (the "paste an image link" endpoint) is an `onRequest`
+function, not an `onCall` one — Functions' Enforce toggle (once turned on)
+only covers `onCall` functions automatically. An `onRequest` function has to
+verify the App Check token itself in code
+(`getAppCheck().verifyToken(req.header('X-Firebase-AppCheck'))`), and the
+client has to actually attach that header to the `fetch()` call in the first
+place — neither exists yet. `src/services/artworkImport.js` (where that
+fetch call lives) was mid-rewrite in another session when this was checked,
+so this wasn't touched to avoid colliding with that work — worth wiring up
+once that settles, following the same "verify but don't reject yet, watch
+the logs, then start rejecting" pattern as the rest of this rollout.
+
+In the meantime, that endpoint's CORS was tightened from `*` (any website)
+to an explicit allowlist of this app's own origins — a real improvement, but
+CORS is a browser-enforced convention, not a security boundary against a
+non-browser client (curl, a script) calling the raw function URL directly.
+The App Check token check above is the piece that actually closes that.

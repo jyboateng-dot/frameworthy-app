@@ -949,8 +949,29 @@ function filenameFromArtworkUrl(url, contentType) {
     return `linked-image.${subtype === 'jpeg' ? 'jpg' : subtype}`;
 }
 
+// Unlike proxyArtworkImage/arRelay above (both deliberately wildcard-CORS —
+// one re-serves public art images a <canvas> needs to read cross-origin,
+// the other is fetched by system-level AR viewers with no fixed origin at
+// all), this endpoint is only ever meant to be called by this app's own
+// frontend, via the same-origin `/api/artwork/import-url` hosting rewrite —
+// a wildcard here just let any other website's client-side JS call it too,
+// for free, at this project's expense. Restricting to an explicit allowlist
+// doesn't change how the app itself calls this (same-origin requests don't
+// need the header at all), it only stops third-party pages from doing so.
+const IMPORT_ARTWORK_ALLOWED_ORIGINS = new Set([
+    'https://frameworthyco.com',
+    'https://www.frameworthyco.com',
+    'https://frameworthyco-9c78c.web.app',
+    'https://frameworthyco-9c78c.firebaseapp.com',
+    'http://localhost:3000',
+    'http://localhost:5173',
+]);
+
 exports.importArtworkFromUrl = onRequest({ region: 'us-central1', timeoutSeconds: 15, maxInstances: 10 }, async (req, res) => {
-    res.set('Access-Control-Allow-Origin', '*');
+    const origin = req.headers?.origin;
+    if (origin && IMPORT_ARTWORK_ALLOWED_ORIGINS.has(origin)) {
+        res.set('Access-Control-Allow-Origin', origin);
+    }
     res.set('Access-Control-Allow-Headers', 'Content-Type');
     res.set('Access-Control-Allow-Methods', 'POST, OPTIONS');
     if (req.method === 'OPTIONS') {

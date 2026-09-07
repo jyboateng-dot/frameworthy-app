@@ -4,7 +4,7 @@ import { importArtworkFromUrl, isPrivateOrReservedIp } from '../index.js';
 const PUBLIC_IP = '93.184.216.34';
 const originalFetch = global.fetch;
 
-const makeReq = ({ method = 'POST', body = {} } = {}) => ({ method, body });
+const makeReq = ({ method = 'POST', body = {}, headers: reqHeaders = {} } = {}) => ({ method, body, headers: reqHeaders });
 const makeRes = () => {
     const res = { statusCode: null, body: null, headers: {} };
     res.status = (code) => { res.statusCode = code; return res; };
@@ -47,6 +47,24 @@ describe('importArtworkFromUrl', () => {
         const res = makeRes();
         await importArtworkFromUrl(makeReq({ method: 'GET' }), res);
         expect(res.statusCode).toBe(405);
+    });
+
+    it('echoes back an allowed origin in Access-Control-Allow-Origin', async () => {
+        const res = makeRes();
+        await importArtworkFromUrl(makeReq({ method: 'OPTIONS', headers: { origin: 'https://frameworthyco.com' } }), res);
+        expect(res.headers['Access-Control-Allow-Origin']).toBe('https://frameworthyco.com');
+    });
+
+    it('does not grant CORS access to a third-party origin', async () => {
+        const res = makeRes();
+        await importArtworkFromUrl(makeReq({ method: 'OPTIONS', headers: { origin: 'https://evil.example.com' } }), res);
+        expect(res.headers['Access-Control-Allow-Origin']).toBeUndefined();
+    });
+
+    it('sets no Access-Control-Allow-Origin header when the request carries no Origin (same-origin/server-to-server)', async () => {
+        const res = makeRes();
+        await importArtworkFromUrl(makeReq({ method: 'OPTIONS' }), res);
+        expect(res.headers['Access-Control-Allow-Origin']).toBeUndefined();
     });
 
     it('rejects missing, malformed, and private URLs', async () => {
