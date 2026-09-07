@@ -517,7 +517,7 @@ const CheckoutPage = () => {
                             <CreditCard size={16} /> Card
                         </button>
                     </div>
-                    <p className="text-xs text-stone-400 mt-3">
+                    <p className="text-xs text-stone-600 mt-3">
                         You'll enter your {paymentMethod === 'momo' ? 'Mobile Money' : 'card'} details securely on the next step — you can still switch there if you change your mind.
                     </p>
                 </div>
@@ -571,7 +571,7 @@ const CheckoutPage = () => {
                             <button
                                 type="button"
                                 onClick={handleRemovePromo}
-                                className="text-stone-400 hover:text-red-500 transition"
+                                className="text-stone-600 hover:text-red-500 transition"
                                 aria-label="Remove promo code"
                             >
                                 <X size={16} />
@@ -615,7 +615,7 @@ const CheckoutPage = () => {
                         <span>Total</span>
                         <Price amount={finalTotal} />
                     </div>
-                    <p className="text-xs text-stone-400 pt-1">Shipping fee paid upon delivery.</p>
+                    <p className="text-xs text-stone-600 pt-1">Shipping fee paid upon delivery.</p>
                 </div>
 
                 {/* Trust reassurance, right before the customer commits to paying */}
@@ -631,7 +631,7 @@ const CheckoutPage = () => {
                         <button
                             type="button"
                             onClick={() => setNotice('')}
-                            className="text-stone-400 hover:text-stone-700 transition shrink-0"
+                            className="text-stone-600 hover:text-stone-700 transition shrink-0"
                             aria-label="Dismiss"
                         >
                             <X size={14} />

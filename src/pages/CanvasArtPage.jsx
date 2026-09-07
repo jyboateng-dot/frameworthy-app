@@ -135,7 +135,7 @@ const CanvasArtPage = ({ setProductMode, setSelectedFrame, setSelectedSize, navi
                             </p>
                         </div>
                         <div className="shrink-0 text-right">
-                            <p className="text-[9px] uppercase tracking-[0.28em] text-stone-400 mb-1">COLLECTION</p>
+                            <p className="text-[9px] uppercase tracking-[0.28em] text-stone-600 mb-1">COLLECTION</p>
                             <p className="font-serif text-3xl text-stone-900 font-light leading-none">
                                 {filtered.length}<span className="text-xs text-stone-500 font-light ml-1">pieces</span>
                             </p>
@@ -155,7 +155,7 @@ const CanvasArtPage = ({ setProductMode, setSelectedFrame, setSelectedSize, navi
                             className={`py-3 text-[11px] tracking-normal font-bold transition-all duration-300 border-b-2 whitespace-nowrap ${
                                 activeSeries === t.value
                                     ? 'border-stone-900 text-stone-900'
-                                    : 'border-transparent text-stone-400 hover:text-stone-600'
+                                    : 'border-transparent text-stone-600 hover:text-stone-800'
                             }`}
                         >
                             {t.label.includes('cm') ? formatDimensions(t.label, unit) : t.label}
@@ -168,7 +168,7 @@ const CanvasArtPage = ({ setProductMode, setSelectedFrame, setSelectedSize, navi
             {/* GRID */}
             <main className="max-w-[2560px] mx-auto px-6 md:px-12 pt-6 pb-12">
                 {filtered.length === 0 ? (
-                    <div className="py-40 text-center text-stone-400 text-sm font-light">No items in this category.</div>
+                    <div className="py-40 text-center text-stone-600 text-sm font-light">No items in this category.</div>
                 ) : (
                     <>
                         <p className="text-[10px] uppercase tracking-[0.2em] text-stone-500 mb-8">
@@ -220,7 +220,7 @@ const CanvasArtPage = ({ setProductMode, setSelectedFrame, setSelectedSize, navi
             <footer className="border-t border-stone-200 bg-[#faf9f8]">
                 <div className="max-w-[2560px] mx-auto px-6 md:px-12 py-14 flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
                     <div>
-                        <p className="text-[9px] uppercase tracking-[0.3em] text-stone-400 font-black mb-2">Handcrafted in our studio</p>
+                        <p className="text-[9px] uppercase tracking-[0.3em] text-stone-600 font-black mb-2">Handcrafted in our studio</p>
                         <p className="font-serif font-light text-2xl text-stone-900">
                             Frame this canvas. <span className="text-stone-900 italic font-medium">Make it yours.</span>
                         </p>

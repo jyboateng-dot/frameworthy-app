@@ -391,7 +391,7 @@ const MoviePosterPage = ({ setProductMode, setSelectedFrame, setSelectedSize, na
             {/* Grid */}
             <main className="max-w-[2560px] mx-auto px-6 md:px-12 pt-8 pb-16">
                 {currentArtworks.length === 0 ? (
-                    <div className="w-full flex flex-col items-center justify-center py-24 text-stone-400">
+                    <div className="w-full flex flex-col items-center justify-center py-24 text-stone-600">
                         {activeTab === 'Search' && searchError ? (
                             <>
                                 <Search size={32} className="mb-4 text-stone-300" />
@@ -467,7 +467,7 @@ const MoviePosterPage = ({ setProductMode, setSelectedFrame, setSelectedSize, na
                     <div className="bg-white rounded-2xl shadow-2xl max-w-xl w-full p-8 relative overflow-y-auto max-h-[90vh]">
                         <button
                             onClick={() => setSelectedProduct(null)}
-                            className="absolute top-4 right-4 p-2 text-stone-400 hover:text-stone-900 transition-colors"
+                            className="absolute top-4 right-4 p-2 text-stone-600 hover:text-stone-900 transition-colors"
                         >
                             ✕
                         </button>

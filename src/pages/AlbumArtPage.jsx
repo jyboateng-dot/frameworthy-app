@@ -48,7 +48,7 @@ const AlbumProductCard = ({ product, onGetThis }) => {
             <div className="flex flex-col px-1">
                 <h3 className="text-sm font-bold text-stone-900 leading-tight truncate" title={product.title}>{product.title}</h3>
                 <p className="text-xs text-stone-500 truncate mt-0.5">{product.artist}</p>
-                {product.year && <p className="text-[10px] text-stone-400 mt-1">{product.year}</p>}
+                {product.year && <p className="text-[10px] text-stone-600 mt-1">{product.year}</p>}
                 <div className="flex items-center gap-2 text-[10px] uppercase tracking-wider mt-1">
                     <button onClick={() => onGetThis(product)} className="text-stone-900 hover:text-stone-700 font-bold transition-colors duration-150">Get This</button>
                 </div>
@@ -336,7 +336,7 @@ const AlbumArtPage = ({ setProductMode, setSelectedFrame, setSelectedSize, navig
             {/* Grid */}
             <main className="max-w-[2560px] mx-auto px-6 md:px-12 pt-8 pb-16">
                 {currentArtworks.length === 0 ? (
-                    <div className="w-full flex flex-col items-center justify-center py-24 text-stone-400">
+                    <div className="w-full flex flex-col items-center justify-center py-24 text-stone-600">
                         {activeTab === 'Search' ? (
                             <>
                                 <Search size={32} className="mb-4 text-stone-300" />
@@ -408,7 +408,7 @@ const AlbumArtPage = ({ setProductMode, setSelectedFrame, setSelectedSize, navig
                     <div className="bg-white rounded-2xl shadow-2xl max-w-xl w-full p-8 relative overflow-y-auto max-h-[90vh]">
                         <button
                             onClick={() => setSelectedProduct(null)}
-                            className="absolute top-4 right-4 p-2 text-stone-400 hover:text-stone-900 transition-colors"
+                            className="absolute top-4 right-4 p-2 text-stone-600 hover:text-stone-900 transition-colors"
                             aria-label="Close"
                         >
                             ✕

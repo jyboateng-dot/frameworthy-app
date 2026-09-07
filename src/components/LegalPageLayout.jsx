@@ -17,7 +17,7 @@ const LegalPageLayout = ({ navigate, title, metaDescription, effectiveDate, chil
             </button>
 
             <h1 className="font-serif text-3xl md:text-4xl font-light text-stone-900 mb-2">{title}</h1>
-            <p className="text-xs text-stone-400 uppercase tracking-wider mb-12">Effective {effectiveDate}</p>
+            <p className="text-xs text-stone-600 uppercase tracking-wider mb-12">Effective {effectiveDate}</p>
 
             <div className="space-y-10">
                 {children}

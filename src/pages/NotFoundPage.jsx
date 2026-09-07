@@ -14,7 +14,7 @@ const NotFoundPage = () => {
             <PageMeta title="Page Not Found" description="The page you're looking for doesn't exist or has moved." />
             <div className="max-w-md mx-auto px-6 pt-16 md:pt-24 pb-24 text-center">
                 <LogoMark size={48} className="mx-auto mb-8" />
-                <p className="text-xs font-bold uppercase tracking-wider text-stone-400 mb-2">404</p>
+                <p className="text-xs font-bold uppercase tracking-wider text-stone-600 mb-2">404</p>
                 <h1 className="font-serif text-2xl md:text-3xl font-light tracking-tight leading-tight mb-3">
                     This page doesn&rsquo;t exist
                 </h1>

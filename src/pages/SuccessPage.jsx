@@ -42,7 +42,7 @@ const SuccessPage = ({ productMode, setProductMode, navigate }) => {
                         on, so it's the fastest way for support to find this
                         order. The Paystack reference is shown too for
                         payment-side queries. */}
-                    <p className="text-[10px] font-bold uppercase tracking-wider text-stone-400 mb-1">
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-stone-600 mb-1">
                         Order ID
                     </p>
                     <div className="flex items-center gap-2">
@@ -58,7 +58,7 @@ const SuccessPage = ({ productMode, setProductMode, navigate }) => {
 
                     {reference && (
                         <div className="mt-3 pt-3 border-t border-stone-100">
-                            <p className="text-[10px] font-bold uppercase tracking-wider text-stone-400 mb-1">
+                            <p className="text-[10px] font-bold uppercase tracking-wider text-stone-600 mb-1">
                                 Payment reference
                             </p>
                             <code className="font-mono text-xs text-stone-500 break-all select-all">{reference}</code>
