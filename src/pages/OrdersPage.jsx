@@ -5,6 +5,7 @@ import { Package, Loader, ArrowLeft, Image as ImageIcon } from 'lucide-react';
 import { generateItemDescription, formatDimensionWithOrientation } from '../utils/itemFormatters';
 import { useNavigate } from 'react-router-dom';
 import Price from '../components/common/Price';
+import { getThumbnailUrl } from '../services/storage';
 
 const OrdersPage = () => {
     const { user, isLoading: authLoading } = useAuth();
@@ -182,8 +183,8 @@ const OrdersPage = () => {
                                             <div className="w-24 h-24 bg-stone-100 rounded-lg relative overflow-hidden flex-shrink-0 border border-stone-200">
                                                 {(item.visualizerImage || item.productionImage || item.uploadedImage || item.presetImage || item.image) ? (
                                                     <img
-                                                        src={item.visualizerImage || item.productionImage || item.uploadedImage || item.presetImage || item.image}
-                                                        alt="Order item"
+                                                        src={getThumbnailUrl(item.visualizerImage || item.productionImage || item.uploadedImage || item.presetImage || item.image, 200)}
+                                                        alt={generateItemDescription(item)}
                                                         className="w-full h-full object-cover"
                                                     />
                                                 ) : (

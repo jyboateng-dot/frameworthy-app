@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { X, Copy, Mail, MessageCircle, Check, Send, Lock, User } from 'lucide-react';
 import emailjs from '@emailjs/browser';
 import { formatOrdersForSharing, formatOrderForClient, generateItemDescription, GLASS_LABELS, HARDWARE_LABELS, matWidthLabel } from '../../utils/itemFormatters';
-import { getPrintQualityJpegUrl } from '../../services/storage';
+import { getPrintQualityJpegUrl, getThumbnailUrl } from '../../services/storage';
 import { openExternalLink } from '../../utils/nativeLinks';
 
 const ADMIN_EMAIL = 'admin@frameworthyco.com';
@@ -387,8 +387,8 @@ const ShareOrdersModal = ({ orders, onClose }) => {
                                         <div style={{ width: '120px', height: '120px', border: '1px solid #eee', position: 'relative' }}>
                                             {(item.visualizerImage || item.productionImage || item.uploadedImage || item.presetImage || item.imageUrl || item.image) && (
                                                 <img
-                                                    src={toAbsoluteUrl(item.visualizerImage || item.productionImage || item.uploadedImage || item.presetImage || item.imageUrl || item.image)}
-                                                    alt="Preview"
+                                                    src={toAbsoluteUrl(getThumbnailUrl(item.visualizerImage || item.productionImage || item.uploadedImage || item.presetImage || item.imageUrl || item.image, 240))}
+                                                    alt={generateItemDescription(item)}
                                                     style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                                                 />
                                             )}
@@ -398,7 +398,7 @@ const ShareOrdersModal = ({ orders, onClose }) => {
                                                 {(item.selectedFrame.previewImg || item.selectedFrame.image) && (
                                                     <img
                                                         src={toAbsoluteUrl(item.selectedFrame.previewImg || item.selectedFrame.image)}
-                                                        alt="Frame"
+                                                        alt={item.selectedFrame.name || 'Selected frame'}
                                                         style={{ width: '100%', height: '100%', objectFit: 'contain' }}
                                                     />
                                                 )}

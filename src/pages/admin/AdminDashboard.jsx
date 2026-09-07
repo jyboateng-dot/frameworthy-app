@@ -6,6 +6,8 @@ import { Package, Search, Image as ImageIcon, CheckCircle, Clock, Truck, Chevron
 import OrderDetailModal from './OrderDetailModal';
 import ShareOrdersModal from './ShareOrdersModal';
 import { isAdminEmail } from '../../constants/admin';
+import { getThumbnailUrl } from '../../services/storage';
+import { generateItemDescription } from '../../utils/itemFormatters';
 
 const STATUS_ORDER = ['pending', 'processing', 'shipped', 'delivered'];
 
@@ -317,7 +319,7 @@ const AdminDashboard = () => {
                                                     <div key={i} className="flex items-start gap-3">
                                                         <div className="w-12 h-12 bg-gray-100 rounded flex items-center justify-center shrink-0 border border-gray-200 overflow-hidden relative">
                                                             {(item.visualizerImage || item.productionImage || item.uploadedImage || item.presetImage || item.image) ? (
-                                                                <img src={item.visualizerImage || item.productionImage || item.uploadedImage || item.presetImage || item.image} alt="Preview" className="w-full h-full object-cover" />
+                                                                <img src={getThumbnailUrl(item.visualizerImage || item.productionImage || item.uploadedImage || item.presetImage || item.image, 100)} alt={generateItemDescription(item)} className="w-full h-full object-cover" />
                                                             ) : (
                                                                 <ImageIcon size={20} className="text-gray-400" />
                                                             )}

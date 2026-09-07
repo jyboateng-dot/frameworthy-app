@@ -8,6 +8,7 @@ import { generateItemDescription, formatDimensionWithOrientation } from '../../u
 
 import AuthModal from '../../components/AuthModal';
 import Price from '../../components/common/Price';
+import { getThumbnailUrl } from '../../services/storage';
 
 const CartPage = () => {
     const { cartItems, updateQuantity, toggleItemSelection, toggleAllSelection, removeFromCart } = useCart();
@@ -105,7 +106,7 @@ const CartPage = () => {
                                 {/* Thumbnail Container */}
                                 <div className="w-24 h-24 bg-stone-100 rounded-lg relative overflow-hidden flex-shrink-0 border border-stone-200">
                                     <img
-                                        src={item.visualizerImage || item.productionImage || item.uploadedImage || item.presetImage || item.image}
+                                        src={getThumbnailUrl(item.visualizerImage || item.productionImage || item.uploadedImage || item.presetImage || item.image, 200)}
                                         alt={fullDescription}
                                         className="w-full h-full object-cover"
                                     />

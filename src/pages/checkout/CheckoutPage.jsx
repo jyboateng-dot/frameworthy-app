@@ -11,6 +11,7 @@ import { MapPin, CreditCard, Ticket, ShieldCheck, Loader, X, Smartphone, Copy, C
 import { generateItemDescription, formatDimensionWithOrientation } from '../../utils/itemFormatters';
 import { calculateSubtotal, resolvePromoCode, calculatePromoDiscount, calculateFinalTotal } from '../../utils/pricing';
 import Price from '../../components/common/Price';
+import { getThumbnailUrl } from '../../services/storage';
 
 const PAYSTACK_PUBLIC_KEY = import.meta.env.VITE_PAYSTACK_PUBLIC_KEY;
 const EMAILJS_SERVICE_ID = import.meta.env.VITE_EMAILJS_SERVICE_ID;
@@ -535,7 +536,7 @@ const CheckoutPage = () => {
                             return (
                                 <div key={`${item.id}-${index}`} className="flex gap-3">
                                     <div className="w-16 h-16 bg-stone-100 rounded border border-stone-200 overflow-hidden flex-shrink-0">
-                                        <img src={item.visualizerImage || item.productionImage || item.uploadedImage || item.presetImage} alt={fullDescription} className="w-full h-full object-cover" />
+                                        <img src={getThumbnailUrl(item.visualizerImage || item.productionImage || item.uploadedImage || item.presetImage, 150)} alt={fullDescription} className="w-full h-full object-cover" />
                                     </div>
                                     <div className="flex-1 min-w-0">
                                         <h3 className="text-sm text-stone-800 leading-normal" title={fullDescription}>

@@ -1,7 +1,7 @@
 import React from 'react';
 import { X, Download, Layers, ImageOff } from 'lucide-react';
-import { GLASS_LABELS, HARDWARE_LABELS, matWidthLabel } from '../../utils/itemFormatters';
-import { getPrintQualityJpegUrl } from '../../services/storage';
+import { GLASS_LABELS, HARDWARE_LABELS, matWidthLabel, generateItemDescription } from '../../utils/itemFormatters';
+import { getPrintQualityJpegUrl, getThumbnailUrl } from '../../services/storage';
 import { openExternalLinkFromEvent } from '../../utils/nativeLinks';
 
 // Collage image entries have shown up as either bare URL strings or objects
@@ -32,7 +32,7 @@ const ItemFulfillmentCard = ({ item }) => {
                     <div className="w-32 h-32 relative">
                         <div className="w-full h-full bg-gray-50 rounded-lg overflow-hidden border border-gray-200 flex items-center justify-center">
                             {(item.visualizerImage || item.productionImage || item.uploadedImage || item.presetImage || item.image) ? (
-                                <img src={item.visualizerImage || item.productionImage || item.uploadedImage || item.presetImage || item.image} alt="Preview" className="w-full h-full object-cover" />
+                                <img src={getThumbnailUrl(item.visualizerImage || item.productionImage || item.uploadedImage || item.presetImage || item.image, 250)} alt={generateItemDescription(item)} className="w-full h-full object-cover" />
                             ) : (
                                 <ImageOff size={24} className="text-gray-300" />
                             )}
