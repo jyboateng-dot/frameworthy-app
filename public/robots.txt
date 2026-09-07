@@ -1,0 +1,16 @@
+# frameworthyco.com
+# Account-specific, transactional, and staff-only pages aren't useful for
+# search results and shouldn't be indexed — everything else is fair game.
+User-agent: *
+Disallow: /admin
+Disallow: /admin/messages
+Disallow: /auth
+Disallow: /login
+Disallow: /cart
+Disallow: /checkout
+Disallow: /success
+Disallow: /orders
+Disallow: /wishlist
+Disallow: /order-status
+
+Sitemap: https://frameworthyco.com/sitemap.xml

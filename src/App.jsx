@@ -17,6 +17,7 @@ const PrestigePaintingsPage = lazy(() => import('./pages/PrestigePaintingsPage')
 const OriginalPaintingsPage = lazy(() => import('./pages/OriginalPaintingsPage'));
 const CanvasArtPage = lazy(() => import('./pages/CanvasArtPage'));
 const GlossyArtPage = lazy(() => import('./pages/GlossyArtPage'));
+const NotFoundPage = lazy(() => import('./pages/NotFoundPage'));
 const AuthPage = lazy(() => import('./pages/AuthPage'));
 const AdminDashboard = lazy(() => import('./pages/admin/AdminDashboard'));
 const AdminMessagesPage = lazy(() => import('./pages/admin/AdminMessagesPage'));
@@ -342,8 +343,10 @@ const AppLayout = () => {
 
         <Route path="/login" element={<AuthPage navigate={navigate} />} />
 
-        {/* Catch all redirect */}
-        <Route path="*" element={<Navigate to="/" replace />} />
+        {/* Catch all — a real "not found" page instead of a silent redirect
+            to the homepage, so a broken/mistyped link tells the visitor
+            what happened rather than just bouncing them somewhere else. */}
+        <Route path="*" element={<NotFoundPage />} />
       </Routes>
       </Suspense>
 
