@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { ArrowLeft, Search, MessageCircle, Phone, Mail, FileText, ChevronDown, ArrowRight, Clock, Package, HelpCircle, CheckCircle2 } from 'lucide-react';
 import emailjs from '@emailjs/browser';
 import { useAuth } from '../context/AuthContext';
+import PageMeta from '../components/common/PageMeta';
 
 const EMAILJS_SERVICE_ID = import.meta.env.VITE_EMAILJS_SERVICE_ID;
 const EMAILJS_TEMPLATE_ID = import.meta.env.VITE_EMAILJS_TEMPLATE_ID;
@@ -184,6 +185,10 @@ const HelpCenterPage = ({ navigate, onOpenChat }) => {
 
     return (
         <div className="min-h-screen bg-[#faf9f8] text-stone-900 font-sans">
+            <PageMeta
+                title="Help Centre"
+                description="Answers to common questions about ordering, delivery, and framing — or get in touch with FrameWorthy support."
+            />
             <div className="max-w-4xl mx-auto px-6 lg:px-0 pt-16 md:pt-24 pb-24">
                 {/* BACK BUTTON */}
                 <button

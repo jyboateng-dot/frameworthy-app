@@ -8,6 +8,7 @@ import SOURCE_DIMS from '../data/source_dims.json';
 
 import { PRODUCTS, SERIES_TABS } from '../data/canvas_art';
 import { getThumbnailUrl } from '../services/storage';
+import PageMeta from '../components/common/PageMeta';
 /* ── Card ── */
 const ProductCard = ({ product, onGetThis }) => {
     const { unit } = useUnit();
@@ -112,6 +113,12 @@ const CanvasArtPage = ({ setProductMode, setSelectedFrame, setSelectedSize, navi
 
     return (
         <div className={isSubPage ? "text-stone-900" : "min-h-screen bg-[#faf9f8] text-stone-900"} style={{ fontFamily: "'Inter', sans-serif" }}>
+            {!isSubPage && (
+                <PageMeta
+                    title="Canvas Art"
+                    description="Browse gallery-wrapped canvas art prints and order them custom-framed, delivered across Ghana."
+                />
+            )}
 
             {/* HEADER */}
             <header className="border-b border-stone-200">

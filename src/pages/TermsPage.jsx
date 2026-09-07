@@ -2,7 +2,12 @@ import React from 'react';
 import LegalPageLayout, { LegalSection } from '../components/LegalPageLayout';
 
 const TermsPage = ({ navigate }) => (
-    <LegalPageLayout navigate={navigate} title="Terms of Service" effectiveDate="15 July 2026">
+    <LegalPageLayout
+        navigate={navigate}
+        title="Terms of Service"
+        metaDescription="The terms that govern using the FrameWorthy website and ordering custom-framed products."
+        effectiveDate="15 July 2026"
+    >
         <LegalSection title="1. Introduction">
             <p>
                 These Terms of Service ("Terms") govern your use of the FrameWorthy website and the

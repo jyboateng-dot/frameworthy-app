@@ -3,6 +3,7 @@ import { ArrowRight, Heart, ChevronLeft, ChevronRight, Search, ArrowUp } from 'l
 import { FRAME_STYLES, FRAME_SIZES, findSizeByDimension, formatDimensions, parseCustomSize } from '../data/constants';
 import { useUnit } from '../context/UnitContext';
 import { useWishlist } from '../context/WishlistContext';
+import PageMeta from '../components/common/PageMeta';
 
 /* Page-level sub-renderers from other files */
 import OriginalPaintingsPage from './OriginalPaintingsPage';
@@ -240,6 +241,10 @@ const InspirationPage = ({ setProductMode, setSelectedFrame, setSelectedSize, na
 
     return (
         <div className={isModal ? "min-h-full bg-[#faf9f8] text-stone-900" : "min-h-screen bg-[#faf9f8] text-stone-900"} style={{ fontFamily: "'Inter', sans-serif" }}>
+            <PageMeta
+                title="Inspiration"
+                description="Browse curated art, movie posters, album covers, and museum prints to frame — or paste in your own image."
+            />
             {renderTabs()}
 
             {currentSection === 'search' && (

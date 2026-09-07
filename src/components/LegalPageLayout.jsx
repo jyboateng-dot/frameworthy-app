@@ -1,11 +1,13 @@
 import React from 'react';
 import { ArrowLeft } from 'lucide-react';
+import PageMeta from './common/PageMeta';
 
 // Shared shell for the standalone legal pages (Terms, Privacy, Refund
 // Policy) so each one only needs to supply its own sections, not repeat
 // the header/back-link/typography chrome three times.
-const LegalPageLayout = ({ navigate, title, effectiveDate, children }) => (
+const LegalPageLayout = ({ navigate, title, metaDescription, effectiveDate, children }) => (
     <div className="min-h-screen bg-[#faf9f8] text-stone-900 font-sans">
+        <PageMeta title={title} description={metaDescription} />
         <div className="max-w-3xl mx-auto px-6 lg:px-0 pt-28 pb-24">
             <button
                 onClick={() => navigate(-1)}

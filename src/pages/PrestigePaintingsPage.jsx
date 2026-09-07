@@ -8,6 +8,7 @@ import SOURCE_DIMS from '../data/source_dims.json';
 
 import { PRODUCTS } from '../data/prestige_paintings';
 import { getThumbnailUrl } from '../services/storage';
+import PageMeta from '../components/common/PageMeta';
 const uniqueDims = Array.from(new Set(PRODUCTS.map(p => p.dims)));
 const SERIES_TABS = [
     { label: 'All', value: 'all' },
@@ -122,6 +123,12 @@ const PrestigePaintingsPage = ({ setProductMode, setSelectedFrame, setSelectedSi
 
     return (
         <div className={isSubPage ? "text-stone-900" : "min-h-screen bg-[#faf9f8] text-stone-900"} style={{ fontFamily: "'Inter', sans-serif" }}>
+            {!isSubPage && (
+                <PageMeta
+                    title="Prestige Paintings"
+                    description="Browse our prestige painting collection and order them custom-framed, delivered across Ghana."
+                />
+            )}
 
             {/* HEADER */}
             <header className="border-b border-stone-200">

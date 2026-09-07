@@ -2,7 +2,12 @@ import React from 'react';
 import LegalPageLayout, { LegalSection } from '../components/LegalPageLayout';
 
 const PrivacyPage = ({ navigate }) => (
-    <LegalPageLayout navigate={navigate} title="Privacy Policy" effectiveDate="15 July 2026">
+    <LegalPageLayout
+        navigate={navigate}
+        title="Privacy Policy"
+        metaDescription="How FrameWorthy collects, uses, and protects your personal information and uploaded photos."
+        effectiveDate="15 July 2026"
+    >
         <LegalSection title="1. Introduction">
             <p>
                 This Privacy Policy explains what information Frameworthy&amp;co ("FrameWorthy",
@@ -14,6 +19,7 @@ const PrivacyPage = ({ navigate }) => (
             <p><strong>Account information</strong> — name, email address, and (if you sign in with Google) your Google profile name and email.</p>
             <p><strong>Order &amp; delivery information</strong> — full name, phone number, and delivery address for each order.</p>
             <p><strong>Content you upload</strong> — photos and images you upload to customize a frame.</p>
+            <p><strong>Cloud imports</strong> — if you choose an image from Google Drive, we use Google's read-only access to display thumbnails in the file picker. After you select a file, we download that selected image for customization and order fulfillment. We do not edit or delete files in your Google Drive.</p>
             <p><strong>Order &amp; payment history</strong> — the products, customizations, and amounts of orders you place. We do not receive or store your full card number, CVV, or mobile money PIN — those are handled directly by Paystack.</p>
             <p><strong>Local device data</strong> — your cart and wishlist are stored in your browser's local storage so they persist between visits, even before you sign in.</p>
         </LegalSection>
@@ -53,7 +59,12 @@ const PrivacyPage = ({ navigate }) => (
         <LegalSection title="6. Data Retention">
             <p>
                 We keep account and order information for as long as your account is active, and as
-                needed to comply with tax, accounting, or other legal obligations after that.
+                needed to comply with tax, accounting, or other legal obligations after that. We
+                delete uploaded originals, production files, and previews within 90 days after an
+                order is delivered. Unordered uploads are deleted within 30 days. If a reprint,
+                complaint, or support case is open, we retain the relevant files until it is resolved
+                and delete them within 30 days afterward. Customer artwork is not retained for future
+                reorders unless the customer separately asks us to store it.
             </p>
         </LegalSection>
 

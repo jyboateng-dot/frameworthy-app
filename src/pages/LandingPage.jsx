@@ -3,6 +3,7 @@ import { ArrowRight, ChevronRight, ChevronLeft, Sparkles, Upload, Frame as Frame
 import { FRAME_STYLES, CATEGORIES } from '../data/constants';
 import { CAROUSEL_SLIDES } from '../data/landingCarouselSlides';
 import { openExternalLinkFromEvent as openExternalLink } from '../utils/nativeLinks';
+import PageMeta from '../components/common/PageMeta';
 
 export default function LandingPage({ onStartFraming, navigate, setSelectedFrame }) {
     const [activeCategory, setActiveCategory] = useState('Most Popular');
@@ -64,6 +65,10 @@ export default function LandingPage({ onStartFraming, navigate, setSelectedFrame
 
     return (
         <div className="min-h-screen bg-[#faf9f8] text-stone-900 font-sans antialiased overflow-x-hidden selection:bg-stone-200">
+            <PageMeta
+                title="Custom Picture Framing in Ghana"
+                description="Design and order custom-framed prints, photos, and art online. Premium moulding, mats, and glazing, delivered nationwide across Ghana."
+            />
             {/* Header is handled globally by App.jsx */}
 
             

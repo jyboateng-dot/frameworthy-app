@@ -2,7 +2,12 @@ import React from 'react';
 import LegalPageLayout, { LegalSection } from '../components/LegalPageLayout';
 
 const RefundPolicyPage = ({ navigate }) => (
-    <LegalPageLayout navigate={navigate} title="Refund &amp; Return Policy" effectiveDate="15 July 2026">
+    <LegalPageLayout
+        navigate={navigate}
+        title="Refund &amp; Return Policy"
+        metaDescription="FrameWorthy's policy on refunds, returns, and reprints for custom-framed orders."
+        effectiveDate="15 July 2026"
+    >
         <LegalSection title="1. Overview">
             <p>
                 Every FrameWorthy order is custom-produced to your exact specifications — your

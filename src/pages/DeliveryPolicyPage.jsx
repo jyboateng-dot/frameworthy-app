@@ -2,7 +2,12 @@ import React from 'react';
 import LegalPageLayout, { LegalSection } from '../components/LegalPageLayout';
 
 const DeliveryPolicyPage = ({ navigate }) => (
-    <LegalPageLayout navigate={navigate} title="Delivery Policy" effectiveDate="15 July 2026">
+    <LegalPageLayout
+        navigate={navigate}
+        title="Delivery Policy"
+        metaDescription="Production timelines and delivery details for FrameWorthy orders across Ghana."
+        effectiveDate="15 July 2026"
+    >
         <LegalSection title="1. Overview">
             <p>
                 At FrameWorthy, we take care to ensure your custom-framed items reach you safely and promptly. Because every order is made to your exact specifications, delivery timelines consist of both production time and shipping time.

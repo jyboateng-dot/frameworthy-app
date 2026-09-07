@@ -17,6 +17,7 @@ import { FRAME_STYLES, FRAME_SIZES, MAT_COLORS, formatDimensions, findSizeByDime
 import { ROOM_SCENES, computeRoomPlacement } from '../../data/roomScenes';
 import { ROOM_SCENE_COMPONENTS, ROOM_SCENE_FOREGROUND_COMPONENTS } from '../../components/framing/roomSceneComponents';
 import ScenePicker from '../../components/framing/ScenePicker';
+import PageMeta from '../../components/common/PageMeta';
 import { useHoverDropdown, isHoverCapable } from '../../hooks/useHoverDropdown';
 import { getFrameRail, getRailTextureStyle, getRailShading } from '../../utils/frameRail';
 import {
@@ -1716,7 +1717,11 @@ const CustomizeFramePage = ({
 
     return (
         <div className={`flex ${isSideBySide ? 'flex-row h-[calc(100dvh-47px)] overflow-hidden' : 'flex-col min-h-[calc(100dvh-47px)]'} bg-[#faf9f8]`}>
-            
+            <PageMeta
+                title="Design Your Custom Frame"
+                description="Upload a photo or choose art, pick a frame style, mat, and size, and see it rendered on your wall in real time."
+            />
+
             {/* LEFT COLUMN: the visualizer, with the approximation note beneath it.
                 The note used to sit inside the pane, floating over the wall
                 alongside the piece. Out here it stops competing with the render
@@ -3243,6 +3248,7 @@ const CustomizeFramePage = ({
                         {isSizeGuideOpen && (
                             <SizeGuidePanel
                                 currentSize={selectedSize}
+                                orientation={orientation}
                                 onSelect={(entry) => { setSelectedSize(entry); }}
                                 unit={unit}
                                 onClose={() => setIsSizeGuideOpen(false)}

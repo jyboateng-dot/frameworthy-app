@@ -7,6 +7,7 @@ import SOURCE_DIMS from '../data/source_dims.json';
 
 import { PRODUCTS } from '../data/glossy_art';
 import { getThumbnailUrl } from '../services/storage';
+import PageMeta from '../components/common/PageMeta';
 const uniqueDims = Array.from(new Set(PRODUCTS.map(p => p.dims)));
 const SERIES_TABS = [
     { label: 'All', value: 'all' },
@@ -119,6 +120,12 @@ const GlossyArtPage = ({ setProductMode, navigate, isSubPage = false, disableWin
 
     return (
         <div className={isSubPage ? "text-stone-900" : "min-h-screen bg-[#faf9f8] text-stone-900"} style={{ fontFamily: "'Inter', sans-serif" }}>
+            {!isSubPage && (
+                <PageMeta
+                    title="Glossy Art Prints"
+                    description="Browse glossy fine-art prints and order them custom-framed, delivered across Ghana."
+                />
+            )}
 
             {/* HEADER */}
             <header className="border-b border-stone-200">
