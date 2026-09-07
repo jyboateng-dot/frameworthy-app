@@ -24,11 +24,11 @@ export function FitPreview({ image, natural, geometry, position, frame, matColor
 }
 
 export default function FrameFitPanel({ image, natural, size, orientation, mat, rail, frame, matColor,
-    unit, position, onPosition, onApply, review, onCloseReview, onConfirm, busy, error, price, matPrice, step }) {
+    unit, position, onPosition, onApply, error, price, matPrice, step }) {
     const [compare, setCompare] = useState(false);
     const [undo, setUndo] = useState(null);
     const dialogRef = useRef(null);
-    const open = compare || Boolean(review);
+    const open = compare;
     useEffect(() => {
         if (!open) return;
         const previous = document.activeElement;
@@ -61,23 +61,23 @@ export default function FrameFitPanel({ image, natural, size, orientation, mat, 
                 <input className="w-full min-w-0 accent-fw-gold" aria-label={label} type="range" min={min} max={max} step={step}
                     value={position[key]} onChange={e => onPosition({ ...position, [key]: Number(e.target.value) })} /></label>)}
         {undo && <button type="button" className="text-xs flex items-center gap-1" onClick={() => { onApply(undo); setUndo(null); }}><RotateCcw size={14} />Undo fit change</button>}
-        {(compare || review) && createPortal(<div className="fixed inset-0 z-[200] text-stone-900 bg-black/50 flex items-center justify-center p-4" onKeyDown={e => { if (e.key === 'Escape' && !busy) { setCompare(false); onCloseReview(); } }}>
-            <div ref={dialogRef} role="dialog" aria-modal="true" aria-label={review ? 'Review your frame' : 'Best fit options'} onKeyDown={event => {
+        {compare && createPortal(<div className="fixed inset-0 z-[200] text-stone-900 bg-black/50 flex items-center justify-center p-4" onKeyDown={e => { if (e.key === 'Escape') setCompare(false); }}>
+            <div ref={dialogRef} role="dialog" aria-modal="true" aria-label="Best fit options" onKeyDown={event => {
                 if (event.key !== 'Tab') return;
                 const buttons = [...dialogRef.current.querySelectorAll('button:not(:disabled)')];
                 const first = buttons[0], last = buttons.at(-1);
                 if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus(); }
                 else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }
             }} className="bg-white rounded-lg w-full max-w-6xl max-h-[90vh] overflow-auto p-5 space-y-4">
-                <div className="flex items-center justify-between"><h2 className="text-lg font-semibold">{review ? 'Review Your Frame' : 'Best Fit'}</h2>
-                    <button type="button" disabled={busy} aria-label="Close frame review" onClick={() => { setCompare(false); onCloseReview(); }}><X size={20} /></button></div>
-                <div className={review ? 'max-w-sm mx-auto space-y-3' : 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5'}>
+                <div className="flex items-center justify-between"><h2 className="text-lg font-semibold">Best Fit</h2>
+                    <button type="button" aria-label="Close best fit options" onClick={() => setCompare(false)}><X size={20} /></button></div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
                     <div className="space-y-3">{preview(geometry)}<p className="text-sm font-semibold">Current Frame</p>
                         <p className="text-xs">{formatDimensions(size.label, unit, orientation)} · {geometry.width === geometry.height ? 'Square' : orientation === 'landscape' ? 'Landscape' : 'Portrait'} · {mat === 'none' ? 'No Mat' : `${(Number(mat) * (unit === 'cm' ? 2.54 : 1)).toFixed(1)} ${unit} mat`}</p>
                         <Price amount={price} />
                         <p className="text-xs">{Math.floor((imageCrop(natural, geometry, position)?.retained || 0) * 100)}% of image visible</p>
                     </div>
-                    {!review && options.map((option, i) => <div key={i} className="space-y-3">
+                    {options.map((option, i) => <div key={i} className="space-y-3">
                         <button type="button" className="block w-full cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-stone-900 hover:opacity-90"
                             aria-label={`Apply ${formatDimensions(option.size.label, unit, option.orientation)}, ${option.mat === 'none' ? 'no mat' : 'with mat'}`}
                             onClick={() => applyOption(option)}>{preview(option.geometry, DEFAULT_POSITION)}</button>
@@ -87,10 +87,8 @@ export default function FrameFitPanel({ image, natural, size, orientation, mat, 
                         <button type="button" className="flex items-center gap-1 text-sm font-semibold" onClick={() => applyOption(option)}><Check size={15} />Apply</button>
                     </div>)}
                 </div>
-                {!review && options.length === 0 && <p className="text-sm text-stone-600">No alternative fits available.</p>}
+                {options.length === 0 && <p className="text-sm text-stone-600">No alternative fits available.</p>}
                 {error && <p role="alert" className="text-sm text-red-700">{error}</p>}
-                {review && <div className="flex justify-end gap-4"><button type="button" disabled={busy} onClick={onCloseReview}>Adjust Frame</button>
-                    <button type="button" disabled={busy} onClick={onConfirm} className="bg-stone-900 text-white px-4 py-2 rounded text-sm">{busy ? 'Preparing...' : 'Confirm Frame'}</button></div>}
             </div>
         </div>, document.body)}
     </section>;

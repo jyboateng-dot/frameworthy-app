@@ -302,7 +302,6 @@ const CustomizeFramePage = ({
     const { user } = useAuth();
     const [showAuthModal, setShowAuthModal] = useState(false);
     const [fitPosition, setFitPosition] = useState(DEFAULT_POSITION);
-    const [fitReview, setFitReview] = useState(null);
     const [fitError, setFitError] = useState('');
     useEffect(() => { setFitPosition(DEFAULT_POSITION); }, [uploadedImage]);
     
@@ -1464,6 +1463,33 @@ const CustomizeFramePage = ({
                 director: posterData.details.director
             } : null
         };
+    };
+
+    const completeCheckoutAction = async (action) => {
+        setLoadingAction(action);
+        setFitError('');
+        try {
+            if (fitEnabled) {
+                const output = await prepareFrameOutput(productionImage || uploadedImage, fitGeometry,
+                    fitPosition, selectedFrame.baseColor, matColor.hex);
+                if (action === 'pay') toggleAllSelection(false);
+                addToCart({ ...buildCartItem(output.visualizerImage), ...output });
+            } else {
+                const visualizerImage = await captureVisualizerImage();
+                if (action === 'pay') toggleAllSelection(false);
+                addToCart(buildCartItem(visualizerImage));
+            }
+
+            setWasAddedToCart(true);
+            if (action === 'pay') {
+                if (!user) setShowAuthModal(true);
+                else navigate('/checkout');
+            }
+        } catch (error) {
+            setFitError(error.message || 'Could not prepare your frame. Please try again.');
+        } finally {
+            setLoadingAction(null);
+        }
     };
 
     // Filter and sort sizes so more "popular" sizes — a small footprint and
@@ -3380,21 +3406,8 @@ const CustomizeFramePage = ({
                         unit={unit} price={buildCartItem(null).totalPrice} position={fitPosition} onPosition={setFitPosition}
                         onApply={choice => { setIsOptimized(false); setSelectedSize(choice.size);
                             setOrientation(choice.orientation); setMatWidth(choice.mat); setFitPosition(choice.position); }}
-                        review={fitReview} onCloseReview={() => { setFitReview(null); setFitError(''); }}
-                        busy={loadingAction !== null} error={fitError}
-                        onConfirm={async () => {
-                            setLoadingAction(fitReview); setFitError('');
-                            try {
-                                const output = await prepareFrameOutput(productionImage || uploadedImage, fitGeometry,
-                                    fitPosition, selectedFrame.baseColor, matColor.hex);
-                                if (fitReview === 'pay') toggleAllSelection(false);
-                                addToCart({ ...buildCartItem(output.visualizerImage), ...output });
-                                setWasAddedToCart(true);
-                                if (fitReview === 'pay') { if (!user) setShowAuthModal(true); else navigate('/checkout'); }
-                                setFitReview(null);
-                            } catch (error) { setFitError(error.message || 'Could not prepare your frame. Please try again.'); }
-                            finally { setLoadingAction(null); }
-                        }} />}
+                        error={fitError}
+                        />}
                     {!isPreset && !isAlbumArt && !isAlbumPoster && !isMoviePoster && !isMoviePosterPrint && (
                         <section>
                             <h2 className="text-xs font-bold uppercase tracking-wider text-stone-900 mb-3 flex items-center justify-between gap-2">
@@ -3603,14 +3616,7 @@ const CustomizeFramePage = ({
                     </div>
                     <div className={`flex w-full mt-1 ${isSideBySide ? 'gap-1.5' : 'gap-2 max-w-[300px]'}`}>
                         <button
-                            onClick={async () => {
-                                if (fitEnabled) { setFitReview('cart'); return; }
-                                setLoadingAction('cart');
-                                const visualizerImage = await captureVisualizerImage();
-                                setLoadingAction(null);
-                                addToCart(buildCartItem(visualizerImage));
-                                setWasAddedToCart(true);
-                            }}
+                            onClick={() => completeCheckoutAction('cart')}
                             disabled={!hasImage || isCloudUploadPending || loadingAction !== null}
                             className={`flex-1 bg-white border rounded-full text-[10px] font-bold uppercase tracking-widest transition-colors flex items-center justify-center gap-1.5 shadow-sm ${isSideBySide ? 'py-1.5' : 'py-2.5'} ${!hasImage || isCloudUploadPending || loadingAction !== null ? 'opacity-50 cursor-not-allowed border-stone-200 text-stone-400 bg-stone-50' : 'text-stone-900 border-stone-200 hover:bg-stone-50'}`}
                         >
@@ -3618,7 +3624,7 @@ const CustomizeFramePage = ({
                             {loadingAction === 'cart' ? 'Adding…' : (wasAddedToCart ? 'Added' : 'Add to Cart')}
                         </button>
                         <button
-                            onClick={async () => {
+                            onClick={() => {
                                 if (wasAddedToCart) {
                                     if (!user) {
                                         setShowAuthModal(true);
@@ -3627,17 +3633,7 @@ const CustomizeFramePage = ({
                                     }
                                     return;
                                 }
-                                setLoadingAction('pay');
-                                if (fitEnabled) { setLoadingAction(null); setFitReview('pay'); return; }
-                                const visualizerImage = await captureVisualizerImage();
-                                setLoadingAction(null);
-                                toggleAllSelection(false);
-                                addToCart(buildCartItem(visualizerImage));
-                                if (!user) {
-                                    setShowAuthModal(true);
-                                } else {
-                                    navigate('/checkout');
-                                }
+                                completeCheckoutAction('pay');
                             }}
                             disabled={!hasImage || isCloudUploadPending || loadingAction !== null}
                             className={`flex-1 border rounded-full text-[10px] font-bold uppercase tracking-widest transition-colors flex items-center justify-center gap-1.5 shadow-sm ${isSideBySide ? 'py-1.5' : 'py-2.5'} ${!hasImage || isCloudUploadPending || loadingAction !== null ? 'opacity-50 cursor-not-allowed border-stone-200 text-stone-400 bg-stone-50' : 'bg-[#c9a84c] border-[#c9a84c] text-[#0a0a0a] hover:bg-[#d4b55c]'}`}
