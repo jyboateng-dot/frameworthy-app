@@ -59,7 +59,10 @@ export default function ArtworkImportMenu({ isPlaceholder, isUploading, onFile, 
     const handleDeviceFile = async (event) => {
         const file = event.target.files?.[0];
         event.target.value = '';
-        if (!file) return;
+        if (!file) {
+            close();
+            return;
+        }
         setError('');
         try {
             finishImport(await importArtworkFromDevice(file));
@@ -74,6 +77,10 @@ export default function ArtworkImportMenu({ isPlaceholder, isUploading, onFile, 
         try {
             finishImport(await importArtworkFromCloud(provider));
         } catch (importError) {
+            if (importError.message === 'No image was selected.') {
+                close();
+                return;
+            }
             setError(importError.message || 'Could not import that image.');
             setPendingSource('');
         }

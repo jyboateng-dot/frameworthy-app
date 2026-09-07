@@ -1,9 +1,9 @@
 import { getGoogleAccessToken, _resetGoogleOAuthCache } from './googleOAuth';
 
-/** Requests access only to files selected through this application's picker. */
+/** Read-only Drive access enables thumbnails before a file is selected. */
 
 const CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
-const SCOPE = 'https://www.googleapis.com/auth/drive.file';
+const SCOPE = 'https://www.googleapis.com/auth/drive.readonly';
 
 export function getGoogleDriveAccessToken() {
     return getGoogleAccessToken(CLIENT_ID, SCOPE);

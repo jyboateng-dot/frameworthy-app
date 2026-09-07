@@ -73,7 +73,7 @@ export default function FrameFitPanel({ image, natural, size, orientation, mat, 
                     <button type="button" disabled={busy} aria-label="Close frame review" onClick={() => { setCompare(false); onCloseReview(); }}><X size={20} /></button></div>
                 <div className={review ? 'max-w-sm mx-auto space-y-3' : 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5'}>
                     <div className="space-y-3">{preview(geometry)}<p className="text-sm font-semibold">Current Frame</p>
-                        <p className="text-xs">{formatDimensions(size.label, unit, orientation)} · {mat === 'none' ? 'No Mat' : `${(Number(mat) * (unit === 'cm' ? 2.54 : 1)).toFixed(1)} ${unit} mat`}</p>
+                        <p className="text-xs">{formatDimensions(size.label, unit, orientation)} · {geometry.width === geometry.height ? 'Square' : orientation === 'landscape' ? 'Landscape' : 'Portrait'} · {mat === 'none' ? 'No Mat' : `${(Number(mat) * (unit === 'cm' ? 2.54 : 1)).toFixed(1)} ${unit} mat`}</p>
                         <Price amount={price} />
                         <p className="text-xs">{Math.floor((imageCrop(natural, geometry, position)?.retained || 0) * 100)}% of image visible</p>
                     </div>
@@ -81,7 +81,7 @@ export default function FrameFitPanel({ image, natural, size, orientation, mat, 
                         <button type="button" className="block w-full cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-stone-900 hover:opacity-90"
                             aria-label={`Apply ${formatDimensions(option.size.label, unit, option.orientation)}, ${option.mat === 'none' ? 'no mat' : 'with mat'}`}
                             onClick={() => applyOption(option)}>{preview(option.geometry, DEFAULT_POSITION)}</button>
-                        <p className="text-sm font-semibold">{formatDimensions(option.size.label, unit, option.orientation)}</p>
+                        <p className="text-sm font-semibold">{formatDimensions(option.size.label, unit, option.orientation)} · {option.geometry.width === option.geometry.height ? 'Square' : option.orientation === 'landscape' ? 'Landscape' : 'Portrait'}</p>
                         <p className="text-xs">{Math.floor(option.retained * 100)}% of image visible · {option.mat === 'none' ? 'No Mat' : `${(Number(option.mat) * (unit === 'cm' ? 2.54 : 1)).toFixed(1)} ${unit} mat`}</p>
                         <Price amount={option.price} />
                         <button type="button" className="flex items-center gap-1 text-sm font-semibold" onClick={() => applyOption(option)}><Check size={15} />Apply</button>

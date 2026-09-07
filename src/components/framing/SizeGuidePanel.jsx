@@ -71,12 +71,16 @@ const HEADROOM_IN = 10;
 const ILLUSTRATION_HEIGHT_PX = 260;
 const PX_PER_IN = ILLUSTRATION_HEIGHT_PX / (TALLEST_PERSON_IN + HEADROOM_IN);
 
-const Scene = ({ selectedSize, reference }) => {
+const Scene = ({ selectedSize, reference, orientation }) => {
     const ref = SCALE_REFERENCES[reference];
     const figure = REFERENCE_FIGURES[reference] || REFERENCE_FIGURES.woman;
     const consoleHeightIn = SCALE_REFERENCES.consoleHeightIn;
-    const frameWidthIn = selectedSize?.width || 16;
-    const frameHeightIn = selectedSize?.height || 20;
+    const frameWidthIn = orientation === 'landscape'
+        ? (selectedSize?.height || 20)
+        : (selectedSize?.width || 16);
+    const frameHeightIn = orientation === 'landscape'
+        ? (selectedSize?.width || 16)
+        : (selectedSize?.height || 20);
     const wallMountHeightIn = consoleHeightIn + 6;
 
     // The scene's own height is what adapts — not the scale — so an
@@ -179,13 +183,56 @@ const Scene = ({ selectedSize, reference }) => {
     );
 };
 
-const SizeGuidePanel = ({ currentSize, onSelect, unit, onClose }) => {
+const SizeGuidePanel = ({ currentSize, orientation, onSelect, unit, onClose }) => {
     const [reference, setReference] = useState('woman');
+    const [customWidthCm, setCustomWidthCm] = useState('');
+    const [customHeightCm, setCustomHeightCm] = useState('');
     const rowRefs = useRef({});
     const tableScrollRef = useRef(null);
+    const dialogRef = useRef(null);
+    const closeButtonRef = useRef(null);
 
     const sameSize = (a, b) => a && b && a.width === b.width && a.height === b.height;
     const selectedEntry = currentSize ? SIZE_GUIDE_ENTRIES.find(e => sameSize(e, currentSize)) : null;
+
+    useEffect(() => {
+        const previouslyFocused = document.activeElement;
+        const previousBodyOverflow = document.body.style.overflow;
+        document.body.style.overflow = 'hidden';
+        closeButtonRef.current?.focus();
+
+        const handleKeyDown = (event) => {
+            if (event.key === 'Escape') {
+                event.preventDefault();
+                onClose();
+                return;
+            }
+
+            if (event.key !== 'Tab' || !dialogRef.current) return;
+            const focusable = dialogRef.current.querySelectorAll(
+                'button:not([disabled]), [tabindex]:not([tabindex="-1"])'
+            );
+            if (!focusable.length) return;
+
+            const first = focusable[0];
+            const last = focusable[focusable.length - 1];
+            if (event.shiftKey && document.activeElement === first) {
+                event.preventDefault();
+                last.focus();
+            } else if (!event.shiftKey && document.activeElement === last) {
+                event.preventDefault();
+                first.focus();
+            }
+        };
+
+        document.addEventListener('keydown', handleKeyDown);
+
+        return () => {
+            document.removeEventListener('keydown', handleKeyDown);
+            document.body.style.overflow = previousBodyOverflow;
+            if (previouslyFocused instanceof HTMLElement) previouslyFocused.focus();
+        };
+    }, [onClose]);
 
     useEffect(() => {
         const key = selectedEntry?.id;
@@ -194,10 +241,29 @@ const SizeGuidePanel = ({ currentSize, onSelect, unit, onClose }) => {
         if (row && container) {
             container.scrollTop = row.offsetTop - container.clientHeight / 2 + row.clientHeight / 2;
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }, [selectedEntry?.id]);
 
     const ref = SCALE_REFERENCES[reference];
+    const currentOrientation = currentSize?.width === currentSize?.height
+        ? 'square'
+        : (orientation || currentSize?.orientation || 'portrait');
+    const parsedCustomWidth = Number(customWidthCm);
+    const parsedCustomHeight = Number(customHeightCm);
+    const customSizeIsValid = Number.isFinite(parsedCustomWidth) && Number.isFinite(parsedCustomHeight)
+        && parsedCustomWidth >= 13 && parsedCustomWidth <= 180
+        && parsedCustomHeight >= 13 && parsedCustomHeight <= 180;
+    const customPreview = customSizeIsValid ? {
+        id: `custom-preview-${parsedCustomWidth}x${parsedCustomHeight}`,
+        width: Math.min(parsedCustomWidth, parsedCustomHeight) / 2.54,
+        height: Math.max(parsedCustomWidth, parsedCustomHeight) / 2.54,
+        label: `${parsedCustomWidth} x ${parsedCustomHeight} cm`,
+        orientation: parsedCustomWidth === parsedCustomHeight
+            ? 'square'
+            : (parsedCustomWidth > parsedCustomHeight ? 'landscape' : 'portrait'),
+    } : null;
+    const previewSize = customPreview || currentSize;
+    const previewOrientation = customPreview?.orientation || currentOrientation;
+    const previewOrientationLabel = previewOrientation.charAt(0).toUpperCase() + previewOrientation.slice(1);
 
     // Portaled to document.body rather than rendered in place: this panel
     // is triggered from deep inside CustomizeFramePage's visualizer/
@@ -216,7 +282,7 @@ const SizeGuidePanel = ({ currentSize, onSelect, unit, onClose }) => {
                 @keyframes fwPanelIn { from { opacity: 0; transform: translateY(10px) scale(.98); } to { opacity: 1; transform: none; } }
                 /* overflow stays visible, not hidden — the left dimline
                    label sits close enough to the scene's own left edge
-                   that its text (e.g. "5'7\"") got clipped by a hidden
+                   that its text (e.g. "5'7"") got clipped by a hidden
                    overflow before the browser even had a chance to lay
                    the rest of it out. Nothing else in the scene is meant
                    to extend past 0-100% of this box (the person, console,
@@ -250,10 +316,15 @@ const SizeGuidePanel = ({ currentSize, onSelect, unit, onClose }) => {
             <div
                 className="relative w-full max-w-[1160px] max-h-[86vh] overflow-y-auto overflow-x-hidden rounded-2xl bg-white text-stone-900 border border-stone-200 shadow-2xl"
                 style={{ animation: 'fwPanelIn .22s cubic-bezier(.2,.8,.2,1)' }}
+                ref={dialogRef}
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="size-guide-title"
             >
                 <button
                     onClick={onClose}
                     aria-label="Close size guide"
+                    ref={closeButtonRef}
                     className="absolute top-[18px] right-[18px] z-30 w-9 h-9 rounded-full flex items-center justify-center cursor-pointer bg-white border border-stone-300 shadow-sm hover:bg-stone-100 hover:border-stone-400 text-stone-600 transition-colors"
                 >
                     <X size={18} />
@@ -269,7 +340,8 @@ const SizeGuidePanel = ({ currentSize, onSelect, unit, onClose }) => {
                     original always-visible title bar. */}
                 <div className="md:sticky md:top-0 md:z-20 bg-white border-b border-stone-200 pt-[22px] pr-20 pb-4 pl-[26px] flex items-start justify-between gap-2.5 flex-wrap">
                     <div className="min-w-0">
-                        <h2 className="font-serif text-[22px] font-bold text-stone-900 mb-1" style={{ letterSpacing: '-.01em' }}>Find the right frame size</h2>
+                        <p className="text-[10px] font-semibold uppercase tracking-[.16em] text-fw-gold m-0 mb-1.5">Size guide</p>
+                        <h2 id="size-guide-title" className="font-serif text-[22px] font-bold text-stone-900 mb-1" style={{ letterSpacing: '-.01em' }}>Find the right frame size</h2>
                         <p className="text-[12.5px] text-stone-500 m-0">See this piece next to a reference figure and a {SCALE_REFERENCES.consoleDisplay} console, at every size.</p>
                     </div>
                     <div className="inline-flex shrink-0 rounded-full p-0.5 border border-stone-200 bg-white">
@@ -312,21 +384,43 @@ const SizeGuidePanel = ({ currentSize, onSelect, unit, onClose }) => {
                     <div
                         className="sticky top-0 z-10 md:static min-w-0 md:h-full md:overflow-y-auto bg-white border-b border-stone-200 px-[26px] pt-[26px] pb-[18px] flex flex-col gap-[14px]"
                     >
-                        {currentSize && (
+                        {previewSize && (
                             <div className="flex items-baseline gap-[10px]">
-                                <span className="font-serif font-bold text-[22px] text-stone-900" style={{ fontVariantNumeric: 'tabular-nums' }}>
-                                    {unit === 'in' ? toInchesQuotes(currentSize.label, currentSize.orientation) : formatDimensions(currentSize.label, 'cm', currentSize.orientation)}
+                                <span className="font-serif font-bold text-[22px] text-stone-900" style={{ fontVariantNumeric: 'tabular-nums' }} aria-live="polite">
+                                    {unit === 'in' ? toInchesQuotes(previewSize.label, previewOrientation) : formatDimensions(previewSize.label, 'cm', previewOrientation)}
                                 </span>
-                                {selectedEntry?.bestFor && <span className="text-[12.5px] text-fw-gold" style={{ letterSpacing: '.02em' }}>{selectedEntry.bestFor}</span>}
+                                <span className="text-[11px] uppercase tracking-[.08em] text-stone-400">{previewOrientationLabel}</span>
+                                {customPreview
+                                    ? <span className="text-[12.5px] text-fw-gold" style={{ letterSpacing: '.02em' }}>Custom preview</span>
+                                    : selectedEntry?.bestFor && <span className="text-[12.5px] text-fw-gold" style={{ letterSpacing: '.02em' }}>{selectedEntry.bestFor}</span>}
                             </div>
                         )}
-                        <Scene selectedSize={currentSize} reference={reference} />
+                        <Scene selectedSize={previewSize} reference={reference} orientation={previewOrientation} />
                         <p className="text-[12px] text-stone-500 m-0">
                             Reference figure: <b>{ref.label}, {ref.heightDisplay}</b> · console at <b>{SCALE_REFERENCES.consoleDisplay}</b>
                         </p>
                     </div>
 
                     <div ref={tableScrollRef} className="min-w-0 md:h-full overflow-y-auto px-[26px] pt-[26px] pb-[18px]">
+                        <div className="mb-5 rounded-xl border border-stone-200 bg-stone-50/70 p-4">
+                            <div className="flex items-start justify-between gap-3">
+                                <div>
+                                    <p className="m-0 text-sm font-semibold text-stone-800">Try a custom size</p>
+                                    <p className="m-0 mt-1 text-[12px] leading-4 text-stone-500">Preview any frame between 13 and 180 cm.</p>
+                                </div>
+                                {customPreview && <span className="rounded-full bg-fw-gold px-2 py-1 text-[9px] font-bold uppercase tracking-[.08em] text-white">Previewing</span>}
+                            </div>
+                            <div className="mt-3 grid grid-cols-2 gap-2">
+                                <label className="text-[11px] font-medium text-stone-600">Width (cm)
+                                    <input type="number" min="13" max="180" step="0.1" inputMode="decimal" value={customWidthCm} onChange={(event) => setCustomWidthCm(event.target.value)} placeholder="Width" className="mt-1 block w-full rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm text-stone-900 outline-none transition-colors focus:border-fw-gold focus:ring-2 focus:ring-fw-gold/20" />
+                                </label>
+                                <label className="text-[11px] font-medium text-stone-600">Height (cm)
+                                    <input type="number" min="13" max="180" step="0.1" inputMode="decimal" value={customHeightCm} onChange={(event) => setCustomHeightCm(event.target.value)} placeholder="Height" className="mt-1 block w-full rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm text-stone-900 outline-none transition-colors focus:border-fw-gold focus:ring-2 focus:ring-fw-gold/20" />
+                                </label>
+                            </div>
+                            {((customWidthCm || customHeightCm) && !customSizeIsValid) && <p className="m-0 mt-2 text-[11px] text-red-700" role="alert">Enter both dimensions from 13 to 180 cm.</p>}
+                            {customPreview && <button type="button" onClick={() => onSelect(customPreview)} className="mt-3 w-full cursor-pointer rounded-lg bg-stone-900 px-3 py-2.5 text-xs font-semibold text-white transition-colors hover:bg-stone-700">Use this custom size</button>}
+                        </div>
                         <p className="text-[12.5px] text-stone-500 m-0 mb-2">All sizes for this piece</p>
                         <table className="w-full border-collapse table-fixed">
                             <colgroup>
@@ -335,40 +429,23 @@ const SizeGuidePanel = ({ currentSize, onSelect, unit, onClose }) => {
                                 <col className="w-[56px] md:w-[76px]" />
                                 <col className="md:w-[190px]" />
                             </colgroup>
-                            <thead>
-                                <tr>
-                                    <th className="text-left font-medium text-sm text-stone-500 pb-2 pr-2.5 border-b border-stone-200 md:whitespace-nowrap">Size</th>
-                                    <th className="text-left font-medium text-sm text-stone-500 pb-2 pr-2.5 border-b border-stone-200 md:whitespace-nowrap">Inches</th>
-                                    <th className="text-left font-medium text-sm text-stone-500 pb-2 pr-2.5 border-b border-stone-200 md:whitespace-nowrap">Price</th>
-                                    <th className="text-left font-medium text-sm text-stone-500 pb-2 border-b border-stone-200 md:whitespace-nowrap">Best for</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {SIZE_GUIDE_ENTRIES.map(entry => {
-                                    const isSelected = sameSize(entry, currentSize);
-                                    return (
-                                        <tr
-                                            key={entry.id}
-                                            ref={el => { rowRefs.current[entry.id] = el; }}
-                                            onClick={() => onSelect(entry)}
-                                            className={`fw-row cursor-pointer${isSelected ? ' is-active' : ''}`}
-                                        >
-                                            <td className="py-[11px] pr-2.5 align-top text-sm border-b border-stone-200 md:whitespace-nowrap" style={{ fontVariantNumeric: 'tabular-nums' }}>
-                                                {formatDimensions(entry.label, 'cm', entry.orientation)}
-                                            </td>
-                                            <td className="py-[11px] pr-2.5 align-top text-sm border-b border-stone-200 md:whitespace-nowrap" style={{ fontVariantNumeric: 'tabular-nums' }}>
-                                                {toInchesQuotes(entry.label, entry.orientation)}
-                                            </td>
-                                            <td className="py-[11px] pr-2.5 align-top text-sm border-b border-stone-200 md:whitespace-nowrap" style={{ fontVariantNumeric: 'tabular-nums' }}>
-                                                {money(entry.price)}
-                                            </td>
-                                            <td className="py-[11px] align-top text-[12.5px] text-stone-500 border-b border-stone-200 md:whitespace-nowrap">
-                                                {entry.bestFor}
-                                            </td>
-                                        </tr>
-                                    );
-                                })}
-                            </tbody>
+                            <thead><tr>
+                                <th className="text-left font-medium text-sm text-stone-500 pb-2 pr-2.5 border-b border-stone-200 md:whitespace-nowrap">Size</th>
+                                <th className="text-left font-medium text-sm text-stone-500 pb-2 pr-2.5 border-b border-stone-200 md:whitespace-nowrap">Inches</th>
+                                <th className="text-left font-medium text-sm text-stone-500 pb-2 pr-2.5 border-b border-stone-200 md:whitespace-nowrap">Price</th>
+                                <th className="text-left font-medium text-sm text-stone-500 pb-2 border-b border-stone-200 md:whitespace-nowrap">Best for</th>
+                            </tr></thead>
+                            <tbody>{SIZE_GUIDE_ENTRIES.map(entry => {
+                                const isSelected = sameSize(entry, currentSize);
+                                return <tr key={entry.id} ref={el => { rowRefs.current[entry.id] = el; }} onClick={() => onSelect(entry)} onKeyDown={(event) => {
+                                    if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); onSelect(entry); }
+                                }} tabIndex={0} aria-label={`${formatDimensions(entry.label, 'cm', entry.orientation)}, ${money(entry.price)}, best for ${entry.bestFor}`} aria-selected={isSelected} className={`fw-row cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-fw-gold${isSelected ? ' is-active' : ''}`}>
+                                    <td className="py-[11px] pr-2.5 align-top text-sm border-b border-stone-200 md:whitespace-nowrap" style={{ fontVariantNumeric: 'tabular-nums' }}>{formatDimensions(entry.label, 'cm', entry.orientation)}</td>
+                                    <td className="py-[11px] pr-2.5 align-top text-sm border-b border-stone-200 md:whitespace-nowrap" style={{ fontVariantNumeric: 'tabular-nums' }}>{toInchesQuotes(entry.label, entry.orientation)}</td>
+                                    <td className="py-[11px] pr-2.5 align-top text-sm border-b border-stone-200 md:whitespace-nowrap" style={{ fontVariantNumeric: 'tabular-nums' }}>{money(entry.price)}</td>
+                                    <td className="py-[11px] align-top text-[12.5px] text-stone-500 border-b border-stone-200 md:whitespace-nowrap">{entry.bestFor}</td>
+                                </tr>;
+                            })}</tbody>
                         </table>
                         <div className="pt-4 mt-4 text-xs text-stone-500 border-t border-stone-200" style={{ lineHeight: 1.6 }}>
                             Every frame is built custom to fit. Moulding, matting, and glazing options are available in the steps below.

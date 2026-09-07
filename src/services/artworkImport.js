@@ -94,8 +94,7 @@ function loadGooglePicker() {
 function pickGoogleDriveFile(token) {
     return new Promise((resolve, reject) => {
         const pickerApi = window.google.picker;
-        // drive.file cannot read thumbnails for files the user has not selected yet.
-        const view = new pickerApi.DocsView(pickerApi.ViewId.DOCS_IMAGES).setMode(pickerApi.DocsViewMode.LIST);
+        const view = new pickerApi.DocsView(pickerApi.ViewId.DOCS_IMAGES).setMode(pickerApi.DocsViewMode.THUMBNAILS);
         new pickerApi.PickerBuilder()
             .addView(view)
             .setOAuthToken(token)

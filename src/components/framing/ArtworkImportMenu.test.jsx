@@ -2,7 +2,7 @@ import React from 'react';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import ArtworkImportMenu from './ArtworkImportMenu';
-import { importArtworkFromUrl } from '../../services/artworkImport';
+import { importArtworkFromCloud, importArtworkFromUrl } from '../../services/artworkImport';
 
 vi.mock('../../services/artworkImport', () => ({
     ARTWORK_IMPORT_SOURCES: {
@@ -50,5 +50,26 @@ describe('ArtworkImportMenu', () => {
 
         expect(await screen.findByRole('alert')).toHaveTextContent('supported image');
         expect(screen.getByRole('textbox', { name: 'Image URL' })).toBeInTheDocument();
+    });
+
+    it('closes the menu when the device picker is cancelled', () => {
+        const { container } = render(<ArtworkImportMenu isPlaceholder onFile={vi.fn()} />);
+
+        fireEvent.click(screen.getByRole('button', { name: 'Upload Image' }));
+        fireEvent.change(container.querySelector('input[type="file"]'), { target: { files: [] } });
+
+        expect(screen.queryByRole('menuitem', { name: 'Google Drive' })).not.toBeInTheDocument();
+    });
+
+    it('closes the menu when a cloud picker is cancelled', async () => {
+        importArtworkFromCloud.mockRejectedValue(new Error('No image was selected.'));
+        render(<ArtworkImportMenu isPlaceholder onFile={vi.fn()} />);
+
+        fireEvent.click(screen.getByRole('button', { name: 'Upload Image' }));
+        fireEvent.click(screen.getByRole('menuitem', { name: 'Google Drive' }));
+
+        await waitFor(() => {
+            expect(screen.queryByRole('menuitem', { name: 'Google Drive' })).not.toBeInTheDocument();
+        });
     });
 });
