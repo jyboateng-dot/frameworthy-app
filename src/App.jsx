@@ -44,6 +44,7 @@ import { db } from './services/firebase';
 import { trackPageView } from './services/analytics';
 import TesterGate from './components/gate/TesterGate';
 import NetworkStatusBanner from './components/NetworkStatusBanner';
+import CookieConsentBanner from './components/common/CookieConsentBanner';
 import ChatFloater from './components/chat/ChatFloater';
 import { visualizerFullScreenState } from './utils/visualizerFullScreenState';
 
@@ -188,6 +189,7 @@ const AppLayout = () => {
   return (
     <div className={`font-sans text-fw-text min-h-screen selection:bg-fw-gold selection:text-black bg-[#faf9f8]`}>
       <NetworkStatusBanner />
+      <CookieConsentBanner />
       {location.pathname !== '/login' && (
         <Header
           currentStep={getCurrentStep()}

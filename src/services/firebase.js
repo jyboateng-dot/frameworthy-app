@@ -5,6 +5,7 @@ import { getAuth, GoogleAuthProvider, OAuthProvider } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 import { getFunctions } from "firebase/functions";
 import { getAnalytics, isSupported as isAnalyticsSupported } from "firebase/analytics";
+import { hasAnalyticsConsent } from "./cookieConsent";
 
 // Your web app's Firebase configuration
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
@@ -53,16 +54,35 @@ export const functions = getFunctions(app, 'us-central1');
 
 // Analytics — gated on the measurement ID being present, the same way App
 // Check is gated on its site key above: with no ID set, this whole block is
-// a no-op and the app behaves exactly as it did before analytics existed.
-// See ANALYTICS.md for how to get a measurement ID and what gets tracked.
-// isSupported() is also checked because the Firebase Analytics SDK relies on
-// IndexedDB/cookies that aren't guaranteed available in every environment
-// this app runs in (a Capacitor native webview in particular) — skipping it
-// there avoids a thrown error rather than silently degrading.
+// inert and the app behaves exactly as it did before analytics existed. See
+// ANALYTICS.md for how to get a measurement ID and what gets tracked.
+//
+// Unlike App Check, this can't also be a plain module-level constant: it's
+// additionally gated on cookie consent (see cookieConsent.js /
+// CookieConsentBanner.jsx), which is a decision made interactively after
+// the page has already loaded, not something known at import time. Calling
+// getAnalyticsInstance() fresh on every trackPageView/trackEvent (rather
+// than reading a value captured once at startup) is what lets a visitor who
+// accepts partway through their visit start being tracked from that point
+// on, without needing a page reload — declining, or never deciding, keeps
+// this returning null and Analytics never initializes at all, so no
+// tracking cookie is ever set.
 const measurementId = import.meta.env.VITE_FIREBASE_MEASUREMENT_ID;
-export const analyticsReady = measurementId
-    ? isAnalyticsSupported().then((supported) => (supported ? getAnalytics(app) : null)).catch(() => null)
-    : Promise.resolve(null);
+let analyticsInitPromise;
+export const getAnalyticsInstance = () => {
+    if (!measurementId || !hasAnalyticsConsent()) return Promise.resolve(null);
+    if (!analyticsInitPromise) {
+        // isSupported() is checked because the Analytics SDK relies on
+        // IndexedDB/cookies that aren't guaranteed available in every
+        // environment this app runs in (a Capacitor native webview in
+        // particular) — skipping it there avoids a thrown error rather
+        // than silently degrading.
+        analyticsInitPromise = isAnalyticsSupported()
+            .then((supported) => (supported ? getAnalytics(app) : null))
+            .catch(() => null);
+    }
+    return analyticsInitPromise;
+};
 
 // Providers
 export const googleProvider = new GoogleAuthProvider();

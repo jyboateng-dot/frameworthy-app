@@ -16,6 +16,16 @@ tracked without it. `src/services/analytics.js` also exports `trackEvent` for
 anything else worth tracking later (e.g. "add_to_cart", "begin_checkout") —
 not wired up yet, so it's there when you want it.
 
+**Consent gate:** the moment a measurement ID is set, `CookieConsentBanner`
+(`src/components/common/CookieConsentBanner.jsx`) starts showing on a first
+visit that hasn't decided yet, and Analytics genuinely does not initialize —
+not even a background call — until the visitor accepts (see
+`src/services/cookieConsent.js`). Declining, or just never deciding, keeps
+`getAnalyticsInstance()` returning null forever, same as having no
+measurement ID at all. This is why the cookie-consent-banner and analytics
+checklist items were done together rather than separately — turning on
+tracking without also gating it on consent would have been the wrong order.
+
 ## Step 1 — Get a measurement ID
 
 1. Firebase Console → your project → **Project settings** (gear icon) → **Your
