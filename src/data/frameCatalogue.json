@@ -3256,7 +3256,7 @@
       "id": "frame-8446",
       "sku": "8446",
       "slug": "flat-black-wide-picture-frame",
-      "name": "Flat Black Wide",
+      "name": "Flat Black Deep",
       "sourceUrl": "https://frameworthy.com/flat-black-wide-picture-frame.html",
       "mouldingWidthIn": 1.125,
       "mouldingWidthSource": "supplier-archive",
@@ -3265,6 +3265,7 @@
       "thumbnail": "/frames/assets/flat-black-wide-picture-frame/8446-a.jpg",
       "textureSource": "assembled",
       "textureDerived": false,
+      "railTone": "black",
       "assets": {
         "corner": [
           "/frames/assets/flat-black-wide-picture-frame/8446-a.jpg",
@@ -3473,6 +3474,7 @@
       "thumbnail": "/frames/assets/flat-white-deep-picture-frame/10728_corner_a_1_1.jpg",
       "textureSource": "rail",
       "textureDerived": false,
+      "railTone": "light",
       "assets": {
         "corner": [
           "/frames/assets/flat-white-deep-picture-frame/10728_corner_a_1_1.jpg",
@@ -3571,6 +3573,13 @@
       "thumbnail": "/frames/assets/glossy-black-picture-frame/10779_b_1.jpg",
       "textureSource": "strip",
       "textureDerived": false,
+      "railTone": "black",
+      "railCrop": {
+        "left": 0,
+        "top": 0,
+        "width": 480,
+        "height": 102
+      },
       "assets": {
         "strip": [
           "/frames/assets/glossy-black-picture-frame/10779_1.jpg"

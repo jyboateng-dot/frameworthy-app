@@ -94,19 +94,26 @@ const PROFILE_RAMP = {
  */
 export function getRailShading(side, frame, rail) {
     const profile = getFrameRenderProfile(frame);
-    const ramp = PROFILE_RAMP[profile.profile] || PROFILE_RAMP.flat;
+    const isWhiteDeep = frame?.id === 'frame-10728';
+    const ramp = isWhiteDeep
+        ? 'rgba(255,255,255,0.02) 0%, rgba(0,0,0,0.14) 100%'
+        : PROFILE_RAMP[profile.profile] || PROFILE_RAMP.flat;
     const direction = SHADE_DIRECTION[side];
 
     const sheen =
         profile.finish === 'metallic'
             ? `, linear-gradient(${direction}, rgba(255,255,255,0.30) 0%, rgba(255,255,255,0) 26%, rgba(255,255,255,0.16) 54%, rgba(0,0,0,0.12) 100%)`
-            : profile.finish === 'gloss'
-              ? `, linear-gradient(${direction}, rgba(255,255,255,0.24) 0%, rgba(255,255,255,0) 34%)`
+              : profile.finish === 'gloss'
+              ? `, linear-gradient(${direction}, rgba(255,255,255,0) 0%, rgba(255,255,255,0.26) 18%, rgba(255,255,255,0.08) 30%, rgba(255,255,255,0) 52%)`
               : '';
 
     return {
         backgroundImage: `linear-gradient(${direction}, ${ramp})${sheen}`,
-        opacity: rail?.quality === 'scanned' ? 0.55 : 1,
-        mixBlendMode: profile.finish === 'matte' ? 'overlay' : 'soft-light',
+        opacity: isWhiteDeep ? 0.4 : rail?.quality === 'scanned' ? 0.55 : 1,
+        mixBlendMode: isWhiteDeep
+            ? 'multiply'
+            : profile.finish === 'matte'
+            ? 'overlay'
+            : profile.finish === 'gloss' ? 'screen' : 'soft-light',
     };
 }

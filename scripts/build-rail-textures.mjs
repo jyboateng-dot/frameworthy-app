@@ -453,6 +453,18 @@ if (onlyIds) {
 }
 
 for (const frame of framesToProcess) {
+    if (frame.railTextureOverride?.h && frame.railTextureOverride?.v) {
+        rails[frame.id] = {
+            ...(rails[frame.id] || {}),
+            h: frame.railTextureOverride.h,
+            v: frame.railTextureOverride.v,
+            sourceRole: 'override',
+            quality: 'scanned',
+        };
+        done += 1;
+        continue;
+    }
+
     // Try the frame's preferred source, then fall back through the
     // remaining ones — a scan can still fail detection (an unusually dark
     // moulding against a dark sweep), and a lower-fidelity strip beats no
@@ -466,8 +478,19 @@ for (const frame of framesToProcess) {
     for (const role of order) {
         for (const asset of frame.assets[role]) {
             try {
-                const pipeline = await EXTRACTORS[role](toDisk(asset));
+                let pipeline = frame.railCrop
+                    ? sharp(toDisk(asset)).removeAlpha().extract(frame.railCrop)
+                    : await EXTRACTORS[role](toDisk(asset));
                 if (!pipeline) continue;
+                if (frame.railTone === 'black') {
+                    // Keep black mouldings visibly black while retaining enough
+                    // tonal range for the bevel and gloss overlays in the UI.
+                    pipeline = pipeline.grayscale().linear(0.12, 0);
+                } else if (frame.railTone === 'light') {
+                    // Keep white mouldings white without clipping their bevel
+                    // into a light wall or the 3D viewer background.
+                    pipeline = pipeline.linear(0.95, 0).sharpen({ sigma: 1, m1: 0.4, m2: 1.2 });
+                }
                 built = pipeline;
                 usedRole = role;
                 break;

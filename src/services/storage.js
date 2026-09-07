@@ -62,7 +62,7 @@ export const getThumbnailUrl = (url, width = 400) => {
  * @returns {string} A print-ready JPEG URL, or the original URL if its host isn't recognized
  */
 export const getPrintQualityJpegUrl = (url, item = null) => {
-    if (item?.productionSpec?.version === 1 && item.productionSpec.printIsCropped) return url;
+    if (item?.productionSpec?.printIsCropped) return url;
     if (!url || typeof url !== 'string' || url.startsWith('blob:') || url.startsWith('data:')) {
         return url;
     }

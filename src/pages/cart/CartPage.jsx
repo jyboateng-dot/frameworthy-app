@@ -5,6 +5,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { MapPin, Heart, Trash2, ChevronRight, Minus, Plus, ShoppingBag } from 'lucide-react';
 import { generateItemDescription, formatDimensionWithOrientation } from '../../utils/itemFormatters';
+import { useUnit } from '../../context/UnitContext';
 
 import AuthModal from '../../components/AuthModal';
 import Price from '../../components/common/Price';
@@ -15,6 +16,7 @@ const CartPage = () => {
     const navigate = useNavigate();
     const { wishlistCount } = useWishlist();
     const { user } = useAuth();
+    const { unit } = useUnit();
     const [showAuthModal, setShowAuthModal] = React.useState(false);
 
     const selectedItems = cartItems.filter(item => item.isSelected);
@@ -118,7 +120,7 @@ const CartPage = () => {
                                         <h3 className="text-sm text-stone-800 leading-normal" title={fullDescription}>
                                             {fullDescription}
                                             <span className="inline-flex items-center text-xs text-stone-500 bg-stone-50 px-1.5 py-0.5 rounded border border-stone-200 ml-2 align-middle">
-                                                <span className="truncate max-w-[160px]">{formatDimensionWithOrientation(variantText, item.orientation)}</span>
+                                                <span className="truncate max-w-[160px]">{formatDimensionWithOrientation(variantText, item.orientation, unit)}</span>
                                             </span>
                                         </h3>
                                     </div>

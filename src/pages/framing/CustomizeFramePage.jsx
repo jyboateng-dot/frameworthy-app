@@ -885,7 +885,7 @@ const CustomizeFramePage = ({
     const handleMetArtSelect = (art) => {
         const filename = art.image.split('/').pop();
         const dims = WEB_MET_DIMS[filename] || '40 x 50 cm';
-        const frameObj = FRAME_STYLES.find(f => f.id === 'frame-10512') || FRAME_STYLES[0];
+        const frameObj = FRAME_STYLES.find(f => f.id === 'frame-8446') || FRAME_STYLES[0];
         const sizeObj = findSizeByDimension(dims) || FRAME_SIZES.find(s => s.id === '16x20') || FRAME_SIZES[0];
 
         applyInspirationSelection({

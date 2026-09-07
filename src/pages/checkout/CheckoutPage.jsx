@@ -9,6 +9,8 @@ import { createOrder, getUserDeliveryAddresses } from '../../services/db';
 import { functions } from '../../services/firebase';
 import { MapPin, CreditCard, Ticket, ShieldCheck, Loader, X, Smartphone, Copy, Check, Hammer, Truck } from 'lucide-react';
 import { generateItemDescription, formatDimensionWithOrientation } from '../../utils/itemFormatters';
+import { formatDimensions } from '../../data/constants';
+import { useUnit } from '../../context/UnitContext';
 import { calculateSubtotal, resolvePromoCode, calculatePromoDiscount, calculateFinalTotal } from '../../utils/pricing';
 import Price from '../../components/common/Price';
 import { getThumbnailUrl } from '../../services/storage';
@@ -21,11 +23,11 @@ const verifyPaystackPayment = httpsCallable(functions, 'verifyPaystackPayment');
 
 // Best-effort — a failed confirmation email shouldn't block checkout, since
 // the order is already paid and verified by this point.
-const sendOrderConfirmationEmail = ({ email, orderId, items, total, address, city, phone, promoCode, promoDiscount }) => {
+const sendOrderConfirmationEmail = ({ email, orderId, items, total, address, city, phone, promoCode, promoDiscount, unit }) => {
     if (!EMAILJS_SERVICE_ID || !EMAILJS_TEMPLATE_ID || !EMAILJS_PUBLIC_KEY) return;
 
     const orderItemsText = items
-        .map(item => `${item.quantity || 1}x ${generateItemDescription(item)} (${item.selectedSize?.label || 'Custom Size'}) — GHS ${item.totalPrice.toFixed(2)}`)
+        .map(item => `${item.quantity || 1}x ${generateItemDescription(item)} (${formatDimensions(item.isPreset && item.presetDims ? item.presetDims : item.selectedSize?.label || 'Custom Size', unit, item.orientation)}) — GHS ${item.totalPrice.toFixed(2)}`)
         .join('\n')
         + (promoCode ? `\n\nPromo applied: ${promoCode} (- GHS ${promoDiscount.toFixed(2)})` : '');
 
@@ -46,6 +48,7 @@ const CheckoutPage = () => {
     const navigate = useNavigate();
     const { cartItems, removeItems } = useCart();
     const { user } = useAuth();
+    const { unit } = useUnit();
     
     // Only checkout items that were selected in the cart
     const checkoutItems = cartItems.filter(item => item.isSelected);
@@ -373,7 +376,8 @@ const CheckoutPage = () => {
                                 city,
                                 phone: phoneNumber,
                                 promoCode: appliedPromo?.code || null,
-                                promoDiscount: appliedPromo ? promoDiscount : 0
+                                promoDiscount: appliedPromo ? promoDiscount : 0,
+                                unit
                             });
                             // Only the items just paid for — anything the
                             // customer deselected stays in the cart.
@@ -548,7 +552,7 @@ const CheckoutPage = () => {
                                         <h3 className="text-sm text-stone-800 leading-normal" title={fullDescription}>
                                             {fullDescription}
                                             <span className="inline-flex items-center text-xs text-stone-500 bg-stone-50 px-1.5 py-0.5 rounded border border-stone-200 ml-2 align-middle">
-                                                {formatDimensionWithOrientation(variantText, item.orientation)}
+                                                {formatDimensionWithOrientation(variantText, item.orientation, unit)}
                                             </span>
                                         </h3>
                                         <div className="mt-2 flex items-center justify-between">

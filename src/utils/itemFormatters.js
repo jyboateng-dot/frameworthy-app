@@ -1,4 +1,5 @@
 import { getPrintQualityJpegUrl } from '../services/storage';
+import { formatDimensions } from '../data/constants';
 
 // Shared human-readable labels — kept here so the cart/checkout description
 // string and the admin fulfillment view (OrderDetailModal) never drift out
@@ -73,10 +74,11 @@ export const generateItemDescription = (item) => {
 
 // Combines the dimension label with orientation on one line, matching the
 // app's existing "{dimension}, {other attribute}" inline formatting.
-export const formatDimensionWithOrientation = (dimensionText, orientation) => {
+export const formatDimensionWithOrientation = (dimensionText, orientation, unit) => {
     const orientationLabel = orientation ? orientation.charAt(0).toUpperCase() + orientation.slice(1) : '';
-    if (dimensionText && orientationLabel) return `${dimensionText}, ${orientationLabel}`;
-    return dimensionText || orientationLabel || '';
+    const displayDimension = unit && dimensionText ? formatDimensions(dimensionText, unit, orientation) : dimensionText;
+    if (displayDimension && orientationLabel) return `${displayDimension}, ${orientationLabel}`;
+    return displayDimension || orientationLabel || '';
 };
 
 // Generates a clean text block summarizing multiple orders for sharing via
@@ -127,11 +129,13 @@ export const formatOrdersForSharing = (orders) => {
                 : 'No Mat';
                 
             orderText += `Qty: ${item.quantity}                 Mat: ${matDesc}\n\n`;
-            if (item.productionSpec?.version === 1) {
+            if (item.productionSpec?.version === 1 || item.productionSpec?.version === 2) {
                 const spec = item.productionSpec;
-                orderText += `Print aperture: ${spec.apertureWidth.toFixed(3)} x ${spec.apertureHeight.toFixed(3)} in\n`;
-                orderText += `Mat edges (top/bottom/left/right): ${['top', 'bottom', 'left', 'right'].map(edge => spec[edge].toFixed(3)).join(' / ')} in\n`;
-                orderText += `Finished frame: ${spec.outerWidth.toFixed(3)} x ${spec.outerHeight.toFixed(3)} in\n`;
+                const unit = spec.units === 'cm' ? 'cm' : 'in';
+                const precision = unit === 'cm' ? 2 : 3;
+                orderText += `Print aperture: ${spec.apertureWidth.toFixed(precision)} x ${spec.apertureHeight.toFixed(precision)} ${unit}\n`;
+                orderText += `Mat edges (top/bottom/left/right): ${['top', 'bottom', 'left', 'right'].map(edge => spec[edge].toFixed(precision)).join(' / ')} ${unit}\n`;
+                orderText += `Finished frame: ${spec.outerWidth.toFixed(precision)} x ${spec.outerHeight.toFixed(precision)} ${unit}\n`;
             }
             
             const printUrl = getPrintQualityJpegUrl(item.image, item);

@@ -142,7 +142,7 @@ const AlbumArtPage = ({ setProductMode, setSelectedFrame, setSelectedSize, navig
         if (style === 'cover') {
             setSelectedProduct(null);
             setProductMode('frame');
-            const frameObj = FRAME_STYLES.find(f => f.id === 'frame-10512') || FRAME_STYLES[0];
+            const frameObj = FRAME_STYLES.find(f => f.id === 'frame-8446') || FRAME_STYLES[0];
             if (frameObj) setSelectedFrame(frameObj);
 
             const sizeObj = FRAME_SIZES.find(s => s.id === '12x12') || FRAME_SIZES[4];
@@ -169,7 +169,7 @@ const AlbumArtPage = ({ setProductMode, setSelectedFrame, setSelectedSize, navig
 
             setSelectedProduct(null);
             setProductMode('frame');
-            const frameObj = FRAME_STYLES.find(f => f.id === 'frame-10512') || FRAME_STYLES[0];
+            const frameObj = FRAME_STYLES.find(f => f.id === 'frame-8446') || FRAME_STYLES[0];
             if (frameObj) setSelectedFrame(frameObj);
 
             // Default to a large portrait size — the poster layout adapts to any

@@ -132,7 +132,7 @@ const WebImagesPage = ({ setProductMode, setSelectedFrame, setSelectedSize, navi
     }, [currentPage]);
 
     const handleGetThis = (product) => {
-        const defaultFrame = FRAME_STYLES.find(f => f.id === 'frame-10512') || FRAME_STYLES[0];
+        const defaultFrame = FRAME_STYLES.find(f => f.id === 'frame-8446') || FRAME_STYLES[0];
         const defaultSize = parseCustomSize(product.dims) || findSizeByDimension(product.dims) || FRAME_SIZES.find(s => s.id === '16x20') || FRAME_SIZES[0];
         
         setProductMode('frame');

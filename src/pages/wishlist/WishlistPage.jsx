@@ -12,7 +12,7 @@ const WishlistPage = () => {
 
     // Helper to generate a default cart item from an inspiration product
     const createCartItemFromProduct = (product) => {
-        const frameObj = FRAME_STYLES.find(f => f.id === product.frameStyleId) || FRAME_STYLES.find(f => f.id === 'frame-10512');
+        const frameObj = FRAME_STYLES.find(f => f.id === product.frameStyleId) || FRAME_STYLES.find(f => f.id === 'frame-8446');
         const rawSizeObj = parseCustomSize(product.dims) || findSizeByDimension(product.dims) || FRAME_SIZES.find(s => s.id === product.sizeId) || FRAME_SIZES[0];
         // This is a direct add-to-cart, skipping CustomizeFramePage (and its
         // sizeClampNotice banner) entirely — parseCustomSize does no bounds

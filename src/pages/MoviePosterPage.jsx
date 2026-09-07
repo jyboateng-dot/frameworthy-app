@@ -225,7 +225,7 @@ const MoviePosterPage = ({ setProductMode, setSelectedFrame, setSelectedSize, na
         setGeneratingStyle(style);
         setGenerateError(false);
         try {
-            const frameObj = FRAME_STYLES.find(f => f.id === 'frame-10512') || FRAME_STYLES[0];
+        const frameObj = FRAME_STYLES.find(f => f.id === 'frame-8446') || FRAME_STYLES[0];
 
             if (style === 'original') {
                 // Detect the poster's actual aspect ratio/resolution and pick

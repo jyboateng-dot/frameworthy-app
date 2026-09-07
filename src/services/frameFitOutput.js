@@ -1,6 +1,16 @@
 import { imageCrop } from '../utils/frameFit';
 import { uploadImageToCloud } from './storage';
 
+const IN_TO_CM = 2.54;
+const GEOMETRY_DIMENSIONS = [
+    'width', 'height', 'mat', 'rail', 'outerWidth', 'outerHeight',
+    'apertureWidth', 'apertureHeight',
+];
+
+const toCentimetres = (geometry) => Object.fromEntries(
+    GEOMETRY_DIMENSIONS.map((key) => [key, geometry[key] * IN_TO_CM])
+);
+
 export async function prepareFrameOutput(source, geometry, position, frameColor, matColor) {
     const image = new Image();
     image.crossOrigin = 'anonymous';
@@ -38,8 +48,21 @@ export async function prepareFrameOutput(source, geometry, position, frameColor,
     };
     const productionImage = await upload(print, 'frame-print.jpg', 'image/jpeg');
     const visualizerImage = await upload(thumb, 'frame-preview.png', 'image/png');
-    return { productionImage, visualizerImage, productionSpec: { version: 1, units: 'in', ...geometry,
-        position, crop, sourceWidth: image.naturalWidth, sourceHeight: image.naturalHeight,
-        top: geometry.mat, bottom: geometry.mat, left: geometry.mat, right: geometry.mat,
-        printWidthPx: print.width, printHeightPx: print.height, printIsCropped: true } };
+    const productionGeometry = toCentimetres(geometry);
+    return { productionImage, visualizerImage, productionSpec: {
+        version: 2,
+        units: 'cm',
+        ...productionGeometry,
+        position,
+        crop,
+        sourceWidth: image.naturalWidth,
+        sourceHeight: image.naturalHeight,
+        top: productionGeometry.mat,
+        bottom: productionGeometry.mat,
+        left: productionGeometry.mat,
+        right: productionGeometry.mat,
+        printWidthPx: print.width,
+        printHeightPx: print.height,
+        printIsCropped: true,
+    } };
 }

@@ -158,7 +158,14 @@ export async function loadRailTexture(frame, { includeNormal = true } = {}) {
             canvas.width = w;
             canvas.height = h;
             const ctx = canvas.getContext('2d');
+            if (frame?.id === 'frame-10728') {
+                // The white moulding's fine surface variation is easily clipped
+                // by the 3D viewer's white rail lighting; recover it here
+                // without changing the main 2D customizer texture.
+                ctx.filter = 'brightness(0.88) contrast(1.18)';
+            }
             ctx.drawImage(img, 0, 0, w, h);
+            ctx.filter = 'none';
 
             if (!includeNormal) {
                 return { bytes: await canvasToPngBytes(canvas), normalBytes: null, aspect };

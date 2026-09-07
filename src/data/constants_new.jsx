@@ -1682,7 +1682,7 @@ export const FRAME_STYLES = [
     },
     {
         id: 'frame-74492',
-        name: 'Flat Black Wide',
+        name: 'Flat Black Deep',
         category: 'Modern & Minimalist',
         baseColor: '#48464d',
         filename: 'imagemanipulator_default_swap_8446.jpg',
@@ -1690,7 +1690,7 @@ export const FRAME_STYLES = [
         widthCategory: 'standard',
         priceMod: 1.2,
         type: 'Picture Frame',
-        desc: 'Flat Black Wide.',
+        desc: 'Flat Black Deep.',
         previewImg: '',
         mouldingWidthInches: "1.0",
         rabbetDepthInches: "9/16-",

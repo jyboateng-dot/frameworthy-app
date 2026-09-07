@@ -271,7 +271,7 @@ const SearchPage = ({ setProductMode, setSelectedFrame, setSelectedSize, navigat
             return;
         }
 
-        const frameObj = FRAME_STYLES.find(f => f.id === 'frame-10512') || FRAME_STYLES[0];
+        const frameObj = FRAME_STYLES.find(f => f.id === 'frame-8446') || FRAME_STYLES[0];
         setProductMode('frame');
         if (frameObj) setSelectedFrame(frameObj);
 

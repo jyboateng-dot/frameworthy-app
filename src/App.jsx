@@ -88,7 +88,7 @@ const AppLayout = () => {
   // FRAMING STATE
   const [uploadedImage, setUploadedImage] = useState(DEFAULT_DEMO_IMAGE);
   const [productionImage, setProductionImage] = useState(null);
-  const [selectedFrame, setSelectedFrame] = useState(() => FRAME_STYLES.find(f => f.id === 'frame-10512') || FRAME_STYLES[0]); // Black Contemporary default
+  const [selectedFrame, setSelectedFrame] = useState(() => FRAME_STYLES.find(f => f.id === 'frame-8446') || FRAME_STYLES[0]); // Flat Black default
   const [selectedSize, setSelectedSize] = useState(FRAME_SIZES[3]); // Large Portrait default
   const [, setSelectedWall] = useState(WALL_TEXTURES[2]); // For visualizer persistence
 

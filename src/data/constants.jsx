@@ -2370,7 +2370,7 @@ export const FRAME_STYLES = [
     },
     {
         id: 'frame-8446',
-        name: 'Flat Black Wide',
+        name: 'Flat Black Deep',
         category: 'Modern & Minimalist',
         baseColor: '#48464d',
         filename: '8446-a.jpg',
@@ -2378,7 +2378,7 @@ export const FRAME_STYLES = [
         widthCategory: 'standard',
         priceMod: 1.2,
         type: 'Picture Frame',
-        desc: 'Flat Black Wide.',
+        desc: 'Flat Black Deep.',
         previewImg: '/frames/assets/flat-black-wide-picture-frame/8446-a.jpg',
         mouldingWidthIn: 1.125,
         rabbetDepthIn: 0.5625,

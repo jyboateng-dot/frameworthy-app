@@ -3,12 +3,14 @@ import { useAuth } from '../context/AuthContext';
 import { getUserOrders } from '../services/db';
 import { Package, Loader, ArrowLeft, Image as ImageIcon } from 'lucide-react';
 import { generateItemDescription, formatDimensionWithOrientation } from '../utils/itemFormatters';
+import { useUnit } from '../context/UnitContext';
 import { useNavigate } from 'react-router-dom';
 import Price from '../components/common/Price';
 import { getThumbnailUrl } from '../services/storage';
 
 const OrdersPage = () => {
     const { user, isLoading: authLoading } = useAuth();
+    const { unit } = useUnit();
     const navigate = useNavigate();
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -201,7 +203,7 @@ const OrdersPage = () => {
                                                         {item.quantity || 1}x {generateItemDescription(item)}
                                                         <span className="inline-flex items-center text-xs text-stone-500 bg-stone-50 px-1.5 py-0.5 rounded border border-stone-200 ml-2 align-middle">
                                                             <span className="truncate max-w-[160px]">
-                                                                {formatDimensionWithOrientation(item.size || item.selectedSize?.label || item.presetDims, item.orientation)}
+                                                                {formatDimensionWithOrientation(item.size || item.selectedSize?.label || item.presetDims, item.orientation, unit)}
                                                             </span>
                                                         </span>
                                                     </h3>

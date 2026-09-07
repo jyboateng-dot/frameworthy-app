@@ -129,6 +129,7 @@ export async function buildArModel({ frame, widthIn, heightIn, matReveal, matCol
         // the same unstarted piece already flagged for the 2D visualizer
         // in the ar-frame-asset-gap memory note.
         hasCorner: false,
+        showCornerSeams: frame?.id === 'frame-10728',
     });
 
     // Hanging hardware mounts to the back, so it needs the frame's
@@ -162,6 +163,7 @@ export async function buildArModel({ frame, widthIn, heightIn, matReveal, matCol
         // Plated steel fittings — bright enough to separate from the
         // dark backing board behind them, but not mirror-polished.
         hardware: { baseColor: [...hexToRgb('#9a9ea3'), 1], unlit: true, metallic: 0.9, roughness: 0.34 },
+        railSeam: { baseColor: [...hexToRgb('#9b9b9b'), 1], unlit: true, metallic: 0, roughness: 0.9 },
     };
 
     // Only ship materials the mesh actually references — a matless

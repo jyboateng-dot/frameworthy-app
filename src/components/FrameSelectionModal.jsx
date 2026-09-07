@@ -9,7 +9,7 @@ const MOST_POPULAR_IDS = [
     'frame-canvas',  // Gallery Wrapped Canvas
     'frame-10512',   // Black Contemporary (lead)
     'frame-10728',   // Flat White Deep
-    'frame-8446',    // Flat Black Wide
+    'frame-8446',    // Flat Black Deep
     'frame-10487',   // Natural Flat
     'frame-10729',   // Flat Brown Deep
     'frame-10592',   // Contemporary Walnut

@@ -54,6 +54,8 @@ const RELAY_KIND_BY_MODE = {
     [AR_MODE.NATIVE_SCENE_VIEWER]: 'glb',
 };
 
+const VIEWER_BACKGROUND = '#777777';
+
 // Both get the model in front of something that isn't this WebView — Safari
 // for Quick Look, the Scene Viewer app for Android — because the WebView is
 // precisely what can't hand off to AR.
@@ -222,6 +224,7 @@ export default function ArViewer({
     const placePiece = () => {
         if (sceneRef.current?.place()) setHasPlaced(true);
     };
+    const isViewerOnly = mode === AR_MODE.VIEWER_ONLY;
 
     // Until detection resolves, assume hand-off: it's the common case on the
     // devices that can actually do AR, and guessing the preview screen would
@@ -269,12 +272,15 @@ export default function ArViewer({
     }
 
     return (
-        <div className="fixed inset-0 z-[100] bg-stone-950/95 backdrop-blur-sm flex flex-col">
+        <div
+            className={`fixed inset-0 z-[100] ${isViewerOnly ? '' : 'bg-stone-950/95 backdrop-blur-sm'} flex flex-col`}
+            style={isViewerOnly ? { backgroundColor: VIEWER_BACKGROUND } : undefined}
+        >
             <div className="flex items-center justify-between px-4 pb-3 pt-[calc(0.75rem+env(safe-area-inset-top,0px))] shrink-0">
-                <div className="text-white">
-                    <p className="text-sm font-bold">See it on your wall</p>
+                <div className={isViewerOnly ? 'text-stone-950' : 'text-white'}>
+                    <p className="text-base font-bold">{isViewerOnly ? '3D Frame Preview' : 'See it on your wall'}</p>
                     {model && (
-                        <p className="text-[11px] text-stone-400">
+                        <p className={isViewerOnly ? 'text-xs font-semibold text-stone-800' : 'text-[11px] text-stone-400'}>
                             {(model.outerWidthM * 100).toFixed(0)} × {(model.outerHeightM * 100).toFixed(0)} cm
                             {!model.isMeasured && ' · approximate depth'}
                         </p>
@@ -283,7 +289,7 @@ export default function ArViewer({
                 <button
                     type="button"
                     onClick={onClose}
-                    className="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors"
+                    className={`w-9 h-9 rounded-full ${isViewerOnly ? 'bg-black/10 hover:bg-black/20 text-stone-900' : 'bg-white/10 hover:bg-white/20 text-white'} flex items-center justify-center transition-colors`}
                     aria-label="Close AR preview"
                 >
                     <X size={18} />
@@ -372,7 +378,7 @@ export default function ArViewer({
                             View on your wall
                         </button>
                     ) : (
-                        <p className="text-[11px] text-stone-400 text-center max-w-xs">
+                    <p className={isViewerOnly ? 'text-xs font-semibold text-stone-950 text-center max-w-xs' : 'text-[11px] text-stone-400 text-center max-w-xs'}>
                             {isMobileDevice()
                                 // Genuinely on a phone/tablet already — the
                                 // gap is the browser's AR support, not the
@@ -380,10 +386,10 @@ export default function ArViewer({
                                 // would be telling them to use the one in
                                 // their hand.
                                 ? "Drag to look around. This browser doesn't support wall placement yet — try Chrome, or open this page on one that does."
-                                : 'Drag to look around. Wall placement needs a phone or tablet — open this page on one to hang it in your room.'}
+                                : 'Click and hold to move the frame around.'}
                         </p>
                     )}
-                    <p className="text-[10px] text-stone-500 text-center max-w-sm">
+                    <p className={isViewerOnly ? 'text-[11px] font-medium text-stone-900 text-center max-w-sm' : 'text-[10px] text-stone-500 text-center max-w-sm'}>
                         Shown at true size. Moulding depth and finish follow our catalogue.
                     </p>
                 </div>

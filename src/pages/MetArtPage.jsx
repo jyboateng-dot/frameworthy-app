@@ -131,7 +131,7 @@ const MetArtPage = ({ setProductMode, setSelectedFrame, setSelectedSize, navigat
         const filename = product.image.split('/').pop();
         const dims = WEB_MET_DIMS[filename] || '40 x 50 cm';
         
-        const frameObj = FRAME_STYLES.find(f => f.id === 'frame-10512') || FRAME_STYLES[0];
+                const frameObj = FRAME_STYLES.find(f => f.id === 'frame-8446') || FRAME_STYLES[0];
         if (frameObj) setSelectedFrame(frameObj);
         
         const sizeObj = findSizeByDimension(dims) || FRAME_SIZES.find(s => s.id === '16x20') || FRAME_SIZES[0];

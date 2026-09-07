@@ -211,6 +211,7 @@ export function buildFrameMesh({
     matReveal = { topIn: 0, sideIn: 0, bottomIn: 0 },
     railTileAspect = 4,
     hasCorner = false,
+    showCornerSeams = false,
 }) {
     const matTopIn = Math.max(0, Number(matReveal?.topIn) || 0);
     const matSideIn = Math.max(0, Number(matReveal?.sideIn) || 0);
@@ -394,6 +395,34 @@ export function buildFrameMesh({
     const artHeightM = artworkHeightIn * IN_TO_M;
 
     const parts = [railPart, cornerPart];
+
+    if (showCornerSeams) {
+        const seamPart = new MeshPart('railSeam');
+        const seamWidthM = Math.min(0.0014, railWidthM * 0.025);
+        const corners = [[-1, -1], [1, -1], [1, 1], [-1, 1]];
+
+        for (const [sx, sy] of corners) {
+            const outer = [sx * outerHalfW, sy * outerHalfH];
+            const inner = [sx * (outerHalfW - railWidthM), sy * (outerHalfH - railWidthM)];
+            const dx = inner[0] - outer[0];
+            const dy = inner[1] - outer[1];
+            const length = Math.hypot(dx, dy) || 1;
+            const px = (-dy / length) * (seamWidthM / 2);
+            const py = (dx / length) * (seamWidthM / 2);
+            const z = depthM * 1.002;
+
+            seamPart.addQuad(
+                [outer[0] + px, outer[1] + py, z],
+                [outer[0] - px, outer[1] - py, z],
+                [inner[0] - px, inner[1] - py, z],
+                [inner[0] + px, inner[1] + py, z],
+                [0, 0], [1, 0], [1, 1], [0, 1],
+                [0, 0, 1]
+            );
+        }
+
+        parts.push(seamPart);
+    }
 
     let artZ = glazingZ;
 
