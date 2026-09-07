@@ -62,13 +62,15 @@ const ProductCard = ({ product, onGetThis }) => {
 };
 
 const InspirationPage = ({ setProductMode, setSelectedFrame, setSelectedSize, navigate, isModal = false }) => {
-    // Shelved categories — not in the tab row below (see renderTabs) — but a
-    // session that had one active before the shelving shouldn't land on an
-    // unreachable tab with no pill to select it back out of. Framed Prints
-    // ('inspiration') was shelved first; Original/Prestige Paintings, Canvas
-    // Art, and Glossy Art ('originals'/'prestige'/'canvas'/'glossy') joined
-    // it 2026-09-03.
-    const SHELVED_SECTIONS = ['inspiration', 'originals', 'prestige', 'canvas', 'glossy'];
+    // Original/Prestige Paintings, Canvas Art, and Glossy Art were briefly
+    // shelved (not in the tab row) between 2026-09-03 and 2026-09-07, then
+    // restored. Framed Prints ('inspiration') went back out on 2026-09-07 —
+    // its content block, data, and tab entry are all still in place (see
+    // renderTabs) so it's a one-line re-add whenever it comes back. A
+    // session that had 'inspiration' active before this shouldn't land on
+    // an unreachable tab with no pill to select it back out of, hence the
+    // guard below.
+    const SHELVED_SECTIONS = ['inspiration'];
     const [currentSection, setCurrentSection] = useState(() => {
         const stored = sessionStorage.getItem('fw_insp_section');
         return stored && !SHELVED_SECTIONS.includes(stored) ? stored : 'museum';
@@ -192,17 +194,19 @@ const InspirationPage = ({ setProductMode, setSelectedFrame, setSelectedSize, na
     function renderTabs() {
         const sections = [
             { id: 'search', label: 'Search' },
-            { id: 'museum', label: 'Artists & Masterpieces' },
-            { id: 'met', label: 'Met Museum Collection' },
+            { id: 'originals', label: 'Original Paintings' },
+            { id: 'prestige', label: 'Prestige Paintings' },
             { id: 'albums', label: 'Album Artwork' },
             { id: 'movies', label: 'Movie Posters' },
+            { id: 'museum', label: 'Artists & Masterpieces' },
+            // 'inspiration' (Framed Prints) is shelved again — see
+            // SHELVED_SECTIONS above. Content block, data, and its tab
+            // entry's shape are left just below this comment so it's a
+            // one-line re-add, same as the rest of this file's restore path.
+            { id: 'canvas', label: 'Canvas Art' },
+            { id: 'glossy', label: 'Glossy Art' },
+            { id: 'met', label: 'Met Museum Collection' },
             { id: 'web', label: 'Web Images' },
-            // Shelved — intentionally omitted from the tab row: 'inspiration'
-            // (Framed Prints), 'originals' (Original Paintings), 'prestige'
-            // (Prestige Paintings), 'canvas' (Canvas Art), 'glossy' (Glossy
-            // Art). Each one's content block, data, and the SHELVED_SECTIONS
-            // fallback guard above are left in place so any of them can be
-            // restored by re-adding its entry here.
         ];
         return (
             <>
