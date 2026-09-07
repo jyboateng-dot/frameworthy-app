@@ -201,8 +201,14 @@ const CheckoutPage = () => {
             setError('Please enter a valid email address.');
             return;
         }
-        if (!phoneNumber) {
-            setError('Please enter your phone number.');
+        // Loose on purpose — real numbers show up as "024 000 0000",
+        // "+233 24 000 0000", or "233240000000" depending on how someone
+        // types it. Checking digit count rather than an exact format
+        // catches the "abc"/"12"/empty cases without rejecting a real
+        // number just for its punctuation or an optional country code.
+        const phoneDigits = phoneNumber.replace(/\D/g, '');
+        if (phoneDigits.length < 9 || phoneDigits.length > 13) {
+            setError('Please enter a valid phone number.');
             return;
         }
         if (!city || !deliveryAddress) {
