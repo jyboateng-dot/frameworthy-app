@@ -489,7 +489,7 @@ const MoviePosterPage = ({ setProductMode, setSelectedFrame, setSelectedSize, na
                             >
                                 <div className="w-[60%] mx-auto aspect-[2/3] bg-stone-100 p-2 rounded-lg flex items-center justify-center relative">
                                     <div className="w-full h-full bg-white shadow-sm border border-stone-200 overflow-hidden">
-                                        <img src={selectedProduct.image} alt="poster" className="w-full h-full object-cover" />
+                                        <img src={selectedProduct.image} alt={selectedProduct.title} className="w-full h-full object-cover" />
                                     </div>
                                     {generatingStyle === 'original' && (
                                         <div className="absolute inset-0 bg-white/80 backdrop-blur-sm flex flex-col items-center justify-center gap-2 rounded-lg z-10">
@@ -511,7 +511,7 @@ const MoviePosterPage = ({ setProductMode, setSelectedFrame, setSelectedSize, na
                                 className="group flex flex-col items-center gap-4 p-4 rounded-xl border border-stone-200 hover:border-stone-900 transition-all text-center disabled:opacity-50"
                             >
                                 <div className="w-[60%] mx-auto aspect-[2/3] bg-stone-900 p-2 rounded-lg flex flex-col gap-1.5 relative">
-                                    <img src={selectedProduct.image} alt="poster" className="w-full h-[70%] object-cover bg-stone-800" />
+                                    <img src={selectedProduct.image} alt={selectedProduct.title} className="w-full h-[70%] object-cover bg-stone-800" />
                                     <div className="flex-1 flex flex-col items-center justify-center gap-1 px-1">
                                         <div className="w-3/4 h-1.5 bg-stone-200 rounded-full" />
                                         <div className="w-1/2 h-1 bg-stone-500 rounded-full mt-0.5" />

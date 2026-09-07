@@ -425,7 +425,7 @@ const AlbumArtPage = ({ setProductMode, setSelectedFrame, setSelectedSize, navig
                             >
                                 <div className="w-[85%] mx-auto aspect-square bg-stone-100 p-4 rounded-lg flex items-center justify-center">
                                     <div className="w-full aspect-square bg-white shadow-sm border border-stone-200 flex items-center justify-center overflow-hidden">
-                                        <img src={selectedProduct.image} alt="cover" className="w-full h-full object-cover" />
+                                        <img src={selectedProduct.image} alt={selectedProduct.title} className="w-full h-full object-cover" />
                                     </div>
                                 </div>
                                 <div>
@@ -442,7 +442,7 @@ const AlbumArtPage = ({ setProductMode, setSelectedFrame, setSelectedSize, navig
                             >
                                 <div className="w-[60%] mx-auto aspect-[2/3] bg-stone-100 p-4 rounded-lg flex items-center justify-center relative">
                                     <div className="w-full aspect-[2/3] bg-white shadow-sm border border-stone-200 flex flex-col p-2 gap-2">
-                                        <img src={selectedProduct.image} alt="cover" className="w-full aspect-square object-cover bg-stone-200" />
+                                        <img src={selectedProduct.image} alt={selectedProduct.title} className="w-full aspect-square object-cover bg-stone-200" />
                                         <div className="flex gap-2 h-full">
                                             <div className="w-1/2 h-full flex flex-col gap-0.5">
                                                 {Array.from({ length: 8 }).map((_, i) => <div key={i} className="w-full h-1 bg-stone-200 rounded-full" />)}
