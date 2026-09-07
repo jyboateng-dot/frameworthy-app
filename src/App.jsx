@@ -41,6 +41,7 @@ import { App as CapacitorApp } from '@capacitor/app';
 import { StatusBar, Style } from '@capacitor/status-bar';
 import { enableNetwork } from 'firebase/firestore';
 import { db } from './services/firebase';
+import { trackPageView } from './services/analytics';
 import TesterGate from './components/gate/TesterGate';
 import NetworkStatusBanner from './components/NetworkStatusBanner';
 import ChatFloater from './components/chat/ChatFloater';
@@ -70,6 +71,14 @@ const AppLayout = () => {
     if (location.pathname === '/') {
       window.scrollTo(0, 0);
     }
+  }, [location.pathname]);
+
+  // Analytics only auto-tracks a page_view on its own initial script load —
+  // it has no way to know this is an SPA that swaps content without a real
+  // navigation, so every route change is reported by hand here. A safe
+  // no-op wherever analytics isn't configured (see services/firebase.js).
+  React.useEffect(() => {
+    trackPageView(location.pathname, document.title);
   }, [location.pathname]);
 
   // --- GLOBAL STATE LIFTED UP (For Checkout/Persistance across steps) ---

@@ -4,6 +4,7 @@ import { initializeAppCheck, ReCaptchaV3Provider } from "firebase/app-check";
 import { getAuth, GoogleAuthProvider, OAuthProvider } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 import { getFunctions } from "firebase/functions";
+import { getAnalytics, isSupported as isAnalyticsSupported } from "firebase/analytics";
 
 // Your web app's Firebase configuration
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
@@ -13,7 +14,8 @@ const firebaseConfig = {
     projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
     storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
     messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-    appId: import.meta.env.VITE_FIREBASE_APP_ID
+    appId: import.meta.env.VITE_FIREBASE_APP_ID,
+    measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
 };
 
 // Initialize Firebase
@@ -48,6 +50,19 @@ export const functions = getFunctions(app, 'us-central1');
 // Image storage is handled by Cloudinary (see src/services/storage.js), not
 // Firebase Storage — this avoids requiring the Blaze billing plan, which
 // Firebase now mandates for Cloud Storage on new projects.
+
+// Analytics — gated on the measurement ID being present, the same way App
+// Check is gated on its site key above: with no ID set, this whole block is
+// a no-op and the app behaves exactly as it did before analytics existed.
+// See ANALYTICS.md for how to get a measurement ID and what gets tracked.
+// isSupported() is also checked because the Firebase Analytics SDK relies on
+// IndexedDB/cookies that aren't guaranteed available in every environment
+// this app runs in (a Capacitor native webview in particular) — skipping it
+// there avoids a thrown error rather than silently degrading.
+const measurementId = import.meta.env.VITE_FIREBASE_MEASUREMENT_ID;
+export const analyticsReady = measurementId
+    ? isAnalyticsSupported().then((supported) => (supported ? getAnalytics(app) : null)).catch(() => null)
+    : Promise.resolve(null);
 
 // Providers
 export const googleProvider = new GoogleAuthProvider();
