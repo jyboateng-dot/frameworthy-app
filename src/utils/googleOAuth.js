@@ -31,6 +31,10 @@ function loadGis() {
     return gisLoadPromise;
 }
 
+export function preloadGoogleOAuth() {
+    return loadGis();
+}
+
 const tokenCache = new Map();
 
 export async function getGoogleAccessToken(clientId, scope) {

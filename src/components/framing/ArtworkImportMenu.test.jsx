@@ -12,6 +12,7 @@ vi.mock('../../services/artworkImport', () => ({
     importArtworkFromCloud: vi.fn(),
     importArtworkFromDevice: vi.fn(),
     importArtworkFromUrl: vi.fn(),
+    preloadArtworkCloudPickers: vi.fn().mockResolvedValue([]),
 }));
 
 describe('ArtworkImportMenu', () => {

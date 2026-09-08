@@ -1,4 +1,5 @@
 import { getGoogleDriveAccessToken } from '../utils/googleDriveAuth';
+import { preloadGoogleOAuth } from '../utils/googleOAuth';
 
 const MAX_ARTWORK_BYTES = 20 * 1024 * 1024;
 const URL_IMPORT_ENDPOINT = '/api/artwork/import-url';
@@ -137,6 +138,15 @@ function loadDropbox() {
         });
     }
     return dropboxPromise;
+}
+
+export function preloadArtworkCloudPickers() {
+    const loaders = [];
+    if (ARTWORK_IMPORT_SOURCES.drive.available) {
+        loaders.push(preloadGoogleOAuth(), loadGooglePicker());
+    }
+    if (ARTWORK_IMPORT_SOURCES.dropbox.available) loaders.push(loadDropbox());
+    return Promise.allSettled(loaders);
 }
 
 async function importFromDropbox() {

@@ -1,10 +1,12 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { ArrowLeft, ArrowRight, Cloud, HardDrive, ImageUp, Link2, Loader2 } from 'lucide-react';
 import {
     ARTWORK_IMPORT_SOURCES,
     importArtworkFromCloud,
     importArtworkFromDevice,
     importArtworkFromUrl,
+    preloadArtworkCloudPickers,
 } from '../../services/artworkImport';
 
 const CLOUD_ICONS = { drive: HardDrive, dropbox: Cloud };
@@ -16,7 +18,9 @@ export default function ArtworkImportMenu({ isPlaceholder, isUploading, onFile, 
     const [pendingSource, setPendingSource] = useState('');
     const [error, setError] = useState('');
     const rootRef = useRef(null);
+    const panelRef = useRef(null);
     const urlInputRef = useRef(null);
+    const [isMobileMenu, setIsMobileMenu] = useState(false);
     const busy = Boolean(isUploading || disabled || pendingSource);
 
     const reset = useCallback(() => {
@@ -32,9 +36,22 @@ export default function ArtworkImportMenu({ isPlaceholder, isUploading, onFile, 
     }, [reset]);
 
     useEffect(() => {
+        if (typeof window.matchMedia !== 'function') return undefined;
+        const media = window.matchMedia('(max-width: 639px)');
+        const update = () => setIsMobileMenu(media.matches);
+        update();
+        media.addEventListener?.('change', update);
+        return () => media.removeEventListener?.('change', update);
+    }, []);
+
+    useEffect(() => {
         if (!isOpen) return undefined;
         const handlePointerDown = (event) => {
-            if (rootRef.current && !rootRef.current.contains(event.target)) close();
+            if (
+                rootRef.current
+                && !rootRef.current.contains(event.target)
+                && !panelRef.current?.contains(event.target)
+            ) close();
         };
         const handleKeyDown = (event) => {
             if (event.key === 'Escape') close();
@@ -46,6 +63,10 @@ export default function ArtworkImportMenu({ isPlaceholder, isUploading, onFile, 
             document.removeEventListener('keydown', handleKeyDown);
         };
     }, [close, isOpen]);
+
+    useEffect(() => {
+        if (isOpen) preloadArtworkCloudPickers();
+    }, [isOpen]);
 
     useEffect(() => {
         if (view === 'url') requestAnimationFrame(() => urlInputRef.current?.focus());
@@ -103,6 +124,79 @@ export default function ArtworkImportMenu({ isPlaceholder, isUploading, onFile, 
         isPlaceholder ? 'border-stone-300 hover:border-stone-400' : 'border-stone-950 bg-stone-50/50'
     } rounded-xl p-3 flex flex-col items-center justify-center cursor-pointer transition-colors h-[72px] text-center disabled:cursor-default disabled:opacity-100`;
 
+    const menuPanel = (
+        <div
+            ref={panelRef}
+            className={isMobileMenu
+                ? 'fixed z-[301] inset-x-3 bottom-[max(0.75rem,env(safe-area-inset-bottom,0px))] bg-white border border-stone-200 rounded-lg shadow-2xl overflow-hidden'
+                : 'absolute z-20 top-full left-0 mt-1.5 w-64 bg-white border border-stone-200 rounded-lg shadow-lg overflow-hidden'}
+        >
+            {isMobileMenu && (
+                <div className="flex items-center justify-between border-b border-stone-100 px-3 py-2.5">
+                    <span className="text-xs font-bold text-stone-800">Choose image source</span>
+                    <button type="button" onClick={close} className="text-xs font-semibold text-stone-500">Close</button>
+                </div>
+            )}
+            {view === 'sources' ? (
+                <div role="menu" className="py-1">
+                    <FileSourceRow onChange={handleDeviceFile} />
+                    {Object.entries(ARTWORK_IMPORT_SOURCES).map(([key, source]) => {
+                        if (!source.available) return null;
+                        const Icon = CLOUD_ICONS[key];
+                        return (
+                            <SourceRow
+                                key={key}
+                                icon={Icon}
+                                label={source.label}
+                                loading={pendingSource === key}
+                                disabled={Boolean(pendingSource)}
+                                onClick={() => handleCloudImport(key)}
+                            />
+                        );
+                    })}
+                    <SourceRow icon={Link2} label="Paste image link" onClick={() => { setView('url'); setError(''); }} />
+                    {error && <p role="alert" className="px-3 py-2 text-[11px] text-red-600 border-t border-stone-100">{error}</p>}
+                </div>
+            ) : (
+                <form onSubmit={handleUrlImport} className="p-2.5">
+                    <div className="flex items-center gap-1.5 mb-2">
+                        <button
+                            type="button"
+                            onClick={() => { setView('sources'); setError(''); }}
+                            className="w-6 h-6 flex items-center justify-center text-stone-400 hover:text-stone-700"
+                            aria-label="Back to image sources"
+                        >
+                            <ArrowLeft size={14} />
+                        </button>
+                        <span className="text-[11px] font-bold uppercase tracking-wider text-stone-600">Paste image link</span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                        <input
+                            ref={urlInputRef}
+                            type="url"
+                            inputMode="url"
+                            value={url}
+                            onChange={(event) => setUrl(event.target.value)}
+                            placeholder="https://example.com/image.jpg"
+                            disabled={pendingSource === 'url'}
+                            aria-label="Image URL"
+                            className="flex-1 min-w-0 border border-stone-300 rounded-lg px-2.5 py-1.5 text-base sm:text-xs focus:outline-none focus:border-stone-500 disabled:opacity-60"
+                        />
+                        <button
+                            type="submit"
+                            disabled={pendingSource === 'url' || !url.trim()}
+                            className="shrink-0 w-9 h-9 sm:w-7 sm:h-7 flex items-center justify-center rounded-lg bg-stone-900 text-white disabled:opacity-40 hover:bg-stone-800 transition-colors"
+                            aria-label="Import image from link"
+                        >
+                            {pendingSource === 'url' ? <Loader2 size={13} className="animate-spin" /> : <ArrowRight size={13} />}
+                        </button>
+                    </div>
+                    {error && <p role="alert" className="mt-1.5 text-[11px] text-red-600">{error}</p>}
+                </form>
+            )}
+        </div>
+    );
+
     return (
         <div ref={rootRef} className="relative">
             <button
@@ -131,67 +225,9 @@ export default function ArtworkImportMenu({ isPlaceholder, isUploading, onFile, 
                 )}
             </button>
 
-            {isOpen && (
-                <div className="absolute z-20 top-full left-0 mt-1.5 w-64 bg-white border border-stone-200 rounded-lg shadow-lg overflow-hidden">
-                    {view === 'sources' ? (
-                        <div role="menu" className="py-1">
-                            <FileSourceRow onChange={handleDeviceFile} />
-                            {Object.entries(ARTWORK_IMPORT_SOURCES).map(([key, source]) => {
-                                if (!source.available) return null;
-                                const Icon = CLOUD_ICONS[key];
-                                return (
-                                    <SourceRow
-                                        key={key}
-                                        icon={Icon}
-                                        label={source.label}
-                                        loading={pendingSource === key}
-                                        disabled={Boolean(pendingSource)}
-                                        onClick={() => handleCloudImport(key)}
-                                    />
-                                );
-                            })}
-                            <SourceRow icon={Link2} label="Paste image link" onClick={() => { setView('url'); setError(''); }} />
-                            {error && <p role="alert" className="px-3 py-2 text-[11px] text-red-600 border-t border-stone-100">{error}</p>}
-                        </div>
-                    ) : (
-                        <form onSubmit={handleUrlImport} className="p-2.5">
-                            <div className="flex items-center gap-1.5 mb-2">
-                                <button
-                                    type="button"
-                                    onClick={() => { setView('sources'); setError(''); }}
-                                    className="w-6 h-6 flex items-center justify-center text-stone-400 hover:text-stone-700"
-                                    aria-label="Back to image sources"
-                                >
-                                    <ArrowLeft size={14} />
-                                </button>
-                                <span className="text-[11px] font-bold uppercase tracking-wider text-stone-600">Paste image link</span>
-                            </div>
-                            <div className="flex items-center gap-1.5">
-                                <input
-                                    ref={urlInputRef}
-                                    type="url"
-                                    inputMode="url"
-                                    value={url}
-                                    onChange={(event) => setUrl(event.target.value)}
-                                    placeholder="https://example.com/image.jpg"
-                                    disabled={pendingSource === 'url'}
-                                    aria-label="Image URL"
-                                    className="flex-1 min-w-0 border border-stone-300 rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:border-stone-500 disabled:opacity-60"
-                                />
-                                <button
-                                    type="submit"
-                                    disabled={pendingSource === 'url' || !url.trim()}
-                                    className="shrink-0 w-7 h-7 flex items-center justify-center rounded-lg bg-stone-900 text-white disabled:opacity-40 hover:bg-stone-800 transition-colors"
-                                    aria-label="Import image from link"
-                                >
-                                    {pendingSource === 'url' ? <Loader2 size={13} className="animate-spin" /> : <ArrowRight size={13} />}
-                                </button>
-                            </div>
-                            {error && <p role="alert" className="mt-1.5 text-[11px] text-red-600">{error}</p>}
-                        </form>
-                    )}
-                </div>
-            )}
+            {isOpen && (isMobileMenu
+                ? createPortal(<><button type="button" className="fixed inset-0 z-[300] bg-black/20" onClick={close} aria-label="Close image sources" />{menuPanel}</>, document.body)
+                : menuPanel)}
         </div>
     );
 }
