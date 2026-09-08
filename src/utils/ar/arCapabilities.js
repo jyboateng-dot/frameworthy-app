@@ -95,6 +95,95 @@ export function isMobileDevice() {
     return isIosDevice() || isAndroidDevice();
 }
 
+/**
+ * Mobile AR viewers can return control with the browser's visual viewport
+ * still carrying the scale used by the native camera surface. Keep this
+ * recovery independent of the React modal because native hand-off unmounts
+ * that modal while AR is open.
+ *
+ * The returned callback also supports in-page WebXR, whose session-end event
+ * gives us an exact point at which to restore the viewport. The temporary
+ * maximum-scale value lasts only two animation frames, so normal pinch zoom
+ * remains available once the page has settled.
+ */
+export function armMobileViewportRecovery() {
+    if (!isMobileDevice() || typeof window === 'undefined' || typeof document === 'undefined') {
+        return () => {};
+    }
+
+    const scrollX = window.scrollX;
+    const scrollY = window.scrollY;
+    const viewport = document.querySelector('meta[name="viewport"]');
+    const originalViewport = viewport?.getAttribute('content') || '';
+    let leftPage = false;
+    let restored = false;
+    let restoreTimer = null;
+
+    if (document.activeElement instanceof HTMLElement) {
+        document.activeElement.blur();
+    }
+
+    const cleanup = () => {
+        window.removeEventListener('blur', markAway);
+        window.removeEventListener('focus', handleReturn);
+        window.removeEventListener('pagehide', markAway);
+        window.removeEventListener('pageshow', handleReturn);
+        document.removeEventListener('visibilitychange', handleVisibility);
+        window.clearTimeout(restoreTimer);
+    };
+
+    const restore = () => {
+        if (restored) return;
+        restored = true;
+        cleanup();
+
+        window.setTimeout(() => {
+            if (document.activeElement instanceof HTMLElement) {
+                document.activeElement.blur();
+            }
+
+            if (viewport) {
+                const withoutMaximum = originalViewport
+                    .split(',')
+                    .map((part) => part.trim())
+                    .filter((part) => !part.startsWith('maximum-scale='))
+                    .join(', ');
+                viewport.setAttribute('content', `${withoutMaximum}, maximum-scale=1`);
+            }
+
+            window.requestAnimationFrame(() => {
+                window.scrollTo(scrollX, scrollY);
+                window.requestAnimationFrame(() => {
+                    if (viewport) viewport.setAttribute('content', originalViewport);
+                    window.scrollTo(scrollX, scrollY);
+                });
+            });
+        }, 80);
+    };
+
+    function markAway() {
+        leftPage = true;
+    }
+
+    function handleReturn() {
+        if (leftPage) restore();
+    }
+
+    function handleVisibility() {
+        if (document.visibilityState === 'hidden') markAway();
+        if (document.visibilityState === 'visible') handleReturn();
+    }
+
+    window.addEventListener('blur', markAway);
+    window.addEventListener('focus', handleReturn);
+    window.addEventListener('pagehide', markAway);
+    window.addEventListener('pageshow', handleReturn);
+    document.addEventListener('visibilitychange', handleVisibility);
+    restoreTimer = window.setTimeout(cleanup, 30 * 60 * 1000);
+
+    return restore;
+}
+
 async function supportsWebXrAr() {
     if (typeof navigator === 'undefined' || !navigator.xr?.isSessionSupported) return false;
     try {

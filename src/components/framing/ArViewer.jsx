@@ -7,6 +7,7 @@ import {
     openQuickLook,
     isMobileDevice,
     createAndroidSceneViewerIntent,
+    armMobileViewportRecovery,
 } from '../../utils/ar/arCapabilities';
 import { relayArModel } from '../../utils/ar/arModelRelay';
 import { openQuickLookViaSafari } from '../../utils/ar/nativeQuickLook';
@@ -95,6 +96,7 @@ export default function ArViewer({
     const canvasRef = useRef(null);
     const overlayRef = useRef(null);
     const sceneRef = useRef(null);
+    const restoreViewportRef = useRef(null);
 
     // Read inside the effect without being a dependency of it — the parent
     // rebuilds this closure every render, so depending on it would restart
@@ -114,6 +116,7 @@ export default function ArViewer({
 
         let cancelled = false;
         let scene = null;
+        let nativeHandoffStarted = false;
         setStatus('loading');
         setInSession(false);
         setHasPlaced(false);
@@ -130,6 +133,10 @@ export default function ArViewer({
                 if (cancelled) return;
                 setMode(detected);
 
+                if (detected !== AR_MODE.VIEWER_ONLY) {
+                    restoreViewportRef.current = armMobileViewportRecovery();
+                }
+
                 const built = await buildArModel({
                     frame,
                     widthIn,
@@ -143,6 +150,7 @@ export default function ArViewer({
                 setModel(built);
 
                 if (HANDOFF_MODES.has(detected)) {
+                    nativeHandoffStarted = true;
                     const relayKind = RELAY_KIND_BY_MODE[detected];
                     if (relayKind) {
                         const relaySrc = relayKind === 'usdz' ? built.usdzUrl : built.glbUrl;
@@ -172,6 +180,8 @@ export default function ArViewer({
                 scene = new ArScene(canvasRef.current);
                 sceneRef.current = scene;
                 scene.onSessionEnd = () => {
+                    restoreViewportRef.current?.();
+                    restoreViewportRef.current = null;
                     setInSession(false);
                     setHasPlaced(false);
                     scene.startPreview();
@@ -193,6 +203,8 @@ export default function ArViewer({
                 }
             } catch (error) {
                 if (!cancelled) {
+                    restoreViewportRef.current?.();
+                    restoreViewportRef.current = null;
                     console.warn('AR failed:', error);
                     setStatus('error');
                 }
@@ -203,6 +215,10 @@ export default function ArViewer({
             cancelled = true;
             scene?.dispose();
             sceneRef.current = null;
+            if (!nativeHandoffStarted) {
+                restoreViewportRef.current?.();
+                restoreViewportRef.current = null;
+            }
         };
     // matReveal's three numbers, not the object itself — the parent
     // recomputes a fresh matReveal object every render, so depending on
