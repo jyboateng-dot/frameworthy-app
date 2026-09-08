@@ -31,11 +31,58 @@ function loadGis() {
     return gisLoadPromise;
 }
 
-export function preloadGoogleOAuth() {
-    return loadGis();
+const tokenCache = new Map();
+const tokenClientCache = new Map();
+
+function tokenClientKey(clientId, scope) {
+    return `${clientId}::${scope}`;
 }
 
-const tokenCache = new Map();
+function createTokenClient(clientId, scope) {
+    const key = tokenClientKey(clientId, scope);
+    const existing = tokenClientCache.get(key);
+    if (existing) return existing;
+
+    const entry = { client: null, pending: null };
+    entry.client = window.google.accounts.oauth2.initTokenClient({
+        client_id: clientId,
+        scope,
+        callback: (response) => {
+            const pending = entry.pending;
+            entry.pending = null;
+            if (!pending) return;
+            if (response.error) {
+                pending.reject(new Error(response.error_description || 'Google didn’t grant access.'));
+                return;
+            }
+            tokenCache.set(scope, {
+                token: response.access_token,
+                expiresAt: Date.now() + (Number(response.expires_in) || 55 * 60) * 1000,
+            });
+            pending.resolve(response.access_token);
+        },
+        error_callback: (error) => {
+            const pending = entry.pending;
+            entry.pending = null;
+            if (!pending) return;
+            if (error?.type === 'popup_closed') {
+                pending.reject(new Error('Sign-in window was closed.'));
+            } else if (error?.type === 'popup_failed_to_open') {
+                pending.reject(new Error('Your browser blocked the Google sign-in window — allow pop-ups and try again.'));
+            } else {
+                pending.reject(new Error('Couldn’t sign in with Google.'));
+            }
+        },
+    });
+    tokenClientCache.set(key, entry);
+    return entry;
+}
+
+export async function prepareGoogleAccessToken(clientId, scope) {
+    if (!clientId) throw new Error('Google sign-in isn’t set up yet.');
+    await loadGis();
+    return createTokenClient(clientId, scope);
+}
 
 export async function getGoogleAccessToken(clientId, scope) {
     if (!clientId) {
@@ -46,43 +93,30 @@ export async function getGoogleAccessToken(clientId, scope) {
         return cached.token;
     }
 
-    await loadGis();
-
+    // When prepareGoogleAccessToken() ran while the source menu was open,
+    // this branch contains no await. requestAccessToken() therefore executes
+    // in the Drive button's original tap task, which mobile browsers require
+    // in order to keep the OAuth dialog attached to its opener.
+    const key = tokenClientKey(clientId, scope);
+    const entry = tokenClientCache.get(key) || await prepareGoogleAccessToken(clientId, scope);
     return new Promise((resolve, reject) => {
-        let settled = false;
-        const client = window.google.accounts.oauth2.initTokenClient({
-            client_id: clientId,
-            scope,
-            callback: (response) => {
-                settled = true;
-                if (response.error) {
-                    reject(new Error(response.error_description || 'Google didn’t grant access.'));
-                    return;
-                }
-                tokenCache.set(scope, {
-                    token: response.access_token,
-                    expiresAt: Date.now() + (Number(response.expires_in) || 55 * 60) * 1000,
-                });
-                resolve(response.access_token);
-            },
-            error_callback: (err) => {
-                if (settled) return;
-                settled = true;
-                if (err?.type === 'popup_closed') {
-                    reject(new Error('Sign-in window was closed.'));
-                } else if (err?.type === 'popup_failed_to_open') {
-                    reject(new Error('Your browser blocked the Google sign-in window — allow pop-ups and try again.'));
-                } else {
-                    reject(new Error('Couldn’t sign in with Google.'));
-                }
-            },
-        });
-        client.requestAccessToken();
+        if (entry.pending) {
+            reject(new Error('Google sign-in is already open.'));
+            return;
+        }
+        entry.pending = { resolve, reject };
+        try {
+            entry.client.requestAccessToken();
+        } catch (error) {
+            entry.pending = null;
+            reject(error);
+        }
     });
 }
 
 // Exposed for tests only.
 export function _resetGoogleOAuthCache() {
     tokenCache.clear();
+    tokenClientCache.clear();
     gisLoadPromise = null;
 }

@@ -50,6 +50,25 @@ describe('getGoogleDriveAccessToken', () => {
         expect(initTokenClient).toHaveBeenCalledTimes(1);
     });
 
+    it('prepares the token client before the later user-triggered request', async () => {
+        let options;
+        const requestAccessToken = vi.fn(() => options.callback({ access_token: 'prepared-token', expires_in: 3600 }));
+        const initTokenClient = vi.fn((clientOptions) => {
+            options = clientOptions;
+            return { requestAccessToken };
+        });
+        window.google = { accounts: { oauth2: { initTokenClient } } };
+        const { preloadGoogleDriveAuth, getGoogleDriveAccessToken } = await freshModule();
+
+        await preloadGoogleDriveAuth();
+        expect(initTokenClient).toHaveBeenCalledTimes(1);
+        expect(requestAccessToken).not.toHaveBeenCalled();
+
+        const tokenPromise = getGoogleDriveAccessToken();
+        expect(requestAccessToken).toHaveBeenCalledTimes(1);
+        await expect(tokenPromise).resolves.toBe('prepared-token');
+    });
+
     it('surfaces a friendly message when the popup is blocked', async () => {
         window.google = {
             accounts: {
