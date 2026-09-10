@@ -55,7 +55,7 @@ export function getLocalAiResponse(userMessage) {
 
     // 5. Frame Styles & Catalogue
     if (matchAny(text, ['style', 'styles', 'frame', 'frames', 'wood', 'gold', 'metal', 'black', 'white', 'ornate', 'antique', 'modern', 'minimalist', 'rustic', 'moulding', 'finish', 'finishes', 'catalogue', 'collection', 'type', 'types', 'choose', 'option', 'options'])) {
-        return "Our catalogue features 342 handcrafted frame profiles categorized into Modern & Minimalist, Classic Wood & Natural Woods (Walnut, Oak, Mahogany), Ornate & Antique (Gold Leaf, Bronze), Rustic & Distressed, Metal & Sleek, Glossy Finishes, and Gallery Canvas Floaters! You can also select profile depths ranging from thin profiles to deep shadowboxes.";
+        return "Our frame collection includes Modern & Minimalist, Wood Finishes, Classic & Traditional, Ornate & Antique, Rustic & Distressed, Glossy Finishes, Textured & Decorative, and Canvas. Explore narrow, wide, and deep profiles to suit your artwork.";
     }
 
     // 6. Photo Upload & Quality Enhancement Engine

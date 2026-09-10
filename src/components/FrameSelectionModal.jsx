@@ -1,43 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { FRAME_STYLES, CATEGORIES } from '../data/constants';
+import { CATEGORIES } from '../data/constants';
 
-// A frame's real category (e.g. "Ornate & Antique") and its possible spot in
-// the curated "Most Popular" tab are independent — extracted once so both
-// the grid filter and the modal's initial-tab guess (below) read the same
-// list instead of two copies drifting apart.
-const MOST_POPULAR_IDS = [
-    'frame-canvas',  // Gallery Wrapped Canvas
-    'frame-10512',   // Black Contemporary (lead)
-    'frame-10728',   // Flat White Deep
-    'frame-8446',    // Flat Black Deep
-    'frame-10487',   // Natural Flat
-    'frame-10729',   // Flat Brown Deep
-    'frame-10592',   // Contemporary Walnut
-    'frame-11169',   // Gold Flat
-    'frame-10484',   // Cherry Flat
-    'frame-8752',    // Flat Walnut Wide
-    'frame-8753',    // Flat Mahogany Wide
-    'frame-10779',   // Glossy Black
-];
-
-// The parent only mounts this modal while it's open (`{isFrameModalOpen &&
-// <FrameSelectionModal/>}`), so every close is a real unmount — activeCategory
-// living in plain useState(CATEGORIES[0]) forgot which tab you'd drilled
-// into the instant you closed the picker to go do anything else in the
-// customization journey (pick a size, adjust matting, ...) and come back.
-// Since the currently selected frame is the one piece of state that DOES
-// survive that round trip (it lives in the parent), deriving the initial
-// tab from it — rather than always defaulting to the first tab — is what
-// makes reopening the picker land back where the current selection
-// actually lives.
-const initialCategoryFor = (selectedFrame) => {
-    if (!selectedFrame) return CATEGORIES[0];
-    if (MOST_POPULAR_IDS.includes(selectedFrame.id)) return 'Most Popular';
-    return selectedFrame.category || CATEGORIES[0];
-};
+import { framesForCategory, categoryForFrame } from '../data/frameBrowsing';
 
 export default function FrameSelectionModal({ isOpen, onClose, selectedFrame, onSelect }) {
-    const [activeCategory, setActiveCategory] = useState(() => initialCategoryFor(selectedFrame));
+    const [activeCategory, setActiveCategory] = useState(() => categoryForFrame(selectedFrame));
     const selectedCardRef = useRef(null);
 
     // Scrolls the current selection into view once, right after the grid for
@@ -52,9 +19,7 @@ export default function FrameSelectionModal({ isOpen, onClose, selectedFrame, on
 
     if (!isOpen) return null;
 
-    const filteredFrames = activeCategory === 'Most Popular'
-        ? MOST_POPULAR_IDS.map(id => FRAME_STYLES.find(f => f.id === id)).filter(Boolean)
-        : FRAME_STYLES.filter(f => f.category === activeCategory);
+    const filteredFrames = framesForCategory(activeCategory);
 
     return (
         <div className="fixed inset-0 z-[200] flex flex-col bg-white">
@@ -71,6 +36,7 @@ export default function FrameSelectionModal({ isOpen, onClose, selectedFrame, on
                     <button
                         key={cat}
                         onClick={() => setActiveCategory(cat)}
+                        aria-pressed={activeCategory === cat}
                         className={`flex-shrink-0 whitespace-nowrap px-3 py-1.5 rounded-full text-xs font-semibold transition-all ${activeCategory === cat ? 'bg-black text-white shadow-md' : 'bg-white text-stone-600 hover:bg-stone-100 border border-stone-200'}`}
                     >
                         {cat}

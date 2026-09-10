@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { ArrowRight, ChevronRight, ChevronLeft, Sparkles, Upload, Frame as FrameIcon, SlidersHorizontal, Eye, Truck } from 'lucide-react';
 import { FRAME_STYLES, CATEGORIES } from '../data/constants';
+import { framesForCategory } from '../data/frameBrowsing';
 import { CAROUSEL_SLIDES } from '../data/landingCarouselSlides';
 import { openExternalLinkFromEvent as openExternalLink } from '../utils/nativeLinks';
 import PageMeta from '../components/common/PageMeta';
 
 export default function LandingPage({ onStartFraming, navigate, setSelectedFrame }) {
-    const [activeCategory, setActiveCategory] = useState('Most Popular');
+    const [activeCategory, setActiveCategory] = useState(CATEGORIES[0]);
     const [currentPage, setCurrentPage] = useState(1);
     const [currentSlide, setCurrentSlide] = useState(0);
 
@@ -25,22 +26,7 @@ export default function LandingPage({ onStartFraming, navigate, setSelectedFrame
 
     
     // Pagination logic
-    const filteredFrames = activeCategory === 'Most Popular'
-        ? [
-            FRAME_STYLES.find(f => f.id === 'frame-canvas'), // Gallery Wrapped Canvas (lead) — also its own "Canvas" category, featured here too as a top pick
-            FRAME_STYLES.find(f => f.id === 'frame-10512'), // Black Contemporary
-            FRAME_STYLES.find(f => f.id === 'frame-10728'), // Flat White Deep
-            FRAME_STYLES.find(f => f.id === 'frame-8446'),  // Flat Black
-            FRAME_STYLES.find(f => f.id === 'frame-10487'), // Natural Flat
-            FRAME_STYLES.find(f => f.id === 'frame-10729'), // Flat Brown Deep
-            FRAME_STYLES.find(f => f.id === 'frame-10592'), // Contemporary Walnut
-            FRAME_STYLES.find(f => f.id === 'frame-11169'), // Gold Flat
-            FRAME_STYLES.find(f => f.id === 'frame-10484'), // Cherry Flat
-            FRAME_STYLES.find(f => f.id === 'frame-8752'),  // Flat Walnut Wide
-            FRAME_STYLES.find(f => f.id === 'frame-8753'),  // Flat Mahogany Wide
-            FRAME_STYLES.find(f => f.id === 'frame-10779'), // Glossy Black
-          ].filter(Boolean)
-        : FRAME_STYLES.filter(f => f.category === activeCategory);
+    const filteredFrames = framesForCategory(activeCategory);
     const itemsPerPage = 12;
     const totalPages = Math.ceil(filteredFrames.length / itemsPerPage);
     const currentFrames = filteredFrames.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
@@ -56,9 +42,9 @@ export default function LandingPage({ onStartFraming, navigate, setSelectedFrame
         else if (onStartFraming) onStartFraming();
     };
 
-    const handleStartAction = (e) => {
+    const handleStartAction = (e, slide) => {
         if (e) e.stopPropagation();
-        const state = CAROUSEL_SLIDES[currentSlide]?.triggersMetArt ? { openMetArt: true } : {};
+        const state = slide.triggersMetArt ? { openMetArt: true } : {};
         if (onStartFraming) onStartFraming(state);
         else if (navigate) navigate('/frame/customize', { state });
     };
@@ -80,12 +66,14 @@ export default function LandingPage({ onStartFraming, navigate, setSelectedFrame
                     <div className="lg:col-span-5 relative z-10 flex flex-col lg:self-stretch">
                         <div className="text-stone-400 font-bold tracking-widest text-xs uppercase mb-6 flex items-center gap-4 shrink-0">
                             <span className="w-8 h-[1px] bg-stone-300"></span>
-                            0{currentSlide + 1} &mdash; 0{CAROUSEL_SLIDES.length}
+                            {String(currentSlide + 1).padStart(2, '0')} &mdash; {String(CAROUSEL_SLIDES.length).padStart(2, '0')}
                         </div>
                         <div className="relative">
                             {CAROUSEL_SLIDES.map((slide, index) => (
                                 <div
                                     key={index}
+                                    aria-hidden={currentSlide !== index}
+                                    inert={currentSlide !== index}
                                     className={`transition-all duration-700 ease-[cubic-bezier(0.25,1,0.5,1)] ${
                                         currentSlide === index
                                             ? 'relative opacity-100 translate-y-0 pointer-events-auto z-10'
@@ -100,7 +88,7 @@ export default function LandingPage({ onStartFraming, navigate, setSelectedFrame
                                     </p>
                                     <div className="mt-4">
                                         <button
-                                            onClick={handleStartAction}
+                                            onClick={(e) => handleStartAction(e, slide)}
                                             className="group flex items-center gap-4 text-sm font-bold tracking-wide uppercase text-stone-900 hover:text-stone-600 transition-colors"
                                         >
                                             <span className="border-b-2 border-stone-900 pb-1 group-hover:border-stone-600 transition-colors">Start Framing</span>
@@ -138,12 +126,14 @@ export default function LandingPage({ onStartFraming, navigate, setSelectedFrame
                         <div className="absolute bottom-6 left-0 z-30 flex gap-0 shadow-xl overflow-hidden rounded-sm">
                             <button 
                                 onClick={prevSlide}
+                                aria-label="Previous slide"
                                 className="w-14 h-14 bg-white/60 backdrop-blur-md text-stone-900 flex items-center justify-center hover:bg-white/90 transition-all border-r border-white/20"
                             >
                                 <ChevronLeft className="w-6 h-6" />
                             </button>
                             <button 
                                 onClick={nextSlide}
+                                aria-label="Next slide"
                                 className="w-14 h-14 bg-white/60 backdrop-blur-md text-stone-900 flex items-center justify-center hover:bg-white/90 transition-all"
                             >
                                 <ChevronRight className="w-6 h-6" />
@@ -170,6 +160,7 @@ export default function LandingPage({ onStartFraming, navigate, setSelectedFrame
                             <button
                                 key={cat}
                                 onClick={() => handleCategoryChange(cat)}
+                                aria-pressed={activeCategory === cat}
                                 className={`px-5 py-2.5 rounded-full text-sm font-semibold whitespace-nowrap transition-all ${activeCategory === cat ? 'bg-stone-900 text-white shadow-md' : 'bg-stone-50 text-stone-600 hover:bg-stone-100 border border-stone-200'}`}
                             >
                                 {cat}
@@ -196,7 +187,7 @@ export default function LandingPage({ onStartFraming, navigate, setSelectedFrame
                                         including on the minority of shots framed off-axis with the
                                         inner mat opening still visible. */}
                                     <img
-                                        src={frame.previewImg || `/frames/${frame.filename}`}
+                                        src={frame.cornerImage || frame.previewImg || `/frames/${frame.filename}`}
                                         alt={frame.name}
                                         className="w-full h-full object-cover scale-[1.65] origin-[50%_68%] transition-transform duration-700 group-hover:scale-[1.78]"
                                     />
@@ -228,6 +219,7 @@ export default function LandingPage({ onStartFraming, navigate, setSelectedFrame
                         <div className="flex items-center justify-center gap-4 mt-8">
                             <button 
                                 onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                                aria-label="Previous page"
                                 disabled={currentPage === 1}
                                 className="p-2 rounded-full bg-stone-50 text-stone-600 hover:bg-stone-100 disabled:opacity-50 transition-colors"
                             >
@@ -238,6 +230,7 @@ export default function LandingPage({ onStartFraming, navigate, setSelectedFrame
                             </span>
                             <button 
                                 onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                                aria-label="Next page"
                                 disabled={currentPage === totalPages}
                                 className="p-2 rounded-full bg-stone-50 text-stone-600 hover:bg-stone-100 disabled:opacity-50 transition-colors"
                             >

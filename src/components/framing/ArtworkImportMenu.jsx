@@ -1,5 +1,4 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { createPortal } from 'react-dom';
 import { ArrowLeft, ArrowRight, Cloud, HardDrive, ImageUp, Link2, Loader2 } from 'lucide-react';
 import {
     ARTWORK_IMPORT_SOURCES,
@@ -20,7 +19,6 @@ export default function ArtworkImportMenu({ isPlaceholder, isUploading, onFile, 
     const rootRef = useRef(null);
     const panelRef = useRef(null);
     const urlInputRef = useRef(null);
-    const [isMobileMenu, setIsMobileMenu] = useState(false);
     const busy = Boolean(isUploading || disabled || pendingSource);
 
     const reset = useCallback(() => {
@@ -34,15 +32,6 @@ export default function ArtworkImportMenu({ isPlaceholder, isUploading, onFile, 
         setIsOpen(false);
         reset();
     }, [reset]);
-
-    useEffect(() => {
-        if (typeof window.matchMedia !== 'function') return undefined;
-        const media = window.matchMedia('(max-width: 639px)');
-        const update = () => setIsMobileMenu(media.matches);
-        update();
-        media.addEventListener?.('change', update);
-        return () => media.removeEventListener?.('change', update);
-    }, []);
 
     useEffect(() => {
         if (!isOpen) return undefined;
@@ -127,16 +116,8 @@ export default function ArtworkImportMenu({ isPlaceholder, isUploading, onFile, 
     const menuPanel = (
         <div
             ref={panelRef}
-            className={isMobileMenu
-                ? 'fixed z-[301] inset-x-3 bottom-[max(0.75rem,env(safe-area-inset-bottom,0px))] bg-white border border-stone-200 rounded-lg shadow-2xl overflow-hidden'
-                : 'absolute z-20 top-full left-0 mt-1.5 w-64 bg-white border border-stone-200 rounded-lg shadow-lg overflow-hidden'}
+            className="absolute z-20 top-full left-0 mt-1.5 w-64 max-w-[calc(100vw-2rem)] bg-white border border-stone-200 rounded-lg shadow-lg overflow-hidden"
         >
-            {isMobileMenu && (
-                <div className="flex items-center justify-between border-b border-stone-100 px-3 py-2.5">
-                    <span className="text-xs font-bold text-stone-800">Choose image source</span>
-                    <button type="button" onClick={close} className="text-xs font-semibold text-stone-500">Close</button>
-                </div>
-            )}
             {view === 'sources' ? (
                 <div role="menu" className="py-1">
                     <FileSourceRow onChange={handleDeviceFile} />
@@ -225,9 +206,7 @@ export default function ArtworkImportMenu({ isPlaceholder, isUploading, onFile, 
                 )}
             </button>
 
-            {isOpen && (isMobileMenu
-                ? createPortal(<><button type="button" className="fixed inset-0 z-[300] bg-black/20" onClick={close} aria-label="Close image sources" />{menuPanel}</>, document.body)
-                : menuPanel)}
+            {isOpen && menuPanel}
         </div>
     );
 }

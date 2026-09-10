@@ -233,12 +233,13 @@ export const MAT_COLORS = [
 ];
 
 export const CATEGORIES = [
-    'Most Popular',
+    'Featured Frames',
     'Modern & Minimalist',
-    'Ornate & Antique',
+    'Wood Finishes',
     'Classic & Traditional',
+    'Ornate & Antique',
     'Rustic & Distressed',
-    'Natural Woods',
+    'Glossy Finishes',
     'Textured & Decorative',
     'Canvas'
 ];
@@ -263,7 +264,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-83811',
         name: 'Abstract Embossed Antique Gold Scoop',
-        category: 'Textured & Decorative',
+        category: 'Ornate & Antique',
         baseColor: '#cbb198',
         filename: '83811_a.jpg',
         width: '36px',
@@ -297,7 +298,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-83813',
         name: 'Abstract Embossed Black Scoop',
-        category: 'Modern & Minimalist',
+        category: 'Textured & Decorative',
         baseColor: '#8e8f8d',
         filename: '83813_a.jpg',
         width: '36px',
@@ -331,7 +332,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-10871',
         name: 'Aged Black',
-        category: 'Modern & Minimalist',
+        category: 'Rustic & Distressed',
         baseColor: '#585852',
         filename: '10871_b.jpg',
         width: '24px',
@@ -382,7 +383,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-10880',
         name: 'Aged Natural',
-        category: 'Natural Woods',
+        category: 'Rustic & Distressed',
         baseColor: '#c69f70',
         filename: '10880_corner_a.jpg',
         width: '24px',
@@ -399,7 +400,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-10684',
         name: 'Aged Pewter Beveled',
-        category: 'Natural Woods',
+        category: 'Rustic & Distressed',
         baseColor: '#8b7562',
         filename: '10684_corner_a.jpg',
         width: '24px',
@@ -450,7 +451,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-10881',
         name: 'Aged White',
-        category: 'Modern & Minimalist',
+        category: 'Rustic & Distressed',
         baseColor: '#d9cdba',
         filename: '10881_b.jpg',
         width: '24px',
@@ -467,7 +468,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-10875',
         name: 'Aged Yellow',
-        category: 'Natural Woods',
+        category: 'Rustic & Distressed',
         baseColor: '#f0d297',
         filename: '10875_b.jpg',
         width: '24px',
@@ -484,7 +485,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-9565',
         name: 'American Flag',
-        category: 'Classic & Traditional',
+        category: 'Textured & Decorative',
         baseColor: '#a59da6',
         filename: 'pos1_9565-a_1.jpg',
         width: '24px',
@@ -501,7 +502,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-10716',
         name: 'Antique Black Renaissance',
-        category: 'Natural Woods',
+        category: 'Ornate & Antique',
         baseColor: '#535354',
         filename: '10716_corner_a.jpg',
         width: '24px',
@@ -552,7 +553,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-8838',
         name: 'Antique Gold Ornate',
-        category: 'Natural Woods',
+        category: 'Ornate & Antique',
         baseColor: '#876140',
         filename: '8838_corner_a.jpg',
         width: '36px',
@@ -586,7 +587,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-10065',
         name: 'Antique Gold Reverse Slope',
-        category: 'Natural Woods',
+        category: 'Ornate & Antique',
         baseColor: '#d6a45e',
         filename: '10065_corner_a_1.jpg',
         width: '24px',
@@ -603,7 +604,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-6526',
         name: 'Antique Gold Traditional',
-        category: 'Natural Woods',
+        category: 'Ornate & Antique',
         baseColor: '#c7b197',
         filename: '6526a.jpg',
         width: '24px',
@@ -620,7 +621,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-9135',
         name: 'Antique Gold With Beaded Lip',
-        category: 'Natural Woods',
+        category: 'Ornate & Antique',
         baseColor: '#9f7444',
         filename: '9135_corner_a.jpg',
         width: '24px',
@@ -654,7 +655,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-10783',
         name: 'Antique Gold with Ornate Edge',
-        category: 'Natural Woods',
+        category: 'Ornate & Antique',
         baseColor: '#b18659',
         filename: '10783_b.jpg',
         width: '36px',
@@ -790,7 +791,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-11153',
         name: 'Antique Silver Shell',
-        category: 'Natural Woods',
+        category: 'Ornate & Antique',
         baseColor: '#a39b95',
         filename: '11153_corner_a_1_1.jpg',
         width: '24px',
@@ -909,7 +910,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-79668',
         name: 'Black Angled Reverse With Rope',
-        category: 'Natural Woods',
+        category: 'Textured & Decorative',
         baseColor: '#837e7d',
         filename: '79668a.jpg',
         width: '24px',
@@ -926,7 +927,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-10588',
         name: 'Black Barnwood',
-        category: 'Natural Woods',
+        category: 'Rustic & Distressed',
         baseColor: '#322f30',
         filename: '10588_corner_a.jpg',
         width: '24px',
@@ -977,7 +978,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-8694',
         name: 'Black Flat',
-        category: 'Natural Woods',
+        category: 'Modern & Minimalist',
         baseColor: '#323136',
         filename: '8694_corner_a.jpg',
         width: '24px',
@@ -994,7 +995,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-10733',
         name: 'Black Renaissance',
-        category: 'Natural Woods',
+        category: 'Ornate & Antique',
         baseColor: '#504e4b',
         filename: '10733_b.jpg',
         width: '36px',
@@ -1028,7 +1029,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-10937',
         name: 'Black Scoop with Pewter Lip',
-        category: 'Modern & Minimalist',
+        category: 'Classic & Traditional',
         baseColor: '#6f6960',
         filename: '10937_b.jpg',
         width: '36px',
@@ -1079,7 +1080,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-84040',
         name: 'Black Square with Gold Beads',
-        category: 'Modern & Minimalist',
+        category: 'Classic & Traditional',
         baseColor: '#8f918c',
         filename: 'pos1_84040_a.jpg',
         width: '24px',
@@ -1096,7 +1097,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-8971',
         name: 'Black Swoop With Beaded Edge',
-        category: 'Natural Woods',
+        category: 'Classic & Traditional',
         baseColor: '#696a68',
         filename: '8971_a.jpg',
         width: '24px',
@@ -1113,7 +1114,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-10168',
         name: 'Black Tier With Blue Pinstripes',
-        category: 'Natural Woods',
+        category: 'Textured & Decorative',
         baseColor: '#465052',
         filename: '10168_a_1.jpg',
         width: '24px',
@@ -1130,7 +1131,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-10165',
         name: 'Black Tier With Gold Pinstripes',
-        category: 'Natural Woods',
+        category: 'Textured & Decorative',
         baseColor: '#57544f',
         filename: '10165_a_1.jpg',
         width: '24px',
@@ -1147,7 +1148,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-10169',
         name: 'Black Tier With Green Pinstripes',
-        category: 'Natural Woods',
+        category: 'Textured & Decorative',
         baseColor: '#585b57',
         filename: '10169_a_1.jpg',
         width: '24px',
@@ -1164,7 +1165,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-10167',
         name: 'Black Tier With Red Pinstripes',
-        category: 'Natural Woods',
+        category: 'Textured & Decorative',
         baseColor: '#5b5856',
         filename: '10167_a_1.jpg',
         width: '24px',
@@ -1181,7 +1182,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-10166',
         name: 'Black Tier With White Pinstripes',
-        category: 'Natural Woods',
+        category: 'Textured & Decorative',
         baseColor: '#666663',
         filename: '10166_a_1.jpg',
         width: '24px',
@@ -1232,7 +1233,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-9169',
         name: 'Black with Beaded Lip',
-        category: 'Natural Woods',
+        category: 'Classic & Traditional',
         baseColor: '#6e6e6c',
         filename: '9169_a.jpg',
         width: '24px',
@@ -1249,7 +1250,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-10652',
         name: 'Black with Bronze Bevel',
-        category: 'Natural Woods',
+        category: 'Classic & Traditional',
         baseColor: '#54504b',
         filename: '10652_b.jpg',
         width: '36px',
@@ -1317,7 +1318,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-84161',
         name: 'Black With Clear Wood',
-        category: 'Natural Woods',
+        category: 'Wood Finishes',
         baseColor: '#b6b5a7',
         filename: 'pos1_84161_a_2.jpg',
         width: '24px',
@@ -1334,7 +1335,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-10651',
         name: 'Black with Pewter Bevel',
-        category: 'Natural Woods',
+        category: 'Classic & Traditional',
         baseColor: '#65605e',
         filename: '10651_corner_a_1.jpg',
         width: '24px',
@@ -1351,7 +1352,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-10703',
         name: 'Black with Silver Beveled',
-        category: 'Natural Woods',
+        category: 'Classic & Traditional',
         baseColor: '#65686b',
         filename: '10703_corner_a_1.jpg',
         width: '24px',
@@ -1368,7 +1369,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-11204',
         name: 'Black With Silver Edge',
-        category: 'Modern & Minimalist',
+        category: 'Classic & Traditional',
         baseColor: '#8e8f8a',
         filename: 'pos1_11204_a.jpg',
         width: '36px',
@@ -1385,7 +1386,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-84162',
         name: 'Black With Walnut Wood',
-        category: 'Natural Woods',
+        category: 'Wood Finishes',
         baseColor: '#76706a',
         filename: 'pos1_84162_a_2.jpg',
         width: '24px',
@@ -1402,7 +1403,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-10926',
         name: 'Black with Weathered Lip',
-        category: 'Modern & Minimalist',
+        category: 'Rustic & Distressed',
         baseColor: '#80786c',
         filename: '10926_b.jpg',
         width: '36px',
@@ -1419,7 +1420,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-11199',
         name: 'Blue Burl',
-        category: 'Rustic & Distressed',
+        category: 'Wood Finishes',
         baseColor: '#12889d',
         filename: '11199_corner_a.jpg',
         width: '24px',
@@ -1453,7 +1454,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-11168',
         name: 'Bright Silver',
-        category: 'Natural Woods',
+        category: 'Modern & Minimalist',
         baseColor: '#dddcdc',
         filename: '11168_corner_a_1_1.jpg',
         width: '24px',
@@ -1470,7 +1471,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-10236',
         name: 'Bronze Contemporary',
-        category: 'Natural Woods',
+        category: 'Modern & Minimalist',
         baseColor: '#827165',
         filename: '10236_a.jpg',
         width: '24px',
@@ -1487,7 +1488,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-9932',
         name: 'Bronze Flat',
-        category: 'Natural Woods',
+        category: 'Modern & Minimalist',
         baseColor: '#c8ab8a',
         filename: '9932_corner_a.jpg',
         width: '24px',
@@ -1504,7 +1505,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-11155',
         name: 'Bronze Shell',
-        category: 'Natural Woods',
+        category: 'Textured & Decorative',
         baseColor: '#7e6157',
         filename: '11155_corner_a_1_1.jpg',
         width: '24px',
@@ -1538,7 +1539,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-10570',
         name: 'Brown Barnwood',
-        category: 'Natural Woods',
+        category: 'Rustic & Distressed',
         baseColor: '#6c5751',
         filename: '10570_corner_a.jpg',
         width: '24px',
@@ -1555,7 +1556,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-11203',
         name: 'Brown Burl',
-        category: 'Natural Woods',
+        category: 'Wood Finishes',
         baseColor: '#b9a18d',
         filename: 'pos1_11203_a.jpg',
         width: '36px',
@@ -1572,7 +1573,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-10936',
         name: 'Brown Scoop with Gold Lip',
-        category: 'Natural Woods',
+        category: 'Classic & Traditional',
         baseColor: '#6f5e52',
         filename: '10936_corner_a_1.jpg',
         width: '24px',
@@ -1606,7 +1607,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-11196',
         name: 'Brown With Brushed Gold Sloped',
-        category: 'Natural Woods',
+        category: 'Modern & Minimalist',
         baseColor: '#b2aea7',
         filename: 'pos1_11196-a.jpg',
         width: '24px',
@@ -1623,7 +1624,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-11221',
         name: 'Brown With Gold Trim',
-        category: 'Natural Woods',
+        category: 'Classic & Traditional',
         baseColor: '#b4b0aa',
         filename: 'pos1_11221_a.jpg',
         width: '24px',
@@ -1640,7 +1641,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-10954',
         name: 'Brushed Silver Deep Profile',
-        category: 'Natural Woods',
+        category: 'Modern & Minimalist',
         baseColor: '#dcd7d5',
         filename: '10954_corner_a_1_2.jpg',
         width: '24px',
@@ -1657,7 +1658,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-11219',
         name: 'Brushed White With Silver Trim',
-        category: 'Modern & Minimalist',
+        category: 'Classic & Traditional',
         baseColor: '#eee8e5',
         filename: 'pos1_11219_a.jpg',
         width: '36px',
@@ -1674,7 +1675,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-10486',
         name: 'Charcoal Flat',
-        category: 'Natural Woods',
+        category: 'Modern & Minimalist',
         baseColor: '#33363a',
         filename: '10486_corner_a.jpg',
         width: '24px',
@@ -1691,7 +1692,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-83956',
         name: 'Charcoal With Silver Edge',
-        category: 'Modern & Minimalist',
+        category: 'Classic & Traditional',
         baseColor: '#969290',
         filename: 'pos1_80868-a.jpg',
         width: '36px',
@@ -1725,7 +1726,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-10484',
         name: 'Cherry Flat',
-        category: 'Modern & Minimalist',
+        category: 'Wood Finishes',
         baseColor: '#946053',
         filename: '10484_a.jpg',
         width: '24px',
@@ -1776,7 +1777,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-10813',
         name: 'Classic Black',
-        category: 'Natural Woods',
+        category: 'Classic & Traditional',
         baseColor: '#434145',
         filename: '10813_corner_a.jpg',
         width: '24px',
@@ -1793,7 +1794,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-10814',
         name: 'Classic Mahogany',
-        category: 'Natural Woods',
+        category: 'Classic & Traditional',
         baseColor: '#4f403d',
         filename: '10814_a.jpg',
         width: '24px',
@@ -1810,7 +1811,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-10812',
         name: 'Classic White',
-        category: 'Natural Woods',
+        category: 'Classic & Traditional',
         baseColor: '#d3d3d4',
         filename: '10812_corner_a.jpg',
         width: '24px',
@@ -1827,7 +1828,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-83997',
         name: 'Clear Wood With Angled Lip Deep',
-        category: 'Natural Woods',
+        category: 'Wood Finishes',
         baseColor: '#f1e8ce',
         filename: 'pos1_83997_a_1.jpg',
         width: '24px',
@@ -1844,7 +1845,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-10592',
         name: 'Contemporary Walnut',
-        category: 'Natural Woods',
+        category: 'Wood Finishes',
         baseColor: '#5d5152',
         filename: '10592_corner_a_1.jpg',
         width: '24px',
@@ -1861,7 +1862,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-80864',
         name: 'Cream With Gold Edges & Double Dimple',
-        category: 'Modern & Minimalist',
+        category: 'Textured & Decorative',
         baseColor: '#f5e9ce',
         filename: 'pos1_80864-a_1.jpg',
         width: '24px',
@@ -1878,7 +1879,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-84089',
         name: 'Cross Brush Pewter',
-        category: 'Classic & Traditional',
+        category: 'Textured & Decorative',
         baseColor: '#efedd1',
         filename: 'pos1_84089_a.jpg',
         width: '24px',
@@ -1895,7 +1896,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-84090',
         name: 'Cross Brush Pewter Square',
-        category: 'Modern & Minimalist',
+        category: 'Textured & Decorative',
         baseColor: '#e7e5d1',
         filename: 'pos1_84090_a.jpg',
         width: '24px',
@@ -1912,7 +1913,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-80997',
         name: 'Dark Bronze Panel With Raised Back & Gold Lip',
-        category: 'Natural Woods',
+        category: 'Classic & Traditional',
         baseColor: '#786d68',
         filename: '80997a.jpg',
         width: '36px',
@@ -1963,7 +1964,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-9878',
         name: 'Distressed Antique Gold',
-        category: 'Natural Woods',
+        category: 'Ornate & Antique',
         baseColor: '#695b51',
         filename: '9878_a.jpg',
         width: '24px',
@@ -1980,7 +1981,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-9172',
         name: 'Distressed Black Beaded',
-        category: 'Natural Woods',
+        category: 'Rustic & Distressed',
         baseColor: '#676563',
         filename: '9172_a.jpg',
         width: '24px',
@@ -2014,7 +2015,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-11140',
         name: 'Distressed Black Square',
-        category: 'Modern & Minimalist',
+        category: 'Rustic & Distressed',
         baseColor: '#a9acac',
         filename: 'pos1_11140_a_1.jpg',
         width: '24px',
@@ -2031,7 +2032,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-9174',
         name: 'Distressed Black With Beaded Lip',
-        category: 'Natural Woods',
+        category: 'Rustic & Distressed',
         baseColor: '#5c5c59',
         filename: '9174_a.jpg',
         width: '36px',
@@ -2048,7 +2049,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-84167',
         name: 'Distressed Blue Square',
-        category: 'Modern & Minimalist',
+        category: 'Rustic & Distressed',
         baseColor: '#98c3c9',
         filename: 'pos1_84167_a.jpg',
         width: '24px',
@@ -2116,7 +2117,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-84166',
         name: 'Distressed Green Square',
-        category: 'Modern & Minimalist',
+        category: 'Rustic & Distressed',
         baseColor: '#a8c9b4',
         filename: 'pos1_84166_a.jpg',
         width: '24px',
@@ -2150,7 +2151,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-84164',
         name: 'Distressed Grey Square',
-        category: 'Modern & Minimalist',
+        category: 'Rustic & Distressed',
         baseColor: '#dcddd4',
         filename: 'pos1_84164_a.jpg',
         width: '24px',
@@ -2184,7 +2185,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-84168',
         name: 'Distressed Red Square',
-        category: 'Modern & Minimalist',
+        category: 'Rustic & Distressed',
         baseColor: '#df8679',
         filename: 'pos1_84168-a_1.jpg',
         width: '24px',
@@ -2201,7 +2202,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-84165',
         name: 'Distressed Taupe Square',
-        category: 'Modern & Minimalist',
+        category: 'Rustic & Distressed',
         baseColor: '#d5c7aa',
         filename: 'pos1_84165_a.jpg',
         width: '24px',
@@ -2235,7 +2236,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-9202',
         name: 'Distressed Wavy Black',
-        category: 'Natural Woods',
+        category: 'Rustic & Distressed',
         baseColor: '#605f5c',
         filename: '9202_a.jpg',
         width: '24px',
@@ -2252,7 +2253,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-11136',
         name: 'Distressed White',
-        category: 'Natural Woods',
+        category: 'Rustic & Distressed',
         baseColor: '#eddece',
         filename: '11136_corner_a_1_1.jpg',
         width: '24px',
@@ -2269,7 +2270,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-11137',
         name: 'Distressed White Square',
-        category: 'Natural Woods',
+        category: 'Rustic & Distressed',
         baseColor: '#efe6da',
         filename: '11137_corner_a_1_2.jpg',
         width: '24px',
@@ -2286,7 +2287,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-11004',
         name: 'Extra Wide Black Traditional',
-        category: 'Modern & Minimalist',
+        category: 'Classic & Traditional',
         baseColor: '#766e69',
         filename: 'pos1_11004a.jpg',
         width: '36px',
@@ -2337,7 +2338,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-10439',
         name: 'Flat Black Contemporary',
-        category: 'Natural Woods',
+        category: 'Modern & Minimalist',
         baseColor: '#585856',
         filename: '10439_a_1.jpg',
         width: '36px',
@@ -2354,7 +2355,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-10727',
         name: 'Flat Black Deep',
-        category: 'Natural Woods',
+        category: 'Modern & Minimalist',
         baseColor: '#36363b',
         filename: '10727_corner_a_1_1.jpg',
         width: '24px',
@@ -2388,7 +2389,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-10896',
         name: 'Flat Bronze',
-        category: 'Natural Woods',
+        category: 'Modern & Minimalist',
         baseColor: '#c69569',
         filename: '10896_corner_a_1.jpg',
         width: '24px',
@@ -2422,7 +2423,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-10897',
         name: 'Flat Gold',
-        category: 'Natural Woods',
+        category: 'Modern & Minimalist',
         baseColor: '#f1c169',
         filename: '10897_corner_a_1.jpg',
         width: '24px',
@@ -2439,7 +2440,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-10786',
         name: 'Flat Mahogany',
-        category: 'Modern & Minimalist',
+        category: 'Wood Finishes',
         baseColor: '#5e3c3a',
         filename: '10786_corner_a_1_1.jpg',
         width: '24px',
@@ -2456,7 +2457,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-8753',
         name: 'Flat Mahogany Wide',
-        category: 'Modern & Minimalist',
+        category: 'Wood Finishes',
         baseColor: '#936562',
         filename: '8753a.jpg',
         width: '24px',
@@ -2473,7 +2474,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-10898',
         name: 'Flat Silver',
-        category: 'Natural Woods',
+        category: 'Modern & Minimalist',
         baseColor: '#d8d4ca',
         filename: '10898_corner_a_1.jpg',
         width: '24px',
@@ -2490,7 +2491,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-8752',
         name: 'Flat Walnut Wide',
-        category: 'Modern & Minimalist',
+        category: 'Wood Finishes',
         baseColor: '#997767',
         filename: '8752a.jpg',
         width: '24px',
@@ -2524,7 +2525,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-7111',
         name: 'Glossy Black Arcade',
-        category: 'Natural Woods',
+        category: 'Glossy Finishes',
         baseColor: '#696966',
         filename: 'pos1_7111bl_a_1.jpg',
         width: '24px',
@@ -2541,7 +2542,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-10688',
         name: 'Glossy Black Beveled',
-        category: 'Modern & Minimalist',
+        category: 'Glossy Finishes',
         baseColor: '#29292a',
         filename: '10688_corner_a.jpg',
         width: '24px',
@@ -2558,7 +2559,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-83880',
         name: 'Glossy Black Deep',
-        category: 'Modern & Minimalist',
+        category: 'Glossy Finishes',
         baseColor: '#8c8c8a',
         filename: 'pos1_83880_a_1.jpg',
         width: '24px',
@@ -2575,7 +2576,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-10779',
         name: 'Glossy Black',
-        category: 'Modern & Minimalist',
+        category: 'Glossy Finishes',
         baseColor: '#4e4d49',
         filename: '10779_b_1.jpg',
         width: '36px',
@@ -2592,7 +2593,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-9684',
         name: 'Glossy Black Round Top',
-        category: 'Modern & Minimalist',
+        category: 'Glossy Finishes',
         baseColor: '#969696',
         filename: '9684_a.jpg',
         width: '24px',
@@ -2609,7 +2610,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-83886',
         name: 'Glossy Black Tall',
-        category: 'Modern & Minimalist',
+        category: 'Glossy Finishes',
         baseColor: '#7a7e80',
         filename: '83886_a.jpg',
         width: '24px',
@@ -2626,7 +2627,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-83736',
         name: 'Glossy Blue Scoop',
-        category: 'Rustic & Distressed',
+        category: 'Glossy Finishes',
         baseColor: '#87d9e3',
         filename: '83736_a.jpg',
         width: '24px',
@@ -2643,7 +2644,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-83735',
         name: 'Glossy Green Scoop',
-        category: 'Textured & Decorative',
+        category: 'Glossy Finishes',
         baseColor: '#b1daab',
         filename: '83735_a.jpg',
         width: '24px',
@@ -2660,7 +2661,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-83889',
         name: 'Glossy Grey Tall',
-        category: 'Rustic & Distressed',
+        category: 'Glossy Finishes',
         baseColor: '#dfdad1',
         filename: '83889_a.jpg',
         width: '24px',
@@ -2677,7 +2678,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-10004',
         name: 'Glossy Honey Pecan Burl Wood',
-        category: 'Natural Woods',
+        category: 'Glossy Finishes',
         baseColor: '#96715c',
         filename: '10004_a.jpg',
         width: '36px',
@@ -2694,7 +2695,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-11147',
         name: 'Glossy Mahogany',
-        category: 'Natural Woods',
+        category: 'Glossy Finishes',
         baseColor: '#908984',
         filename: '11147_a.jpg',
         width: '36px',
@@ -2711,7 +2712,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-83733',
         name: 'Glossy Orange Scoop',
-        category: 'Textured & Decorative',
+        category: 'Glossy Finishes',
         baseColor: '#f9bd8e',
         filename: '83733_a.jpg',
         width: '24px',
@@ -2728,7 +2729,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-83881',
         name: 'Glossy Red Deep',
-        category: 'Modern & Minimalist',
+        category: 'Glossy Finishes',
         baseColor: '#ee8d81',
         filename: '83881_a.jpg',
         width: '24px',
@@ -2745,7 +2746,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-83732',
         name: 'Glossy Red Scoop',
-        category: 'Textured & Decorative',
+        category: 'Glossy Finishes',
         baseColor: '#f6a3a1',
         filename: '83732_a.jpg',
         width: '24px',
@@ -2762,7 +2763,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-83883',
         name: 'Glossy Slate Grey Deep',
-        category: 'Modern & Minimalist',
+        category: 'Glossy Finishes',
         baseColor: '#e7e0d7',
         filename: '83883-a_2.jpg',
         width: '24px',
@@ -2779,7 +2780,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-10689',
         name: 'Glossy White Beveled',
-        category: 'Modern & Minimalist',
+        category: 'Glossy Finishes',
         baseColor: '#dbdad9',
         filename: '10689_corner_a.jpg',
         width: '24px',
@@ -2796,7 +2797,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-83882',
         name: 'Glossy White Deep',
-        category: 'Modern & Minimalist',
+        category: 'Glossy Finishes',
         baseColor: '#eae8e3',
         filename: '83882_a_1.jpg',
         width: '24px',
@@ -2813,7 +2814,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-10772',
         name: 'Glossy White',
-        category: 'Natural Woods',
+        category: 'Glossy Finishes',
         baseColor: '#dbdce1',
         filename: '10772_corner_a_1_1.jpg',
         width: '24px',
@@ -2830,7 +2831,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-83734',
         name: 'Glossy Yellow Scoop',
-        category: 'Textured & Decorative',
+        category: 'Glossy Finishes',
         baseColor: '#f9e48d',
         filename: '83734_a.jpg',
         width: '24px',
@@ -2847,7 +2848,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-8579',
         name: 'Gold Bamboo',
-        category: 'Natural Woods',
+        category: 'Textured & Decorative',
         baseColor: '#bd8440',
         filename: '8579_corner_a.jpg',
         width: '24px',
@@ -2864,7 +2865,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-6538',
         name: 'Gold Bamboo With Decorative Edge',
-        category: 'Natural Woods',
+        category: 'Textured & Decorative',
         baseColor: '#cd9e54',
         filename: '6538-a_1.jpg',
         width: '24px',
@@ -2881,7 +2882,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-9665',
         name: 'Gold Bamboo with Decorative Lip',
-        category: 'Natural Woods',
+        category: 'Textured & Decorative',
         baseColor: '#a67c50',
         filename: '9665_a.jpg',
         width: '24px',
@@ -2932,7 +2933,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-83351',
         name: 'Gold Ornate Embossed Reverse',
-        category: 'Natural Woods',
+        category: 'Ornate & Antique',
         baseColor: '#d4bea4',
         filename: '83351a.jpg',
         width: '36px',
@@ -2949,7 +2950,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-5031',
         name: 'Gold Ornate',
-        category: 'Natural Woods',
+        category: 'Ornate & Antique',
         baseColor: '#be986a',
         filename: '5031_a.jpg',
         width: '24px',
@@ -3000,7 +3001,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-84038',
         name: 'Gold Square with Beads',
-        category: 'Modern & Minimalist',
+        category: 'Classic & Traditional',
         baseColor: '#eacd5d',
         filename: '84038_a.jpg',
         width: '24px',
@@ -3017,7 +3018,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-84068',
         name: 'Gold Water Gild Reverse',
-        category: 'Textured & Decorative',
+        category: 'Classic & Traditional',
         baseColor: '#e6cc82',
         filename: '84068_a.jpg',
         width: '24px',
@@ -3068,7 +3069,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-9912',
         name: 'Gold With Black Lip',
-        category: 'Natural Woods',
+        category: 'Modern & Minimalist',
         baseColor: '#d1ae7a',
         filename: '9912_a_1.jpg',
         width: '24px',
@@ -3085,7 +3086,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-6525',
         name: 'Gold With Black Panel',
-        category: 'Natural Woods',
+        category: 'Modern & Minimalist',
         baseColor: '#745b47',
         filename: '6525_corner_a.jpg',
         width: '24px',
@@ -3119,7 +3120,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-11200',
         name: 'Green Burl',
-        category: 'Natural Woods',
+        category: 'Wood Finishes',
         baseColor: '#526d3c',
         filename: '11200_corner_a_1_1.jpg',
         width: '24px',
@@ -3136,7 +3137,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-11194',
         name: 'Green With Brushed Gold Sloped',
-        category: 'Textured & Decorative',
+        category: 'Modern & Minimalist',
         baseColor: '#d0d4cc',
         filename: '11194_a.jpg',
         width: '24px',
@@ -3170,7 +3171,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-11202',
         name: 'Grey Burl',
-        category: 'Rustic & Distressed',
+        category: 'Wood Finishes',
         baseColor: '#6a544b',
         filename: '11202_corner_a_1_1.jpg',
         width: '24px',
@@ -3187,7 +3188,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-84048',
         name: 'Grey Mottled Pewter Scoop',
-        category: 'Rustic & Distressed',
+        category: 'Textured & Decorative',
         baseColor: '#7f807a',
         filename: '84048-a_2.jpg',
         width: '24px',
@@ -3204,7 +3205,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-84051',
         name: 'Grey Mottled Pewter Scoop Wide',
-        category: 'Rustic & Distressed',
+        category: 'Textured & Decorative',
         baseColor: '#bec1bb',
         filename: '84051_a.jpg',
         width: '24px',
@@ -3221,7 +3222,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-10939',
         name: 'Grey Scoop with Silver Lip',
-        category: 'Rustic & Distressed',
+        category: 'Classic & Traditional',
         baseColor: '#bebab1',
         filename: '10939_b.jpg',
         width: '36px',
@@ -3272,7 +3273,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-11210',
         name: 'Grey With Silver Edge',
-        category: 'Rustic & Distressed',
+        category: 'Classic & Traditional',
         baseColor: '#938f8a',
         filename: '11210_corner_a.jpg',
         width: '24px',
@@ -3289,7 +3290,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-11215',
         name: 'Grey With Silver Trim',
-        category: 'Rustic & Distressed',
+        category: 'Classic & Traditional',
         baseColor: '#9c938b',
         filename: '11215_corner_a_1_1.jpg',
         width: '24px',
@@ -3340,7 +3341,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-11131',
         name: 'Hi Gloss Walnut Burl',
-        category: 'Natural Woods',
+        category: 'Glossy Finishes',
         baseColor: '#6f2c18',
         filename: '11131_corner_a.jpg',
         width: '24px',
@@ -3357,7 +3358,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-9073',
         name: 'Honey Pecan Burl and Black',
-        category: 'Modern & Minimalist',
+        category: 'Wood Finishes',
         baseColor: '#ae7c51',
         filename: '9073_a.jpg',
         width: '24px',
@@ -3373,15 +3374,15 @@ export const FRAME_STYLES = [
     },
     {
         id: 'frame-8708',
-        name: 'Honey Pecan Burl Reverse Slop',
-        category: 'Natural Woods',
+        name: 'Honey Pecan Burl Reverse Slope',
+        category: 'Wood Finishes',
         baseColor: '#9d7554',
         filename: '8708_a.jpg',
         width: '24px',
         widthCategory: 'standard',
         priceMod: 1.2,
         type: 'Picture Frame',
-        desc: 'Honey Pecan Burl Reverse Slop.',
+        desc: 'Honey Pecan Burl Reverse Slope.',
         previewImg: '/frames/assets/honey-pecan-burl-reverse-slop-picture-frame/8708_a.jpg',
         mouldingWidthIn: 1.25,
         rabbetDepthIn: 0.5625,
@@ -3391,7 +3392,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-10459',
         name: 'Honey Pecan Contemporary',
-        category: 'Natural Woods',
+        category: 'Wood Finishes',
         baseColor: '#795f51',
         filename: '10459_a.jpg',
         width: '36px',
@@ -3408,7 +3409,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-8744',
         name: 'Honey Pecan Flat',
-        category: 'Natural Woods',
+        category: 'Wood Finishes',
         baseColor: '#a25d39',
         filename: '8744_corner_a.jpg',
         width: '24px',
@@ -3459,7 +3460,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-10901',
         name: 'Knotty Walnut',
-        category: 'Natural Woods',
+        category: 'Rustic & Distressed',
         baseColor: '#8c7d70',
         filename: '10901_corner_a.jpg',
         width: '24px',
@@ -3476,7 +3477,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-10501',
         name: 'Mahogany Contemporary',
-        category: 'Natural Woods',
+        category: 'Wood Finishes',
         baseColor: '#543c36',
         filename: '10501_corner_a.jpg',
         width: '24px',
@@ -3493,7 +3494,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-10618',
         name: 'Mahogany Cushion',
-        category: 'Natural Woods',
+        category: 'Wood Finishes',
         baseColor: '#8a7a79',
         filename: '10618a.jpg',
         width: '24px',
@@ -3510,7 +3511,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-10649',
         name: 'Mahogany Reverse Slope',
-        category: 'Natural Woods',
+        category: 'Wood Finishes',
         baseColor: '#534445',
         filename: '10649_corner_a.jpg',
         width: '24px',
@@ -3527,7 +3528,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-81045',
         name: 'Mahogany Transverse Panel With Raised Back & Lip',
-        category: 'Natural Woods',
+        category: 'Classic & Traditional',
         baseColor: '#826966',
         filename: '81045a.jpg',
         width: '36px',
@@ -3544,7 +3545,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-80868',
         name: 'Mahogany With Gold Edges & Double Dimple',
-        category: 'Rustic & Distressed',
+        category: 'Textured & Decorative',
         baseColor: '#86817f',
         filename: '80868-a_1.jpg',
         width: '36px',
@@ -3561,7 +3562,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-10650',
         name: 'Mahogany With Gold Edges Reverse Slope',
-        category: 'Modern & Minimalist',
+        category: 'Classic & Traditional',
         baseColor: '#673d34',
         filename: '10650_corner_a.jpg',
         width: '24px',
@@ -3595,7 +3596,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-204',
         name: 'Metallic Black',
-        category: 'Classic & Traditional',
+        category: 'Modern & Minimalist',
         baseColor: '#8a8a8b',
         filename: '204_corner_a.jpg',
         width: '24px',
@@ -3646,7 +3647,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-206',
         name: 'Metallic Pink',
-        category: 'Rustic & Distressed',
+        category: 'Modern & Minimalist',
         baseColor: '#fa6c97',
         filename: '206_corner_a.jpg',
         width: '24px',
@@ -3697,7 +3698,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-10790',
         name: 'Modern Silver',
-        category: 'Natural Woods',
+        category: 'Modern & Minimalist',
         baseColor: '#aeb0b1',
         filename: '10790_corner_a.jpg',
         width: '24px',
@@ -3714,7 +3715,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-10254',
         name: 'Mosaic Black',
-        category: 'Natural Woods',
+        category: 'Textured & Decorative',
         baseColor: '#5a5652',
         filename: '10254_a_1.jpg',
         width: '24px',
@@ -3731,7 +3732,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-83711',
         name: 'Mottled Gold with Ridge',
-        category: 'Classic & Traditional',
+        category: 'Textured & Decorative',
         baseColor: '#c09670',
         filename: '83711a.jpg',
         width: '24px',
@@ -3748,7 +3749,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-83712',
         name: 'Mottled Silver with Ridge',
-        category: 'Classic & Traditional',
+        category: 'Textured & Decorative',
         baseColor: '#b8a289',
         filename: '83712a.jpg',
         width: '24px',
@@ -3765,7 +3766,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-9669',
         name: 'Natural Bamboo with Decorative Lip',
-        category: 'Natural Woods',
+        category: 'Textured & Decorative',
         baseColor: '#cc9d67',
         filename: '9669_a.jpg',
         width: '36px',
@@ -3782,7 +3783,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-10487',
         name: 'Natural Flat',
-        category: 'Modern & Minimalist',
+        category: 'Wood Finishes',
         baseColor: '#eac99d',
         filename: '10487_corner_a.jpg',
         width: '24px',
@@ -3867,7 +3868,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-10326',
         name: 'Ornate Bronze',
-        category: 'Natural Woods',
+        category: 'Ornate & Antique',
         baseColor: '#776e66',
         filename: '10326_a.jpg',
         width: '24px',
@@ -3884,7 +3885,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-10713',
         name: 'Ornate Burnished Gold with Beaded Edge',
-        category: 'Natural Woods',
+        category: 'Ornate & Antique',
         baseColor: '#a88e67',
         filename: '10713_b.jpg',
         width: '24px',
@@ -3901,7 +3902,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-11239',
         name: 'Ornate Gold',
-        category: 'Natural Woods',
+        category: 'Ornate & Antique',
         baseColor: '#be8947',
         filename: 'pos5_11239_corner_a_1.jpg',
         width: '24px',
@@ -3935,7 +3936,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-9535',
         name: 'Ornate Mahogany',
-        category: 'Natural Woods',
+        category: 'Ornate & Antique',
         baseColor: '#6f6156',
         filename: '9535_a.jpg',
         width: '36px',
@@ -3969,7 +3970,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-9732',
         name: 'Ornate Scoop Antique Gold',
-        category: 'Natural Woods',
+        category: 'Ornate & Antique',
         baseColor: '#8f785c',
         filename: '9732_a_1_1.jpg',
         width: '36px',
@@ -3986,7 +3987,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-9733',
         name: 'Ornate Scoop Antique Silver',
-        category: 'Natural Woods',
+        category: 'Ornate & Antique',
         baseColor: '#837b6f',
         filename: '9733_a_1.jpg',
         width: '36px',
@@ -4037,7 +4038,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-11151',
         name: 'Oyster Shell',
-        category: 'Rustic & Distressed',
+        category: 'Textured & Decorative',
         baseColor: '#776962',
         filename: 'pos6_11151_corner_a_1_1.jpg',
         width: '24px',
@@ -4071,7 +4072,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-10235',
         name: 'Pewter Contemporary',
-        category: 'Natural Woods',
+        category: 'Modern & Minimalist',
         baseColor: '#8e867f',
         filename: '10235_a_1.jpg',
         width: '24px',
@@ -4088,7 +4089,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-84134',
         name: 'Pewter Grey Silver Textured Scoop',
-        category: 'Rustic & Distressed',
+        category: 'Textured & Decorative',
         baseColor: '#aab1a9',
         filename: '84134_a.jpg',
         width: '24px',
@@ -4122,7 +4123,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-84074',
         name: 'Raw Ayous',
-        category: 'Classic & Traditional',
+        category: 'Wood Finishes',
         baseColor: '#fdf0d6',
         filename: '84074-a_1.jpg',
         width: '24px',
@@ -4139,7 +4140,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-11201',
         name: 'Red Burl',
-        category: 'Natural Woods',
+        category: 'Wood Finishes',
         baseColor: '#af1324',
         filename: '11201_corner_a.jpg',
         width: '24px',
@@ -4224,7 +4225,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-11251',
         name: 'Rustic Black',
-        category: 'Natural Woods',
+        category: 'Rustic & Distressed',
         baseColor: '#66615b',
         filename: '11251_corner_a_1_1.jpg',
         width: '24px',
@@ -4275,7 +4276,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-11252',
         name: 'Rustic Brown',
-        category: 'Natural Woods',
+        category: 'Rustic & Distressed',
         baseColor: '#948273',
         filename: 'pos5_11252_corner_a_2.jpg',
         width: '24px',
@@ -4309,7 +4310,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-11253',
         name: 'Rustic Cherry',
-        category: 'Natural Woods',
+        category: 'Rustic & Distressed',
         baseColor: '#8e6b6a',
         filename: '11253_corner_a_1_1.jpg',
         width: '24px',
@@ -4360,7 +4361,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-10832',
         name: 'Rustic Gold',
-        category: 'Natural Woods',
+        category: 'Rustic & Distressed',
         baseColor: '#9a7c59',
         filename: 'pos5_10832_corner_a.jpg',
         width: '24px',
@@ -4377,7 +4378,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-10827',
         name: 'Rustic Mahogany',
-        category: 'Natural Woods',
+        category: 'Rustic & Distressed',
         baseColor: '#4b474a',
         filename: '10827_corner_a.jpg',
         width: '24px',
@@ -4394,7 +4395,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-11250',
         name: 'Rustic Natural',
-        category: 'Natural Woods',
+        category: 'Rustic & Distressed',
         baseColor: '#c5b4a1',
         filename: '11250_corner_a_1_1.jpg',
         width: '24px',
@@ -4428,7 +4429,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-10831',
         name: 'Rustic Pewter',
-        category: 'Natural Woods',
+        category: 'Rustic & Distressed',
         baseColor: '#625f62',
         filename: '10831_corner_a_1_1.jpg',
         width: '24px',
@@ -4444,7 +4445,7 @@ export const FRAME_STYLES = [
     },
     {
         id: 'frame-83887',
-        name: 'Rustic Red Laquer',
+        name: 'Rustic Red Lacquer',
         category: 'Rustic & Distressed',
         baseColor: '#e27671',
         filename: '83887a.jpg',
@@ -4452,7 +4453,7 @@ export const FRAME_STYLES = [
         widthCategory: 'standard',
         priceMod: 1.2,
         type: 'Picture Frame',
-        desc: 'Rustic Red Laquer.',
+        desc: 'Rustic Red Lacquer.',
         previewImg: '/frames/assets/rustic-red-laquer-picture-frame/83887a.jpg',
         mouldingWidthIn: 1.25,
         rabbetDepthIn: 0.75,
@@ -4462,7 +4463,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-10833',
         name: 'Rustic Silver',
-        category: 'Natural Woods',
+        category: 'Rustic & Distressed',
         baseColor: '#a2a2a1',
         filename: '10833_corner_a.jpg',
         width: '24px',
@@ -4496,7 +4497,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-10828',
         name: 'Rustic White',
-        category: 'Natural Woods',
+        category: 'Rustic & Distressed',
         baseColor: '#d8d7d4',
         filename: '10828_corner_a.jpg',
         width: '24px',
@@ -4547,7 +4548,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-11259',
         name: 'Rustic White Washed',
-        category: 'Natural Woods',
+        category: 'Rustic & Distressed',
         baseColor: '#eadccb',
         filename: 'pos5_11259_corner_a_2.jpg',
         width: '24px',
@@ -4615,7 +4616,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-9666',
         name: 'Silver Bamboo with Decorative Lip',
-        category: 'Natural Woods',
+        category: 'Textured & Decorative',
         baseColor: '#ab977e',
         filename: '9666_a.jpg',
         width: '24px',
@@ -4632,7 +4633,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-11167',
         name: 'Silver Flat',
-        category: 'Natural Woods',
+        category: 'Modern & Minimalist',
         baseColor: '#9c9c99',
         filename: '11167_corner_a_1_1.jpg',
         width: '24px',
@@ -4683,7 +4684,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-11164',
         name: 'Silver Sloped',
-        category: 'Textured & Decorative',
+        category: 'Modern & Minimalist',
         baseColor: '#d9d5d1',
         filename: '11164_corner_a_1_1.jpg',
         width: '24px',
@@ -4717,7 +4718,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-84039',
         name: 'Silver Square with Beads',
-        category: 'Modern & Minimalist',
+        category: 'Classic & Traditional',
         baseColor: '#e5e1c4',
         filename: 'pos1_84039_a.jpg',
         width: '24px',
@@ -4734,7 +4735,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-84069',
         name: 'Silver Water Gild Reverse',
-        category: 'Textured & Decorative',
+        category: 'Classic & Traditional',
         baseColor: '#cbc8b0',
         filename: 'pos1_84069_a.jpg',
         width: '24px',
@@ -4768,7 +4769,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-9911',
         name: 'Silver With Black Lip',
-        category: 'Natural Woods',
+        category: 'Modern & Minimalist',
         baseColor: '#ada699',
         filename: '9911_a_1.jpg',
         width: '24px',
@@ -4785,7 +4786,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-8607',
         name: 'Silver with Black Side',
-        category: 'Natural Woods',
+        category: 'Modern & Minimalist',
         baseColor: '#c0bbb4',
         filename: '8607_corner_a_1_1.jpg',
         width: '24px',
@@ -4870,7 +4871,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-9935',
         name: 'Stainless Steel Flat',
-        category: 'Natural Woods',
+        category: 'Modern & Minimalist',
         baseColor: '#bdc4cc',
         filename: '9935_corner_a.jpg',
         width: '24px',
@@ -4904,7 +4905,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-9213',
         name: 'Textured Black Contemporary',
-        category: 'Modern & Minimalist',
+        category: 'Textured & Decorative',
         baseColor: '#525250',
         filename: '9213_a.jpg',
         width: '24px',
@@ -4938,7 +4939,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-84081',
         name: 'Thin Gold Water Gild Reverse',
-        category: 'Textured & Decorative',
+        category: 'Classic & Traditional',
         baseColor: '#f0d898',
         filename: 'pos1_84081_a.jpg',
         width: '24px',
@@ -4955,7 +4956,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-84082',
         name: 'Thin Silver Water Gild Reverse',
-        category: 'Textured & Decorative',
+        category: 'Classic & Traditional',
         baseColor: '#e0e3d7',
         filename: 'pos1_84082_a.jpg',
         width: '24px',
@@ -5006,7 +5007,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-83632',
         name: 'Umbrian Olive',
-        category: 'Classic & Traditional',
+        category: 'Wood Finishes',
         baseColor: '#d9cdbd',
         filename: 'pos1_83632a_1.jpg',
         width: '24px',
@@ -5023,7 +5024,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-10171',
         name: 'Waffle Weave Black',
-        category: 'Modern & Minimalist',
+        category: 'Textured & Decorative',
         baseColor: '#66625b',
         filename: '10171_a.jpg',
         width: '24px',
@@ -5040,7 +5041,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-8575',
         name: 'Walnut Bamboo',
-        category: 'Natural Woods',
+        category: 'Textured & Decorative',
         baseColor: '#726662',
         filename: '8575_a.jpg',
         width: '24px',
@@ -5057,7 +5058,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-9667',
         name: 'Walnut Bamboo with Decorative Lip',
-        category: 'Natural Woods',
+        category: 'Textured & Decorative',
         baseColor: '#735d53',
         filename: '9667_a.jpg',
         width: '36px',
@@ -5073,15 +5074,15 @@ export const FRAME_STYLES = [
     },
     {
         id: 'frame-8709',
-        name: 'Walnut Burl Reverse Slop',
-        category: 'Natural Woods',
+        name: 'Walnut Burl Reverse Slope',
+        category: 'Wood Finishes',
         baseColor: '#6f5446',
         filename: '8709_a.jpg',
         width: '24px',
         widthCategory: 'standard',
         priceMod: 1.2,
         type: 'Picture Frame',
-        desc: 'Walnut Burl Reverse Slop.',
+        desc: 'Walnut Burl Reverse Slope.',
         previewImg: '/frames/assets/walnut-burl-reverse-slop-picture-frame/8709_a.jpg',
         mouldingWidthIn: 1.25,
         rabbetDepthIn: 0.5625,
@@ -5091,7 +5092,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-81047',
         name: 'Walnut Burl Transverse Panel With Raised Back & Lip',
-        category: 'Natural Woods',
+        category: 'Classic & Traditional',
         baseColor: '#876e64',
         filename: '81047a.jpg',
         width: '36px',
@@ -5108,7 +5109,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-8745',
         name: 'Walnut Flat',
-        category: 'Natural Woods',
+        category: 'Wood Finishes',
         baseColor: '#634139',
         filename: '8745_corner_a.jpg',
         width: '24px',
@@ -5125,7 +5126,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-84154',
         name: 'Walnut Square',
-        category: 'Modern & Minimalist',
+        category: 'Wood Finishes',
         baseColor: '#d2c098',
         filename: 'pos1_84154_a_1.jpg',
         width: '24px',
@@ -5142,7 +5143,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-11005',
         name: 'Walnut With Gold Edge',
-        category: 'Natural Woods',
+        category: 'Classic & Traditional',
         baseColor: '#785a4d',
         filename: '11005_corner_a_1_1.jpg',
         width: '36px',
@@ -5159,7 +5160,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-10595',
         name: 'Walnut with Gold Lip',
-        category: 'Natural Woods',
+        category: 'Classic & Traditional',
         baseColor: '#655c54',
         filename: '10595_b_1.jpg',
         width: '36px',
@@ -5176,7 +5177,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-10602',
         name: 'Walnut with Silver Edge',
-        category: 'Modern & Minimalist',
+        category: 'Classic & Traditional',
         baseColor: '#5f5951',
         filename: '10602_b.jpg',
         width: '24px',
@@ -5193,7 +5194,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-10604',
         name: 'Walnut with Silver Lip',
-        category: 'Natural Woods',
+        category: 'Classic & Traditional',
         baseColor: '#5f564e',
         filename: '10604_b_1.jpg',
         width: '24px',
@@ -5210,7 +5211,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-10397',
         name: 'Weathered Black',
-        category: 'Natural Woods',
+        category: 'Rustic & Distressed',
         baseColor: '#63625e',
         filename: '10397_a.jpg',
         width: '24px',
@@ -5261,7 +5262,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-10587',
         name: 'White Barnwood',
-        category: 'Natural Woods',
+        category: 'Rustic & Distressed',
         baseColor: '#dacdbe',
         filename: '10587_corner_a.jpg',
         width: '24px',
@@ -5278,7 +5279,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-10643',
         name: 'White Birch Scoop',
-        category: 'Modern & Minimalist',
+        category: 'Wood Finishes',
         baseColor: '#e3dbd3',
         filename: 'pos4_10643_corner_a.jpg',
         width: '24px',
@@ -5295,7 +5296,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-8989',
         name: 'White Flat',
-        category: 'Natural Woods',
+        category: 'Modern & Minimalist',
         baseColor: '#e6eaed',
         filename: 'pos5_8989_corner_a.jpg',
         width: '24px',
@@ -5312,7 +5313,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-10732',
         name: 'White Renaissance',
-        category: 'Modern & Minimalist',
+        category: 'Ornate & Antique',
         baseColor: '#d8d9db',
         filename: '10732_corner_a.jpg',
         width: '24px',
@@ -5329,7 +5330,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-11197',
         name: 'White Wash Sloped',
-        category: 'Natural Woods',
+        category: 'Rustic & Distressed',
         baseColor: '#efe4de',
         filename: 'pos1_11197-a.jpg',
         width: '24px',
@@ -5346,7 +5347,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-10485',
         name: 'White Washed Flat',
-        category: 'Natural Woods',
+        category: 'Rustic & Distressed',
         baseColor: '#e0dcdb',
         filename: '10485b_corner_a.jpg',
         width: '24px',
@@ -5380,7 +5381,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-84159',
         name: 'White With Clear Wood',
-        category: 'Natural Woods',
+        category: 'Wood Finishes',
         baseColor: '#e5dfc8',
         filename: 'pos1_84159_a_3.jpg',
         width: '24px',
@@ -5397,7 +5398,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-84160',
         name: 'White With Walnut Wood',
-        category: 'Natural Woods',
+        category: 'Wood Finishes',
         baseColor: '#8f867b',
         filename: 'pos1_84160_a_1.jpg',
         width: '24px',
@@ -5414,7 +5415,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-10928',
         name: 'White with Weathered Lip',
-        category: 'Modern & Minimalist',
+        category: 'Rustic & Distressed',
         baseColor: '#dfd2c1',
         filename: '10928_b.jpg',
         width: '36px',
@@ -5465,7 +5466,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-9448',
         name: 'Wide Beveled Black Contemporary',
-        category: 'Natural Woods',
+        category: 'Modern & Minimalist',
         baseColor: '#4f5050',
         filename: '9448_corner_a.jpg',
         width: '24px',
@@ -5482,7 +5483,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-9479',
         name: 'Wide Black Bamboo',
-        category: 'Modern & Minimalist',
+        category: 'Textured & Decorative',
         baseColor: '#7e7470',
         filename: '9479a.jpg',
         width: '36px',
@@ -5499,7 +5500,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-11000',
         name: 'Wide Black Traditional',
-        category: 'Modern & Minimalist',
+        category: 'Classic & Traditional',
         baseColor: '#78716b',
         filename: 'pos1_11000a.jpg',
         width: '36px',
@@ -5516,7 +5517,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-9942',
         name: 'Wide Bronze Flat',
-        category: 'Natural Woods',
+        category: 'Modern & Minimalist',
         baseColor: '#a88f71',
         filename: '9942_a_1.jpg',
         width: '36px',
@@ -5550,7 +5551,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-83730',
         name: 'Wide Glossy Blue Scoop',
-        category: 'Rustic & Distressed',
+        category: 'Glossy Finishes',
         baseColor: '#1fc5dc',
         filename: '83730_a.jpg',
         width: '24px',
@@ -5567,7 +5568,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-83731',
         name: 'Wide Glossy Charcoal Scoop',
-        category: 'Textured & Decorative',
+        category: 'Glossy Finishes',
         baseColor: '#3d3b38',
         filename: '83731_a.jpg',
         width: '24px',
@@ -5584,7 +5585,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-83729',
         name: 'Wide Glossy Green Scoop',
-        category: 'Textured & Decorative',
+        category: 'Glossy Finishes',
         baseColor: '#6cce67',
         filename: '83729_a.jpg',
         width: '24px',
@@ -5601,7 +5602,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-83727',
         name: 'Wide Glossy Orange Scoop',
-        category: 'Textured & Decorative',
+        category: 'Glossy Finishes',
         baseColor: '#fd902d',
         filename: '83727_a.jpg',
         width: '24px',
@@ -5618,7 +5619,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-83726',
         name: 'Wide Glossy Red Scoop',
-        category: 'Textured & Decorative',
+        category: 'Glossy Finishes',
         baseColor: '#fb6162',
         filename: '83726_a.jpg',
         width: '24px',
@@ -5635,7 +5636,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-83728',
         name: 'Wide Glossy Yellow Scoop',
-        category: 'Textured & Decorative',
+        category: 'Glossy Finishes',
         baseColor: '#fdda3b',
         filename: '83728_a.jpg',
         width: '24px',
@@ -5669,7 +5670,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-84070',
         name: 'Wide Gold Water Gild Reverse',
-        category: 'Textured & Decorative',
+        category: 'Classic & Traditional',
         baseColor: '#f0d261',
         filename: 'pos1_84070_a.jpg',
         width: '24px',
@@ -5686,7 +5687,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-10272',
         name: 'Wide Natural Bamboo',
-        category: 'Natural Woods',
+        category: 'Textured & Decorative',
         baseColor: '#c78e58',
         filename: '10272_corner_a.jpg',
         width: '36px',
@@ -5703,7 +5704,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-84137',
         name: 'Wide Pewter Grey Silver Textured Scoop',
-        category: 'Rustic & Distressed',
+        category: 'Textured & Decorative',
         baseColor: '#b6baad',
         filename: 'pos1_84137_a.jpg',
         width: '24px',
@@ -5771,7 +5772,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-10834',
         name: 'Wide Rustic Mahogany',
-        category: 'Natural Woods',
+        category: 'Rustic & Distressed',
         baseColor: '#4a4649',
         filename: '10834_corner_a.jpg',
         width: '24px',
@@ -5839,7 +5840,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-9654',
         name: 'Wide Silver Bamboo',
-        category: 'Natural Woods',
+        category: 'Textured & Decorative',
         baseColor: '#cebca7',
         filename: '9654a.jpg',
         width: '36px',
@@ -5873,7 +5874,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-84071',
         name: 'Wide Silver Water Gild Reverse',
-        category: 'Textured & Decorative',
+        category: 'Classic & Traditional',
         baseColor: '#dcd9c0',
         filename: 'pos1_84071_a.jpg',
         width: '36px',
@@ -5890,7 +5891,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-9945',
         name: 'Wide Stainless Steel Flat',
-        category: 'Natural Woods',
+        category: 'Modern & Minimalist',
         baseColor: '#ced0d3',
         filename: '9945_corner_a.jpg',
         width: '24px',
@@ -5907,7 +5908,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-9658',
         name: 'Wide Walnut Bamboo',
-        category: 'Natural Woods',
+        category: 'Textured & Decorative',
         baseColor: '#917065',
         filename: '9658a.jpg',
         width: '36px',
@@ -5924,7 +5925,7 @@ export const FRAME_STYLES = [
     {
         id: 'frame-8991',
         name: 'Wide White Flat',
-        category: 'Natural Woods',
+        category: 'Modern & Minimalist',
         baseColor: '#e7e9eb',
         filename: 'pos5_8991_corner_a.jpg',
         width: '24px',

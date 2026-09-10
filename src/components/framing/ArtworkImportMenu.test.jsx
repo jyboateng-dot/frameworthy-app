@@ -73,4 +73,18 @@ describe('ArtworkImportMenu', () => {
             expect(screen.queryByRole('menuitem', { name: 'Google Drive' })).not.toBeInTheDocument();
         });
     });
+
+    it('keeps the source menu anchored to the upload control on small screens', () => {
+        const originalMatchMedia = window.matchMedia;
+        window.matchMedia = vi.fn().mockReturnValue({ matches: true, addEventListener: vi.fn(), removeEventListener: vi.fn() });
+        const { container, unmount } = render(<ArtworkImportMenu isPlaceholder onFile={vi.fn()} />);
+
+        fireEvent.click(screen.getByRole('button', { name: 'Upload Image' }));
+        const menu = screen.getByRole('menu');
+        expect(menu.parentElement?.parentElement).toBe(container.firstChild);
+        expect(screen.queryByRole('button', { name: 'Close image sources' })).not.toBeInTheDocument();
+
+        unmount();
+        window.matchMedia = originalMatchMedia;
+    });
 });

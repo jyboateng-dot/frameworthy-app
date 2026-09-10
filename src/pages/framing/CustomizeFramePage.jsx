@@ -3207,7 +3207,7 @@ const CustomizeFramePage = ({
                                 />
                                 <div className="text-left">
                                     <p className="text-sm font-bold text-stone-900">{isPreset && presetTitle ? presetTitle : selectedFrame.name}</p>
-                                    <p className="text-[10px] text-stone-500">{isPreset && presetDims ? presetDims : selectedFrame.category}</p>
+                                    <p className="text-[10px] text-stone-500">{isPreset && presetDims ? presetDims : (FRAME_STYLES.find(frame => frame.id === selectedFrame.id)?.category || selectedFrame.category)}</p>
                                 </div>
                             </div>
                             <div className="w-7 h-7 rounded-full bg-stone-100 flex items-center justify-center group-hover:bg-stone-200 transition-colors">
@@ -3648,8 +3648,7 @@ const CustomizeFramePage = ({
 
             {/* Frame Selection Modal — gated here (rather than relying on its
                 own isOpen-guard return null) so it fully unmounts on close,
-                resetting its internal activeCategory tab back to the default
-                on every reopen instead of leaving it wherever it was last. */}
+                restoring the selected frame's current catalogue tab on reopen. */}
             {isFrameModalOpen && (
                 <FrameSelectionModal
                     isOpen={isFrameModalOpen}

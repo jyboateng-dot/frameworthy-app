@@ -23,7 +23,7 @@ const FAQ_DATA = [
             },
             {
                 q: 'What frame styles and aesthetic categories are available?',
-                a: 'Our catalogue features over 342 handcrafted, museum-quality frame profiles categorized into design aesthetics: Modern & Minimalist, Classic Wood & Natural Woods, Ornate & Antique, Rustic & Distressed, Metal & Sleek, Glossy Finishes, and Gallery Wrapped Canvas & Floater Frames. You can also select profile depth options ranging from thin minimalist mouldings to deep shadowbox frames.'
+                a: 'Our frame collection includes Modern & Minimalist, Wood Finishes, Classic & Traditional, Ornate & Antique, Rustic & Distressed, Glossy Finishes, Textured & Decorative, and Canvas. Explore narrow, wide, and deep profiles to suit your artwork.'
             },
             {
                 q: 'What frame sizes do you offer and can I enter custom dimensions?',
