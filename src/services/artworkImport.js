@@ -94,7 +94,12 @@ function loadGooglePicker() {
 function pickGoogleDriveFile(token) {
     return new Promise((resolve, reject) => {
         const pickerApi = window.google.picker;
-        const view = new pickerApi.DocsView(pickerApi.ViewId.DOCS_IMAGES).setMode(pickerApi.DocsViewMode.THUMBNAILS);
+        // LIST mode, not GRID: the drive.file scope grants no access to a file
+        // until the customer picks it, so Google renders no thumbnails in the
+        // browse view — a grid would just be a wall of blank tiles. (The old
+        // value here, DocsViewMode.THUMBNAILS, isn't a real enum member, so it
+        // silently fell back to GRID.)
+        const view = new pickerApi.DocsView(pickerApi.ViewId.DOCS_IMAGES).setMode(pickerApi.DocsViewMode.LIST);
         new pickerApi.PickerBuilder()
             .addView(view)
             .setOAuthToken(token)
