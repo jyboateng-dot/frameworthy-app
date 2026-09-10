@@ -19,7 +19,7 @@ const PrivacyPage = ({ navigate }) => (
             <p><strong>Account information</strong> — name, email address, and (if you sign in with Google) your Google profile name and email.</p>
             <p><strong>Order &amp; delivery information</strong> — full name, phone number, and delivery address for each order.</p>
             <p><strong>Content you upload</strong> — photos and images you upload to customize a frame.</p>
-            <p><strong>Cloud imports</strong> — if you choose an image from Google Drive, we use Google's read-only access to display thumbnails in the file picker. After you select a file, we download that selected image for customization and order fulfillment. We do not edit or delete files in your Google Drive.</p>
+            <p><strong>Cloud imports</strong> — if you choose an image from Google Drive, Google Picker lets you select the specific file to share with FrameWorthy. We access only that selected image to customize and fulfill your order. We do not browse, edit, or delete other files in your Google Drive.</p>
             <p><strong>Order &amp; payment history</strong> — the products, customizations, and amounts of orders you place. We do not receive or store your full card number, CVV, or mobile money PIN — those are handled directly by Paystack.</p>
             <p><strong>Local device data</strong> — your cart and wishlist are stored in your browser's local storage so they persist between visits, even before you sign in.</p>
         </LegalSection>

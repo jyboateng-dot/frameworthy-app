@@ -24,7 +24,7 @@ describe('getGoogleDriveAccessToken', () => {
         await expect(getGoogleDriveAccessToken()).rejects.toThrow('isn’t set up yet');
     });
 
-    it('resolves the access token from a successful sign-in, requesting the drive.readonly scope', async () => {
+    it('resolves the access token from a successful sign-in, requesting the per-file Drive scope', async () => {
         const initTokenClient = vi.fn((opts) => ({
             requestAccessToken: () => opts.callback({ access_token: 'tok-drive', expires_in: 3600 }),
         }));
@@ -33,7 +33,7 @@ describe('getGoogleDriveAccessToken', () => {
 
         await expect(getGoogleDriveAccessToken()).resolves.toBe('tok-drive');
         expect(initTokenClient).toHaveBeenCalledWith(
-            expect.objectContaining({ scope: 'https://www.googleapis.com/auth/drive.readonly' })
+            expect.objectContaining({ scope: 'https://www.googleapis.com/auth/drive.file' })
         );
     });
 
