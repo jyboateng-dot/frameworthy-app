@@ -2698,8 +2698,12 @@ const CustomizeFramePage = ({
 
                                     {/* Dimension Overlays (fade out in the
                                         full-screen enhanced view — chrome-free
-                                        by design — instead of hard-unmounting) */}
-                                    {showDimensions && (
+                                        by design — instead of hard-unmounting).
+                                        Plain scene skips these entirely — the
+                                        Dimensions panel already states the exact
+                                        size, and the overlay only earns its
+                                        keep as a scale cue against a real room. */}
+                                    {showDimensions && activeRoom && (
                                         <>
                                             <div style={{ fontSize: `${dimFontSizePx}px` }} className={`absolute ${dimHorizontalClass} left-0 w-full flex items-center justify-center ${wallInkClass} font-mono ${useOriginalDimensionPlacement ? `border-t ${wallInkBorderClass} pt-1` : `border-b ${wallInkBorderClass} pb-1`} ${wallInkBlend} ${isFullScreen ? 'opacity-0' : 'opacity-80'} transition-all ${ZOOM_MOTION} whitespace-nowrap overflow-visible pointer-events-none`}>
                                                 <div className={`absolute left-0 ${useOriginalDimensionPlacement ? 'top-0' : 'bottom-0'} h-1.5 sm:h-2 w-px ${wallInkBgClass}`} />
