@@ -16,11 +16,7 @@ vi.mock('../../services/artworkImport', () => ({
 }));
 
 describe('ArtworkImportMenu', () => {
-    beforeEach(() => {
-        vi.clearAllMocks();
-        URL.createObjectURL = vi.fn(() => 'blob:preview');
-        URL.revokeObjectURL = vi.fn();
-    });
+    beforeEach(() => vi.clearAllMocks());
 
     it('shows configured sources and imports a pasted image link', async () => {
         const file = new File(['pixels'], 'linked.png', { type: 'image/png' });
@@ -64,38 +60,6 @@ describe('ArtworkImportMenu', () => {
         fireEvent.change(container.querySelector('input[type="file"]'), { target: { files: [] } });
 
         expect(screen.queryByRole('menuitem', { name: 'Google Drive' })).not.toBeInTheDocument();
-    });
-
-    it('previews a Drive pick and applies it only after confirmation', async () => {
-        const file = new File(['pixels'], 'sunset.jpg', { type: 'image/jpeg' });
-        const onFile = vi.fn();
-        importArtworkFromCloud.mockResolvedValue({ file, source: 'drive', name: file.name, mimeType: file.type });
-        render(<ArtworkImportMenu isPlaceholder onFile={onFile} />);
-
-        fireEvent.click(screen.getByRole('button', { name: 'Upload Image' }));
-        fireEvent.click(screen.getByRole('menuitem', { name: 'Google Drive' }));
-
-        expect(await screen.findByText('Use this image?')).toBeInTheDocument();
-        expect(screen.getByRole('img', { name: 'sunset.jpg' })).toHaveAttribute('src', 'blob:preview');
-        expect(onFile).not.toHaveBeenCalled();
-
-        fireEvent.click(screen.getByRole('button', { name: 'Use this' }));
-        expect(onFile).toHaveBeenCalledWith(file);
-    });
-
-    it('returns to the source list when the Drive preview is rejected', async () => {
-        const file = new File(['pixels'], 'wrong.jpg', { type: 'image/jpeg' });
-        const onFile = vi.fn();
-        importArtworkFromCloud.mockResolvedValue({ file, source: 'drive', name: file.name, mimeType: file.type });
-        render(<ArtworkImportMenu isPlaceholder onFile={onFile} />);
-
-        fireEvent.click(screen.getByRole('button', { name: 'Upload Image' }));
-        fireEvent.click(screen.getByRole('menuitem', { name: 'Google Drive' }));
-        fireEvent.click(await screen.findByRole('button', { name: 'Choose another' }));
-
-        expect(screen.getByRole('menuitem', { name: 'Google Drive' })).toBeInTheDocument();
-        expect(onFile).not.toHaveBeenCalled();
-        expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:preview');
     });
 
     it('closes the menu when a cloud picker is cancelled', async () => {

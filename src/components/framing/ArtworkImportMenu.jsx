@@ -15,27 +15,16 @@ export default function ArtworkImportMenu({ isPlaceholder, isUploading, onFile, 
     const [view, setView] = useState('sources');
     const [url, setUrl] = useState('');
     const [pendingSource, setPendingSource] = useState('');
-    const [pending, setPending] = useState(null);
     const [error, setError] = useState('');
     const rootRef = useRef(null);
     const panelRef = useRef(null);
     const urlInputRef = useRef(null);
-    const previewUrlRef = useRef('');
     const busy = Boolean(isUploading || disabled || pendingSource);
 
-    const revokePreview = () => {
-        if (previewUrlRef.current) {
-            URL.revokeObjectURL(previewUrlRef.current);
-            previewUrlRef.current = '';
-        }
-    };
-
     const reset = useCallback(() => {
-        revokePreview();
         setView('sources');
         setUrl('');
         setPendingSource('');
-        setPending(null);
         setError('');
     }, []);
 
@@ -72,35 +61,9 @@ export default function ArtworkImportMenu({ isPlaceholder, isUploading, onFile, 
         if (view === 'url') requestAnimationFrame(() => urlInputRef.current?.focus());
     }, [view]);
 
-    useEffect(() => () => revokePreview(), []);
-
     const finishImport = (artwork) => {
         onFile(artwork.file);
         close();
-    };
-
-    // The Google Drive picker can't show thumbnails under the drive.file scope,
-    // so the customer picks by filename alone. Show the downloaded image and let
-    // them confirm before it lands on the frame.
-    const previewImport = (artwork) => {
-        revokePreview();
-        previewUrlRef.current = URL.createObjectURL(artwork.file);
-        setPending({ artwork, previewUrl: previewUrlRef.current });
-        setPendingSource('');
-        setError('');
-        setView('confirm');
-    };
-
-    const confirmPending = () => {
-        if (pending) onFile(pending.artwork.file);
-        close();
-    };
-
-    const discardPending = () => {
-        revokePreview();
-        setPending(null);
-        setError('');
-        setView('sources');
     };
 
     const handleDeviceFile = async (event) => {
@@ -122,7 +85,7 @@ export default function ArtworkImportMenu({ isPlaceholder, isUploading, onFile, 
         setPendingSource(provider);
         setError('');
         try {
-            previewImport(await importArtworkFromCloud(provider));
+            finishImport(await importArtworkFromCloud(provider));
         } catch (importError) {
             if (importError.message === 'No image was selected.') {
                 close();
@@ -155,43 +118,7 @@ export default function ArtworkImportMenu({ isPlaceholder, isUploading, onFile, 
             ref={panelRef}
             className="absolute z-20 top-full left-0 mt-1.5 w-64 max-w-[calc(100vw-2rem)] bg-white border border-stone-200 rounded-lg shadow-lg overflow-hidden"
         >
-            {view === 'confirm' ? (
-                <div className="p-2.5">
-                    <div className="flex items-center gap-1.5 mb-2">
-                        <button
-                            type="button"
-                            onClick={discardPending}
-                            className="w-6 h-6 flex items-center justify-center text-stone-400 hover:text-stone-700"
-                            aria-label="Choose a different image"
-                        >
-                            <ArrowLeft size={14} />
-                        </button>
-                        <span className="text-[11px] font-bold uppercase tracking-wider text-stone-600">Use this image?</span>
-                    </div>
-                    <img
-                        src={pending?.previewUrl}
-                        alt={pending?.artwork.name || 'Selected image'}
-                        className="w-full h-40 object-contain rounded-lg border border-stone-200 bg-stone-50"
-                    />
-                    <p className="mt-1.5 text-[11px] text-stone-500 truncate">{pending?.artwork.name}</p>
-                    <div className="mt-2 flex gap-1.5">
-                        <button
-                            type="button"
-                            onClick={discardPending}
-                            className="flex-1 py-1.5 rounded-lg border border-stone-300 text-[11px] font-bold uppercase tracking-wider text-stone-600 hover:bg-stone-50 transition-colors"
-                        >
-                            Choose another
-                        </button>
-                        <button
-                            type="button"
-                            onClick={confirmPending}
-                            className="flex-1 py-1.5 rounded-lg bg-stone-900 text-white text-[11px] font-bold uppercase tracking-wider hover:bg-stone-800 transition-colors"
-                        >
-                            Use this
-                        </button>
-                    </div>
-                </div>
-            ) : view === 'sources' ? (
+            {view === 'sources' ? (
                 <div role="menu" className="py-1">
                     <FileSourceRow onChange={handleDeviceFile} />
                     {Object.entries(ARTWORK_IMPORT_SOURCES).map(([key, source]) => {
