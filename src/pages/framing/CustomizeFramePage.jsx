@@ -1693,6 +1693,14 @@ const CustomizeFramePage = ({
     // mode, which stays legible against any solid color.
     const activeRoom = roomSceneId ? ROOM_SCENES.find((s) => s.id === roomSceneId) : null;
 
+    // Shared by both visualizer caption copies below (full-screen and normal)
+    // so the two can never drift out of sync. Plain scene has no real-world
+    // span to size against, so its rendering isn't to scale; a room scene's
+    // is, against that room's own measured wall.
+    const visualizerNote = activeRoom
+        ? 'Note: Visualizer renderings are digital approximations, shown to scale against the room.'
+        : 'Note: Visualizer renderings are digital approximations. Sizing in this view is not to scale.';
+
     // Computed once and shared: the piece is flex-centred in the zone and the
     // SCENE is offset so the hang point lands on that centre. If the backdrop
     // used the scene's default `hang.y` while the placement raised a tall
@@ -3022,8 +3030,15 @@ const CustomizeFramePage = ({
                             w-[...] (not max-w) on both this div and the <p> below
                             is required — absolute positioning with only `left`
                             set otherwise shrink-to-fits narrower than intended,
-                            wrapping to far more lines than the width math assumed. */}
-                        <p className="w-full line-clamp-2 text-balance">Note: Visualizer renderings are digital approximations. Finished products will feature the exact physical moulding profiles, textures, and details shown in our catalogue.</p>
+                            wrapping to far more lines than the width math assumed.
+                            visualizerNote now varies by scene and reads shorter
+                            than the sentence this was tuned against, so it may
+                            settle on one line rather than two at some
+                            breakpoints — harmless (text-balance is a no-op on a
+                            single line, line-clamp-2 stays a backstop either
+                            way), just not the exact case the width/size above
+                            were measured for. */}
+                        <p className="w-full line-clamp-2 text-balance">{visualizerNote}</p>
                     </div>
                 )}
 
@@ -3124,10 +3139,7 @@ const CustomizeFramePage = ({
                     // reads as a caption, so it can be sized to be read.
                     className="shrink-0 flex items-center justify-center select-none px-5 py-1 text-center text-[10px] sm:text-[12px] leading-relaxed tracking-wide text-stone-500 bg-[#faf9f8]"
                 >
-                    <span className="-translate-y-[5px]">
-                        Note: Visualizer renderings are digital approximations. Finished products will
-                        feature the exact physical moulding profiles, textures, and details shown in our catalogue.
-                    </span>
+                    <span className="-translate-y-[5px]">{visualizerNote}</span>
                 </p>
             )}
             </div>
