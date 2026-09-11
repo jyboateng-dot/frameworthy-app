@@ -401,8 +401,8 @@ export default function ArViewer({
                                 // device, so telling them to grab a phone
                                 // would be telling them to use the one in
                                 // their hand.
-                                ? "Drag to look around. This browser doesn't support wall placement yet — try Chrome, or open this page on one that does."
-                                : 'Click and hold to move the frame around.'}
+                                ? "Select and drag to move the frame around, or pinch to zoom in and out. This browser doesn't support wall placement yet — try Chrome, or open this page on one that does."
+                                : 'Select and drag to move the frame around, or pinch to zoom in and out.'}
                         </p>
                     )}
                     <p className={isViewerOnly ? 'text-[11px] font-medium text-stone-900 text-center max-w-sm' : 'text-[10px] text-stone-500 text-center max-w-sm'}>
