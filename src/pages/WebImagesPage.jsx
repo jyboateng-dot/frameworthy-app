@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Heart, RefreshCw } from 'lucide-react';
-import { FRAME_STYLES, FRAME_SIZES, findSizeByDimension, formatDimensions, parseCustomSize } from '../data/constants';
+import { FRAME_SIZES, findSizeByDimension, formatDimensions, parseCustomSize } from '../data/constants';
 import { useUnit } from '../context/UnitContext';
 import { useWishlist } from '../context/WishlistContext';
 import { UNSPLASH_IMAGES } from '../data/unsplashLocal';
@@ -70,7 +70,7 @@ const ProductCard = ({ product, onGetThis }) => {
     );
 };
 
-const WebImagesPage = ({ setProductMode, setSelectedFrame, setSelectedSize, navigate, isSubPage = false, disableWindowScroll = false }) => {
+const WebImagesPage = ({ setProductMode, setSelectedSize, navigate, isSubPage = false, disableWindowScroll = false }) => {
     const [shuffledImages, setShuffledImages] = useState(currentShuffledImages);
     const [loading, setLoading] = useState(false);
     
@@ -132,18 +132,15 @@ const WebImagesPage = ({ setProductMode, setSelectedFrame, setSelectedSize, navi
     }, [currentPage]);
 
     const handleGetThis = (product) => {
-        const defaultFrame = FRAME_STYLES.find(f => f.id === 'frame-8446') || FRAME_STYLES[0];
         const defaultSize = parseCustomSize(product.dims) || findSizeByDimension(product.dims) || FRAME_SIZES.find(s => s.id === '16x20') || FRAME_SIZES[0];
-        
+
         setProductMode('frame');
-        setSelectedFrame(defaultFrame);
         setSelectedSize(defaultSize);
-        
+
         navigate('/frame/customize', {
             state: {
                 presetImage: product.productionImage,
                 presetTitle: product.title,
-                initialFrame: defaultFrame,
                 initialSize: defaultSize,
                 orientation: defaultSize?.orientation,
             }

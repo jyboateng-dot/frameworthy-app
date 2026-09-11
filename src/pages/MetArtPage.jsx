@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Heart, RefreshCw, ChevronDown } from 'lucide-react';
-import { FRAME_STYLES, FRAME_SIZES, findSizeByDimension, formatDimensions } from '../data/constants';
+import { FRAME_SIZES, findSizeByDimension, formatDimensions } from '../data/constants';
 import { useUnit } from '../context/UnitContext';
 import { useWishlist } from '../context/WishlistContext';
 import { MET_LOCAL_COLLECTIONS } from '../data/metLocal';
@@ -73,7 +73,7 @@ const MetProductCard = ({ product, onGetThis }) => {
     );
 };
 
-const MetArtPage = ({ setProductMode, setSelectedFrame, setSelectedSize, navigate, isSubPage = false, onSelect = null, disableWindowScroll = false }) => {
+const MetArtPage = ({ setProductMode, setSelectedSize, navigate, isSubPage = false, onSelect = null, disableWindowScroll = false }) => {
     // disableWindowScroll is true only inside the in-studio Inspiration
     // modal, where window isn't the real scroll container — isSubPage
     // alone isn't enough (it's also true on the real /inspiration route,
@@ -131,9 +131,6 @@ const MetArtPage = ({ setProductMode, setSelectedFrame, setSelectedSize, navigat
         const filename = product.image.split('/').pop();
         const dims = WEB_MET_DIMS[filename] || '40 x 50 cm';
         
-                const frameObj = FRAME_STYLES.find(f => f.id === 'frame-8446') || FRAME_STYLES[0];
-        if (frameObj) setSelectedFrame(frameObj);
-        
         const sizeObj = findSizeByDimension(dims) || FRAME_SIZES.find(s => s.id === '16x20') || FRAME_SIZES[0];
         if (sizeObj) setSelectedSize(sizeObj);
 
@@ -141,7 +138,6 @@ const MetArtPage = ({ setProductMode, setSelectedFrame, setSelectedSize, navigat
             state: {
                 presetImage: product.image,
                 presetTitle: product.title,
-                initialFrame: frameObj || null,
                 initialSize: sizeObj || null,
                 orientation: product.orientation || sizeObj?.orientation
             }

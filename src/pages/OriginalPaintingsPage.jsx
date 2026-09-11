@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ArrowRight, Heart, ChevronLeft, ChevronRight } from 'lucide-react';
-import { FRAME_STYLES, FRAME_SIZES, findSizeByDimension, formatDimensions, parseCustomSize } from '../data/constants';
+import { FRAME_SIZES, findSizeByDimension, formatDimensions, parseCustomSize } from '../data/constants';
 import { useUnit } from '../context/UnitContext';
 import { useWishlist } from '../context/WishlistContext';
 import SOURCE_DIMS from '../data/source_dims.json';
@@ -71,7 +71,7 @@ const ProductCard = ({ product, onGetThis }) => {
 };
 
 /* ── Page ── */
-const OriginalPaintingsPage = ({ setProductMode, setSelectedFrame, setSelectedSize, navigate, isSubPage = false, disableWindowScroll = false }) => {
+const OriginalPaintingsPage = ({ setProductMode, setSelectedSize, navigate, isSubPage = false, disableWindowScroll = false }) => {
     const { unit } = useUnit();
     // Persisted so navigating away (e.g. to customize a selection) and back
     // to Inspiration restores the same filter/page instead of resetting.
@@ -91,16 +91,14 @@ const OriginalPaintingsPage = ({ setProductMode, setSelectedFrame, setSelectedSi
     // (isSubPage=false) where window always is too.
     const scrollToTop = () => { if (!disableWindowScroll) window.scrollTo({ top: 0, behavior: 'smooth' }); };
 
-    const _loadFrameAndSize = (product) => {
+    const _loadSize = (product) => {
         setProductMode('frame');
-        const frame = FRAME_STYLES.find(f => f.id === 'frame-10512');
-        if (frame) setSelectedFrame(frame);
         const size = parseCustomSize(product.dims) || findSizeByDimension(product.dims) || FRAME_SIZES.find(s => s.id === product.sizeId);
         if (size) setSelectedSize(size);
     };
 
     const handleGetThis = (product) => {
-        _loadFrameAndSize(product);
+        _loadSize(product);
         const filename = product.image.split('/').pop();
         const bestFitDims = SOURCE_DIMS[filename] || product.dims;
         const resolvedSize = parseCustomSize(bestFitDims) || findSizeByDimension(bestFitDims) || FRAME_SIZES.find(s => s.id === product.sizeId) || null;
@@ -108,7 +106,6 @@ const OriginalPaintingsPage = ({ setProductMode, setSelectedFrame, setSelectedSi
             state: {
                 presetImage: product.fullRes,
                 presetTitle: product.title,
-                initialFrame: FRAME_STYLES.find(f => f.id === 'frame-10512') || null,
                 initialSize: resolvedSize,
                 orientation: resolvedSize?.orientation,
                 initialThickness: 'thick',

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ArrowRight, Heart, ChevronLeft, ChevronRight } from 'lucide-react';
-import { FRAME_STYLES, FRAME_SIZES, findSizeByDimension, formatDimensions, parseCustomSize } from '../data/constants';
+import { FRAME_SIZES, findSizeByDimension, formatDimensions, parseCustomSize } from '../data/constants';
 import { useUnit } from '../context/UnitContext';
 import { useWishlist } from '../context/WishlistContext';
 import SOURCE_DIMS from '../data/source_dims.json';
@@ -65,7 +65,7 @@ const ProductCard = ({ product, onGetThis }) => {
 };
 
 /* ── Page ── */
-const CanvasArtPage = ({ setProductMode, setSelectedFrame, setSelectedSize, navigate, isSubPage = false, disableWindowScroll = false }) => {
+const CanvasArtPage = ({ setProductMode, setSelectedSize, navigate, isSubPage = false, disableWindowScroll = false }) => {
     const { unit } = useUnit();
     // Persisted so navigating away (e.g. to customize a selection) and back
     // to Inspiration restores the same filter/page instead of resetting.
@@ -88,15 +88,12 @@ const CanvasArtPage = ({ setProductMode, setSelectedFrame, setSelectedSize, navi
         const bestFitDims = SOURCE_DIMS[filename] || product.dims;
         const resolvedSize = parseCustomSize(bestFitDims) || findSizeByDimension(bestFitDims) || FRAME_SIZES.find(s => s.id === product.sizeId) || null;
         
-        const frame = FRAME_STYLES.find(f => f.id === 'frame-10512');
-        if (frame) setSelectedFrame(frame);
         if (resolvedSize) setSelectedSize(resolvedSize);
-        
+
         navigate('/frame/customize', {
             state: {
                 presetImage: product.fullRes,
                 presetTitle: product.title,
-                initialFrame: frame || null,
                 initialSize: resolvedSize || null,
                 orientation: resolvedSize?.orientation,
                 initialThickness: 'thick',

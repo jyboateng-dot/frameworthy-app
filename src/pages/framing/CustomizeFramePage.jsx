@@ -499,7 +499,12 @@ const CustomizeFramePage = ({
         if (state.productionImage || state.presetImage) {
             setProductionImage(state.productionImage || state.presetImage);
         }
-        if (state.initialFrame) setSelectedFrame(state.initialFrame);
+        // Framed Prints is the one category that locks the frame as a fixed
+        // part of the product (see isPresetFramedPrint below, which greys out
+        // the Frame Style section entirely) — everywhere else, the customer's
+        // current frame selection (or the studio's own default) should stand,
+        // not get silently swapped for whatever a catalogue item suggests.
+        if (state.isPresetFramedPrint && state.initialFrame) setSelectedFrame(state.initialFrame);
         if (state.initialSize) {
             const { size: sizeToApply, wasClamped, clampedShortCm, clampedLongCm } = clampSizeToValidRange(state.initialSize);
             setSelectedSize(sizeToApply);
@@ -885,13 +890,11 @@ const CustomizeFramePage = ({
     const handleMetArtSelect = (art) => {
         const filename = art.image.split('/').pop();
         const dims = WEB_MET_DIMS[filename] || '40 x 50 cm';
-        const frameObj = FRAME_STYLES.find(f => f.id === 'frame-8446') || FRAME_STYLES[0];
         const sizeObj = findSizeByDimension(dims) || FRAME_SIZES.find(s => s.id === '16x20') || FRAME_SIZES[0];
 
         applyInspirationSelection({
             presetImage: art.image,
             presetTitle: art.title,
-            initialFrame: frameObj || null,
             initialSize: sizeObj || null,
             orientation: art.orientation || sizeObj?.orientation
         });

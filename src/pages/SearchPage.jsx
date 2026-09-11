@@ -125,7 +125,7 @@ const ResultCard = ({ result, onGetThis }) => {
     );
 };
 
-const SearchPage = ({ setProductMode, setSelectedFrame, setSelectedSize, navigate, isSubPage = false, onSelectAlbumMovie }) => {
+const SearchPage = ({ setProductMode, setSelectedSize, navigate, isSubPage = false, onSelectAlbumMovie }) => {
     const [query, setQuery] = useState(() => sessionStorage.getItem('fw_search_query') || '');
     const [debouncedQuery, setDebouncedQuery] = useState(query);
     const [webResults, setWebResults] = useState([]);
@@ -271,9 +271,12 @@ const SearchPage = ({ setProductMode, setSelectedFrame, setSelectedSize, navigat
             return;
         }
 
+        // Only the 'inspiration' case below (a locked-preset Framed Print,
+        // same as InspirationPage's own Framed Prints flow) still needs this
+        // — everywhere else the customer's current frame selection should
+        // stand, not get silently swapped for a category default.
         const frameObj = FRAME_STYLES.find(f => f.id === 'frame-8446') || FRAME_STYLES[0];
         setProductMode('frame');
-        if (frameObj) setSelectedFrame(frameObj);
 
         switch (result.category) {
             case 'originals':
@@ -288,7 +291,6 @@ const SearchPage = ({ setProductMode, setSelectedFrame, setSelectedSize, navigat
                 navigate('/frame/customize', {
                     state: {
                         presetImage: p.fullRes,
-                        initialFrame: frameObj || null,
                         initialSize: sizeObj || null,
                         orientation: sizeObj?.orientation,
                         initialThickness: 'thick',
@@ -324,7 +326,6 @@ const SearchPage = ({ setProductMode, setSelectedFrame, setSelectedSize, navigat
                 navigate('/frame/customize', {
                     state: {
                         presetImage: `/unsplash_collection/${p.filename}`,
-                        initialFrame: frameObj || null,
                         initialSize: sizeObj || null,
                         orientation: sizeObj?.orientation,
                     }
@@ -340,7 +341,6 @@ const SearchPage = ({ setProductMode, setSelectedFrame, setSelectedSize, navigat
                 navigate('/frame/customize', {
                     state: {
                         presetImage: p.image,
-                        initialFrame: frameObj || null,
                         initialSize: sizeObj || null,
                         orientation: p.orientation || sizeObj?.orientation
                     }
@@ -354,15 +354,12 @@ const SearchPage = ({ setProductMode, setSelectedFrame, setSelectedSize, navigat
                 // bymuseum.com's generic product photos), so this is the
                 // same fixed default that page uses.
                 const dims = '40 x 50 cm';
-                const museumFrameObj = FRAME_STYLES.find(f => f.id === 'frame-10512') || FRAME_STYLES[0];
                 const sizeObj = resolveSizeFromDims(dims) || FRAME_SIZES.find(s => s.id === '16x20') || FRAME_SIZES[0];
-                if (museumFrameObj) setSelectedFrame(museumFrameObj);
                 if (sizeObj) setSelectedSize(sizeObj);
                 navigate('/frame/customize', {
                     state: {
                         presetImage: p.image,
                         presetTitle: p.artist ? `${p.title} — ${p.artist}` : p.title,
-                        initialFrame: museumFrameObj || null,
                         initialSize: sizeObj || null,
                         orientation: sizeObj?.orientation || 'portrait'
                     }
@@ -376,7 +373,6 @@ const SearchPage = ({ setProductMode, setSelectedFrame, setSelectedSize, navigat
                     state: {
                         presetImage: result.raw.url || result.raw.thumbnail,
                         presetTitle: result.title !== 'Untitled' ? result.title : null,
-                        initialFrame: frameObj || null,
                         initialSize: sizeObj || null,
                     }
                 });

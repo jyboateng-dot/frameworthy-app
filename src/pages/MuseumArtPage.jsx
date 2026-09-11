@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Heart, RefreshCw, ChevronDown } from 'lucide-react';
-import { FRAME_STYLES, FRAME_SIZES, findSizeByDimension, formatDimensions } from '../data/constants';
+import { FRAME_SIZES, findSizeByDimension, formatDimensions } from '../data/constants';
 import { useUnit } from '../context/UnitContext';
 import { useWishlist } from '../context/WishlistContext';
 import { getThumbnailUrl } from '../services/storage';
@@ -98,7 +98,7 @@ const MuseumProductCard = ({ product, onGetThis }) => {
     );
 };
 
-const MuseumArtPage = ({ setProductMode, setSelectedFrame, setSelectedSize, navigate, isSubPage = false, disableWindowScroll = false }) => {
+const MuseumArtPage = ({ setProductMode, setSelectedSize, navigate, isSubPage = false, disableWindowScroll = false }) => {
     const scrollToTop = () => { if (!disableWindowScroll) window.scrollTo({ top: 0, behavior: 'smooth' }); };
 
     const [products, setProducts] = useState(null); // null = still loading
@@ -150,9 +150,6 @@ const MuseumArtPage = ({ setProductMode, setSelectedFrame, setSelectedSize, navi
         setProductMode('frame');
         const dims = '40 x 50 cm';
 
-        const frameObj = FRAME_STYLES.find(f => f.id === 'frame-8446') || FRAME_STYLES[0];
-        if (frameObj) setSelectedFrame(frameObj);
-
         const sizeObj = findSizeByDimension(dims) || FRAME_SIZES.find(s => s.id === '16x20') || FRAME_SIZES[0];
         if (sizeObj) setSelectedSize(sizeObj);
 
@@ -160,7 +157,6 @@ const MuseumArtPage = ({ setProductMode, setSelectedFrame, setSelectedSize, navi
             state: {
                 presetImage: product.image,
                 presetTitle: product.artist ? `${product.title} — ${product.artist}` : product.title,
-                initialFrame: frameObj || null,
                 initialSize: sizeObj || null,
                 orientation: product.orientation || sizeObj?.orientation || 'portrait'
             }

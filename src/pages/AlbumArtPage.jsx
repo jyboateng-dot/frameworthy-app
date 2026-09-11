@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Heart, Search, ChevronLeft, ChevronRight, Loader2, Music } from 'lucide-react';
-import { FRAME_STYLES, FRAME_SIZES } from '../data/constants';
+import { FRAME_SIZES } from '../data/constants';
 import { useWishlist } from '../context/WishlistContext';
 import { fetchAlbumPosterData } from '../utils/albumPoster';
 
@@ -57,7 +57,7 @@ const AlbumProductCard = ({ product, onGetThis }) => {
     );
 };
 
-const AlbumArtPage = ({ setProductMode, setSelectedFrame, setSelectedSize, navigate, isSubPage = false, initialSelectedProduct = null, onConsumedInitialSelection, disableWindowScroll = false }) => {
+const AlbumArtPage = ({ setProductMode, setSelectedSize, navigate, isSubPage = false, initialSelectedProduct = null, onConsumedInitialSelection, disableWindowScroll = false }) => {
     // disableWindowScroll is true only inside the in-studio Inspiration
     // modal, where window isn't the real scroll container — isSubPage
     // alone isn't enough (it's also true on the real /inspiration route,
@@ -142,8 +142,6 @@ const AlbumArtPage = ({ setProductMode, setSelectedFrame, setSelectedSize, navig
         if (style === 'cover') {
             setSelectedProduct(null);
             setProductMode('frame');
-            const frameObj = FRAME_STYLES.find(f => f.id === 'frame-8446') || FRAME_STYLES[0];
-            if (frameObj) setSelectedFrame(frameObj);
 
             const sizeObj = FRAME_SIZES.find(s => s.id === '12x12') || FRAME_SIZES[4];
             if (sizeObj) setSelectedSize(sizeObj);
@@ -152,7 +150,6 @@ const AlbumArtPage = ({ setProductMode, setSelectedFrame, setSelectedSize, navig
                 state: {
                     presetImage: product.image,
                     presetTitle: product.title,
-                    initialFrame: frameObj || null,
                     initialSize: sizeObj || null,
                     orientation: 'portrait',
                     initialMatWidth: 'none',
@@ -169,8 +166,6 @@ const AlbumArtPage = ({ setProductMode, setSelectedFrame, setSelectedSize, navig
 
             setSelectedProduct(null);
             setProductMode('frame');
-            const frameObj = FRAME_STYLES.find(f => f.id === 'frame-8446') || FRAME_STYLES[0];
-            if (frameObj) setSelectedFrame(frameObj);
 
             // Default to a large portrait size — the poster layout adapts to any
             // portrait aspect ratio, this is just a sensible starting point.
@@ -181,7 +176,6 @@ const AlbumArtPage = ({ setProductMode, setSelectedFrame, setSelectedSize, navig
                 state: {
                     posterData,
                     presetTitle: `${product.title} Poster`,
-                    initialFrame: frameObj || null,
                     initialSize: sizeObj || null,
                     orientation: 'portrait',
                     initialMatWidth: 'none',

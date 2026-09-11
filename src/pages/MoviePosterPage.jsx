@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Heart, Search, Loader2, Film } from 'lucide-react';
-import { FRAME_STYLES, FRAME_SIZES } from '../data/constants';
+import { FRAME_SIZES } from '../data/constants';
 import { useWishlist } from '../context/WishlistContext';
 import { fetchMoviePosterData } from '../utils/moviePoster';
 
@@ -115,7 +115,7 @@ const MovieProductCard = ({ product, onGetThis }) => {
     );
 };
 
-const MoviePosterPage = ({ setProductMode, setSelectedFrame, setSelectedSize, navigate, isSubPage = false, initialSelectedProduct = null, onConsumedInitialSelection, disableWindowScroll = false }) => {
+const MoviePosterPage = ({ setProductMode, setSelectedSize, navigate, isSubPage = false, initialSelectedProduct = null, onConsumedInitialSelection, disableWindowScroll = false }) => {
     // disableWindowScroll is true only inside the in-studio Inspiration
     // modal, where window isn't the real scroll container — isSubPage
     // alone isn't enough (it's also true on the real /inspiration route,
@@ -225,8 +225,6 @@ const MoviePosterPage = ({ setProductMode, setSelectedFrame, setSelectedSize, na
         setGeneratingStyle(style);
         setGenerateError(false);
         try {
-        const frameObj = FRAME_STYLES.find(f => f.id === 'frame-8446') || FRAME_STYLES[0];
-
             if (style === 'original') {
                 // Detect the poster's actual aspect ratio/resolution and pick
                 // the portrait size that best fits it, falling back to the
@@ -241,14 +239,12 @@ const MoviePosterPage = ({ setProductMode, setSelectedFrame, setSelectedSize, na
 
                 setSelectedProduct(null);
                 setProductMode('frame');
-                if (frameObj) setSelectedFrame(frameObj);
                 if (sizeObj) setSelectedSize(sizeObj);
 
                 navigate('/frame/customize', {
                     state: {
                         presetImage: movie.image,
                         presetTitle: movie.title,
-                        initialFrame: frameObj || null,
                         initialSize: sizeObj || null,
                         orientation: 'portrait',
                         initialMatWidth: 'narrow',
@@ -263,7 +259,6 @@ const MoviePosterPage = ({ setProductMode, setSelectedFrame, setSelectedSize, na
 
             setSelectedProduct(null);
             setProductMode('frame');
-            if (frameObj) setSelectedFrame(frameObj);
 
             // Default to a large portrait size — the poster layout adapts to
             // any portrait aspect ratio, this is just a sensible starting point.
@@ -274,7 +269,6 @@ const MoviePosterPage = ({ setProductMode, setSelectedFrame, setSelectedSize, na
                 state: {
                     posterData,
                     presetTitle: `${movie.title} Poster`,
-                    initialFrame: frameObj || null,
                     initialSize: sizeObj || null,
                     orientation: 'portrait',
                     initialMatWidth: 'none',

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ArrowRight, Heart, ChevronLeft, ChevronRight } from 'lucide-react';
-import { FRAME_STYLES, FRAME_SIZES, findSizeByDimension, formatDimensions, parseCustomSize } from '../data/constants';
+import { FRAME_SIZES, findSizeByDimension, formatDimensions, parseCustomSize } from '../data/constants';
 import { useUnit } from '../context/UnitContext';
 import { useWishlist } from '../context/WishlistContext';
 import SOURCE_DIMS from '../data/source_dims.json';
@@ -103,7 +103,6 @@ const GlossyArtPage = ({ setProductMode, navigate, isSubPage = false, disableWin
             state: {
                 presetImage: product.fullRes,
                 presetTitle: product.title,
-                initialFrame: FRAME_STYLES.find(f => f.id === 'frame-10512') || null,
                 initialSize: resolvedSize,
                 orientation: resolvedSize?.orientation,
                 initialThickness: 'thick',
