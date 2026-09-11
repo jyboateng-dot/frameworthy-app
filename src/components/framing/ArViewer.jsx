@@ -405,9 +405,6 @@ export default function ArViewer({
                                 : 'Select and drag to move the frame around, or pinch to zoom in and out.'}
                         </p>
                     )}
-                    <p className={isViewerOnly ? 'text-[11px] font-medium text-stone-900 text-center max-w-sm' : 'text-[10px] text-stone-500 text-center max-w-sm'}>
-                        Shown at true size. Moulding depth and finish follow our catalogue.
-                    </p>
                 </div>
             )}
         </div>
