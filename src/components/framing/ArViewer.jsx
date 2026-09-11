@@ -341,7 +341,7 @@ export default function ArViewer({
                     {inSession && (
                         <div className="p-5 flex flex-col items-center gap-3 pointer-events-auto">
                             <p className="text-xs text-white/90 bg-black/50 rounded-full px-4 py-2">
-                                {hasPlaced ? 'Looks good?' : 'Point at your wall, then tap Place'}
+                                {hasPlaced ? 'Looks good?' : 'Hold and drag onto your wall to view the frame in your room'}
                             </p>
                             <div className="flex items-center gap-2">
                                 {hasPlaced ? (
