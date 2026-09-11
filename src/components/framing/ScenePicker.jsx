@@ -4,7 +4,7 @@ import { ROOM_SCENES } from '../../data/roomScenes';
 import { useHoverDropdown } from '../../hooks/useHoverDropdown';
 
 /**
- * Scene selector for the visualizer — a pill + dropdown, mirroring the
+ * Room-scene selector for the visualizer — a pill + dropdown, mirroring the
  * wall-colour picker (same hover-open behaviour via useHoverDropdown, same
  * pill/panel shape) rather than the horizontal option row this used to be.
  * Sits in the top-left visualizer chrome, where the unit toggle used to be.
@@ -42,12 +42,8 @@ const ScenePicker = ({ activeId, onSelect, autoOpenSignal, className = '', style
     const active = OPTIONS.find((o) => o.id === activeId) || OPTIONS[0];
     const ActiveIcon = active.icon;
 
-    // Opens the picker on its own right after a new image lands — a fresh
-    // upload or an Inspiration pick — so a customer who's never noticed this
-    // pill sees, unprompted, that other scenes exist. autoOpenSignal is a
-    // counter the caller bumps on exactly that event (never on mount, never
-    // on the same image's later blob:->Cloudinary URL swap), so 0/undefined
-    // on first render intentionally does nothing here.
+    // The visualizer's invitation bumps this counter when a customer asks to
+    // explore rooms. A zero/undefined value on first render does nothing.
     //
     // No timer closes this back up — it stays open until the customer
     // actually does something with it: picks a scene, clicks the pill to
@@ -67,13 +63,13 @@ const ScenePicker = ({ activeId, onSelect, autoOpenSignal, className = '', style
             <button
                 type="button"
                 onClick={() => setOpen((o) => !o)}
-                title={`Scene — ${active.name}`}
+                title={`Room scene — ${active.name}`}
                 aria-haspopup="true"
                 aria-expanded={open}
                 className="flex h-[30px] items-center gap-1 sm:gap-1.5 px-2 sm:px-3 rounded-full border border-stone-200 shadow-sm hover:shadow-md transition-all bg-white/95 backdrop-blur text-stone-700 font-bold text-xs"
             >
                 <ActiveIcon size={14} className="shrink-0" />
-                <span className="hidden sm:inline whitespace-nowrap">scene</span>
+                <span className="whitespace-nowrap">room scene</span>
                 <ChevronDown size={14} className={`transition-transform text-stone-400 ${open ? 'rotate-180' : ''}`} />
             </button>
 

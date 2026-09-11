@@ -47,7 +47,6 @@ import { DEFAULT_POSITION, frameGeometry, imageCrop, cropStyle } from '../../uti
 import { prepareFrameOutput } from '../../services/frameFitOutput';
 import { visualizerFullScreenState } from '../../utils/visualizerFullScreenState';
 
-
 // High-fidelity 3D side gradients for the frame
 const getSideBackground = (side, frame) => {
     let hex = frame.baseColor || '#8b4513';
@@ -322,13 +321,13 @@ const CustomizeFramePage = ({
     // ROOM_SCENES id to swap in a full room, where the artwork is sized
     // against the room's own real-world wall span instead of the sofa.
     const [roomSceneId, setRoomSceneId] = useState(null);
-    // Bumped exactly when a new image is applied (a fresh upload or an
-    // Inspiration "Get This" pick) — never on the initial demo placeholder,
-    // never on the same image's later blob:->Cloudinary URL swap. ScenePicker
-    // watches this to auto-open and show off the scene options right when
-    // there's finally a real piece of art to preview in one, instead of
-    // requiring the customer to notice the pill on their own.
+    // Bumped only when the scene-discovery hint is accepted. ScenePicker
+    // watches this counter so the hint can open the existing picker without
+    // adding a second mobile-only flow.
     const [sceneAutoOpenTick, setSceneAutoOpenTick] = useState(0);
+    // The invitation is reset for every fresh artwork. Dismissing it only
+    // affects the image currently being customized.
+    const [showSceneHint, setShowSceneHint] = useState(true);
     // Resolved async per selectedFrame — see utils/frameTexture.js. Stays
     // null (falls back to the synthesized-gradient moulding) until/unless a
     // confident on-material anchor is found for this frame's corner photo.
@@ -454,6 +453,19 @@ const CustomizeFramePage = ({
         matWidth: matWidth || 'none'
     }));
 
+    // An Inspiration selection can restore into an already-mounted
+    // customizer after a hot navigation. Reapply the Dimensions reveal from
+    // its listed size so the selected option is never left behind the
+    // collapsed list.
+    useEffect(() => {
+        if (!presetDims) return;
+        const listedSize = parseCustomSize(presetDims) || findSizeByDimension(presetDims);
+        if (!listedSize) return;
+        const { size: sizeToReveal } = clampSizeToValidRange(listedSize);
+        setCustomSizeEntry(sizeToReveal);
+        setShowAllSizes(true);
+    }, [presetDims]);
+
     // Dynamically access the device screen to optimize visualizer height on mobile
     const [windowSize, setWindowSize] = useState({
         width: typeof window !== 'undefined' ? window.innerWidth : 1200,
@@ -494,7 +506,7 @@ const CustomizeFramePage = ({
         if (state.presetImage) {
             setUploadedImage(state.presetImage);
             initialPresetImageRef.current = state.presetImage;
-            setSceneAutoOpenTick(t => t + 1);
+            setShowSceneHint(true);
         }
         if (state.productionImage || state.presetImage) {
             setProductionImage(state.productionImage || state.presetImage);
@@ -508,6 +520,13 @@ const CustomizeFramePage = ({
         if (state.initialSize) {
             const { size: sizeToApply, wasClamped, clampedShortCm, clampedLongCm } = clampSizeToValidRange(state.initialSize);
             setSelectedSize(sizeToApply);
+            // An Inspiration card's listed dimensions are the customer's
+            // starting choice. Keep that choice in view and highlighted just
+            // as if they had opened the list and selected it themselves.
+            // `customSizeEntry` also preserves a catalogue dimension that is
+            // not part of the normal, expanded catalog list.
+            setCustomSizeEntry(sizeToApply);
+            setShowAllSizes(true);
             setSizeClampNotice(wasClamped
                 ? `This artwork's listed size was outside what we can produce, so it's been adjusted to ${clampedShortCm.toFixed(1)} × ${clampedLongCm.toFixed(1)} cm.`
                 : '');
@@ -1145,6 +1164,27 @@ const CustomizeFramePage = ({
         };
     }, [uploadedImage, setOrientation, setSelectedSize, isAlbumPoster, isMoviePoster, isMoviePosterPrint]);
 
+    const dismissSceneHint = () => {
+        setShowSceneHint(false);
+    };
+
+    const openScenePickerFromHint = () => {
+        dismissSceneHint();
+        setSceneAutoOpenTick(t => t + 1);
+    };
+
+    const selectRoomScene = (sceneId) => {
+        setRoomSceneId(sceneId);
+        dismissSceneHint();
+    };
+
+    const selectFrameStyle = (frame) => {
+        setSelectedFrame(frame);
+        // A new moulding can change how a piece feels in a room just as much
+        // as a new image does, so offer the same room-scene comparison again.
+        setShowSceneHint(true);
+    };
+
     // Takes a picked image File (from the device dialog OR the cloud-storage
     // picker) and drops it into the studio: instant local preview now, then a
     // background upload to the cloud image host for the print-quality version.
@@ -1170,7 +1210,7 @@ const CustomizeFramePage = ({
             // Instantly generate local URL for immediate visual rendering in the frame studio
             const localUrl = URL.createObjectURL(file);
             setUploadedImage(localUrl);
-            setSceneAutoOpenTick(t => t + 1);
+            setShowSceneHint(true);
             setIsUploading(false); // Stop spinner immediately once local preview is ready
 
             // Perform cloud upload asynchronously in the background so the UI is never blocked
@@ -1578,6 +1618,19 @@ const CustomizeFramePage = ({
     // show on it.
     const collapsedShownCount = leftColumnCollapsed.length + rightColumnCollapsed.length + (showCustomEntry ? 1 : 0);
 
+    // A selection can arrive from Inspiration, a guided flow, or a direct
+    // choice elsewhere in the studio. If its size is outside the curated
+    // collapsed set, expose the complete list so its active button is always
+    // visible and highlighted.
+    useEffect(() => {
+        if (!selectedSize) return;
+        const sameSize = (size) => size.width === selectedSize.width && size.height === selectedSize.height;
+        const isVisibleWhenCollapsed = leftColumnCollapsed.some(sameSize)
+            || rightColumnCollapsed.some(sameSize)
+            || (showCustomEntry && sameSize(customSizeEntry));
+        if (!isVisibleWhenCollapsed) setShowAllSizes(true);
+    }, [selectedSize, leftColumnCollapsed, rightColumnCollapsed, showCustomEntry, customSizeEntry]);
+
     const renderSizeButton = (size) => (
         <button
             key={size.id}
@@ -1832,15 +1885,34 @@ const CustomizeFramePage = ({
                     }`}
                 >
 
-                {/* Scene — pill + dropdown, mirroring the wall-colour picker.
+                {/* Room scene — pill + dropdown, mirroring the wall-colour picker.
                     Sits where the unit/measurement control used to (that
-                    moved into the Dimensions panel section), so this corner
+                moved into the Dimensions panel section), so this corner
                     stays a single pill instead of stacking two. */}
-                <ScenePicker
-                    activeId={roomSceneId}
-                    onSelect={setRoomSceneId}
-                    autoOpenSignal={sceneAutoOpenTick}
-                />
+                {showSceneHint && hasImage && !isFullScreen && !isMaxZoom ? (
+                    <aside
+                        aria-label="Room scene preview hint"
+                        className="relative z-20 w-[min(15rem,calc(100vw-2rem))] rounded-xl border border-stone-200 bg-white/95 p-3 shadow-lg backdrop-blur"
+                    >
+                        <p className="text-xs font-semibold leading-5 text-stone-700">
+                            See how your frame fits in a realistic room scene.
+                        </p>
+                        <button
+                            type="button"
+                            onClick={openScenePickerFromHint}
+                            className="mt-2 flex items-center gap-1 text-xs font-bold text-stone-900 underline decoration-stone-300 underline-offset-4 transition-colors hover:text-stone-500"
+                        >
+                            Explore room scenes
+                            <ChevronDown size={14} aria-hidden="true" />
+                        </button>
+                    </aside>
+                ) : (
+                    <ScenePicker
+                        activeId={roomSceneId}
+                        onSelect={selectRoomScene}
+                        autoOpenSignal={sceneAutoOpenTick}
+                    />
+                )}
 
                 {/* Empty flexible middle column — keeps the wall-colour pill
                     in the grid's third (auto-width) track, right-aligned,
@@ -3673,7 +3745,7 @@ const CustomizeFramePage = ({
                     isOpen={isFrameModalOpen}
                     onClose={() => setIsFrameModalOpen(false)}
                     selectedFrame={selectedFrame}
-                    onSelect={setSelectedFrame}
+                    onSelect={selectFrameStyle}
                 />
             )}
 
