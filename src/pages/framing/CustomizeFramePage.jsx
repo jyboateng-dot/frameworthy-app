@@ -2138,7 +2138,7 @@ const CustomizeFramePage = ({
                         {roomCannotFit && (
                             <div role="status" className="absolute top-1/3 left-1/2 -translate-x-1/2 z-20 w-[min(18rem,80%)] rounded-xl bg-white/95 p-4 text-center text-xs text-stone-700 shadow-sm">
                                 <p>This frame exceeds the visible wall space above the furniture. Try another room or orientation.</p>
-                                <button type="button" onClick={() => selectRoomScene(null)} className="mt-2 font-semibold underline underline-offset-4">View on plain wall</button>
+                                <button type="button" onClick={() => selectRoomScene(null)} className="mt-2 font-semibold underline underline-offset-4">View Close-Up</button>
                             </div>
                         )}
 

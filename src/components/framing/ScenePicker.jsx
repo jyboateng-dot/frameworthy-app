@@ -19,7 +19,7 @@ const SCENE_ICONS = {
 };
 
 const OPTIONS = [
-    { id: null, name: 'Plain wall', short: 'Plain', wallSpanCm: null, icon: Square },
+    { id: null, name: 'Close-Up', short: 'Close-Up', wallSpanCm: null, icon: Square },
     ...ROOM_SCENES.map((s) => ({
         id: s.id,
         name: s.name,
@@ -35,7 +35,7 @@ const OPTIONS = [
     })),
 ];
 
-const titleFor = (o) => (o.wallSpanCm ? `${o.name} — ${o.wallSpanCm}cm wall` : 'Plain wall with sofa scale cue');
+const titleFor = (o) => (o.wallSpanCm ? `${o.name} — ${o.wallSpanCm}cm wall` : 'Close-Up view with sofa scale cue');
 
 const ScenePicker = ({ activeId, onSelect, autoOpenSignal, className = '', style }) => {
     const { open, setOpen, hoverProps, closeOnSelect, containerRef } = useHoverDropdown();
