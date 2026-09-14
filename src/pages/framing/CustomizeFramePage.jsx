@@ -2999,7 +2999,7 @@ const CustomizeFramePage = ({
                             const sceneH = roomLayout?.height || zoneSize.height;
                             const sceneLeft = roomLayout?.left || 0;
                             const sceneTop = roomLayout?.top || 0;
-                            const compositionOffsetPx = sceneW * (activeRoom.compositionOffsetXPct || 0) / 100;
+                            const compositionOffsetPx = sceneW * (activeRoom.foregroundOffsetXPct || 0) / 100;
 
                             return (
                                 <div

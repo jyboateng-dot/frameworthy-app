@@ -222,7 +222,7 @@ describe('ROOM_SCENES data', () => {
             50, // Entryway shares the visualizer centre with every scene
             50, // Desk
         ]);
-        expect(ROOM_SCENES.find((scene) => scene.id === 'entryway').compositionOffsetXPct).toBeGreaterThan(0);
+        expect(ROOM_SCENES.find((scene) => scene.id === 'entryway').compositionOffsetXPct).toBe(0);
         expect(ROOM_SCENES.find((scene) => scene.id === 'home-office').compositionOffsetXPct).toBe(0);
     });
 

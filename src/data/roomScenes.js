@@ -57,6 +57,9 @@ const photoScene = (id, name, wallSpanCm, floorPct, furnitureTopPct, x, hangHeig
         // the shared visualizer centre. This is for calibrating an off-centre
         // sofa/table/console/desk, not for changing a frame's placement.
         compositionOffsetXPct: options.compositionOffsetXPct ?? 0,
+        // Foreground alpha cutouts may need their own local alignment after a
+        // photographic source is retouched. It never moves the full room.
+        foregroundOffsetXPct: options.foregroundOffsetXPct ?? 0,
         clearanceTopCm: floorLineCm - sceneHeightCm * furnitureTopPct / 100,
         furnitureGapCm: options.furnitureGapCm,
         tintable: options.tintable,
@@ -93,11 +96,15 @@ export const ROOM_SCENES = [
     // Keep the artwork fixed on the shared visualizer centre; the entryway
     // composition changes around it just like the other room scenes.
     photoScene('entryway', 'Entryway', 461, 80, 50, 50, 145, {
-        image: '/rooms/entryway-photoreal.png?v=2',
-        foregroundImage: '/rooms/entryway-foreground.png?v=3',
+        image: '/rooms/entryway-photoreal-v3.png',
+        foregroundImage: '/rooms/entryway-foreground-v4.png',
         referenceTopPct: 65,
         reference: { name: 'console top', widthCm: 120, widthPx: 465 },
-        compositionOffsetXPct: 4.2,
+        // Keep the room image on the same origin as every other scene. The
+        // frame is already centred on the visualizer, so scene switches never
+        // introduce an Entryway-only horizontal jump.
+        compositionOffsetXPct: 0,
+        foregroundOffsetXPct: 0,
     }),
     photoScene('home-office', 'Home Office', 461, 88, 62, 50, 145, {
         image: '/rooms/home-office-photoreal.png',
