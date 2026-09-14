@@ -10,13 +10,8 @@
  * back out of the same way it went in.
  *
  * The slider itself is index-based (0, 1, 2, ...), not a plain inches
- * value, because the very first step off "no mat" must land exactly on 1in
- * — not 0.25in — per the spec: index 0 is No Mat, index 1 is 1.00in, and
- * every index after that adds MAT_WIDTH_STEP_IN, up to MAT_WIDTH_MAX_IN at
- * the top of the track. A plain 0-to-8-by-0.25 range would instead pass
- * through 0.25/0.5/0.75 on the way to 1 — sliderIndexToMatWidth/
- * matWidthToSliderIndex below are what make that jump possible while still
- * using a plain, evenly-stepped range input under the hood.
+ * value: index 0 is No Mat, index 1 is 0.20in, and every index after that
+ * adds MAT_WIDTH_STEP_IN up to MAT_WIDTH_MAX_IN at the top of the track.
  *
  * Older orders placed before this change still have the original
  * 'narrow'/'standard'/'wide' strings stored in Firestore — see
@@ -31,9 +26,9 @@
 
 // The slider's own range/step/default — exported so CustomizeFramePage.jsx
 // (the only UI that sets this) and this file never drift apart.
-export const MAT_WIDTH_MIN_IN = 1;
+export const MAT_WIDTH_MIN_IN = 0.2;
 export const MAT_WIDTH_MAX_IN = 8;
-export const MAT_WIDTH_STEP_IN = 0.25;
+export const MAT_WIDTH_STEP_IN = 0.2;
 export const MAT_WIDTH_DEFAULT_IN = 2;
 
 // Index-space bounds for the <input type="range"> itself: 0 is "No Mat",
@@ -60,7 +55,7 @@ export const MAT_RENDER_MAX_PCT = 45;
 
 /**
  * The largest mat width (in inches, snapped to the slider's own
- * quarter-inch steps) this print size + frame moulding can take before
+ * 0.2-inch steps) this print size + frame moulding can take before
  * the render clamp above would kick in. Mirrors the clamp's math — the
  * tightest frame axis is the binding constraint — without needing to be pixel-exact;
  * this only has to be a safe, same-ballpark cap for a slider limit, not
@@ -74,7 +69,7 @@ export function maxMatWidthForSize(wInch, hInch, railWidthIn) {
     const bottomLimitIn = (MAT_RENDER_MAX_PCT / 100) * heightOuterIn - railWidthIn;
     const limitIn = Math.min(widthLimitIn, bottomLimitIn);
     const steppedDownIn = Math.floor((limitIn - MAT_WIDTH_MIN_IN) / MAT_WIDTH_STEP_IN) * MAT_WIDTH_STEP_IN + MAT_WIDTH_MIN_IN;
-    return clampMatWidthIn(steppedDownIn);
+    return Math.max(MAT_WIDTH_MIN_IN, Math.min(MAT_WIDTH_MAX_IN, steppedDownIn));
 }
 
 /** Slider position (0..MAT_WIDTH_MAX_INDEX) -> matWidth ('none' or inches). */
@@ -117,3 +112,4 @@ export function getMatReveal(matWidth, sizePreset) {
         bottomIn: base,
     };
 }
+

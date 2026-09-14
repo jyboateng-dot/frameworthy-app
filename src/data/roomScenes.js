@@ -33,160 +33,96 @@
 // than at an arbitrary eyeballed spot.
 export const GALLERY_HANG_HEIGHT_CM = 145;
 
-// The drawn scenes deliberately span a range of wall widths — 300-odd cm for
-// the entryway up to 440 for the dining room — because that range is itself
-// the point. The same 90cm print is a modest piece on the dining wall and a
-// dominating one in the hall, and picking the room you're actually hanging in
-// is what makes the preview answer the question the customer has.
+// Photo coordinates are measured against the 1536 × 1024 source images.
+// Physical spans are approximate; the generated interiors are not surveys.
+// floorLineCm follows the wall/floor junction, not the image's bottom edge.
+// furnitureTopPct marks the highest obstacle across the intended hanging zone.
+const photoScene = (id, name, wallSpanCm, floorPct, furnitureTopPct, x, hangHeight = 145, options = {}) => {
+    const sceneHeightCm = wallSpanCm / 1.5;
+    const floorLineCm = sceneHeightCm * floorPct / 100;
+    return {
+        id, name,
+        image: options.image ?? `/rooms/${id}.png`,
+        foregroundImage: options.foregroundImage,
+        wallSpanCm, sceneHeightCm, floorLineCm, furnitureTopPct,
+        referenceTopPct: options.referenceTopPct,
+        reference: options.reference,
+        referenceGapPx: options.referenceGapPx ?? 112,
+        // The largest portrait preset already reaches into the upper wall, so
+        // it keeps the original compact clearance rather than moving upward.
+        largePortraitReferenceGapPx: options.largePortraitReferenceGapPx ?? 16,
+        verticalNudgePx: options.verticalNudgePx ?? 0,
+        sizeNudgesPx: options.sizeNudgesPx ?? {},
+        // Moves the photographed room composition while the frame remains on
+        // the shared visualizer centre. This is for calibrating an off-centre
+        // sofa/table/console/desk, not for changing a frame's placement.
+        compositionOffsetXPct: options.compositionOffsetXPct ?? 0,
+        clearanceTopCm: floorLineCm - sceneHeightCm * furnitureTopPct / 100,
+        furnitureGapCm: options.furnitureGapCm,
+        tintable: options.tintable,
+        hang: { x, y: (floorLineCm - hangHeight) / sceneHeightCm * 100 },
+    };
+};
+
 export const ROOM_SCENES = [
-    {
-        id: 'studio-loft',
-        name: 'Studio Loft',
-        // Drawn rather than photographed, so the wall repaints live with the
-        // wall-colour picker instead of being locked to whatever colour the
-        // photographer's wall happened to be. Photographic scenes get an
-        // `image` URL instead of `tintable` — see the note at the bottom.
-        tintable: true,
-        // The scene's own geometry is authored directly in centimetres
-        // (viewBox="0 0 420 280"), so this calibration is exact by
-        // construction rather than measured off a reference object.
-        wallSpanCm: 420,
-        // Vertical span, same units. Only used to derive the scene's aspect
-        // ratio for layout — the placement math itself is width-driven.
-        sceneHeightCm: 280,
-        // Where the drawn floor sits, in the same centimetres. Not used by the
-        // placement math — it's what lets the tests check `hang.y` against a
-        // real hang height above the floor rather than trusting the number,
-        // and it's asserted against the component's own GEOMETRY export.
-        // 279, not the 420x280 viewBox's midpoint-ish 245 you'd guess from the
-        // wall span alone — the floor strip below it was trimmed from 35cm
-        // (245) to 16cm (264) to 2cm (278) to a 1cm hairline (see
-        // StudioLoftScene's FLOOR_Y comment) to hand the wall more of the
-        // same canvas. Stays exact by construction: this MUST match the
-        // component's own FLOOR_Y, and the drawn-geometry cross-check test
-        // below catches it if they ever drift apart.
-        floorLineCm: 279,
-        // Height of the tallest thing standing directly under the hang point,
-        // in the same centimetres. computeRoomPlacement raises a tall piece
-        // until it clears this rather than drawing it over the furniture.
-        // Read off the scene component: the sofa back tops out at 80cm.
-        clearanceTopCm: 80,
-        // Centre point of the hanging zone, as a % of the image box. Solved
-        // for the same 140cm-above-floor gallery height as before, against
-        // the new floorLineCm: (279-140)/280 = 49.64%.
-        hang: { x: 50, y: 49.64 },
-        // The scene box is sized so its wall span exactly matches the
-        // visualizer's width — which is what keeps the placement math a
-        // direct ratio — so it won't always be tall enough to reach the
-        // bottom of the panel. This is the colour the floor continues in
-        // below the scene, matching the bottom of its floor gradient, so the
-        // backdrop reads as full-bleed rather than a letterboxed picture.
-        // (Above the scene, the panel's own wall colour already matches.)
-        floorHex: '#6f5238',
-    },
-    {
-        id: 'dining-room',
-        name: 'Dining Room',
-        tintable: true,
-        // The widest wall on offer, and the reason it's here: a piece that
-        // reads as large in the loft is merely proportionate over a 180cm
-        // dining table, which is exactly the judgement this scene is for.
-        wallSpanCm: 440,
-        sceneHeightCm: 290,
-        // Was 255 (35cm floor), 274 (16cm), 288 (2cm) — now 289, a 1cm
-        // hairline (see StudioLoftScene's FLOOR_Y comment). Must match the
-        // component's own FLOOR_Y.
-        floorLineCm: 289,
-        // Table at 75cm, fruit bowl on it to 90cm.
-        clearanceTopCm: 90,
-        // Solved for the same 145cm-above-floor gallery height against the
-        // new floorLineCm: (289-145)/290 = 49.66%.
-        hang: { x: 50, y: 49.66 },
-        floorHex: '#6f5238',
-    },
-    {
-        id: 'bedroom',
-        name: 'Bedroom',
-        tintable: true,
-        wallSpanCm: 400,
-        sceneHeightCm: 280,
-        // Was 245 (35cm floor), 264 (16cm), 278 (2cm) — now 279, a 1cm
-        // hairline (see StudioLoftScene's FLOOR_Y comment). Must match the
-        // component's own FLOOR_Y. The scene most likely to actually need
-        // this: a tall piece over the bed is the case that comes closest to
-        // not fitting the wall at all — the 100×150cm piece that used to
-        // overlap the headboard by 19.4cm (then 7.4, then 4.6, then cleared
-        // by 8.3 once the floor hit 2cm) now clears by even more. See
-        // computeRoomPlacement's `tooTall` for the set of sizes still too
-        // big for this wall.
-        floorLineCm: 279,
-        // The headboard — the reason this scene's default hang is already
-        // higher than the others, and the thing a tall piece must clear.
-        clearanceTopCm: 100,
-        // The one scene that isn't at the 145cm gallery standard: solved for
-        // the same 150cm-above-floor default as before, against the new
-        // floorLineCm: (279-150)/280 = 46.07%. Above-the-bed pieces are hung
-        // higher by convention because the headboard already owns the wall
-        // to 100cm — see BedroomScene for the full note.
-        hang: { x: 50, y: 46.07 },
-        floorHex: '#6f5238',
-    },
-    {
-        id: 'entryway',
-        name: 'Entryway',
-        tintable: true,
-        // The narrow wall, and the one that most earns its keep: with a door
-        // casing eating the right 88cm, this is where the preview tells a
-        // customer that the large canvas they're configuring will not fit.
-        wallSpanCm: 340,
-        canvasInsetLeftCm: 40,
-        sceneHeightCm: 260,
-        // Was 230 (30cm floor), 246 (14cm), 258 (2cm) — now 259, a 1cm
-        // hairline, same depth as every other scene despite this one
-        // starting thinner (tile, not boards) — see StudioLoftScene's
-        // FLOOR_Y comment. Must match the component's own FLOOR_Y. Worth the
-        // most here: the narrowest wall on offer is the one most likely to
-        // need every spare centimetre for a tall piece.
-        floorLineCm: 259,
-        // Frames hang over the console at the wall centre, so their obstacle
-        // is the vase's true 129cm top — not the hook rail, which is confined
-        // to the far-left 80cm of the wall. Treating that distant rack as a
-        // centre-line obstacle lifted every small frame needlessly high above
-        // the console. This matches EntrywayScene's vase top at y=130 against
-        // a floor line of 259 (259 - 130 = 129cm).
-        clearanceTopCm: 129,
-        // The usable span between the hook rail and door casing centres at
-        // 147cm (43.24% of this 340cm wall). It matches EntrywayScene's
-        // console centre, keeping the frame and console/objects as one
-        // composition rather than centring them on the whole wall.
-        // y remains the same 145cm-above-floor gallery height:
-        // (259-145)/260 = 43.85%.
-        hang: { x: 40.29, y: 43.85 },
-        // Stone tile, not boards — matches the bottom of this scene's own
-        // floor gradient, which is what this colour has to track.
-        floorHex: '#a09889',
-    },
-    {
-        id: 'home-office',
-        name: 'Home Office',
-        tintable: true,
-        wallSpanCm: 360,
-        sceneHeightCm: 260,
-        // Was 225 (35cm floor), 244 (16cm), 258 (2cm) — now 259, a 1cm
-        // hairline (see StudioLoftScene's FLOOR_Y comment). Must match the
-        // component's own FLOOR_Y. Doesn't affect the floating shelf on the
-        // right, which is positioned from the wall's own top rather than off
-        // this line.
-        floorLineCm: 259,
-        // Desk at 75cm, chair back 91cm, laptop lid 98cm — the lid wins.
-        clearanceTopCm: 98,
-        // Solved for the same 145cm-above-floor gallery height against the
-        // new floorLineCm: (259-145)/260 = 43.85%.
-        hang: { x: 50, y: 43.85 },
-        floorHex: '#6f5238',
-    },
+    // The photograph keeps the original Studio Loft's calibrated composition:
+    // a 420cm wall, sofa at 80cm high, and a near-bottom floor line.
+    // The expanded Studio canvas leaves the sofa at the lower fifth of the
+    // visualizer, so its usable wall extends to 80% of the scene height.
+    // This keeps the 180cm custom-height option visible above the sofa.
+    photoScene('studio-loft', 'Studio Loft', 461, 99.64, 80, 50, 140, {
+        image: '/rooms/studio-loft-photoreal.png',
+        foregroundImage: '/rooms/studio-loft-foreground.png?v=2',
+        referenceTopPct: 65,
+        reference: { name: 'sofa frame', widthCm: 220, widthPx: 1000 },
+    }),
+    photoScene('dining-room', 'Dining Room', 461, 85, 68, 50, 145, {
+        image: '/rooms/dining-room-photoreal.png',
+        foregroundImage: '/rooms/dining-room-foreground.png?v=1',
+        referenceTopPct: 68,
+        reference: { name: 'dining table top', widthCm: 180, widthPx: 900 },
+        referenceGapPx: 168,
+        largePortraitReferenceGapPx: 112,
+    }),
+    photoScene('bedroom', 'Bedroom', 461, 85, 60, 50, 150, {
+        image: '/rooms/bedroom-photoreal.png',
+        foregroundImage: '/rooms/bedroom-foreground.png?v=1',
+        referenceTopPct: 60,
+        reference: { name: 'bed frame', widthCm: 150, widthPx: 500 },
+    }),
+    // Keep the artwork fixed on the shared visualizer centre; the entryway
+    // composition changes around it just like the other room scenes.
+    photoScene('entryway', 'Entryway', 461, 80, 50, 50, 145, {
+        image: '/rooms/entryway-photoreal.png?v=2',
+        foregroundImage: '/rooms/entryway-foreground.png?v=3',
+        referenceTopPct: 65,
+        reference: { name: 'console top', widthCm: 120, widthPx: 465 },
+        compositionOffsetXPct: 4.2,
+    }),
+    photoScene('home-office', 'Home Office', 461, 88, 62, 50, 145, {
+        image: '/rooms/home-office-photoreal.png',
+        foregroundImage: '/rooms/home-office-foreground.png?v=1',
+        referenceTopPct: 65,
+        reference: { name: 'desk top', widthCm: 160, widthPx: 680 },
+        compositionOffsetXPct: 0,
+    }),
 ];
 
+// One transform drives BOTH the calibrated room composition and the artwork.
+// The image fills the visualizer directly, keeping every edge cue visible and
+// the photographed wall continuous across the whole canvas.
+export const computeRoomLayout = (scene, width, height) => {
+    if (!scene || width <= 0 || height <= 0) return null;
+    const canvasWidth = scene.wallSpanCm + (scene.canvasInsetLeftCm || 0);
+    // The image still fills the visualizer, while artwork uses the smaller
+    // physical scale whenever a very wide, shallow viewport would otherwise
+    // make it spill beyond the full wall.
+    const scale = Math.min(width / canvasWidth, height / scene.sceneHeightCm);
+    return {
+        scale, width, height,
+        left: 0, top: 0,
+    };
+};
 /**
  * Convert a physical artwork size into CSS placement percentages for a scene.
  *
@@ -200,13 +136,30 @@ export const ROOM_SCENES = [
  * @param {number}  heightCm    artwork's outer height, including moulding
  * @returns {{widthPct:number, leftPct:number, topPct:number, overflows:boolean}}
  */
-// How much air a real person leaves between the bottom of a frame and the
-// furniture under it — roughly a hand's width. Below this it reads as resting
-// on the furniture rather than hanging above it.
-export const FURNITURE_GAP_CM = 15;
-
 // Air kept above the piece so it never reads as jammed against the ceiling.
 const CEILING_MARGIN_CM = 12;
+
+// Room references are visual anchors, so ordinary pieces sit close above
+// the sofa, table, bed, console, or desk. Tall pieces retain the top-wall
+// margin; their scene foreground is intentionally drawn over them where a
+// reference object intersects.
+export const computeReferenceAnchoredTop = (scene, layout, frameHeightPx, sizeId, orientation, frameHeightCm) => {
+    if (!scene || !layout || !Number.isFinite(frameHeightPx) || frameHeightPx <= 0) return null;
+    const topMargin = layout.top + 12;
+    // Every room uses Studio Loft's frame origin. Switching rooms should only
+    // change the surrounding reference artefacts — never move or resize the
+    // selected frame itself.
+    const referenceTop = layout.top + 0.65 * layout.height;
+    const referenceGap = sizeId === '100x150cm' && orientation === 'portrait'
+        ? 16
+        : 112;
+    const targetTop = referenceTop - frameHeightPx - referenceGap;
+    // A 180cm-tall piece uses the full visualizer height. Keep its ceiling
+    // clearance identical to Studio Loft in every scene rather than adding
+    // scene-specific reference or alignment nudges.
+    if (frameHeightCm >= 180) return topMargin + 20;
+    return Math.max(topMargin, targetTop);
+};
 
 export const computeRoomPlacement = (scene, widthCm, heightCm) => {
     if (!scene || !Number.isFinite(widthCm) || !Number.isFinite(heightCm) || widthCm <= 0 || heightCm <= 0) {
@@ -216,38 +169,14 @@ export const computeRoomPlacement = (scene, widthCm, heightCm) => {
     const widthPct = (widthCm / scene.wallSpanCm) * 100;
 
     // ── HANG HEIGHT ──
-    // `hang.y` is where a normally-sized piece goes: gallery height. Holding a
-    // tall piece to that same centre pushes its bottom edge down into whatever
-    // stands below — a 150cm piece centred at 150cm reaches to 75cm off the
-    // floor, which is inside a 100cm headboard. It rendered as artwork lying
-    // over the bed while the wall above it sat empty.
-    //
-    // Nobody hangs like that. You raise the piece until it clears the
-    // furniture, and that's all this does: keep the default unless the piece
-    // is tall enough to need lifting, then lift it exactly as far as it takes.
+    // The wall, not its furniture, is the artwork container. A tall piece can
+    // cross a desk, bed, or sofa; the matching foreground band paints those
+    // objects above the frame. Keep the configured gallery height where it
+    // fits, then only move the piece enough to stay inside the full wall.
     const defaultCentreCm = scene.floorLineCm - (scene.hang.y / 100) * scene.sceneHeightCm;
-    const obstacleCm = scene.clearanceTopCm ?? 0;
-
-    const neededCentreCm = obstacleCm + FURNITURE_GAP_CM + heightCm / 2;
-    // The ceiling is the other end of the same squeeze — two candidate caps,
-    // not one. CEILING_MARGIN_CM is cosmetic breathing room for the normal
-    // case, where the piece clears the furniture with room to spare and a
-    // flush-to-ceiling top would look cramped. `Absolute` is the true
-    // physical limit: top flush with the ceiling, zero margin.
-    //
-    // A piece can need MORE lift than the polished cap allows — 150cm in a
-    // 245cm-tall Bedroom wall over a 100cm headboard does, structurally,
-    // regardless of margins. Holding the cosmetic margin there doesn't buy
-    // any polish, because the piece is already overlapping the furniture; it
-    // only wastes centimetres that would otherwise shrink that overlap. So
-    // the margin is spent, not kept, once the polished cap can't clear the
-    // furniture anyway — every last cm above goes toward the piece instead.
-    const highestCentreCmPolished = scene.floorLineCm - CEILING_MARGIN_CM - heightCm / 2;
-    const highestCentreCmAbsolute = scene.floorLineCm - heightCm / 2;
-    const highestCentreCm =
-        neededCentreCm > highestCentreCmPolished ? highestCentreCmAbsolute : highestCentreCmPolished;
-
-    const centreCm = Math.min(Math.max(defaultCentreCm, neededCentreCm), Math.max(defaultCentreCm, highestCentreCm));
+    const lowestCentreCm = heightCm / 2;
+    const highestCentreCm = scene.floorLineCm - CEILING_MARGIN_CM - heightCm / 2;
+    const centreCm = Math.min(Math.max(defaultCentreCm, lowestCentreCm), highestCentreCm);
     const topPct = ((scene.floorLineCm - centreCm) / scene.sceneHeightCm) * 100;
 
     return {
@@ -260,11 +189,8 @@ export const computeRoomPlacement = (scene, widthCm, heightCm) => {
         // exactly the "every size renders the same" dishonesty this whole
         // approach exists to avoid. The caller decides how to present it.
         overflows: widthPct > 100,
-        // Even raised flush against the ceiling — zero margin, the true
-        // physical limit, not just the polished cap — it still can't clear
-        // the furniture. The wall genuinely isn't tall enough for this piece
-        // at any height; this is the honest floor for how much it overlaps.
-        tooTall: neededCentreCm > highestCentreCmAbsolute,
+        // This is now a true wall-size check, independent of the furniture.
+        tooTall: heightCm + CEILING_MARGIN_CM > scene.floorLineCm,
     };
 };
 
@@ -289,3 +215,9 @@ export const computeRoomPlacement = (scene, widthCm, heightCm) => {
 //      2.4m ceiling) to calibrate `wallSpanCm` against. Measure that object's
 //      width in image pixels, then:
 //         wallSpanCm = (objectWidthCm / objectWidthPx) * imageWidthPx
+
+
+
+
+
+

@@ -56,13 +56,13 @@ describe('sliderIndexToMatWidth', () => {
         expect(sliderIndexToMatWidth(-1)).toBe('none');
     });
 
-    it('maps index 1 (the very first move off "no mat") to exactly 1 inch, not 0.25', () => {
-        expect(sliderIndexToMatWidth(1)).toBe(1);
+    it('maps index 1 (the first move off "no mat") to 0.2 inches', () => {
+        expect(sliderIndexToMatWidth(1)).toBe(0.2);
     });
 
     it('adds MAT_WIDTH_STEP_IN per index after that', () => {
-        expect(sliderIndexToMatWidth(2)).toBe(1.25);
-        expect(sliderIndexToMatWidth(3)).toBe(1.5);
+        expect(sliderIndexToMatWidth(2)).toBe(0.4);
+        expect(sliderIndexToMatWidth(3)).toBe(0.6);
     });
 
     it('reaches MAT_WIDTH_MAX_IN at the top index', () => {
@@ -77,8 +77,8 @@ describe('matWidthToSliderIndex', () => {
         expect(matWidthToSliderIndex(undefined)).toBe(0);
     });
 
-    it('maps 1 inch to index 1', () => {
-        expect(matWidthToSliderIndex(1)).toBe(1);
+    it('maps 0.2 inches to index 1', () => {
+        expect(matWidthToSliderIndex(0.2)).toBe(1);
     });
 
     it('maps MAT_WIDTH_MAX_IN to MAT_WIDTH_MAX_INDEX', () => {
@@ -112,8 +112,9 @@ describe('maxMatWidthForSize', () => {
         expect(maxMatWidthForSize(40, 60, 1)).toBe(MAT_WIDTH_MAX_IN);
     });
 
-    it('never drops below the slider minimum, even for a tiny print', () => {
-        expect(maxMatWidthForSize(2, 2, 1)).toBe(MAT_WIDTH_MIN_IN);
+    it('keeps a safe size-specific maximum for a tiny print', () => {
+        expect(maxMatWidthForSize(2, 2, 1)).toBe(0.8);
+        expect(maxMatWidthForSize(2, 2, 1)).toBeGreaterThanOrEqual(MAT_WIDTH_MIN_IN);
     });
 
     it('keeps the render clamp (matPctW/matPctTop/matPctBottom in CustomizeFramePage.jsx) from ever engaging at the returned cap', () => {

@@ -66,7 +66,10 @@ export const FRAME_SIZES = [
     { id: '50x60cm', width: 20, height: 24, label: '50 x 60 cm', price: 550 },
     { id: '60x150cm', width: 24, height: 60, label: '60 x 150 cm', price: 1555 },
     { id: '80x160cm', width: 32, height: 64, label: '80 x 160 cm', price: 2195 },
-    { id: '100x150cm', width: 40, height: 60, label: '100 x 150 cm', price: 2565 }
+    { id: '100x150cm', width: 40, height: 60, label: '100 x 150 cm', price: 2565 },
+    { id: '150x150cm', width: 60, height: 60, label: '150 x 150 cm', price: 3850 },
+    { id: '100x180cm', width: 40, height: 72, label: '100 x 180 cm', price: 3080 },
+    { id: '180x180cm', width: 72, height: 72, label: '180 x 180 cm', price: 5550 }
 ];
 
 export const formatDimensions = (label, unit, orientation) => {
