@@ -47,6 +47,8 @@ import { DEFAULT_POSITION, frameGeometry, imageCrop, cropStyle } from '../../uti
 import { prepareFrameOutput } from '../../services/frameFitOutput';
 import { visualizerFullScreenState } from '../../utils/visualizerFullScreenState';
 
+const MOBILE_DOUBLE_TAP_DELAY_MS = 300;
+
 // High-fidelity 3D side gradients for the frame
 const getSideBackground = (side, frame) => {
     let hex = frame.baseColor || '#8b4513';
@@ -322,6 +324,7 @@ const CustomizeFramePage = ({
     // against the room's own real-world wall span instead of the sofa.
     const [roomSceneId, setRoomSceneId] = useState(null);
     const [departingRoomSceneId, setDepartingRoomSceneId] = useState(null);
+    const [mobileRoomReturnSceneId, setMobileRoomReturnSceneId] = useState(null);
     // Bumped only when the scene-discovery hint is accepted. ScenePicker
     // watches this counter so the hint can open the existing picker without
     // adding a second mobile-only flow.
@@ -358,6 +361,7 @@ const CustomizeFramePage = ({
     const roomSceneTransitionRef = useRef(null);
     const roomScenePreloadRef = useRef(new Map());
     const roomSceneSelectionTokenRef = useRef(0);
+    const ignoreZoomTapUntilRef = useRef(0);
     const hoverTimeoutRef = useRef(null);
     const lastTapRef = useRef(0);
     const zoneRef = useRef(null);
@@ -892,6 +896,10 @@ const CustomizeFramePage = ({
             const heldFor = Date.now() - start.at;
             if (moved > 12 || heldFor > 280) return;
             lastTapRef.current = 0;
+            // A second finger-up from the same double tap arrives shortly
+            // after this one. Ignore it so a double tap exits deep zoom just
+            // as reliably as a single tap, rather than immediately re-entering.
+            ignoreZoomTapUntilRef.current = Date.now() + MOBILE_DOUBLE_TAP_DELAY_MS;
             setIsMaxZoom(false);
         };
         pane.addEventListener('touchstart', recordTouchStart, { passive: true });
@@ -1214,6 +1222,7 @@ const CustomizeFramePage = ({
 
     const selectRoomScene = (sceneId) => {
         if (sceneId === roomSceneId) return;
+        setMobileRoomReturnSceneId(null);
         dismissSceneHint();
         const selectionToken = ++roomSceneSelectionTokenRef.current;
 
@@ -1236,6 +1245,51 @@ const CustomizeFramePage = ({
             }
             setRoomSceneId(sceneId);
         });
+    };
+
+    const handleMobileVisualizerTap = (event) => {
+        if (!window.matchMedia('(hover: none), (pointer: coarse)').matches) return;
+        event.preventDefault();
+
+        const now = Date.now();
+        if (now < ignoreZoomTapUntilRef.current) return;
+        // Deep Close-Up zoom has its own pane-level single-tap exit effect.
+        if (isMaxZoom) return;
+
+        // Close-Up reached from a room scene is an inspection detour, not a
+        // second zoom mode. Either one tap or a double tap returns exactly to
+        // the room the customer just left.
+        if (mobileRoomReturnSceneId) {
+            setMobileRoomReturnSceneId(null);
+            setRoomSceneId(mobileRoomReturnSceneId);
+            setDepartingRoomSceneId(null);
+            lastTapRef.current = 0;
+            return;
+        }
+
+        if (roomSceneId) {
+            if (now - lastTapRef.current < MOBILE_DOUBLE_TAP_DELAY_MS) {
+                setMobileRoomReturnSceneId(roomSceneId);
+                setRoomSceneId(null);
+                setDepartingRoomSceneId(null);
+                setIsHovered(false);
+                setIsMaxZoom(false);
+                lastTapRef.current = 0;
+                return;
+            }
+            lastTapRef.current = now;
+            return;
+        }
+
+        // In the normal Close-Up view, a double tap is the only way in to
+        // deep inspection. A tap while deep inspection is active is handled
+        // above by the pane-level exit effect.
+        if (now - lastTapRef.current < MOBILE_DOUBLE_TAP_DELAY_MS) {
+            setIsMaxZoom(true);
+            lastTapRef.current = 0;
+            return;
+        }
+        lastTapRef.current = now;
     };
 
     const selectFrameStyle = (frame) => {
@@ -2701,25 +2755,7 @@ const CustomizeFramePage = ({
                                             setIsMaxZoom(false);
                                         }, 320);
                                     }}
-                                    onTouchEnd={(e) => {
-                                        // Mobile browsers synthesize a compatibility mouse-event
-                                        // sequence (mouseenter, click, and — on a fast second tap —
-                                        // dblclick) after every touchend unless it's suppressed here.
-                                        // Left unchecked, that ghost mouseenter flips isHovered true
-                                        // on the very first tap, then the ghost dblclick fires
-                                        // onDoubleClick below, which (seeing isHovered now true)
-                                        // toggles isMaxZoom a second time and cancels out the toggle
-                                        // this handler just made — a real double-tap netted zero
-                                        // change, and only a third tap left a visible toggle.
-                                        e.preventDefault();
-                                        if (isMaxZoom) return;
-                                        const now = Date.now();
-                                        const DOUBLE_TAP_DELAY = 300;
-                                        if (now - lastTapRef.current < DOUBLE_TAP_DELAY) {
-                                            setIsMaxZoom(!isMaxZoom);
-                                        }
-                                        lastTapRef.current = now;
-                                    }}
+                                    onTouchEnd={handleMobileVisualizerTap}
                                     onDoubleClick={() => {
                                         if (isHovered) setIsMaxZoom(!isMaxZoom);
                                     }}
