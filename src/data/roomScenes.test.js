@@ -3,13 +3,8 @@ import { ROOM_SCENES, computeReferenceAnchoredTop, computeRoomPlacement, compute
 import { FRAME_SIZES } from './constants';
 import { ROOM_SCENE_COMPONENTS } from '../components/framing/roomSceneComponents';
 
-// floorLineCm/sceneHeightCm are required now, not just wallSpanCm/hang — the
-// hang-height lift in computeRoomPlacement (a tall piece gets raised to clear
-// whatever's below it) needs them to find the floor and do the cm maths. No
-// clearanceTopCm here on purpose: these tests are about the base centring/
-// scaling behaviour, and an obstacle at floor level (the default when it's
-// unset) never triggers a lift for any of the modest heights used below —
-// see the dedicated hang-height tests further down for that behaviour.
+// floorLineCm/sceneHeightCm are required in addition to wallSpanCm/hang so
+// computeRoomPlacement can keep a frame inside the photographed wall.
 const scene = { id: 'test', wallSpanCm: 400, sceneHeightCm: 280, floorLineCm: 245, hang: { x: 50, y: 40 } };
 
 describe('computeRoomPlacement', () => {
@@ -131,8 +126,6 @@ describe('ROOM_SCENES data', () => {
             expect(s.hang.x).toBeLessThanOrEqual(100);
             expect(s.hang.y).toBeGreaterThanOrEqual(0);
             expect(s.hang.y).toBeLessThanOrEqual(100);
-            expect(s.referenceTopPct).toBeGreaterThan(0);
-            expect(s.referenceTopPct).toBeLessThanOrEqual(100);
             // Either drawn (tintable) or photographic (image) — a scene with
             // neither would render as an empty box.
             expect(Boolean(s.tintable) || Boolean(s.image)).toBe(true);
@@ -222,8 +215,6 @@ describe('ROOM_SCENES data', () => {
             50, // Entryway shares the visualizer centre with every scene
             50, // Desk
         ]);
-        expect(ROOM_SCENES.find((scene) => scene.id === 'entryway').compositionOffsetXPct).toBe(0);
-        expect(ROOM_SCENES.find((scene) => scene.id === 'home-office').compositionOffsetXPct).toBe(0);
     });
 
     it('keeps photographic scene data at the image native aspect ratio', () => {

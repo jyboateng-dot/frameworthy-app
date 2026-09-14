@@ -36,32 +36,15 @@ export const GALLERY_HANG_HEIGHT_CM = 145;
 // Photo coordinates are measured against the 1536 × 1024 source images.
 // Physical spans are approximate; the generated interiors are not surveys.
 // floorLineCm follows the wall/floor junction, not the image's bottom edge.
-// furnitureTopPct marks the highest obstacle across the intended hanging zone.
-const photoScene = (id, name, wallSpanCm, floorPct, furnitureTopPct, x, hangHeight = 145, options = {}) => {
+// Every room shares one visualizer coordinate system for the frame.
+const photoScene = (id, name, wallSpanCm, floorPct, x, hangHeight = 145, options = {}) => {
     const sceneHeightCm = wallSpanCm / 1.5;
     const floorLineCm = sceneHeightCm * floorPct / 100;
     return {
         id, name,
         image: options.image ?? `/rooms/${id}.png`,
         foregroundImage: options.foregroundImage,
-        wallSpanCm, sceneHeightCm, floorLineCm, furnitureTopPct,
-        referenceTopPct: options.referenceTopPct,
-        reference: options.reference,
-        referenceGapPx: options.referenceGapPx ?? 112,
-        // The largest portrait preset already reaches into the upper wall, so
-        // it keeps the original compact clearance rather than moving upward.
-        largePortraitReferenceGapPx: options.largePortraitReferenceGapPx ?? 16,
-        verticalNudgePx: options.verticalNudgePx ?? 0,
-        sizeNudgesPx: options.sizeNudgesPx ?? {},
-        // Moves the photographed room composition while the frame remains on
-        // the shared visualizer centre. This is for calibrating an off-centre
-        // sofa/table/console/desk, not for changing a frame's placement.
-        compositionOffsetXPct: options.compositionOffsetXPct ?? 0,
-        // Foreground alpha cutouts may need their own local alignment after a
-        // photographic source is retouched. It never moves the full room.
-        foregroundOffsetXPct: options.foregroundOffsetXPct ?? 0,
-        clearanceTopCm: floorLineCm - sceneHeightCm * furnitureTopPct / 100,
-        furnitureGapCm: options.furnitureGapCm,
+        wallSpanCm, sceneHeightCm, floorLineCm,
         tintable: options.tintable,
         hang: { x, y: (floorLineCm - hangHeight) / sceneHeightCm * 100 },
     };
@@ -70,48 +53,29 @@ const photoScene = (id, name, wallSpanCm, floorPct, furnitureTopPct, x, hangHeig
 export const ROOM_SCENES = [
     // The photograph keeps the original Studio Loft's calibrated composition:
     // a 420cm wall, sofa at 80cm high, and a near-bottom floor line.
-    // The expanded Studio canvas leaves the sofa at the lower fifth of the
-    // visualizer, so its usable wall extends to 80% of the scene height.
-    // This keeps the 180cm custom-height option visible above the sofa.
-    photoScene('studio-loft', 'Studio Loft', 461, 99.64, 80, 50, 140, {
+    // The expanded canvas leaves headroom for the 180cm custom-height option
+    // while keeping the sofa low in the visualizer.
+    photoScene('studio-loft', 'Studio Loft', 461, 99.64, 50, 140, {
         image: '/rooms/studio-loft-photoreal.png',
         foregroundImage: '/rooms/studio-loft-foreground.png?v=2',
-        referenceTopPct: 65,
-        reference: { name: 'sofa frame', widthCm: 220, widthPx: 1000 },
     }),
-    photoScene('dining-room', 'Dining Room', 461, 85, 68, 50, 145, {
+    photoScene('dining-room', 'Dining Room', 461, 85, 50, 145, {
         image: '/rooms/dining-room-photoreal.png',
         foregroundImage: '/rooms/dining-room-foreground.png?v=1',
-        referenceTopPct: 68,
-        reference: { name: 'dining table top', widthCm: 180, widthPx: 900 },
-        referenceGapPx: 168,
-        largePortraitReferenceGapPx: 112,
     }),
-    photoScene('bedroom', 'Bedroom', 461, 85, 60, 50, 150, {
+    photoScene('bedroom', 'Bedroom', 461, 85, 50, 150, {
         image: '/rooms/bedroom-photoreal.png',
         foregroundImage: '/rooms/bedroom-foreground.png?v=1',
-        referenceTopPct: 60,
-        reference: { name: 'bed frame', widthCm: 150, widthPx: 500 },
     }),
     // Keep the artwork fixed on the shared visualizer centre; the entryway
     // composition changes around it just like the other room scenes.
-    photoScene('entryway', 'Entryway', 461, 80, 50, 50, 145, {
+    photoScene('entryway', 'Entryway', 461, 80, 50, 145, {
         image: '/rooms/entryway-photoreal-v3.png',
         foregroundImage: '/rooms/entryway-foreground-v4.png',
-        referenceTopPct: 65,
-        reference: { name: 'console top', widthCm: 120, widthPx: 465 },
-        // Keep the room image on the same origin as every other scene. The
-        // frame is already centred on the visualizer, so scene switches never
-        // introduce an Entryway-only horizontal jump.
-        compositionOffsetXPct: 0,
-        foregroundOffsetXPct: 0,
     }),
-    photoScene('home-office', 'Home Office', 461, 88, 62, 50, 145, {
+    photoScene('home-office', 'Home Office', 461, 88, 50, 145, {
         image: '/rooms/home-office-photoreal.png',
         foregroundImage: '/rooms/home-office-foreground.png?v=1',
-        referenceTopPct: 65,
-        reference: { name: 'desk top', widthCm: 160, widthPx: 680 },
-        compositionOffsetXPct: 0,
     }),
 ];
 

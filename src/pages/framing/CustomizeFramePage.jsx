@@ -321,6 +321,7 @@ const CustomizeFramePage = ({
     // ROOM_SCENES id to swap in a full room, where the artwork is sized
     // against the room's own real-world wall span instead of the sofa.
     const [roomSceneId, setRoomSceneId] = useState(null);
+    const [departingRoomSceneId, setDepartingRoomSceneId] = useState(null);
     // Bumped only when the scene-discovery hint is accepted. ScenePicker
     // watches this counter so the hint can open the existing picker without
     // adding a second mobile-only flow.
@@ -354,11 +355,14 @@ const CustomizeFramePage = ({
     // full screen.
     const [paneVisible, setPaneVisible] = useState(true);
     const fullScreenCloseTimeoutRef = useRef(null);
+    const roomSceneTransitionRef = useRef(null);
     const hoverTimeoutRef = useRef(null);
     const lastTapRef = useRef(0);
     const zoneRef = useRef(null);
     const visualizerPaneRef = useRef(null);
     const zoomTouchStartRef = useRef(null);
+
+    useEffect(() => () => window.clearTimeout(roomSceneTransitionRef.current), []);
     const [loadingAction, setLoadingAction] = useState(null);
     const [wasAddedToCart, setWasAddedToCart] = useState(false);
     // Always holds the uploadedImage value from the most recent render, updated
@@ -1176,6 +1180,19 @@ const CustomizeFramePage = ({
     };
 
     const selectRoomScene = (sceneId) => {
+        if (sceneId === roomSceneId) return;
+        window.clearTimeout(roomSceneTransitionRef.current);
+        // Room-to-room changes retain the outgoing composition just long
+        // enough to dissolve into the new one. The frame itself stays in its
+        // shared calibrated position throughout the transition.
+        if (roomSceneId && sceneId) {
+            setDepartingRoomSceneId(roomSceneId);
+            roomSceneTransitionRef.current = window.setTimeout(() => {
+                setDepartingRoomSceneId(null);
+            }, 280);
+        } else {
+            setDepartingRoomSceneId(null);
+        }
         setRoomSceneId(sceneId);
         dismissSceneHint();
     };
@@ -1775,6 +1792,63 @@ const CustomizeFramePage = ({
     const wallInkBorderClass = isDarkWall ? 'border-stone-100' : 'border-stone-800';
     const wallInkBgClass = isDarkWall ? 'bg-stone-100' : 'bg-stone-800';
     const wallInkBlend = isDarkWall ? '' : 'mix-blend-color-burn';
+    const departingRoom = departingRoomSceneId
+        ? ROOM_SCENES.find((scene) => scene.id === departingRoomSceneId)
+        : null;
+    const departingRoomLayout = computeRoomLayout(departingRoom, zoneSize.width, zoneSize.height);
+
+    const renderRoomBackdrop = (room, layout, phase = '') => {
+        if (!room || !layout) return null;
+        const DrawnScene = room.tintable ? ROOM_SCENE_COMPONENTS[room.id] : null;
+        const { width, height, left, top } = layout;
+        const layerClass = phase === 'outgoing'
+            ? 'z-0 room-scene-outgoing'
+            : phase === 'incoming'
+                ? 'z-[1] room-scene-incoming'
+                : 'z-[1]';
+        return (
+            <div
+                key={`backdrop-${phase}-${room.id}`}
+                className={`absolute inset-0 pointer-events-none ${layerClass} ${
+                    isHovered || isMaxZoom || isFullScreen ? 'opacity-0' : 'opacity-100'
+                }`}
+                style={{ overflow: 'hidden', backgroundColor: wallColor.hex }}
+                aria-hidden="true"
+            >
+                <div className="absolute" style={{ left, top, width, height }}>
+                    {DrawnScene ? (
+                        <DrawnScene wallHex={wallColor.hex} isDarkWall={isDarkWall} canvasInsetLeftCm={room.canvasInsetLeftCm || 0} />
+                    ) : (
+                        <img src={room.image} alt="" className="h-full w-full object-fill" />
+                    )}
+                </div>
+            </div>
+        );
+    };
+
+    const renderRoomForeground = (room, layout, phase = '') => {
+        if (!room || !layout || isHovered || isMaxZoom || isFullScreen) return null;
+        const ForegroundScene = room.tintable ? ROOM_SCENE_FOREGROUND_COMPONENTS[room.id] : null;
+        if (!ForegroundScene && !room.foregroundImage) return null;
+        const { width, height, left, top } = layout;
+        const layerClass = phase === 'outgoing'
+            ? 'z-20 room-scene-outgoing'
+            : phase === 'incoming'
+                ? 'z-[21] room-scene-incoming'
+                : 'z-20';
+        return (
+            <div
+                key={`foreground-${phase}-${room.id}`}
+                className={`absolute inset-0 pointer-events-none ${layerClass}`}
+                style={{ overflow: 'hidden' }}
+                aria-hidden="true"
+            >
+                <div className="absolute" style={{ left, top, width, height }}>
+                    {room.foregroundImage ? <img src={room.foregroundImage} alt="" className="block h-full w-full object-fill" /> : <ForegroundScene canvasInsetLeftCm={room.canvasInsetLeftCm || 0} />}
+                </div>
+            </div>
+        );
+    };
     if (!selectedSize || !selectedFrame) return <div className="min-h-screen bg-[#faf9f8]" />;
 
     return (
@@ -2069,71 +2143,10 @@ const CustomizeFramePage = ({
                         )}
 
                         {/* ── ROOM SCENE BACKDROP ──
-                            Sized so its wall span is exactly the zone's width, which is
-                            what lets the frame's own width percentage (computed against
-                            this same zone) be a direct cm ratio — see the frame's scale
-                            block below. Then it's offset so the scene's hang point lands
-                            on the zone's centre, where the frame is already flex-centred.
-                            Offsetting the scene rather than the frame keeps the entire
-                            existing frame layout — zoom, overflow correction, dimension
-                            labels — untouched. */}
-                        {activeRoom && (() => {
-                            // Drawn scenes are looked up by id; a photographic
-                            // one has no component and falls through to <img>.
-                            const DrawnScene = activeRoom.tintable ? ROOM_SCENE_COMPONENTS[activeRoom.id] : null;
-                            if (!roomLayout) return null;
-                            const { width: sceneW, height: sceneH, left: sceneLeft, top: sceneTop } = roomLayout;
-                            const compositionOffsetPx = sceneW * (activeRoom.compositionOffsetXPct || 0) / 100;
-                            return (
-                                <div
-                                    className={`absolute pointer-events-none z-0 transition-opacity ${CHROME_MOTION} ${
-                                        // Matches the sofa cue's own fade condition, and for the same
-                                        // reason: all three of these states zoom the frame past its
-                                        // true size (frameWidthPct * zoomScale) while the scene stays
-                                        // put, so leaving the room visible would show the artwork at a
-                                        // scale it isn't. Fading out drops the scale claim rather than
-                                        // making a false one.
-                                        isHovered || isMaxZoom || isFullScreen ? 'opacity-0' : 'opacity-100'
-                                    }`}
-                                    style={{ inset: 0, overflow: 'hidden', backgroundColor: wallColor.hex }}
-                                    aria-hidden="true"
-                                >
-                                    <div
-                                        className="absolute"
-                                        style={{
-                                            // Keep the frame at the shared centre and move a
-                                            // room's photographed composition to centre its
-                                            // own table, console, or desk beneath it.
-                                            left: sceneLeft + compositionOffsetPx,
-                                            top: sceneTop,
-                                            width: sceneW,
-                                            height: sceneH,
-                                        }}
-                                    >
-                                        {DrawnScene ? (
-                                            <DrawnScene
-                                                wallHex={wallColor.hex}
-                                                isDarkWall={isDarkWall}
-                                                canvasInsetLeftCm={activeRoom.canvasInsetLeftCm || 0}
-                                            />
-                                        ) : (
-                                            <img src={activeRoom.image} alt="" className="w-full h-full object-fill" />
-                                        )}
-                                        {/* Continues the floor to the bottom of the panel so the
-                                            scene reads as full-bleed instead of a letterboxed
-                                            picture. Above the scene the panel's own wall colour
-                                            already matches, so only the floor needs this. */}
-                                        {activeRoom.floorHex && (
-                                            <div
-                                                data-artefact="floor-base"
-                                                className="absolute left-0 w-full"
-                                                style={{ top: '100%', height: '100vh', backgroundColor: activeRoom.floorHex }}
-                                            />
-                                        )}
-                                    </div>
-                                </div>
-                            );
-                        })()}
+                            Every scene fills the same calibrated visualizer canvas, so
+                            the image can change without changing frame geometry. */}
+                        {renderRoomBackdrop(departingRoom, departingRoomLayout, 'outgoing')}
+                        {renderRoomBackdrop(activeRoom, roomLayout, departingRoom ? 'incoming' : '')}
 
                         {/* ── THE FRAME ── */}
                         {(() => {
@@ -2988,34 +3001,8 @@ const CustomizeFramePage = ({
                             Keep this as a separate foreground pass so the
                             room backdrop can stay behind the frame, while
                             entryway console artefacts can sit in front. */}
-                        {activeRoom && (() => {
-                            // Photo rooms stay as one canvas. A photographic foreground must
-                            // be a pixel-aligned alpha layer; legacy SVG scenes already have
-                            // that exact foreground geometry.
-                            const ForegroundScene = activeRoom.tintable ? ROOM_SCENE_FOREGROUND_COMPONENTS[activeRoom.id] : null;
-                            if ((!ForegroundScene && !activeRoom.foregroundImage) || isHovered || isMaxZoom || isFullScreen) return null;
-
-                            const sceneW = roomLayout?.width || zoneSize.width;
-                            const sceneH = roomLayout?.height || zoneSize.height;
-                            const sceneLeft = roomLayout?.left || 0;
-                            const sceneTop = roomLayout?.top || 0;
-                            const compositionOffsetPx = sceneW * (activeRoom.foregroundOffsetXPct || 0) / 100;
-
-                            return (
-                                <div
-                                    className={`absolute pointer-events-none z-20 transition-opacity ${CHROME_MOTION} opacity-100`}
-                                    style={{ inset: 0, overflow: 'hidden' }}
-                                    aria-hidden="true"
-                                >
-                                    <div
-                                        className="absolute"
-                                        style={{ left: sceneLeft + compositionOffsetPx, top: sceneTop, width: sceneW, height: sceneH }}
-                                    >
-                                        {activeRoom.foregroundImage ? <img src={activeRoom.foregroundImage} alt="" className="block h-full w-full object-fill" /> : <ForegroundScene canvasInsetLeftCm={activeRoom.canvasInsetLeftCm || 0} />}
-                                    </div>
-                                </div>
-                            );
-                        })()}
+                        {renderRoomForeground(departingRoom, departingRoomLayout, 'outgoing')}
+                        {renderRoomForeground(activeRoom, roomLayout, departingRoom ? 'incoming' : '')}
                         
                         {/* The zoomed-in disclaimer that used to fade in here is
                             gone: with the note pinned under the pane it's on

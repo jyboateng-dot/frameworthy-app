@@ -35,6 +35,27 @@
   }
 }
 
+/* Room swaps keep the selected frame fixed while one complete scene dissolves
+   into the next. The backdrop and its foreground cutout share this timing,
+   preventing artefacts from flashing or seeming to slide independently. */
+@keyframes roomSceneIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes roomSceneOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+.room-scene-incoming { animation: roomSceneIn 280ms ease-in-out both; }
+.room-scene-outgoing { animation: roomSceneOut 280ms ease-in-out both; }
+
+@media (prefers-reduced-motion: reduce) {
+  .room-scene-incoming,
+  .room-scene-outgoing { animation: none; }
+}
+
 .frame-grid-hidden .frame-card {
   opacity: 0;
   transform: translateY(28px) scale(0.97);
