@@ -48,8 +48,16 @@
   to { opacity: 0; }
 }
 
-.room-scene-incoming { animation: roomSceneIn 280ms ease-in-out both; }
-.room-scene-outgoing { animation: roomSceneOut 280ms ease-in-out both; }
+.room-scene-incoming,
+.room-scene-outgoing {
+  backface-visibility: hidden;
+  contain: paint;
+  transform: translateZ(0);
+  will-change: opacity;
+}
+
+.room-scene-incoming { animation: roomSceneIn 360ms cubic-bezier(0.22, 1, 0.36, 1) both; }
+.room-scene-outgoing { animation: roomSceneOut 360ms cubic-bezier(0.22, 1, 0.36, 1) both; }
 
 @media (prefers-reduced-motion: reduce) {
   .room-scene-incoming,

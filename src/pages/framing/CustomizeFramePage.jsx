@@ -356,13 +356,18 @@ const CustomizeFramePage = ({
     const [paneVisible, setPaneVisible] = useState(true);
     const fullScreenCloseTimeoutRef = useRef(null);
     const roomSceneTransitionRef = useRef(null);
+    const roomScenePreloadRef = useRef(new Map());
+    const roomSceneSelectionTokenRef = useRef(0);
     const hoverTimeoutRef = useRef(null);
     const lastTapRef = useRef(0);
     const zoneRef = useRef(null);
     const visualizerPaneRef = useRef(null);
     const zoomTouchStartRef = useRef(null);
 
-    useEffect(() => () => window.clearTimeout(roomSceneTransitionRef.current), []);
+    useEffect(() => () => {
+        window.clearTimeout(roomSceneTransitionRef.current);
+        roomSceneSelectionTokenRef.current += 1;
+    }, []);
     const [loadingAction, setLoadingAction] = useState(null);
     const [wasAddedToCart, setWasAddedToCart] = useState(false);
     // Always holds the uploadedImage value from the most recent render, updated
@@ -756,6 +761,10 @@ const CustomizeFramePage = ({
     // below (and the dashboard's), since this is also how long enter/exit
     // waits before actually swapping the docked/full-screen layout.
     const FULL_SCREEN_TRANSITION_MS = 300;
+    // The room images are full visualizer canvases. This gives mobile GPUs
+    // enough time to blend the two cached layers instead of appearing to
+    // snap between them under the frame.
+    const ROOM_SCENE_TRANSITION_MS = 360;
 
     // ── ZOOM MOTION ──
     // One duration and one curve for everything that moves when the frame
@@ -1179,22 +1188,55 @@ const CustomizeFramePage = ({
         setSceneAutoOpenTick(t => t + 1);
     };
 
+    const preloadRoomScene = (sceneId) => {
+        if (!sceneId) return Promise.resolve();
+        const cached = roomScenePreloadRef.current.get(sceneId);
+        if (cached) return cached;
+
+        const room = ROOM_SCENES.find((scene) => scene.id === sceneId);
+        const urls = [room?.image, room?.foregroundImage].filter(Boolean);
+        const load = (url) => new Promise((resolve) => {
+            const image = new Image();
+            image.decoding = 'async';
+            image.onload = () => {
+                if (typeof image.decode === 'function') {
+                    image.decode().catch(() => {}).finally(resolve);
+                } else {
+                    resolve();
+                }
+            };
+            image.onerror = resolve;
+            image.src = url;
+        });
+        const preload = Promise.all(urls.map(load)).then(() => undefined);
+        roomScenePreloadRef.current.set(sceneId, preload);
+        return preload;
+    };
+
     const selectRoomScene = (sceneId) => {
         if (sceneId === roomSceneId) return;
-        window.clearTimeout(roomSceneTransitionRef.current);
-        // Room-to-room changes retain the outgoing composition just long
-        // enough to dissolve into the new one. The frame itself stays in its
-        // shared calibrated position throughout the transition.
-        if (roomSceneId && sceneId) {
-            setDepartingRoomSceneId(roomSceneId);
-            roomSceneTransitionRef.current = window.setTimeout(() => {
-                setDepartingRoomSceneId(null);
-            }, 280);
-        } else {
-            setDepartingRoomSceneId(null);
-        }
-        setRoomSceneId(sceneId);
         dismissSceneHint();
+        const selectionToken = ++roomSceneSelectionTokenRef.current;
+
+        // Decode both photo layers before mounting the new room. On a phone,
+        // decoding a large backdrop and its foreground cutout during an
+        // opacity animation drops frames and makes the transition feel jerky.
+        void preloadRoomScene(sceneId).then(() => {
+            if (selectionToken !== roomSceneSelectionTokenRef.current) return;
+            window.clearTimeout(roomSceneTransitionRef.current);
+            // Room-to-room changes retain the outgoing composition just long
+            // enough to dissolve into the new one. The frame itself stays in
+            // its shared calibrated position throughout the transition.
+            if (roomSceneId && sceneId) {
+                setDepartingRoomSceneId(roomSceneId);
+                roomSceneTransitionRef.current = window.setTimeout(() => {
+                    setDepartingRoomSceneId(null);
+                }, ROOM_SCENE_TRANSITION_MS);
+            } else {
+                setDepartingRoomSceneId(null);
+            }
+            setRoomSceneId(sceneId);
+        });
     };
 
     const selectFrameStyle = (frame) => {
