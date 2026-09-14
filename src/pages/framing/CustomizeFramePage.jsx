@@ -817,21 +817,13 @@ const CustomizeFramePage = ({
         }
         setIsHovered(false);
         setIsMaxZoom(false);
-        // Fade/scale out first, then swap back to the docked layout only
-        // once that's finished, so the hard cut (fixed-position pane
-        // collapsing back into the normal flex layout, dashboard
-        // remounting) always happens while fully invisible instead of
-        // mid-transition. paneVisible stays false across that swap — see
-        // the effect below, which is what actually fades the docked view
-        // back in afterward. Without that, the docked branch would render
-        // at full opacity the instant it remounts (it has no "just
-        // arrived" state of its own), snapping straight to its final size
-        // right as everything else pops back in — the glitch this fixes.
+        // Returning to a room needs to feel immediate. Mount the docked view
+        // invisibly in this same render, then let the effect below fade it in.
+        // The previous exit first spent a full transition fading out the
+        // full-screen room, then another fading in the docked room, which
+        // made returning feel delayed even though entering felt responsive.
         setPaneVisible(false);
-        fullScreenCloseTimeoutRef.current = setTimeout(() => {
-            setIsFullScreen(false);
-            fullScreenCloseTimeoutRef.current = null;
-        }, FULL_SCREEN_TRANSITION_MS);
+        setIsFullScreen(false);
     };
 
     // Whichever layout we just switched to (full-screen on enter, docked on
