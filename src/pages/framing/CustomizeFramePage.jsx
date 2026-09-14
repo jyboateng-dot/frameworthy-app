@@ -1245,6 +1245,17 @@ const CustomizeFramePage = ({
 
         const now = Date.now();
         if (now < ignoreZoomTapUntilRef.current) return;
+
+        if (isFullScreen) {
+            if (now - lastTapRef.current < MOBILE_DOUBLE_TAP_DELAY_MS) {
+                lastTapRef.current = 0;
+                exitFullScreen();
+                return;
+            }
+            lastTapRef.current = now;
+            return;
+        }
+
         // Deep Close-Up zoom has its own pane-level single-tap exit effect.
         if (isMaxZoom) return;
 
@@ -2207,18 +2218,11 @@ const CustomizeFramePage = ({
                                 // a smaller frame-only zone beneath them.
                                 : 'inset-0 h-full'
                         }`}
-                        onClick={(e) => {
-                            // This zone (not the outer visualizer pane) is
-                            // what actually receives clicks in the empty
-                            // margin around the frame — the room-scene
-                            // backdrop behind it is pointer-events-none, so
-                            // clicking the wall bubbles straight through to
-                            // here as e.target === e.currentTarget, while
-                            // clicking the frame itself (or the wall-color/
-                            // exit-fullscreen buttons, which sit outside
-                            // this zone) leaves e.target pointing at that
-                            // child instead and this is a no-op for it.
-                            if (isFullScreen && e.target === e.currentTarget) exitFullScreen();
+                        onTouchEnd={(event) => {
+                            // Keep the empty wall interactive in full screen
+                            // without making a single tap dismiss the view.
+                            // Frame taps have their own handler below.
+                            if (event.target === event.currentTarget) handleMobileVisualizerTap(event);
                         }}
                     >
 
