@@ -761,9 +761,8 @@ const CustomizeFramePage = ({
     // below (and the dashboard's), since this is also how long enter/exit
     // waits before actually swapping the docked/full-screen layout.
     const FULL_SCREEN_TRANSITION_MS = 300;
-    // The room images are full visualizer canvases. This gives mobile GPUs
-    // enough time to blend the two cached layers instead of appearing to
-    // snap between them under the frame.
+    // The room images are full visualizer canvases. The assets are decoded
+    // before this begins, so a concise opacity blend is enough on mobile.
     const ROOM_SCENE_TRANSITION_MS = 360;
 
     // ── ZOOM MOTION ──
@@ -1231,7 +1230,7 @@ const CustomizeFramePage = ({
                 setDepartingRoomSceneId(roomSceneId);
                 roomSceneTransitionRef.current = window.setTimeout(() => {
                     setDepartingRoomSceneId(null);
-                }, ROOM_SCENE_TRANSITION_MS);
+                }, windowSize.width < 640 ? 220 : ROOM_SCENE_TRANSITION_MS);
             } else {
                 setDepartingRoomSceneId(null);
             }
@@ -1881,7 +1880,7 @@ const CustomizeFramePage = ({
         return (
             <div
                 key={`foreground-${phase}-${room.id}`}
-                className={`absolute inset-0 pointer-events-none ${layerClass}`}
+                className={`room-scene-foreground absolute inset-0 pointer-events-none ${layerClass}`}
                 style={{ overflow: 'hidden' }}
                 aria-hidden="true"
             >

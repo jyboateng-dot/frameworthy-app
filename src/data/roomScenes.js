@@ -56,26 +56,26 @@ export const ROOM_SCENES = [
     // The expanded canvas leaves headroom for the 180cm custom-height option
     // while keeping the sofa low in the visualizer.
     photoScene('studio-loft', 'Studio Loft', 461, 99.64, 50, 140, {
-        image: '/rooms/studio-loft-photoreal.png',
-        foregroundImage: '/rooms/studio-loft-foreground.png?v=2',
+        image: '/rooms/studio-loft-photoreal.webp',
+        foregroundImage: '/rooms/studio-loft-foreground.webp',
     }),
     photoScene('dining-room', 'Dining Room', 461, 85, 50, 145, {
-        image: '/rooms/dining-room-photoreal.png',
-        foregroundImage: '/rooms/dining-room-foreground.png?v=1',
+        image: '/rooms/dining-room-photoreal.webp',
+        foregroundImage: '/rooms/dining-room-foreground.webp',
     }),
     photoScene('bedroom', 'Bedroom', 461, 85, 50, 150, {
-        image: '/rooms/bedroom-photoreal.png',
-        foregroundImage: '/rooms/bedroom-foreground.png?v=1',
+        image: '/rooms/bedroom-photoreal.webp',
+        foregroundImage: '/rooms/bedroom-foreground.webp',
     }),
     // Keep the artwork fixed on the shared visualizer centre; the entryway
     // composition changes around it just like the other room scenes.
     photoScene('entryway', 'Entryway', 461, 80, 50, 145, {
-        image: '/rooms/entryway-photoreal-v3.png',
-        foregroundImage: '/rooms/entryway-foreground-v4.png',
+        image: '/rooms/entryway-photoreal-v3.webp',
+        foregroundImage: '/rooms/entryway-foreground-v4.webp',
     }),
     photoScene('home-office', 'Home Office', 461, 88, 50, 145, {
-        image: '/rooms/home-office-photoreal.png',
-        foregroundImage: '/rooms/home-office-foreground.png?v=1',
+        image: '/rooms/home-office-photoreal.webp',
+        foregroundImage: '/rooms/home-office-foreground.webp',
     }),
 ];
 
