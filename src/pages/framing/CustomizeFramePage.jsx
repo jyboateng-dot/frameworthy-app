@@ -362,7 +362,6 @@ const CustomizeFramePage = ({
     const roomScenePreloadRef = useRef(new Map());
     const roomSceneSelectionTokenRef = useRef(0);
     const ignoreZoomTapUntilRef = useRef(0);
-    const hoverTimeoutRef = useRef(null);
     const lastTapRef = useRef(0);
     const zoneRef = useRef(null);
     const visualizerPaneRef = useRef(null);
@@ -1865,6 +1864,24 @@ const CustomizeFramePage = ({
     // treatment stops working, switch to plain light text with no blend
     // mode, which stays legible against any solid color.
     const activeRoom = roomSceneId ? ROOM_SCENES.find((s) => s.id === roomSceneId) : null;
+    // Studio Loft is the neutral first preview shown before a room has been
+    // selected from the picker.
+    const sceneHintPreview = ROOM_SCENES.find((scene) => scene.id === 'studio-loft') || ROOM_SCENES[0];
+    // Thumbnail-only clearance for the tall formats; scale both axes and
+    // the placement height together so the sofa gap stays consistent.
+    // The labelled 180cm catalogue sizes store 72 inches (182.88cm).
+    // Include that rounded-inch equivalent as well as exact custom sizes.
+    const hintFrameScale = innerHeightCm >= 149.5 && innerHeightCm <= 72 * 2.54 + 0.01 ? 0.765 : 1;
+    const hintFrameWidthPct = sceneHintPreview?.wallSpanCm
+        ? (outerFrameWidthCm / sceneHintPreview.wallSpanCm) * 100 * hintFrameScale
+        : 0;
+    // cqw measures against the thumbnail width, so portrait and landscape
+    // heights remain accurate at both responsive thumbnail sizes. Keep the
+    // lower edge at 60% of the thumbnail to leave visible wall above the sofa,
+    // rather than growing around a fixed centre until the frame nearly touches it.
+    const hintFrameHalfHeightCqw = sceneHintPreview?.wallSpanCm
+        ? outerFrameHeightCm / sceneHintPreview.wallSpanCm * 50 * hintFrameScale
+        : 0;
 
     // Computed once and shared: the piece is flex-centred in the zone and the
     // SCENE is offset so the hang point lands on that centre. If the backdrop
@@ -2046,7 +2063,7 @@ const CustomizeFramePage = ({
                     reveal-zoom transition. */}
                 <div
                     data-testid="visualizer-chrome"
-                    className={`absolute top-1.5 left-1.5 right-[-4px] sm:top-2 sm:left-2 sm:right-[-4px] z-20 grid grid-cols-[auto_minmax(0,1fr)_auto] items-start gap-2 sm:gap-3 transition-opacity ${CHROME_MOTION} ${
+                    className={`absolute top-1.5 left-1.5 right-1.5 sm:top-2 sm:left-2 sm:right-2 z-20 grid grid-cols-[auto_minmax(0,1fr)_auto] items-start gap-2 sm:gap-3 transition-opacity ${CHROME_MOTION} ${
                         ((isHovered && activeRoom) || isFullScreen || isMaxZoom) ? 'opacity-0 pointer-events-none' : 'opacity-100'
                     }`}
                 >
@@ -2058,19 +2075,46 @@ const CustomizeFramePage = ({
                 {showSceneHint && hasImage && !isFullScreen && !isMaxZoom ? (
                     <aside
                         aria-label="Room scene preview hint"
-                        className="relative z-20 w-[min(15rem,calc(100vw-2rem))] rounded-xl border border-stone-200 bg-white/95 p-3 shadow-lg backdrop-blur"
+                        className="relative z-20 flex w-[min(17.75rem,calc(100vw-1rem))] items-center gap-1.5 rounded-2xl border border-stone-200/90 bg-white/95 p-1.5 pr-2.5 font-sans shadow-lg shadow-stone-900/10 backdrop-blur"
                     >
-                        <p className="text-xs font-semibold leading-5 text-stone-700">
-                            See how your frame fits in a realistic room scene.
-                        </p>
-                        <button
-                            type="button"
-                            onClick={openScenePickerFromHint}
-                            className="mt-2 flex items-center gap-1 text-xs font-bold text-stone-900 underline decoration-stone-300 underline-offset-4 transition-colors hover:text-stone-500"
-                        >
-                            Explore room scenes
-                            <ChevronDown size={14} aria-hidden="true" />
-                        </button>
+                        <div className="relative h-11 w-[4.125rem] shrink-0 overflow-hidden rounded-lg bg-stone-100 sm:h-[3.25rem] sm:w-[5.125rem]" style={{ containerType: 'inline-size' }}>
+                            <img
+                                src={sceneHintPreview?.image}
+                                alt=""
+                                aria-hidden="true"
+                                className="absolute inset-0 h-full w-full object-cover object-center"
+                            />
+                            {uploadedImage && (
+                                <div
+                                    data-testid="hint-frame-preview"
+                                    className="absolute -translate-x-1/2 -translate-y-1/2 rounded-[1px] shadow-[1px_2px_4px_rgba(0,0,0,0.4)]"
+                                    style={{
+                                        left: `${sceneHintPreview?.hang?.x ?? 50}%`,
+                                        top: `min(${sceneHintPreview?.hang?.y ?? 50}%, calc(60% - ${hintFrameHalfHeightCqw}cqw))`,
+                                        width: `${hintFrameWidthPct}%`,
+                                        aspectRatio: `${outerFrameWidthCm} / ${outerFrameHeightCm}`,
+                                        backgroundColor: selectedFrame?.baseColor || '#24211f'
+                                    }}
+                                >
+                                    <div className="absolute inset-[1px]" style={{ backgroundColor: matWidth !== 'none' ? (matColor?.hex || '#fff') : '#fff' }}>
+                                        <div className="absolute inset-[2px] bg-cover bg-center" style={{ backgroundImage: `url(${uploadedImage})` }} />
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                        <div className="min-w-0 py-0.5">
+                            <p className="font-serif font-light tracking-tight text-[13.5px] leading-4 text-stone-900 sm:text-[14.5px]">
+                                See your frame in context
+                            </p>
+                            <button
+                                type="button"
+                                onClick={openScenePickerFromHint}
+                                className="mt-1 flex items-center gap-1 text-[11.5px] font-semibold tracking-tight text-stone-700 transition-colors hover:text-stone-950"
+                            >
+                                Try a room scene
+                                <span aria-hidden="true" className="text-sm leading-none">→</span>
+                            </button>
+                        </div>
                     </aside>
                 ) : (
                     <ScenePicker
@@ -2748,29 +2792,15 @@ const CustomizeFramePage = ({
                             return (
                                 <div
                                     onMouseEnter={() => {
-                                        if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current);
                                         setIsHovered(true);
                                     }}
                                     onMouseLeave={() => {
-                                        // Hover triggers this same element's own grow/reposition
-                                        // (width, and — in a room scene — the honest-placement
-                                        // offset snapping to 0) over ZOOM_MOTION's 260ms. If the
-                                        // box's edge sweeps across the cursor's fixed screen
-                                        // position at any point mid-transition, that's a real
-                                        // mouseleave, and a debounce shorter than the transition
-                                        // can't bridge it: it fires, isHovered reverts, the box
-                                        // snaps back and re-crosses the cursor, mouseenter fires
-                                        // again, and the cycle repeats — jittering back and forth
-                                        // for as long as the cursor sits near that edge. 320ms
-                                        // comfortably outlasts one full transition, so a genuine
-                                        // mid-animation excursion gets cancelled by the next
-                                        // mouseenter (which clears this timeout) before the close
-                                        // ever actually commits, while a real leave (cursor moved
-                                        // away and stayed away) still closes, just slightly later.
-                                        hoverTimeoutRef.current = setTimeout(() => {
-                                            setIsHovered(false);
-                                            setIsMaxZoom(false);
-                                        }, 320);
+                                        // Reverse the enter transition immediately. The same
+                                        // ZOOM_MOTION duration/easing then carries the frame,
+                                        // scene, and chrome back to their resting geometry, so
+                                        // moving away is the exact visual inverse of moving in.
+                                        setIsHovered(false);
+                                        setIsMaxZoom(false);
                                     }}
                                     onTouchEnd={handleMobileVisualizerTap}
                                     onDoubleClick={() => {
@@ -2842,14 +2872,14 @@ const CustomizeFramePage = ({
                                         Dimensions panel already states the exact
                                         size, and the overlay only earns its
                                         keep as a scale cue against a real room. */}
-                                    {showDimensions && activeRoom && (
+                                    {showDimensions && (activeRoom || isFullScreen) && (
                                         <>
-                                            <div style={{ fontSize: `${dimFontSizePx}px` }} className={`absolute ${dimHorizontalClass} left-0 w-full flex items-center justify-center ${wallInkClass} font-mono ${useOriginalDimensionPlacement ? `border-t ${wallInkBorderClass} pt-1` : `border-b ${wallInkBorderClass} pb-1`} ${wallInkBlend} ${isFullScreen ? 'opacity-0' : 'opacity-80'} transition-all ${ZOOM_MOTION} whitespace-nowrap overflow-visible pointer-events-none`}>
+                                            <div style={{ fontSize: `${dimFontSizePx}px` }} className={`absolute ${dimHorizontalClass} left-0 w-full flex items-center justify-center ${wallInkClass} font-mono ${useOriginalDimensionPlacement ? `border-t ${wallInkBorderClass} pt-1` : `border-b ${wallInkBorderClass} pb-1`} ${wallInkBlend} opacity-80 transition-all ${ZOOM_MOTION} whitespace-nowrap overflow-visible pointer-events-none`}>
                                                 <div className={`absolute left-0 ${useOriginalDimensionPlacement ? 'top-0' : 'bottom-0'} h-1.5 sm:h-2 w-px ${wallInkBgClass}`} />
                                                 <div className={`absolute right-0 ${useOriginalDimensionPlacement ? 'top-0' : 'bottom-0'} h-1.5 sm:h-2 w-px ${wallInkBgClass}`} />
                                                 {unit === 'in' ? wInch.toFixed(1) : innerWidthCm.toFixed(1)} {unit === 'in' ? 'in' : 'cm'}
                                             </div>
-                                            <div style={{ fontSize: `${dimFontSizePx}px` }} className={`absolute ${dimVerticalClass} top-0 h-full flex flex-col items-center justify-center ${wallInkClass} font-mono ${useOriginalDimensionPlacement ? `border-r ${wallInkBorderClass} pr-1` : `border-l ${wallInkBorderClass} pl-1`} ${wallInkBlend} ${isFullScreen ? 'opacity-0' : 'opacity-80'} transition-all ${ZOOM_MOTION} whitespace-nowrap overflow-visible pointer-events-none`}>
+                                            <div style={{ fontSize: `${dimFontSizePx}px` }} className={`absolute ${dimVerticalClass} top-0 h-full flex flex-col items-center justify-center ${wallInkClass} font-mono ${useOriginalDimensionPlacement ? `border-r ${wallInkBorderClass} pr-1` : `border-l ${wallInkBorderClass} pl-1`} ${wallInkBlend} opacity-80 transition-all ${ZOOM_MOTION} whitespace-nowrap overflow-visible pointer-events-none`}>
                                                 <div className={`absolute ${useOriginalDimensionPlacement ? 'right-0' : 'left-0'} top-0 w-1.5 sm:w-2 h-px ${wallInkBgClass}`} />
                                                 <div className={`absolute ${useOriginalDimensionPlacement ? 'right-0' : 'left-0'} bottom-0 w-1.5 sm:w-2 h-px ${wallInkBgClass}`} />
                                                 <span style={{ writingMode: 'vertical-rl' }}>{unit === 'in' ? hInch.toFixed(1) : innerHeightCm.toFixed(1)} {unit === 'in' ? 'in' : 'cm'}</span>

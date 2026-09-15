@@ -66,18 +66,18 @@ const ScenePicker = ({ activeId, onSelect, autoOpenSignal, className = '', style
                 title={`Room scene — ${active.name}`}
                 aria-haspopup="true"
                 aria-expanded={open}
-                className="flex h-[30px] items-center gap-1 sm:gap-1.5 px-2 sm:px-3 rounded-full border border-stone-200 shadow-sm hover:shadow-md transition-all bg-white/95 backdrop-blur text-stone-700 font-bold text-xs"
+                className="flex h-7 sm:h-[30px] items-center gap-0.5 sm:gap-1.5 px-1.5 sm:px-3 rounded-full border border-stone-200 shadow-sm hover:shadow-md transition-all bg-white/95 backdrop-blur text-stone-700 font-bold text-[11px] sm:text-xs"
             >
-                <ActiveIcon size={14} className="shrink-0" />
+                <ActiveIcon size={14} className="size-[13px] shrink-0 sm:size-[14px]" />
                 <span className="whitespace-nowrap">room scene</span>
-                <ChevronDown size={14} className={`transition-transform text-stone-400 ${open ? 'rotate-180' : ''}`} />
+                <ChevronDown size={14} className={`size-[13px] transition-transform text-stone-400 sm:size-[14px] ${open ? 'rotate-180' : ''}`} />
             </button>
 
             {/* The Expanded Picker — same shape/motion as the wall-colour
                 popover, opening down-left instead of down-right since this
                 pill now sits in the top-left corner. */}
             <div
-                className={`absolute top-full left-0 mt-[3px] bg-white/95 backdrop-blur shadow-xl border border-stone-100 rounded-xl p-1.5 w-36 origin-top-left transition-all duration-300 ease-out flex flex-col gap-0.5 ${
+                className={`absolute top-full left-0 mt-[3px] bg-white/95 backdrop-blur shadow-xl border border-stone-100 rounded-xl p-1 sm:p-1.5 w-[8.5rem] sm:w-36 origin-top-left transition-all duration-300 ease-out flex flex-col gap-0.5 ${
                     open
                         ? 'opacity-100 translate-y-0 pointer-events-auto'
                         : 'opacity-0 -translate-y-2 pointer-events-none'
@@ -94,11 +94,11 @@ const ScenePicker = ({ activeId, onSelect, autoOpenSignal, className = '', style
                             title={titleFor(o)}
                             role="radio"
                             aria-checked={isActive}
-                            className={`flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-left text-xs font-semibold transition-colors ${
+                            className={`flex items-center gap-1.5 sm:gap-2 rounded-lg px-2 py-1 sm:px-2.5 sm:py-1.5 text-left text-[11px] sm:text-xs font-semibold transition-colors ${
                                 isActive ? 'bg-stone-900 text-white' : 'text-stone-600 hover:bg-stone-100'
                             }`}
                         >
-                            <Icon size={14} className="shrink-0" />
+                            <Icon size={14} className="size-[13px] shrink-0 sm:size-[14px]" />
                             {o.name}
                         </button>
                     );
