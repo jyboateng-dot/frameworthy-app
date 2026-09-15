@@ -1193,7 +1193,7 @@ const CustomizeFramePage = ({
         if (cached) return cached;
 
         const room = ROOM_SCENES.find((scene) => scene.id === sceneId);
-        const urls = [room?.image, room?.foregroundImage].filter(Boolean);
+        const urls = [room?.image, room?.foregroundImage, room?.wallMaskImage].filter(Boolean);
         const load = (url) => new Promise((resolve) => {
             const image = new Image();
             image.decoding = 'async';
@@ -1917,7 +1917,25 @@ const CustomizeFramePage = ({
                     {DrawnScene ? (
                         <DrawnScene wallHex={wallColor.hex} isDarkWall={isDarkWall} canvasInsetLeftCm={room.canvasInsetLeftCm || 0} />
                     ) : (
-                        <img src={room.image} alt="" className="h-full w-full object-fill" />
+                        <>
+                            <img src={room.image} alt="" className="h-full w-full object-fill" />
+                            <div
+                                className="absolute inset-0 transition-colors duration-200"
+                                style={{
+                                    backgroundColor: wallColor.hex,
+                                    // White paint must lighten the photographed beige wall;
+                                    // multiplying by white would leave its colour unchanged.
+                                    opacity: !room.wallMaskImage ? 0 : wallColor.id === 'pure-white' ? 0.9 : 0.72,
+                                    mixBlendMode: wallColor.id === 'pure-white' ? 'normal' : 'multiply',
+                                    maskImage: room.wallMaskImage ? `url("${room.wallMaskImage}")` : undefined,
+                                    WebkitMaskImage: room.wallMaskImage ? `url("${room.wallMaskImage}")` : undefined,
+                                    maskMode: room.wallMaskImage ? 'luminance' : 'alpha',
+                                    maskSize: '100% 100%',
+                                    maskRepeat: 'no-repeat',
+                                    clipPath: room.wallMaskImage ? `inset(0 0 ${100 - room.wallMaskBottomPct}% 0)` : undefined,
+                                }}
+                            />
+                        </>
                     )}
                 </div>
             </div>
@@ -1926,6 +1944,8 @@ const CustomizeFramePage = ({
 
     const renderRoomForeground = (room, layout, phase = '') => {
         if (!room || !layout || isHovered || isMaxZoom || isFullScreen) return null;
+        // Foreground alpha is the inverse wall mask, preserving object colours
+        // and occlusion without covering the painted wall with beige patches.
         const ForegroundScene = room.tintable ? ROOM_SCENE_FOREGROUND_COMPONENTS[room.id] : null;
         if (!ForegroundScene && !room.foregroundImage) return null;
         const { width, height, left, top } = layout;
@@ -1942,7 +1962,14 @@ const CustomizeFramePage = ({
                 aria-hidden="true"
             >
                 <div className="absolute" style={{ left, top, width, height }}>
-                    {room.foregroundImage ? <img src={room.foregroundImage} alt="" className="block h-full w-full object-fill" /> : <ForegroundScene canvasInsetLeftCm={room.canvasInsetLeftCm || 0} />}
+                    {room.foregroundImage ? (
+                        <img
+                            src={room.foregroundImage}
+                            alt=""
+                            className="block h-full w-full object-fill"
+                            style={{ mixBlendMode: 'normal' }}
+                        />
+                    ) : <ForegroundScene canvasInsetLeftCm={room.canvasInsetLeftCm || 0} />}
                 </div>
             </div>
         );
@@ -1977,7 +2004,7 @@ const CustomizeFramePage = ({
             <div
                 ref={visualizerPaneRef}
                 data-testid="visualizer-pane"
-                className={`flex items-center justify-center transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${isMaxZoom ? 'overflow-auto' : 'overflow-hidden'} [scrollbar-gutter:stable] ${paneVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-95'} ${
+                className={`flex items-center justify-center transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${isMaxZoom ? 'overflow-auto' : 'overflow-hidden'} ${paneVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-95'} ${
                     isFullScreen
                         ? 'fixed inset-0 z-[250]'
                         : `relative w-full ${isSideBySide ? 'flex-1 min-h-0' : ''}`
@@ -2078,10 +2105,6 @@ const CustomizeFramePage = ({
                     as ScenePicker) so the popover always draws over whatever
                     it collides with, not just the scene pill it happens to
                     sit near; z-20 at rest otherwise. */}
-                {/* A photographic room has a real, fixed wall finish. Keep
-                    the colour picker for Plain view (and any future tintable
-                    SVG scene), where its swatches visibly change the canvas. */}
-                {(!activeRoom || activeRoom.tintable) && (
                 <div ref={wallPickerContainerRef} className={`relative ${isWallPickerOpen ? 'z-50' : 'z-20'}`} {...wallPickerHoverProps}>
                     <button
                         onClick={() => setIsWallPickerOpen(!isWallPickerOpen)}
@@ -2126,8 +2149,6 @@ const CustomizeFramePage = ({
                             it two clicks deep and invisible. */}
                     </div>
                 </div>
-
-                )}
 
                 </div>
 

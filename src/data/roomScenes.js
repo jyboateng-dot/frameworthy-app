@@ -44,6 +44,8 @@ const photoScene = (id, name, wallSpanCm, floorPct, x, hangHeight = 145, options
         id, name,
         image: options.image ?? `/rooms/${id}.png`,
         foregroundImage: options.foregroundImage,
+        wallMaskImage: options.wallMaskImage ?? `/rooms/${id}-wall-mask-refined.png`,
+        wallMaskBottomPct: options.wallMaskBottomPct ?? 100,
         wallSpanCm, sceneHeightCm, floorLineCm,
         tintable: options.tintable,
         hang: { x, y: (floorLineCm - hangHeight) / sceneHeightCm * 100 },
@@ -57,25 +59,27 @@ export const ROOM_SCENES = [
     // while keeping the sofa low in the visualizer.
     photoScene('studio-loft', 'Studio Loft', 461, 99.64, 50, 140, {
         image: '/rooms/studio-loft-photoreal.webp',
-        foregroundImage: '/rooms/studio-loft-foreground.webp',
+        foregroundImage: '/rooms/studio-loft-foreground-masked.webp',
     }),
     photoScene('dining-room', 'Dining Room', 461, 85, 50, 145, {
         image: '/rooms/dining-room-photoreal.webp',
-        foregroundImage: '/rooms/dining-room-foreground.webp',
+        wallMaskImage: '/rooms/dining-room-wall-mask-refined.png',
+        wallMaskBottomPct: 84.375,
+        foregroundImage: '/rooms/dining-room-foreground-masked.webp',
     }),
     photoScene('bedroom', 'Bedroom', 461, 85, 50, 150, {
         image: '/rooms/bedroom-photoreal.webp',
-        foregroundImage: '/rooms/bedroom-foreground.webp',
+        foregroundImage: '/rooms/bedroom-foreground-masked.webp',
     }),
     // Keep the artwork fixed on the shared visualizer centre; the entryway
     // composition changes around it just like the other room scenes.
     photoScene('entryway', 'Entryway', 461, 80, 50, 145, {
         image: '/rooms/entryway-photoreal-v3.webp',
-        foregroundImage: '/rooms/entryway-foreground-v4.webp',
+        foregroundImage: '/rooms/entryway-foreground-masked.webp',
     }),
     photoScene('home-office', 'Home Office', 461, 88, 50, 145, {
         image: '/rooms/home-office-photoreal.webp',
-        foregroundImage: '/rooms/home-office-foreground.webp',
+        foregroundImage: '/rooms/home-office-foreground-masked.webp',
     }),
 ];
 
