@@ -16,7 +16,11 @@ import {
 import { FRAME_STYLES, FRAME_SIZES, MAT_COLORS, formatDimensions, findSizeByDimension, parseCustomSize, clampSizeToValidRange, DEFAULT_DEMO_IMAGE, getDemoImageForOrientation } from '../../data/constants';
 import { ROOM_SCENES, computeRoomPlacement, computeRoomLayout, computeReferenceAnchoredTop } from '../../data/roomScenes';
 import { ROOM_SCENE_COMPONENTS, ROOM_SCENE_FOREGROUND_COMPONENTS } from '../../components/framing/roomSceneComponents';
+// ScenePicker and SceneCarousel are kept imported-but-unused from earlier tries — swap back easily if the current approach doesn't work out.
 import ScenePicker from '../../components/framing/ScenePicker';
+import SceneCarousel from '../../components/framing/SceneCarousel';
+import SceneArrowCarousel from '../../components/framing/SceneArrowCarousel';
+import SceneDotThumb from '../../components/framing/SceneDotThumb';
 import PageMeta from '../../components/common/PageMeta';
 import { useHoverDropdown, isHoverCapable } from '../../hooks/useHoverDropdown';
 import { getFrameRail, getRailTextureStyle, getRailShading } from '../../utils/frameRail';
@@ -324,6 +328,15 @@ const CustomizeFramePage = ({
     // against the room's own real-world wall span instead of the sofa.
     const [roomSceneId, setRoomSceneId] = useState(null);
     const [departingRoomSceneId, setDepartingRoomSceneId] = useState(null);
+    // Close-Up has no ROOM_SCENES id of its own, so departingRoomSceneId
+    // alone can't record "the outgoing scene was Close-Up" — this flag
+    // fills that gap so Close-Up slides like any other scene instead of
+    // being a special-cased cut.
+    const [departingWasCloseUp, setDepartingWasCloseUp] = useState(false);
+    // 1 = new scene is later in the [Close-Up, ...ROOM_SCENES] order (slides
+    // in from the right, old slides out to the left); -1 = reverse. Close-Up
+    // sits first in that order, so it slides too instead of just cutting.
+    const [roomSlideDirection, setRoomSlideDirection] = useState(1);
     const [mobileRoomReturnSceneId, setMobileRoomReturnSceneId] = useState(null);
     // Bumped only when the scene-discovery hint is accepted. ScenePicker
     // watches this counter so the hint can open the existing picker without
@@ -349,6 +362,14 @@ const CustomizeFramePage = ({
     const [isHovered, setIsHovered] = useState(false);
     const [isMaxZoom, setIsMaxZoom] = useState(false);
     const [isFullScreen, setIsFullScreen] = useState(false);
+    // True for one ZOOM_MOTION window after isHovered/isMaxZoom/isFullScreen
+    // changes in either direction. The prev/next arrows measure the frame's
+    // rendered box to stay level with it (arrowTopPx below), and hover-zoom
+    // resizes that box just as much as a room-scene switch does — without
+    // this, un-hovering revealed the arrows while the frame was still
+    // shrinking back down, so they visibly jumped mid-fade-in instead of
+    // just appearing already in the right place.
+    const [isZoomSettling, setIsZoomSettling] = useState(false);
     // Decoupled from isFullScreen so entering/exiting can crossfade instead
     // of hard-cutting: isFullScreen controls which layout (docked vs.
     // full-screen) is mounted, paneVisible controls that pane's own
@@ -358,6 +379,8 @@ const CustomizeFramePage = ({
     // full screen.
     const [paneVisible, setPaneVisible] = useState(true);
     const fullScreenCloseTimeoutRef = useRef(null);
+    const zoomSettleTimeoutRef = useRef(null);
+    const hoverEnterTimeoutRef = useRef(null);
     const roomSceneTransitionRef = useRef(null);
     const roomScenePreloadRef = useRef(new Map());
     const roomSceneSelectionTokenRef = useRef(0);
@@ -366,9 +389,18 @@ const CustomizeFramePage = ({
     const zoneRef = useRef(null);
     const visualizerPaneRef = useRef(null);
     const zoomTouchStartRef = useRef(null);
+    const frameRenderRef = useRef(null);
+    // Room scenes hang the frame near the top of the pane (leaving floor
+    // space for furniture below); Close-Up just flex-centres it. The prev/
+    // next arrows used to sit at a flat 50% of the pane's own height, which
+    // only matched the frame in Close-Up — in a room scene they landed well
+    // below it. Measuring the frame's actual rendered centre keeps the
+    // arrows level with the artwork in every scene instead.
+    const [arrowTopPx, setArrowTopPx] = useState(null);
 
     useEffect(() => () => {
         window.clearTimeout(roomSceneTransitionRef.current);
+        window.clearTimeout(hoverEnterTimeoutRef.current);
         roomSceneSelectionTokenRef.current += 1;
     }, []);
     const [loadingAction, setLoadingAction] = useState(null);
@@ -730,6 +762,34 @@ const CustomizeFramePage = ({
         observer.observe(zoneRef.current);
         return () => observer.disconnect();
     }, []);
+
+    // Keeps the prev/next room arrows level with the frame's actual centre
+    // (see arrowTopPx above) — re-measures whenever the frame's own box
+    // resizes, which covers every scene switch and zoom state since each
+    // one renders the frame at a different width/height.
+    useEffect(() => {
+        if (!frameRenderRef.current) return;
+        const paneEl = visualizerPaneRef.current;
+        const observer = new ResizeObserver(() => {
+            const frameEl = frameRenderRef.current;
+            if (!frameEl || !paneEl) return;
+            const frameRect = frameEl.getBoundingClientRect();
+            const paneRect = paneEl.getBoundingClientRect();
+            setArrowTopPx(frameRect.top - paneRect.top + frameRect.height / 2);
+        });
+        observer.observe(frameRenderRef.current);
+        return () => observer.disconnect();
+    }, []);
+
+    // isZoomSettling (declared above, next to isHovered/isMaxZoom) — one
+    // ZOOM_MOTION window (260ms, matching ZOOM_MOTION's own duration below)
+    // after any of the three zoom states changes, in either direction.
+    useEffect(() => {
+        setIsZoomSettling(true);
+        window.clearTimeout(zoomSettleTimeoutRef.current);
+        zoomSettleTimeoutRef.current = window.setTimeout(() => setIsZoomSettling(false), 260);
+        return () => window.clearTimeout(zoomSettleTimeoutRef.current);
+    }, [isHovered, isMaxZoom, isFullScreen]);
 
     // AR models are cached as blob URLs so reopening the preview for a
     // configuration already built is instant. Blob URLs belong to the
@@ -1223,17 +1283,21 @@ const CustomizeFramePage = ({
         void preloadRoomScene(sceneId).then(() => {
             if (selectionToken !== roomSceneSelectionTokenRef.current) return;
             window.clearTimeout(roomSceneTransitionRef.current);
-            // Room-to-room changes retain the outgoing composition just long
-            // enough to dissolve into the new one. The frame itself stays in
-            // its shared calibrated position throughout the transition.
-            if (roomSceneId && sceneId) {
-                setDepartingRoomSceneId(roomSceneId);
-                roomSceneTransitionRef.current = window.setTimeout(() => {
-                    setDepartingRoomSceneId(null);
-                }, windowSize.width < 640 ? 220 : ROOM_SCENE_TRANSITION_MS);
-            } else {
+            // Every change — including into or out of Close-Up — retains the
+            // outgoing composition just long enough to slide into the next,
+            // so all scenes (Close-Up included) feel like one continuous
+            // strip. The frame itself stays in its shared calibrated
+            // position throughout the transition.
+            const sceneOrder = [null, ...ROOM_SCENES.map((s) => s.id)];
+            const fromIndex = sceneOrder.indexOf(roomSceneId);
+            const toIndex = sceneOrder.indexOf(sceneId);
+            setRoomSlideDirection(toIndex >= fromIndex ? 1 : -1);
+            setDepartingWasCloseUp(roomSceneId === null);
+            setDepartingRoomSceneId(roomSceneId);
+            roomSceneTransitionRef.current = window.setTimeout(() => {
                 setDepartingRoomSceneId(null);
-            }
+                setDepartingWasCloseUp(false);
+            }, windowSize.width < 640 ? 220 : ROOM_SCENE_TRANSITION_MS);
             setRoomSceneId(sceneId);
         });
     };
@@ -1911,15 +1975,32 @@ const CustomizeFramePage = ({
         ? ROOM_SCENES.find((scene) => scene.id === departingRoomSceneId)
         : null;
     const departingRoomLayout = computeRoomLayout(departingRoom, zoneSize.width, zoneSize.height);
+    // True whenever a scene change is mid-flight, whichever side (or both)
+    // involves Close-Up rather than a photographed room.
+    const isTransitioning = Boolean(departingRoom || departingWasCloseUp);
+
+    // Close-Up's "backdrop" is just the pane's flat wall colour — no photo,
+    // no room layout — but it still slides like any other scene so the
+    // whole strip of scenes (Close-Up included) transitions consistently.
+    const renderPlainBackdrop = (phase) => (
+        <div
+            key={`backdrop-${phase}-plain`}
+            className={`absolute inset-0 pointer-events-none z-[1] ${phase === 'outgoing' ? 'room-scene-slide-out' : 'room-scene-slide-in'} ${
+                isHovered || isMaxZoom || isFullScreen ? 'opacity-0' : 'opacity-100'
+            }`}
+            style={{ backgroundColor: wallColor.hex, '--room-slide-dir': roomSlideDirection }}
+            aria-hidden="true"
+        />
+    );
 
     const renderRoomBackdrop = (room, layout, phase = '') => {
         if (!room || !layout) return null;
         const DrawnScene = room.tintable ? ROOM_SCENE_COMPONENTS[room.id] : null;
         const { width, height, left, top } = layout;
         const layerClass = phase === 'outgoing'
-            ? 'z-0 room-scene-outgoing'
+            ? 'z-0 room-scene-slide-out'
             : phase === 'incoming'
-                ? 'z-[1] room-scene-incoming'
+                ? 'z-[1] room-scene-slide-in'
                 : 'z-[1]';
         return (
             <div
@@ -1927,7 +2008,7 @@ const CustomizeFramePage = ({
                 className={`absolute inset-0 pointer-events-none ${layerClass} ${
                     isHovered || isMaxZoom || isFullScreen ? 'opacity-0' : 'opacity-100'
                 }`}
-                style={{ overflow: 'hidden', backgroundColor: wallColor.hex }}
+                style={{ overflow: 'hidden', backgroundColor: wallColor.hex, '--room-slide-dir': roomSlideDirection }}
                 aria-hidden="true"
             >
                 <div className="absolute" style={{ left, top, width, height }}>
@@ -1967,15 +2048,15 @@ const CustomizeFramePage = ({
         if (!ForegroundScene && !room.foregroundImage) return null;
         const { width, height, left, top } = layout;
         const layerClass = phase === 'outgoing'
-            ? 'z-20 room-scene-outgoing'
+            ? 'z-20 room-scene-slide-out'
             : phase === 'incoming'
-                ? 'z-[21] room-scene-incoming'
+                ? 'z-[21] room-scene-slide-in'
                 : 'z-20';
         return (
             <div
                 key={`foreground-${phase}-${room.id}`}
                 className={`room-scene-foreground absolute inset-0 pointer-events-none ${layerClass}`}
-                style={{ overflow: 'hidden' }}
+                style={{ overflow: 'hidden', '--room-slide-dir': roomSlideDirection }}
                 aria-hidden="true"
             >
                 <div className="absolute" style={{ left, top, width, height }}>
@@ -2117,7 +2198,11 @@ const CustomizeFramePage = ({
                         </div>
                     </aside>
                 ) : (
-                    <ScenePicker
+                    // The position indicator itself — a row of dots, one per
+                    // scene, where only the active one reveals its room
+                    // thumbnail. Arrows (SceneArrowCarousel below) move the
+                    // selection; this is the one place that shows it.
+                    <SceneDotThumb
                         activeId={roomSceneId}
                         onSelect={selectRoomScene}
                         autoOpenSignal={sceneAutoOpenTick}
@@ -2197,6 +2282,31 @@ const CustomizeFramePage = ({
                 </div>
 
                 </div>
+
+                {/* Room-scene stepping — prev/next arrows. The position
+                    indicator lives in SceneDotThumb (top-left) instead.
+                    Reuses the same visibility rule as the toolbar row above
+                    (fades out on hover-zoom in a room scene, full screen, or
+                    max zoom) plus two more:
+                    - isZoomSettling, for the moment any of those three zoom
+                      states reverts. Hover-zoom resizes the frame just as
+                      much as a scene switch does, and arrowTopPx chases
+                      that resize — without this, un-hovering (or leaving
+                      max zoom / full screen) revealed the arrows while the
+                      frame was still shrinking back, so they visibly jumped
+                      mid-fade-in.
+                    - mid-slide into or out of Close-Up, for the same reason
+                      as above but from a scene switch instead of a zoom
+                      change. Every room scene shares one frame position, so
+                      room-to-room never actually moves arrowTopPx — only
+                      Close-Up's different (flex-centred) layout does. */}
+                <SceneArrowCarousel
+                    activeId={roomSceneId}
+                    onSelect={selectRoomScene}
+                    hidden={(isHovered && activeRoom) || isFullScreen || isMaxZoom || isZoomSettling || (isTransitioning && (!activeRoom || departingWasCloseUp))}
+                    motionClass={CHROME_MOTION}
+                    topPx={arrowTopPx}
+                />
 
                 {/* ═══════════════════════════════════════════════════════════════
                     FRAME STUDIO — rebuilt from scratch
@@ -2301,8 +2411,12 @@ const CustomizeFramePage = ({
                         {/* ── ROOM SCENE BACKDROP ──
                             Every scene fills the same calibrated visualizer canvas, so
                             the image can change without changing frame geometry. */}
-                        {renderRoomBackdrop(departingRoom, departingRoomLayout, 'outgoing')}
-                        {renderRoomBackdrop(activeRoom, roomLayout, departingRoom ? 'incoming' : '')}
+                        {departingRoom
+                            ? renderRoomBackdrop(departingRoom, departingRoomLayout, 'outgoing')
+                            : departingWasCloseUp ? renderPlainBackdrop('outgoing') : null}
+                        {activeRoom
+                            ? renderRoomBackdrop(activeRoom, roomLayout, isTransitioning ? 'incoming' : '')
+                            : isTransitioning ? renderPlainBackdrop('incoming') : null}
 
                         {/* ── THE FRAME ── */}
                         {(() => {
@@ -2427,9 +2541,18 @@ const CustomizeFramePage = ({
                                 // on tiny frames, never shrink below 1.0x.
                                 return Math.max(1.0, Math.min(isPosterPrint ? 16.0 : 8.0, maxScale));
                             })();
+                            // Room-scene hover used to fall in here too, sizing the
+                            // frame off the same catalogue-anchor curve as Close-Up
+                            // — a room's own hover-zoom was really just borrowing
+                            // Close-Up's look rather than being its own thing. Now
+                            // it's excluded: a room scene's hover-zoom instead falls
+                            // through to displayedFrameWidthPct below, which scales
+                            // up from frameWidthPct — THIS room's own physical-wall
+                            // calibration — so each room zooms into a close-up of
+                            // its own frame at its own true proportions, not a
+                            // generic shared size.
                             const isSharedPreviewView = (
                                 (!activeRoom && !isMaxZoom && !isFullScreen) ||
-                                (activeRoom && isHovered && !isMaxZoom && !isFullScreen) ||
                                 isFullScreen
                             );
                             // ─── ANCHORED SIZE CURVE (shared-preview views only) ───
@@ -2604,8 +2727,18 @@ const CustomizeFramePage = ({
                                     ? (anchoredFinalWidthPx / Math.max(zoneSize.width, 1)) * 100
                                     : displayedFrameWidthPct
                             );
+                            // Room-scene hover keeps this even though it's no
+                            // longer part of isSharedPreviewView above — this is
+                            // what keeps the RAIL'S thickness looking consistent
+                            // across every reveal-zoom state. Without it, the
+                            // rail scaled directly off the room's own (very
+                            // different, wall-to-wall) pixelsPerCm instead of a
+                            // fixed reference, so it jumped to a visibly
+                            // different proportion the instant hover engaged —
+                            // the frame's overall size is room-specific now, but
+                            // its moulding shouldn't visibly lurch on top of that.
                             const shouldUseSixtyBySixtyMouldingReference = (
-                                isSharedPreviewView
+                                isSharedPreviewView || (isHovered && activeRoom && !isMaxZoom && !isFullScreen)
                             );
                             if (shouldUseSixtyBySixtyMouldingReference) {
                                 const SIXTY_CM_INNER = 60;
@@ -2792,13 +2925,28 @@ const CustomizeFramePage = ({
                             return (
                                 <div
                                     onMouseEnter={() => {
-                                        setIsHovered(true);
+                                        // Debounced rather than immediate: a room scene's
+                                        // zoomed frame is a much bigger, repositioned box
+                                        // than its resting one, so the instant it commits,
+                                        // the cursor can find itself just outside the new
+                                        // geometry — which fires mouseleave, shrinks it
+                                        // back, puts the cursor back inside the (now
+                                        // resting) frame, and re-fires mouseenter. Requiring
+                                        // the pointer to sit still on the frame for a beat
+                                        // before committing to "hovered" breaks that loop;
+                                        // leaving still exits immediately below, so this
+                                        // only adds a beat of hover-intent, not lag on exit.
+                                        window.clearTimeout(hoverEnterTimeoutRef.current);
+                                        hoverEnterTimeoutRef.current = window.setTimeout(() => {
+                                            setIsHovered(true);
+                                        }, 80);
                                     }}
                                     onMouseLeave={() => {
                                         // Reverse the enter transition immediately. The same
                                         // ZOOM_MOTION duration/easing then carries the frame,
                                         // scene, and chrome back to their resting geometry, so
                                         // moving away is the exact visual inverse of moving in.
+                                        window.clearTimeout(hoverEnterTimeoutRef.current);
                                         setIsHovered(false);
                                         setIsMaxZoom(false);
                                     }}
@@ -2809,6 +2957,7 @@ const CustomizeFramePage = ({
                                     // The rendered piece itself. tests/e2e/visualizer-overlap.spec.js
                                     // asserts nothing in the pane covers this.
                                     data-testid="frame-render"
+                                    ref={frameRenderRef}
                                     // Only the properties that actually change on
                                     // zoom. `transition-all` also animated every
                                     // inherited paint property on a subtree that
@@ -3126,7 +3275,7 @@ const CustomizeFramePage = ({
                             room backdrop can stay behind the frame, while
                             entryway console artefacts can sit in front. */}
                         {renderRoomForeground(departingRoom, departingRoomLayout, 'outgoing')}
-                        {renderRoomForeground(activeRoom, roomLayout, departingRoom ? 'incoming' : '')}
+                        {renderRoomForeground(activeRoom, roomLayout, isTransitioning ? 'incoming' : '')}
                         
                         {/* The zoomed-in disclaimer that used to fade in here is
                             gone: with the note pinned under the pane it's on

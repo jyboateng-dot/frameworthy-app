@@ -35,44 +35,47 @@
   }
 }
 
-/* Room swaps keep the selected frame fixed while one complete scene dissolves
-   into the next. The backdrop and its foreground cutout share this timing,
-   preventing artefacts from flashing or seeming to slide independently. */
-@keyframes roomSceneIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+/* Every scene swap — Close-Up included — keeps the selected frame fixed
+   while the outgoing scene slides fully off and the incoming one slides in
+   from the same side, rather than dissolving in place. The backdrop and its
+   foreground cutout share this timing, preventing artefacts from flashing
+   or seeming to slide independently. Direction comes from --room-slide-dir
+   (1 or -1), set inline by the component so one keyframe pair covers both
+   next/previous. */
+@keyframes roomSceneSlideIn {
+  from { opacity: 1; transform: translate3d(calc(var(--room-slide-dir, 1) * 100%), 0, 0); }
+  to { opacity: 1; transform: translate3d(0, 0, 0); }
 }
 
-@keyframes roomSceneOut {
-  from { opacity: 1; }
-  to { opacity: 0; }
+@keyframes roomSceneSlideOut {
+  from { opacity: 1; transform: translate3d(0, 0, 0); }
+  to { opacity: 1; transform: translate3d(calc(var(--room-slide-dir, 1) * -100%), 0, 0); }
 }
 
-.room-scene-incoming,
-.room-scene-outgoing {
+.room-scene-slide-in,
+.room-scene-slide-out {
   backface-visibility: hidden;
   contain: paint;
-  transform: translateZ(0);
-  will-change: opacity;
+  will-change: transform;
 }
 
-.room-scene-incoming { animation: roomSceneIn 360ms cubic-bezier(0.22, 1, 0.36, 1) both; }
-.room-scene-outgoing { animation: roomSceneOut 360ms cubic-bezier(0.22, 1, 0.36, 1) both; }
+.room-scene-slide-in { animation: roomSceneSlideIn 360ms cubic-bezier(0.22, 1, 0.36, 1) both; }
+.room-scene-slide-out { animation: roomSceneSlideOut 360ms cubic-bezier(0.22, 1, 0.36, 1) both; }
 
 @media (max-width: 639px) {
-  .room-scene-incoming { animation-duration: 220ms; }
-  .room-scene-outgoing { animation-duration: 220ms; }
+  .room-scene-slide-in { animation-duration: 220ms; }
+  .room-scene-slide-out { animation-duration: 220ms; }
 
   /* A foreground cutout is a second full-size alpha image. Holding it for
-     this brief crossfade avoids compositing four image layers on a phone;
-     the active room's foreground returns immediately after the transition. */
-  .room-scene-foreground.room-scene-incoming,
-  .room-scene-foreground.room-scene-outgoing { display: none; }
+     this brief slide avoids compositing four image layers on a phone; the
+     active room's foreground returns immediately after. */
+  .room-scene-foreground.room-scene-slide-in,
+  .room-scene-foreground.room-scene-slide-out { display: none; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .room-scene-incoming,
-  .room-scene-outgoing { animation: none; }
+  .room-scene-slide-in,
+  .room-scene-slide-out { animation: none; }
 }
 
 .frame-grid-hidden .frame-card {
