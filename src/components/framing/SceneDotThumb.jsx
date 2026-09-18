@@ -33,7 +33,7 @@ const OPTIONS = [
 // Literal class names so Tailwind's scanner keeps them in the build.
 const PULSE_CLASSES = ['ring-2', 'ring-stone-900/70', 'ring-offset-1'];
 
-const SceneDotThumb = ({ activeId, onSelect, autoOpenSignal, className = '', style }) => {
+const SceneDotThumb = ({ activeId, onSelect, autoOpenSignal, framePreview, className = '', style }) => {
     const wrapRef = useRef(null);
     const activeOption = OPTIONS.find((o) => o.id === activeId);
     const activeName = activeOption?.short ?? 'Close-Up';
@@ -83,7 +83,27 @@ const SceneDotThumb = ({ activeId, onSelect, autoOpenSignal, className = '', sty
                     >
                         {isActive ? (
                             o.image ? (
-                                <img src={o.image} alt="" aria-hidden="true" className="h-full w-full object-cover" />
+                                <span className="relative block h-full w-full">
+                                    <img src={o.image} alt="" aria-hidden="true" className="absolute inset-0 h-full w-full object-cover" />
+                                    {/* A small mark for the configured piece —
+                                        same size and spot in every scene (see
+                                        framePreview's own comment at its call
+                                        site for why this is fixed rather than
+                                        each room's own real hang point/size). */}
+                                    {framePreview && (
+                                        <span
+                                            aria-hidden="true"
+                                            className="absolute -translate-x-1/2 -translate-y-1/2"
+                                            style={{
+                                                left: `${framePreview.leftPct}%`,
+                                                top: `${framePreview.topPct}%`,
+                                                width: `${framePreview.widthPct}%`,
+                                                aspectRatio: framePreview.aspectRatio,
+                                                backgroundColor: framePreview.frameColor,
+                                            }}
+                                        />
+                                    )}
+                                </span>
                             ) : (
                                 <span className="flex h-full w-full items-center justify-center bg-stone-100 text-stone-400">
                                     <Square size={9} />

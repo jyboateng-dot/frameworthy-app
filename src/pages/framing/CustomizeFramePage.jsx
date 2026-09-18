@@ -2206,6 +2206,28 @@ const CustomizeFramePage = ({
                         activeId={roomSceneId}
                         onSelect={selectRoomScene}
                         autoOpenSignal={sceneAutoOpenTick}
+                        // Deliberately NOT roomPlacement's own leftPct/topPct/
+                        // widthPct — those are each room's true physical hang
+                        // point and size relative to ITS OWN wall span, so
+                        // they differ scene to scene (a wide loft wall makes
+                        // the same frame a smaller %, and each room's hang.x/
+                        // y was calibrated against its own furniture shot at
+                        // its own framing). At full visualizer size that
+                        // accuracy is the point; shrunk to an 18px dot it
+                        // just reads as the mark landing in a different
+                        // spot, at a different size, in every thumbnail. One
+                        // shared size and position instead — every scene's
+                        // mark sits the same distance from its own reference
+                        // furniture (sofa, table, bed, console, desk), so
+                        // scanning across the row reads as one consistent
+                        // mark repeated, not five different placements.
+                        framePreview={activeRoom && uploadedImage ? {
+                            leftPct: 50,
+                            topPct: 42,
+                            widthPct: 14,
+                            aspectRatio: `${outerFrameWidthCm} / ${outerFrameHeightCm}`,
+                            frameColor: selectedFrame?.baseColor || '#24211f',
+                        } : null}
                     />
                 )}
 
