@@ -367,6 +367,7 @@ const CustomizeFramePage = ({
     const [isHovered, setIsHovered] = useState(false);
     const [isMaxZoom, setIsMaxZoom] = useState(false);
     const [isFullScreen, setIsFullScreen] = useState(false);
+    const [mobileControlsVisible, setMobileControlsVisible] = useState(true);
     // Keep navigation hidden until a zoom transition has settled.
     const [isZoomSettling, setIsZoomSettling] = useState(false);
     // Decoupled from isFullScreen so entering/exiting can crossfade instead
@@ -389,14 +390,16 @@ const CustomizeFramePage = ({
     const roomSceneSelectionTokenRef = useRef(0);
     const ignoreZoomTapUntilRef = useRef(0);
     const lastTapRef = useRef(0);
+    const mobileTapTimeoutRef = useRef(null);
+    const touchGestureStartRef = useRef(null);
     const zoneRef = useRef(null);
     const visualizerPaneRef = useRef(null);
-    const zoomTouchStartRef = useRef(null);
     const frameRenderRef = useRef(null);
 
     useEffect(() => () => {
         window.clearTimeout(roomSceneTransitionRef.current);
         window.clearTimeout(hoverEnterTimeoutRef.current);
+        window.clearTimeout(mobileTapTimeoutRef.current);
         roomSceneSelectionTokenRef.current += 1;
     }, []);
     const [loadingAction, setLoadingAction] = useState(null);
@@ -905,41 +908,6 @@ const CustomizeFramePage = ({
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, [isFullScreen]);
 
-    // Double-tap zoom exits on a deliberate tap inside the visualizer only.
-    // A held touch or drag is left alone so users can pan the enlarged frame.
-    useEffect(() => {
-        if (!isMaxZoom || isFullScreen) return undefined;
-        if (!window.matchMedia('(hover: none), (pointer: coarse)').matches) return undefined;
-        const pane = visualizerPaneRef.current;
-        if (!pane) return undefined;
-        const recordTouchStart = (event) => {
-            const touch = event.touches[0];
-            if (!touch) return;
-            zoomTouchStartRef.current = { x: touch.clientX, y: touch.clientY, at: Date.now() };
-        };
-        const dismissMaxZoomOnTap = (event) => {
-            const start = zoomTouchStartRef.current;
-            const touch = event.changedTouches[0];
-            zoomTouchStartRef.current = null;
-            if (!start || !touch) return;
-            const moved = Math.hypot(touch.clientX - start.x, touch.clientY - start.y);
-            const heldFor = Date.now() - start.at;
-            if (moved > 12 || heldFor > 280) return;
-            lastTapRef.current = 0;
-            // A second finger-up from the same double tap arrives shortly
-            // after this one. Ignore it so a double tap exits deep zoom just
-            // as reliably as a single tap, rather than immediately re-entering.
-            ignoreZoomTapUntilRef.current = Date.now() + MOBILE_DOUBLE_TAP_DELAY_MS;
-            setIsMaxZoom(false);
-        };
-        pane.addEventListener('touchstart', recordTouchStart, { passive: true });
-        pane.addEventListener('touchend', dismissMaxZoomOnTap, { passive: true });
-        return () => {
-            pane.removeEventListener('touchstart', recordTouchStart);
-            pane.removeEventListener('touchend', dismissMaxZoomOnTap);
-        };
-    }, [isMaxZoom, isFullScreen]);
-
     // Lets App.jsx's Android hardware-back-button handler close full screen
     // instead of navigating back a page — see visualizerFullScreenState.js.
     useEffect(() => {
@@ -1281,8 +1249,53 @@ const CustomizeFramePage = ({
         });
     };
 
+    const toggleMobileControlsAfterSingleTap = () => {
+        window.clearTimeout(mobileTapTimeoutRef.current);
+        mobileTapTimeoutRef.current = window.setTimeout(() => {
+            setMobileControlsVisible((visible) => !visible);
+            lastTapRef.current = 0;
+        }, MOBILE_DOUBLE_TAP_DELAY_MS);
+    };
+
+    const handleMobileTouchStart = (event) => {
+        if (!window.matchMedia('(hover: none), (pointer: coarse)').matches) return;
+        const touch = event.touches[0];
+        if (!touch) return;
+        touchGestureStartRef.current = { x: touch.clientX, y: touch.clientY, at: Date.now() };
+    };
+
     const handleMobileVisualizerTap = (event) => {
         if (!window.matchMedia('(hover: none), (pointer: coarse)').matches) return;
+        if (event.target.closest?.('button, input, [role="button"]')) return;
+
+        const start = touchGestureStartRef.current;
+        const touch = event.changedTouches?.[0];
+        touchGestureStartRef.current = null;
+        if (start && touch) {
+            const dx = touch.clientX - start.x;
+            const dy = touch.clientY - start.y;
+            const distance = Math.hypot(dx, dy);
+            if (distance > 24) {
+                // Let the browser keep native panning available while the
+                // frame is enlarged. Normal scene swipes are handled here.
+                if (isMaxZoom || isFullScreen) return;
+                event.preventDefault();
+                // A horizontal swipe changes scenes only in the normal
+                // visualizer. Once zoomed, the same gesture belongs to pan.
+                if (Math.abs(dx) > Math.abs(dy) * 1.25) {
+                    const sceneOrder = [null, ...ROOM_SCENES.map((scene) => scene.id)];
+                    const currentId = mobileRoomReturnSceneId || roomSceneId;
+                    const currentIndex = Math.max(0, sceneOrder.indexOf(currentId));
+                    const direction = dx < 0 ? 1 : -1;
+                    const nextIndex = (currentIndex + direction + sceneOrder.length) % sceneOrder.length;
+                    selectRoomScene(sceneOrder[nextIndex]);
+                }
+                lastTapRef.current = 0;
+                window.clearTimeout(mobileTapTimeoutRef.current);
+                return;
+            }
+        }
+
         event.preventDefault();
 
         const now = Date.now();
@@ -1290,25 +1303,46 @@ const CustomizeFramePage = ({
 
         if (isFullScreen) {
             if (now - lastTapRef.current < MOBILE_DOUBLE_TAP_DELAY_MS) {
+                window.clearTimeout(mobileTapTimeoutRef.current);
                 lastTapRef.current = 0;
                 exitFullScreen();
                 return;
             }
             lastTapRef.current = now;
+            toggleMobileControlsAfterSingleTap();
             return;
         }
 
-        // Deep Close-Up zoom has its own pane-level single-tap exit effect.
-        if (isMaxZoom) return;
+        // Deep zoom follows the standard mobile image-viewer convention:
+        // single taps leave the view alone, while a second deliberate tap
+        // exits. Dragging and long presses remain available for inspection.
+        if (isMaxZoom) {
+            if (now - lastTapRef.current < MOBILE_DOUBLE_TAP_DELAY_MS) {
+                window.clearTimeout(mobileTapTimeoutRef.current);
+                lastTapRef.current = 0;
+                ignoreZoomTapUntilRef.current = now + MOBILE_DOUBLE_TAP_DELAY_MS;
+                setIsMaxZoom(false);
+            } else {
+                lastTapRef.current = now;
+                toggleMobileControlsAfterSingleTap();
+            }
+            return;
+        }
 
         // Close-Up reached from a room scene is an inspection detour, not a
-        // second zoom mode. Either one tap or a double tap returns exactly to
-        // the room the customer just left.
+        // second zoom mode. A double tap returns exactly to the room the
+        // customer just left; a single tap does not change the scene.
         if (mobileRoomReturnSceneId) {
-            setMobileRoomReturnSceneId(null);
-            setRoomSceneId(mobileRoomReturnSceneId);
-            setDepartingRoomSceneId(null);
-            lastTapRef.current = 0;
+            if (now - lastTapRef.current < MOBILE_DOUBLE_TAP_DELAY_MS) {
+                window.clearTimeout(mobileTapTimeoutRef.current);
+                setMobileRoomReturnSceneId(null);
+                setRoomSceneId(mobileRoomReturnSceneId);
+                setDepartingRoomSceneId(null);
+                lastTapRef.current = 0;
+            } else {
+                lastTapRef.current = now;
+                toggleMobileControlsAfterSingleTap();
+            }
             return;
         }
 
@@ -1319,10 +1353,12 @@ const CustomizeFramePage = ({
                 setDepartingRoomSceneId(null);
                 setIsHovered(false);
                 setIsMaxZoom(false);
+                setMobileControlsVisible(true);
                 lastTapRef.current = 0;
                 return;
             }
             lastTapRef.current = now;
+            toggleMobileControlsAfterSingleTap();
             return;
         }
 
@@ -1330,11 +1366,14 @@ const CustomizeFramePage = ({
         // deep inspection. A tap while deep inspection is active is handled
         // above by the pane-level exit effect.
         if (now - lastTapRef.current < MOBILE_DOUBLE_TAP_DELAY_MS) {
+            window.clearTimeout(mobileTapTimeoutRef.current);
             setIsMaxZoom(true);
+            setMobileControlsVisible(false);
             lastTapRef.current = 0;
             return;
         }
         lastTapRef.current = now;
+        toggleMobileControlsAfterSingleTap();
     };
 
     const selectFrameStyle = (frame) => {
@@ -1907,6 +1946,7 @@ const CustomizeFramePage = ({
     // treatment stops working, switch to plain light text with no blend
     // mode, which stays legible against any solid color.
     const activeRoom = roomSceneId ? ROOM_SCENES.find((s) => s.id === roomSceneId) : null;
+    const mobileChromeVisible = windowSize.width >= 640 || mobileControlsVisible;
     // Studio Loft is the neutral first preview shown before a room has been
     // selected from the picker.
     const sceneHintPreview = ROOM_SCENES.find((scene) => scene.id === 'studio-loft') || ROOM_SCENES[0];
@@ -2130,7 +2170,7 @@ const CustomizeFramePage = ({
                 <div
                     data-testid="visualizer-chrome"
                     className={`absolute top-1.5 left-1.5 right-1.5 sm:top-2 sm:left-2 sm:right-2 z-50 grid grid-cols-[auto_minmax(0,1fr)_auto] items-start gap-2 sm:gap-3 transition-opacity ${CHROME_MOTION} ${
-                        ((isHovered && activeRoom) || isFullScreen || isMaxZoom) ? 'opacity-0 pointer-events-none' : 'opacity-100'
+                        (!mobileChromeVisible || (isHovered && activeRoom) || isFullScreen || isMaxZoom) ? 'opacity-0 pointer-events-none' : 'opacity-100'
                     }`}
                 >
 
@@ -2301,9 +2341,14 @@ const CustomizeFramePage = ({
                 <SceneArrowCarousel
                     activeId={roomSceneId}
                     onSelect={selectRoomScene}
-                    hidden={(isHovered && activeRoom) || isFullScreen || isMaxZoom || isZoomSettling}
+                    hidden={!mobileChromeVisible || (isHovered && activeRoom) || isFullScreen || isMaxZoom || isZoomSettling}
                     motionClass={CHROME_MOTION}
-                    topPx={windowSize.height * (isSideBySide ? 0.4 : 0.325)}
+                    // Keep one viewport-relative anchor across all mobile
+                    // scenes so the cursor remains over the same controls
+                    // during a switch. 22% places them near the visualizer's
+                    // centre on the stacked mobile layout; desktop keeps its
+                    // existing side-by-side anchor.
+                    topPx={windowSize.height * (isSideBySide ? 0.4 : 0.22)}
                 />
 
                 {/* ═══════════════════════════════════════════════════════════════
@@ -2391,12 +2436,8 @@ const CustomizeFramePage = ({
                                 // a smaller frame-only zone beneath them.
                                 : 'inset-0 h-full'
                         }`}
-                        onTouchEnd={(event) => {
-                            // Keep the empty wall interactive in full screen
-                            // without making a single tap dismiss the view.
-                            // Frame taps have their own handler below.
-                            if (event.target === event.currentTarget) handleMobileVisualizerTap(event);
-                        }}
+                        onTouchStart={handleMobileTouchStart}
+                        onTouchEnd={handleMobileVisualizerTap}
                     >
 
                         {roomCannotFit && (
@@ -2943,9 +2984,8 @@ const CustomizeFramePage = ({
                                         setIsHovered(false);
                                         setIsMaxZoom(false);
                                     }}
-                                    onTouchEnd={handleMobileVisualizerTap}
                                     onDoubleClick={() => {
-                                        if (isHovered) setIsMaxZoom(!isMaxZoom);
+                                        if (isHovered && window.matchMedia('(hover: hover)').matches) setIsMaxZoom(!isMaxZoom);
                                     }}
                                     // The rendered piece itself. tests/e2e/visualizer-overlap.spec.js
                                     // asserts nothing in the pane covers this.
@@ -2985,7 +3025,7 @@ const CustomizeFramePage = ({
                                         transform: activeRoom
                                             ? `translateX(${roomSceneHorizontalOffsetPx}px)`
                                             : 'translate(1px, 4px)',
-                                        touchAction: 'manipulation'
+                                        touchAction: isMaxZoom || isFullScreen ? 'pan-x pan-y' : 'manipulation'
                                     }}
                                 >
                                     {/* Loading Overlay — scoped to just the frame itself, not the
@@ -3297,7 +3337,7 @@ const CustomizeFramePage = ({
                     onClick={() => (isFullScreen ? exitFullScreen() : enterFullScreen())}
                     data-testid="visualizer-chrome"
                     className={`group absolute ${isFullScreen ? 'bottom-[max(1.5rem,env(safe-area-inset-bottom))] right-5 sm:bottom-6 sm:right-6' : 'bottom-1 right-3 sm:bottom-2 sm:right-6'} z-30 w-10 h-10 flex items-center justify-center rounded-full border border-stone-200 shadow-sm hover:shadow-md transition-all ${CHROME_MOTION} bg-white/95 backdrop-blur text-stone-700 ${
-                        ((isHovered && activeRoom) || isMaxZoom) && !isFullScreen ? 'opacity-0 scale-75 pointer-events-none' : 'opacity-100 scale-100'
+                        (!mobileChromeVisible || (isHovered && activeRoom) || isMaxZoom) && !isFullScreen ? 'opacity-0 scale-75 pointer-events-none' : 'opacity-100 scale-100'
                     }`}
                     aria-label={isFullScreen ? 'Exit full screen' : 'Full screen'}
                 >
