@@ -804,8 +804,9 @@ const CustomizeFramePage = ({
     // below (and the dashboard's), since this is also how long enter/exit
     // waits before actually swapping the docked/full-screen layout.
     const FULL_SCREEN_TRANSITION_MS = 300;
-    // The room images are full visualizer canvases. The assets are decoded
-    // before this begins, so a concise opacity blend is enough on mobile.
+    // The room images are full visualizer canvases. The assets and their
+    // foreground cutouts are decoded before this begins, so mobile can use
+    // the same composed slide as desktop without flashing between layers.
     const ROOM_SCENE_TRANSITION_MS = 360;
 
     // ── ZOOM MOTION ──
@@ -1277,7 +1278,7 @@ const CustomizeFramePage = ({
             roomSceneTransitionRef.current = window.setTimeout(() => {
                 setDepartingRoomSceneId(null);
                 setDepartingWasCloseUp(false);
-            }, windowSize.width < 640 ? 220 : ROOM_SCENE_TRANSITION_MS);
+            }, ROOM_SCENE_TRANSITION_MS);
             setRoomSceneId(sceneId);
         });
     };
