@@ -2336,7 +2336,10 @@ const CustomizeFramePage = ({
                     onSelect={selectRoomScene}
                     hidden={(isHovered && activeRoom) || isFullScreen || isMaxZoom || isZoomSettling}
                     motionClass={CHROME_MOTION}
-                    topPx={windowSize.height * (isSideBySide ? 0.4 : 0.325)}
+                    // Mobile visualizer panes are stacked below the header;
+                    // 22% places the arrows near their visual centre while
+                    // keeping one fixed viewport anchor across every scene.
+                    topPx={windowSize.height * (isSideBySide ? 0.4 : 0.22)}
                 />
 
                 {/* ═══════════════════════════════════════════════════════════════
