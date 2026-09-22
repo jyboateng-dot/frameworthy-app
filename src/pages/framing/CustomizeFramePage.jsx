@@ -18,6 +18,8 @@ import { ROOM_SCENES, computeRoomPlacement, computeRoomLayout, computeReferenceA
 import { ROOM_SCENE_COMPONENTS, ROOM_SCENE_FOREGROUND_COMPONENTS } from '../../components/framing/roomSceneComponents';
 // ScenePicker and SceneCarousel are kept imported-but-unused from earlier tries — swap back easily if the current approach doesn't work out.
 import ScenePicker from '../../components/framing/ScenePicker';
+import RoomPhotoForeground from '../../components/framing/RoomPhotoForeground';
+import { ENABLE_CLOSE_UP_SIZE_PROGRESSION, getCloseUpSize } from '../../utils/closeUpSizing';
 import SceneCarousel from '../../components/framing/SceneCarousel';
 import SceneArrowCarousel from '../../components/framing/SceneArrowCarousel';
 import SceneDotThumb from '../../components/framing/SceneDotThumb';
@@ -277,6 +279,8 @@ const CustomizeFramePage = ({
     setSelectedFrame,
     selectedSize,
     setSelectedSize,
+    roomSceneId,
+    setRoomSceneId,
     setTotalPrice,
     navigate,
     orientation,
@@ -326,7 +330,8 @@ const CustomizeFramePage = ({
     // null = the plain wall-colour backdrop with the sofa scale cue. Set to a
     // ROOM_SCENES id to swap in a full room, where the artwork is sized
     // against the room's own real-world wall span instead of the sofa.
-    const [roomSceneId, setRoomSceneId] = useState(null);
+    // Hoisted to App.jsx (received as a prop) rather than local state — see
+    // its declaration there for why.
     const [departingRoomSceneId, setDepartingRoomSceneId] = useState(null);
     // Close-Up has no ROOM_SCENES id of its own, so departingRoomSceneId
     // alone can't record "the outgoing scene was Close-Up" — this flag
@@ -362,13 +367,7 @@ const CustomizeFramePage = ({
     const [isHovered, setIsHovered] = useState(false);
     const [isMaxZoom, setIsMaxZoom] = useState(false);
     const [isFullScreen, setIsFullScreen] = useState(false);
-    // True for one ZOOM_MOTION window after isHovered/isMaxZoom/isFullScreen
-    // changes in either direction. The prev/next arrows measure the frame's
-    // rendered box to stay level with it (arrowTopPx below), and hover-zoom
-    // resizes that box just as much as a room-scene switch does — without
-    // this, un-hovering revealed the arrows while the frame was still
-    // shrinking back down, so they visibly jumped mid-fade-in instead of
-    // just appearing already in the right place.
+    // Keep navigation hidden until a zoom transition has settled.
     const [isZoomSettling, setIsZoomSettling] = useState(false);
     // Decoupled from isFullScreen so entering/exiting can crossfade instead
     // of hard-cutting: isFullScreen controls which layout (docked vs.
@@ -381,6 +380,10 @@ const CustomizeFramePage = ({
     const fullScreenCloseTimeoutRef = useRef(null);
     const zoomSettleTimeoutRef = useRef(null);
     const hoverEnterTimeoutRef = useRef(null);
+    // The resting frame bounds stay as the hover target while a room-scene
+    // frame animates into its larger reveal state. Without this, a shifting
+    // edge can emit mouseleave/mouseenter repeatedly beneath a still cursor.
+    const hoverHitBoundsRef = useRef(null);
     const roomSceneTransitionRef = useRef(null);
     const roomScenePreloadRef = useRef(new Map());
     const roomSceneSelectionTokenRef = useRef(0);
@@ -390,13 +393,6 @@ const CustomizeFramePage = ({
     const visualizerPaneRef = useRef(null);
     const zoomTouchStartRef = useRef(null);
     const frameRenderRef = useRef(null);
-    // Room scenes hang the frame near the top of the pane (leaving floor
-    // space for furniture below); Close-Up just flex-centres it. The prev/
-    // next arrows used to sit at a flat 50% of the pane's own height, which
-    // only matched the frame in Close-Up — in a room scene they landed well
-    // below it. Measuring the frame's actual rendered centre keeps the
-    // arrows level with the artwork in every scene instead.
-    const [arrowTopPx, setArrowTopPx] = useState(null);
 
     useEffect(() => () => {
         window.clearTimeout(roomSceneTransitionRef.current);
@@ -763,23 +759,6 @@ const CustomizeFramePage = ({
         return () => observer.disconnect();
     }, []);
 
-    // Keeps the prev/next room arrows level with the frame's actual centre
-    // (see arrowTopPx above) — re-measures whenever the frame's own box
-    // resizes, which covers every scene switch and zoom state since each
-    // one renders the frame at a different width/height.
-    useEffect(() => {
-        if (!frameRenderRef.current) return;
-        const paneEl = visualizerPaneRef.current;
-        const observer = new ResizeObserver(() => {
-            const frameEl = frameRenderRef.current;
-            if (!frameEl || !paneEl) return;
-            const frameRect = frameEl.getBoundingClientRect();
-            const paneRect = paneEl.getBoundingClientRect();
-            setArrowTopPx(frameRect.top - paneRect.top + frameRect.height / 2);
-        });
-        observer.observe(frameRenderRef.current);
-        return () => observer.disconnect();
-    }, []);
 
     // isZoomSettling (declared above, next to isHovered/isMaxZoom) — one
     // ZOOM_MOTION window (260ms, matching ZOOM_MOTION's own duration below)
@@ -1996,6 +1975,10 @@ const CustomizeFramePage = ({
     const renderRoomBackdrop = (room, layout, phase = '') => {
         if (!room || !layout) return null;
         const DrawnScene = room.tintable ? ROOM_SCENE_COMPONENTS[room.id] : null;
+        // The foreground cutout restores original object colours above this
+        // painted base. Masking the paint as well would protect soft edges
+        // twice, leaving a pale fringe against saturated wall colours.
+        const paintMask = room.foregroundImage ? null : room.wallMaskImage;
         const { width, height, left, top } = layout;
         const layerClass = phase === 'outgoing'
             ? 'z-0 room-scene-slide-out'
@@ -2008,7 +1991,7 @@ const CustomizeFramePage = ({
                 className={`absolute inset-0 pointer-events-none ${layerClass} ${
                     isHovered || isMaxZoom || isFullScreen ? 'opacity-0' : 'opacity-100'
                 }`}
-                style={{ overflow: 'hidden', backgroundColor: wallColor.hex, '--room-slide-dir': roomSlideDirection }}
+                style={{ overflow: 'hidden', isolation: 'isolate', backgroundColor: wallColor.hex, '--room-slide-dir': roomSlideDirection }}
                 aria-hidden="true"
             >
                 <div className="absolute" style={{ left, top, width, height }}>
@@ -2018,19 +2001,19 @@ const CustomizeFramePage = ({
                         <>
                             <img src={room.image} alt="" className="h-full w-full object-fill" />
                             <div
-                                className="absolute inset-0 transition-colors duration-200"
+                                className="absolute inset-0"
                                 style={{
                                     backgroundColor: wallColor.hex,
                                     // White paint must lighten the photographed beige wall;
                                     // multiplying by white would leave its colour unchanged.
-                                    opacity: !room.wallMaskImage ? 0 : wallColor.id === 'pure-white' ? 0.9 : 0.72,
+                                    opacity: !(room.foregroundImage || paintMask) ? 0 : wallColor.id === 'pure-white' ? 0.9 : 0.72,
                                     mixBlendMode: wallColor.id === 'pure-white' ? 'normal' : 'multiply',
-                                    maskImage: room.wallMaskImage ? `url("${room.wallMaskImage}")` : undefined,
-                                    WebkitMaskImage: room.wallMaskImage ? `url("${room.wallMaskImage}")` : undefined,
-                                    maskMode: room.wallMaskImage ? 'luminance' : 'alpha',
+                                    maskImage: paintMask ? `url("${paintMask}")` : undefined,
+                                    WebkitMaskImage: paintMask ? `url("${paintMask}")` : undefined,
+                                    maskMode: paintMask ? 'luminance' : 'alpha',
                                     maskSize: '100% 100%',
                                     maskRepeat: 'no-repeat',
-                                    clipPath: room.wallMaskImage ? `inset(0 0 ${100 - room.wallMaskBottomPct}% 0)` : undefined,
+                                    clipPath: paintMask ? `inset(0 0 ${100 - room.wallMaskBottomPct}% 0)` : undefined,
                                 }}
                             />
                         </>
@@ -2060,7 +2043,9 @@ const CustomizeFramePage = ({
                 aria-hidden="true"
             >
                 <div className="absolute" style={{ left, top, width, height }}>
-                    {room.foregroundImage ? (
+                    {room.wallMaskImage && !room.tintable ? (
+                        <RoomPhotoForeground room={room} />
+                    ) : room.foregroundImage ? (
                         <img
                             src={room.foregroundImage}
                             alt=""
@@ -2144,7 +2129,7 @@ const CustomizeFramePage = ({
                     reveal-zoom transition. */}
                 <div
                     data-testid="visualizer-chrome"
-                    className={`absolute top-1.5 left-1.5 right-1.5 sm:top-2 sm:left-2 sm:right-2 z-20 grid grid-cols-[auto_minmax(0,1fr)_auto] items-start gap-2 sm:gap-3 transition-opacity ${CHROME_MOTION} ${
+                    className={`absolute top-1.5 left-1.5 right-1.5 sm:top-2 sm:left-2 sm:right-2 z-50 grid grid-cols-[auto_minmax(0,1fr)_auto] items-start gap-2 sm:gap-3 transition-opacity ${CHROME_MOTION} ${
                         ((isHovered && activeRoom) || isFullScreen || isMaxZoom) ? 'opacity-0 pointer-events-none' : 'opacity-100'
                     }`}
                 >
@@ -2152,8 +2137,15 @@ const CustomizeFramePage = ({
                 {/* Room scene — pill + dropdown, mirroring the wall-colour picker.
                     Sits where the unit/measurement control used to (that
                 moved into the Dimensions panel section), so this corner
-                    stays a single pill instead of stacking two. */}
-                {showSceneHint && hasImage && !isFullScreen && !isMaxZoom ? (
+                    stays a single pill instead of stacking two.
+                    !roomSceneId guards the "try a room scene" invite below:
+                    roomSceneId now survives picking a new image (it's hoisted
+                    to App.jsx — see its declaration there), so a customer
+                    already in a room scene shouldn't be invited to try one,
+                    which is what showSceneHint alone would do — it's reset
+                    to true for every fresh artwork regardless of whether a
+                    scene is already active. */}
+                {showSceneHint && hasImage && !roomSceneId && !isFullScreen && !isMaxZoom ? (
                     <aside
                         aria-label="Room scene preview hint"
                         className="relative z-20 flex w-[min(17.75rem,calc(100vw-1rem))] items-center gap-1.5 rounded-2xl border border-stone-200/90 bg-white/95 p-1.5 pr-2.5 font-sans shadow-lg shadow-stone-900/10 backdrop-blur"
@@ -2305,29 +2297,13 @@ const CustomizeFramePage = ({
 
                 </div>
 
-                {/* Room-scene stepping — prev/next arrows. The position
-                    indicator lives in SceneDotThumb (top-left) instead.
-                    Reuses the same visibility rule as the toolbar row above
-                    (fades out on hover-zoom in a room scene, full screen, or
-                    max zoom) plus two more:
-                    - isZoomSettling, for the moment any of those three zoom
-                      states reverts. Hover-zoom resizes the frame just as
-                      much as a scene switch does, and arrowTopPx chases
-                      that resize — without this, un-hovering (or leaving
-                      max zoom / full screen) revealed the arrows while the
-                      frame was still shrinking back, so they visibly jumped
-                      mid-fade-in.
-                    - mid-slide into or out of Close-Up, for the same reason
-                      as above but from a scene switch instead of a zoom
-                      change. Every room scene shares one frame position, so
-                      room-to-room never actually moves arrowTopPx — only
-                      Close-Up's different (flex-centred) layout does. */}
+                {/* Navigation stays anchored to the pane throughout scene changes. */}
                 <SceneArrowCarousel
                     activeId={roomSceneId}
                     onSelect={selectRoomScene}
-                    hidden={(isHovered && activeRoom) || isFullScreen || isMaxZoom || isZoomSettling || (isTransitioning && (!activeRoom || departingWasCloseUp))}
+                    hidden={(isHovered && activeRoom) || isFullScreen || isMaxZoom || isZoomSettling}
                     motionClass={CHROME_MOTION}
-                    topPx={arrowTopPx}
+                    topPx={windowSize.height * (isSideBySide ? 0.4 : 0.325)}
                 />
 
                 {/* ═══════════════════════════════════════════════════════════════
@@ -2737,6 +2713,15 @@ const CustomizeFramePage = ({
                                 canonicalMaxSafeHeightPx / Math.max(preClampWidthPx, 1)
                             );
                             const anchoredFinalWidthPx = preClampWidthPx * canonicalSafetyScale;
+                            // Only ordinary Close-Up participates in this experiment.
+                            // Retain the existing targets for fullscreen and extra zoom.
+                            const closeUpSize = ENABLE_CLOSE_UP_SIZE_PROGRESSION && !activeRoom && !isFullScreen && !isMaxZoom
+                                ? getCloseUpSize({
+                                    widthCm: innerWidthCm, heightCm: innerHeightCm,
+                                    outerWidthCm: outerFrameWidthCm, outerHeightCm: outerFrameHeightCm,
+                                    viewportWidth: zoneSize.width, viewportHeight: zoneSize.height,
+                                })
+                                : null;
                             const displayedFrameWidthPct = isHovered || isMaxZoom || isFullScreen || isZoomedByDefault
                                 ? frameWidthPct * zoomScale
                                 : frameWidthPct;
@@ -2746,7 +2731,7 @@ const CustomizeFramePage = ({
                             const adjustedDisplayedFrameWidthPct = Math.max(
                                 1,
                                 isSharedPreviewView
-                                    ? (anchoredFinalWidthPx / Math.max(zoneSize.width, 1)) * 100
+                                    ? ((closeUpSize?.width ?? anchoredFinalWidthPx) / Math.max(zoneSize.width, 1)) * 100
                                     : displayedFrameWidthPct
                             );
                             // Room-scene hover keeps this even though it's no
@@ -2782,47 +2767,24 @@ const CustomizeFramePage = ({
                                 mouldingPctH = (projectedRailPx / renderedFrameHeightPx) * 100;
                             }
 
-                            // Mat inset as % of frame width/height — the raw
-                            // physical mat-inches/frame-inches ratio, used
-                            // uniformly in every view now (EXPERIMENTAL,
-                            // 2026-09-04, see mat-width-plain-vs-room memory).
-                            // A percentage-based inset is scale-invariant: it
-                            // reads the same physical mat proportion whether
-                            // the frame itself is drawn true-to-scale (a Room
-                            // scene at rest) or blown up/shrunk to fit
-                            // Plain view's anchored size curve, because
-                            // scaling frame and mat by the same factor never
-                            // changes their ratio. That's the point — the
-                            // same mat setting now looks identical in Plain
-                            // view and in a Room scene for a given size.
-                            // The trade-off: this ratio shrinks as a
-                            // proportion the bigger the frame's own physical
-                            // size gets (a fixed mat reveal in real inches,
-                            // over a growing outer-inch denominator), so
-                            // different SIZES can now look visibly different
-                            // in mat thickness when browsed side by side in
-                            // Plain view — previously masked by a
-                            // reference-size normalization this replaces. If
-                            // that turns out to read as inconsistent across
-                            // the catalogue, revert to the prior
-                            // 120×120-reference version (see git history on
-                            // this block). getMatReveal already returns all
-                            // zeros for matWidth 'none', so "No Mat" is
-                            // unaffected. Clamp the max inset so we don't
-                            // mathematically collapse the artwork to 0 or
-                            // negative. The shared reveal uses the same
-                            // physical width on all four edges.
+                            // Mat insets start from the physical mat-to-frame ratio.
+                            // "No Mat" yields zero on every edge; the clamp below
+                            // preserves a visible artwork opening for every frame size.
                             if (fitEnabled) {
                                 mouldingPctW = railWidthIn / fitGeometry.outerWidth * 100;
                                 mouldingPctH = railWidthIn / fitGeometry.outerHeight * 100;
                             }
-                            // Plain view deliberately enlarges the frame for presentation.
-                            // Counter that visual-only scale here so a chosen physical mat
-                            // width stays equally thick across all frame sizes.
+                            // Close-Up deliberately enlarges the frame for presentation.
+                            // Counter that visual-only scale there so a chosen physical mat
+                            // width stays equally thick across all frame sizes. Room scenes,
+                            // including their hover zoom, must keep the mat as the same
+                            // proportion of the frame: the frame and mat then grow together
+                            // and the reveal looks unchanged when entering or leaving hover.
                             const previewScale = adjustedDisplayedFrameWidthPct / Math.max(frameWidthPct, 0.001);
-                            const rawMatPctW = (matReveal.sideIn / (wInch + 2 * railWidthIn)) * 100 / previewScale;
-                            const rawMatPctTop = (matReveal.topIn / (hInch + 2 * railWidthIn)) * 100 / previewScale;
-                            const rawMatPctBottom = (matReveal.bottomIn / (hInch + 2 * railWidthIn)) * 100 / previewScale;
+                            const matPresentationScale = activeRoom ? 1 : previewScale;
+                            const rawMatPctW = (matReveal.sideIn / (wInch + 2 * railWidthIn)) * 100 / matPresentationScale;
+                            const rawMatPctTop = (matReveal.topIn / (hInch + 2 * railWidthIn)) * 100 / matPresentationScale;
+                            const rawMatPctBottom = (matReveal.bottomIn / (hInch + 2 * railWidthIn)) * 100 / matPresentationScale;
                             const matPctW = Math.max(0, Math.min(rawMatPctW, MAT_RENDER_MAX_PCT - mouldingPctW));
                             const matPctTop = Math.max(0, Math.min(rawMatPctTop, MAT_RENDER_MAX_PCT - mouldingPctH));
                             const matPctBottom = Math.max(0, Math.min(rawMatPctBottom, MAT_RENDER_MAX_PCT - mouldingPctH));
@@ -2935,18 +2897,15 @@ const CustomizeFramePage = ({
                             const displayImage = getThumbnailUrl(visualizerImage, committedImageWidthPx);
                             // Artwork fills its opening edge-to-edge. object-cover only
                             // changes the preview crop; the uploaded source is untouched.
-                            const useOriginalDimensionPlacement = Boolean(activeRoom);
-                            const dimHorizontalClass = useOriginalDimensionPlacement
-                                ? (isHovered || isZoomedByDefault ? '-top-6' : '-top-4')
-                                : (isHovered || isZoomedByDefault ? '-bottom-6' : '-bottom-4');
-                            const dimVerticalClass = useOriginalDimensionPlacement
-                                ? (isHovered || isZoomedByDefault ? '-right-6' : '-right-4')
-                                : (isHovered || isZoomedByDefault ? '-left-6' : '-left-4');
+                            // Keep measurement guides in one predictable place across
+                            // Close-Up and room scenes: width above, height on the right.
+                            const dimHorizontalClass = isHovered || isZoomedByDefault ? '-top-6' : '-top-4';
+                            const dimVerticalClass = isHovered || isZoomedByDefault ? '-right-6' : '-right-4';
                             const dimFontSizePx = isHovered || isZoomedByDefault ? 14 : Math.max(8, Math.min(10, baseFrameWidthPx / 12));
 
                             return (
                                 <div
-                                    onMouseEnter={() => {
+                                    onMouseEnter={(event) => {
                                         // Debounced rather than immediate: a room scene's
                                         // zoomed frame is a much bigger, repositioned box
                                         // than its resting one, so the instant it commits,
@@ -2959,16 +2918,28 @@ const CustomizeFramePage = ({
                                         // leaving still exits immediately below, so this
                                         // only adds a beat of hover-intent, not lag on exit.
                                         window.clearTimeout(hoverEnterTimeoutRef.current);
+                                        if (activeRoom) {
+                                            const { left, top, right, bottom } = event.currentTarget.getBoundingClientRect();
+                                            // A small cushion includes antialiased frame edges but
+                                            // does not expand the effective target into the wall.
+                                            hoverHitBoundsRef.current = { left: left - 6, top: top - 6, right: right + 6, bottom: bottom + 6 };
+                                        }
                                         hoverEnterTimeoutRef.current = window.setTimeout(() => {
                                             setIsHovered(true);
                                         }, 80);
                                     }}
-                                    onMouseLeave={() => {
+                                    onMouseLeave={(event) => {
                                         // Reverse the enter transition immediately. The same
                                         // ZOOM_MOTION duration/easing then carries the frame,
                                         // scene, and chrome back to their resting geometry, so
                                         // moving away is the exact visual inverse of moving in.
+                                        const bounds = hoverHitBoundsRef.current;
+                                        const remainsInsideStableTarget = activeRoom && bounds &&
+                                            event.clientX >= bounds.left && event.clientX <= bounds.right &&
+                                            event.clientY >= bounds.top && event.clientY <= bounds.bottom;
+                                        if (remainsInsideStableTarget) return;
                                         window.clearTimeout(hoverEnterTimeoutRef.current);
+                                        hoverHitBoundsRef.current = null;
                                         setIsHovered(false);
                                         setIsMaxZoom(false);
                                     }}
@@ -3039,20 +3010,18 @@ const CustomizeFramePage = ({
                                     {/* Dimension Overlays (fade out in the
                                         full-screen enhanced view — chrome-free
                                         by design — instead of hard-unmounting).
-                                        Plain scene skips these entirely — the
-                                        Dimensions panel already states the exact
-                                        size, and the overlay only earns its
-                                        keep as a scale cue against a real room. */}
-                                    {showDimensions && (activeRoom || isFullScreen) && (
+                                        Close-Up also shows the selected dimensions;
+                                        the Dimensions panel toggle controls all views. */}
+                                    {showDimensions && (
                                         <>
-                                            <div style={{ fontSize: `${dimFontSizePx}px` }} className={`absolute ${dimHorizontalClass} left-0 w-full flex items-center justify-center ${wallInkClass} font-mono ${useOriginalDimensionPlacement ? `border-t ${wallInkBorderClass} pt-1` : `border-b ${wallInkBorderClass} pb-1`} ${wallInkBlend} opacity-80 transition-all ${ZOOM_MOTION} whitespace-nowrap overflow-visible pointer-events-none`}>
-                                                <div className={`absolute left-0 ${useOriginalDimensionPlacement ? 'top-0' : 'bottom-0'} h-1.5 sm:h-2 w-px ${wallInkBgClass}`} />
-                                                <div className={`absolute right-0 ${useOriginalDimensionPlacement ? 'top-0' : 'bottom-0'} h-1.5 sm:h-2 w-px ${wallInkBgClass}`} />
+                                            <div style={{ fontSize: `${dimFontSizePx}px` }} className={`absolute ${dimHorizontalClass} left-0 w-full flex items-center justify-center ${wallInkClass} font-mono border-t ${wallInkBorderClass} pt-1 ${wallInkBlend} opacity-80 transition-all ${ZOOM_MOTION} whitespace-nowrap overflow-visible pointer-events-none`}>
+                                                <div className={`absolute left-0 top-0 h-1.5 sm:h-2 w-px ${wallInkBgClass}`} />
+                                                <div className={`absolute right-0 top-0 h-1.5 sm:h-2 w-px ${wallInkBgClass}`} />
                                                 {unit === 'in' ? wInch.toFixed(1) : innerWidthCm.toFixed(1)} {unit === 'in' ? 'in' : 'cm'}
                                             </div>
-                                            <div style={{ fontSize: `${dimFontSizePx}px` }} className={`absolute ${dimVerticalClass} top-0 h-full flex flex-col items-center justify-center ${wallInkClass} font-mono ${useOriginalDimensionPlacement ? `border-r ${wallInkBorderClass} pr-1` : `border-l ${wallInkBorderClass} pl-1`} ${wallInkBlend} opacity-80 transition-all ${ZOOM_MOTION} whitespace-nowrap overflow-visible pointer-events-none`}>
-                                                <div className={`absolute ${useOriginalDimensionPlacement ? 'right-0' : 'left-0'} top-0 w-1.5 sm:w-2 h-px ${wallInkBgClass}`} />
-                                                <div className={`absolute ${useOriginalDimensionPlacement ? 'right-0' : 'left-0'} bottom-0 w-1.5 sm:w-2 h-px ${wallInkBgClass}`} />
+                                            <div style={{ fontSize: `${dimFontSizePx}px` }} className={`absolute ${dimVerticalClass} top-0 h-full flex flex-col items-center justify-center ${wallInkClass} font-mono border-r ${wallInkBorderClass} pr-1 ${wallInkBlend} opacity-80 transition-all ${ZOOM_MOTION} whitespace-nowrap overflow-visible pointer-events-none`}>
+                                                <div className={`absolute right-0 top-0 w-1.5 sm:w-2 h-px ${wallInkBgClass}`} />
+                                                <div className={`absolute right-0 bottom-0 w-1.5 sm:w-2 h-px ${wallInkBgClass}`} />
                                                 <span style={{ writingMode: 'vertical-rl' }}>{unit === 'in' ? hInch.toFixed(1) : innerHeightCm.toFixed(1)} {unit === 'in' ? 'in' : 'cm'}</span>
                                             </div>
                                         </>

@@ -58,7 +58,7 @@ export const ROOM_SCENES = [
     // The expanded canvas leaves headroom for the 180cm custom-height option
     // while keeping the sofa low in the visualizer.
     photoScene('studio-loft', 'Studio Loft', 461, 99.64, 50, 140, {
-        image: '/rooms/studio-loft-photoreal.webp',
+        image: '/rooms/studio-loft-photoreal-rug-gap-v2.webp',
         foregroundImage: '/rooms/studio-loft-foreground-masked.webp',
     }),
     photoScene('dining-room', 'Dining Room', 461, 85, 50, 145, {

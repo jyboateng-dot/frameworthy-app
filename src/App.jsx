@@ -91,6 +91,14 @@ const AppLayout = () => {
   const [selectedFrame, setSelectedFrame] = useState(() => FRAME_STYLES.find(f => f.id === 'frame-8446') || FRAME_STYLES[0]); // Flat Black default
   const [selectedSize, setSelectedSize] = useState(FRAME_SIZES[3]); // Large Portrait default
   const [, setSelectedWall] = useState(WALL_TEXTURES[2]); // For visualizer persistence
+  // Hoisted (rather than local to CustomizeFramePage) for the same reason as
+  // uploadedImage/selectedFrame above: picking a new image from Inspiration
+  // navigates to /inspiration and back, remounting CustomizeFramePage. A
+  // room scene selection living only in that component's own state was lost
+  // on that remount — silently dropping back to Close-Up, which also meant
+  // the visualizer's measurement lines (shown only in a room scene or full
+  // screen) disappeared as a side effect. Living here, it survives the trip.
+  const [roomSceneId, setRoomSceneId] = useState(null);
 
   // HOISTED FRAMING CUSTOMIZATIONS
   const [orientation, setOrientation] = useState('portrait');
@@ -217,6 +225,8 @@ const AppLayout = () => {
             setSelectedFrame={setSelectedFrame}
             selectedSize={selectedSize}
             setSelectedSize={setSelectedSize}
+            roomSceneId={roomSceneId}
+            setRoomSceneId={setRoomSceneId}
             setTotalPrice={setTotalPrice}
             navigate={navigate}
             

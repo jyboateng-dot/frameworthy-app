@@ -14,11 +14,7 @@ const OPTIONS = [
     ...ROOM_SCENES.map((s) => ({ id: s.id, name: s.name })),
 ];
 
-// Close-Up flex-centres the frame in the pane, but a room scene hangs it
-// near the top instead (leaving floor space for furniture below) — the two
-// don't share a vertical centre. `topPx`, when supplied, is the frame's
-// actual measured centre, so the arrows stay level with the artwork instead
-// of sitting at a flat 50% that only happens to match Close-Up.
+// Anchor navigation to the pane, independently of frame size or scene placement.
 const SceneArrowCarousel = ({ activeId, onSelect, hidden = false, motionClass = '', topPx }) => {
     const index = Math.max(0, OPTIONS.findIndex((o) => o.id === activeId));
 
@@ -28,7 +24,6 @@ const SceneArrowCarousel = ({ activeId, onSelect, hidden = false, motionClass = 
     };
 
     const hiddenCls = hidden ? 'opacity-0 pointer-events-none' : 'opacity-100';
-    const topStyle = topPx != null ? { top: `${topPx}px` } : undefined;
 
     return (
         <>
@@ -36,8 +31,8 @@ const SceneArrowCarousel = ({ activeId, onSelect, hidden = false, motionClass = 
                 type="button"
                 onClick={() => go(-1)}
                 aria-label="Previous room"
-                style={topStyle}
-                className={`absolute left-2 sm:left-3 top-1/2 -translate-y-1/2 z-30 flex h-9 w-9 items-center justify-center rounded-lg bg-white/65 text-stone-800 backdrop-blur-md transition-all hover:bg-white/80 sm:h-10 sm:w-10 ${motionClass} ${hiddenCls}`}
+                style={{ top: topPx }}
+                className={`absolute left-2 sm:left-3 top-1/2 -translate-y-1/2 z-30 flex h-9 w-9 items-center justify-center rounded-xl border border-stone-300/90 bg-white/95 text-stone-900 shadow-[0_2px_8px_rgba(28,25,23,0.18)] backdrop-blur-md transition-[opacity,background-color,box-shadow] hover:bg-white hover:shadow-[0_3px_12px_rgba(28,25,23,0.24)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-stone-700 focus-visible:ring-offset-2 sm:h-10 sm:w-10 ${motionClass} ${hiddenCls}`}
             >
                 <ChevronLeft size={18} strokeWidth={1.6} />
             </button>
@@ -45,8 +40,8 @@ const SceneArrowCarousel = ({ activeId, onSelect, hidden = false, motionClass = 
                 type="button"
                 onClick={() => go(1)}
                 aria-label="Next room"
-                style={topStyle}
-                className={`absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 z-30 flex h-9 w-9 items-center justify-center rounded-lg bg-white/65 text-stone-800 backdrop-blur-md transition-all hover:bg-white/80 sm:h-10 sm:w-10 ${motionClass} ${hiddenCls}`}
+                style={{ top: topPx }}
+                className={`absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 z-30 flex h-9 w-9 items-center justify-center rounded-xl border border-stone-300/90 bg-white/95 text-stone-900 shadow-[0_2px_8px_rgba(28,25,23,0.18)] backdrop-blur-md transition-[opacity,background-color,box-shadow] hover:bg-white hover:shadow-[0_3px_12px_rgba(28,25,23,0.24)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-stone-700 focus-visible:ring-offset-2 sm:h-10 sm:w-10 ${motionClass} ${hiddenCls}`}
             >
                 <ChevronRight size={18} strokeWidth={1.6} />
             </button>
