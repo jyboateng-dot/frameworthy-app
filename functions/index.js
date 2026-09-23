@@ -10,7 +10,7 @@ const { FRAMEWORTHY_KNOWLEDGE_BASE } = require('./supportKnowledge');
 admin.initializeApp();
 
 exports.museumArtworks = onRequest({
-    region: 'us-central1', memory: '256MiB', timeoutSeconds: 180,
+    region: 'us-central1', memory: '256MiB', timeoutSeconds: 180, invoker: 'public',
     secrets: ['SMITHSONIAN_API_KEY', 'PARIS_MUSEES_API_TOKEN'],
 }, async (req, res) => {
     if (req.method !== 'GET') { res.status(405).send('Method not allowed'); return; }
@@ -857,7 +857,7 @@ exports.proxyArtworkImage = onRequest({ region: 'us-central1', timeoutSeconds: 1
 // The Art Institute's IIIF server requires a museum-style request header and
 // rejects direct browser image requests. Keep this relay narrow: only accept
 // image identifiers, only request the Art Institute host, and cap the width.
-exports.proxyArtInstituteImage = onRequest({ region: 'us-central1', timeoutSeconds: 15, maxInstances: 10 }, async (req, res) => {
+exports.proxyArtInstituteImage = onRequest({ region: 'us-central1', timeoutSeconds: 15, maxInstances: 10, invoker: 'public' }, async (req, res) => {
     const imageId = req.query.id;
     const requestedWidth = Number(req.query.width || 843);
     const width = Math.min(2400, Math.max(240, Number.isFinite(requestedWidth) ? requestedWidth : 843));
