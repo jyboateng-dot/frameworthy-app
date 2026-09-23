@@ -1422,6 +1422,16 @@ const CustomizeFramePage = ({
         touchGestureStartRef.current = { x: touch.clientX, y: touch.clientY };
     };
 
+    const handleMobileTouchMove = (event) => {
+        if (!window.matchMedia('(hover: none), (pointer: coarse)').matches) return;
+        // The visualizer owns swipes. Let max-zoom retain native panning, but
+        // keep ordinary scene gestures from bubbling into the page's mobile
+        // customizer scroll container.
+        if (isMaxZoom) return;
+        if (event.target.closest?.('button, input, [role="button"]')) return;
+        event.preventDefault();
+    };
+
     const handleMobileGestureEnd = (event) => {
         if (event.target.closest?.('button, input, [role="button"]')) return;
         const start = touchGestureStartRef.current;
@@ -2206,6 +2216,9 @@ const CustomizeFramePage = ({
                 }`}
                 style={{
                     backgroundColor: wallColor.hex,
+                    // Keep ordinary visualizer swipes out of the mobile
+                    // customizer's page scroll. Deep zoom remains pannable.
+                    touchAction: isMaxZoom ? 'pan-x pan-y' : 'none',
                     height: (!isFullScreen && !isSideBySide) ? `${visualizerMetrics.height}px` : undefined
                 }}
             >
@@ -2507,6 +2520,7 @@ const CustomizeFramePage = ({
                                 : 'inset-0 h-full'
                         }`}
                         onTouchStart={handleMobileTouchStart}
+                        onTouchMove={handleMobileTouchMove}
                         onTouchEnd={handleMobileGestureEnd}
                     >
 

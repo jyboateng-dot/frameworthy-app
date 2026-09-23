@@ -32,7 +32,7 @@ const SceneArrowCarousel = ({ activeId, onSelect, hidden = false, motionClass = 
                 onClick={() => go(-1)}
                 aria-label="Previous room"
                 style={{ top: topPx }}
-                className={`absolute left-2 sm:left-3 top-1/2 -translate-y-1/2 z-30 flex h-9 w-9 items-center justify-center rounded-xl border border-stone-300/90 bg-white/95 text-stone-900 shadow-[0_2px_8px_rgba(28,25,23,0.18)] backdrop-blur-md transition-[opacity,background-color,box-shadow] hover:bg-white hover:shadow-[0_3px_12px_rgba(28,25,23,0.24)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-stone-700 focus-visible:ring-offset-2 sm:h-10 sm:w-10 ${motionClass} ${hiddenCls}`}
+                className={`absolute left-2 sm:left-3 top-1/2 -translate-y-1/2 z-30 flex h-9 w-9 items-center justify-center rounded-xl border border-stone-300/55 bg-white/68 text-stone-900 shadow-[0_2px_8px_rgba(28,25,23,0.12)] backdrop-blur-md transition-[opacity,background-color,box-shadow] hover:bg-white/82 hover:shadow-[0_3px_12px_rgba(28,25,23,0.18)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-stone-700 focus-visible:ring-offset-2 sm:h-10 sm:w-10 ${motionClass} ${hiddenCls}`}
             >
                 <ChevronLeft size={18} strokeWidth={1.6} />
             </button>
@@ -41,7 +41,7 @@ const SceneArrowCarousel = ({ activeId, onSelect, hidden = false, motionClass = 
                 onClick={() => go(1)}
                 aria-label="Next room"
                 style={{ top: topPx }}
-                className={`absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 z-30 flex h-9 w-9 items-center justify-center rounded-xl border border-stone-300/90 bg-white/95 text-stone-900 shadow-[0_2px_8px_rgba(28,25,23,0.18)] backdrop-blur-md transition-[opacity,background-color,box-shadow] hover:bg-white hover:shadow-[0_3px_12px_rgba(28,25,23,0.24)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-stone-700 focus-visible:ring-offset-2 sm:h-10 sm:w-10 ${motionClass} ${hiddenCls}`}
+                className={`absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 z-30 flex h-9 w-9 items-center justify-center rounded-xl border border-stone-300/55 bg-white/68 text-stone-900 shadow-[0_2px_8px_rgba(28,25,23,0.12)] backdrop-blur-md transition-[opacity,background-color,box-shadow] hover:bg-white/82 hover:shadow-[0_3px_12px_rgba(28,25,23,0.18)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-stone-700 focus-visible:ring-offset-2 sm:h-10 sm:w-10 ${motionClass} ${hiddenCls}`}
             >
                 <ChevronRight size={18} strokeWidth={1.6} />
             </button>
