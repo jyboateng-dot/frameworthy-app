@@ -1259,9 +1259,10 @@ const CustomizeFramePage = ({
     // ahead.  requestIdleCallback is deliberately used when available so a
     // phone never competes with the current scene's first paint.
     useEffect(() => {
+        if (departingRoomSceneId || departingWasCloseUp) return undefined;
         const sceneOrder = [null, ...ROOM_SCENES.map((scene) => scene.id)];
         const currentIndex = Math.max(0, sceneOrder.indexOf(roomSceneId));
-        const sceneIds = [sceneOrder[currentIndex - 1], sceneOrder[currentIndex + 1]]
+        const sceneIds = [sceneOrder[(currentIndex - 1 + sceneOrder.length) % sceneOrder.length], sceneOrder[(currentIndex + 1) % sceneOrder.length]]
             .filter(Boolean);
         if (!sceneIds.length) return undefined;
 
@@ -1281,7 +1282,14 @@ const CustomizeFramePage = ({
                 window.clearTimeout(idle);
             }
         };
-    }, [roomSceneId]);
+    }, [roomSceneId, departingRoomSceneId, departingWasCloseUp]);
+
+    const finishRoomSceneTransition = (event) => {
+        if (event && (event.target !== event.currentTarget || event.animationName !== 'roomSceneSlideIn')) return;
+        window.clearTimeout(roomSceneTransitionRef.current);
+        setDepartingRoomSceneId(null);
+        setDepartingWasCloseUp(false);
+    };
 
     const selectRoomScene = (sceneId) => {
         if (sceneId === roomSceneId) return;
@@ -1306,10 +1314,13 @@ const CustomizeFramePage = ({
             setRoomSlideDirection(toIndex >= fromIndex ? 1 : -1);
             setDepartingWasCloseUp(roomSceneId === null);
             setDepartingRoomSceneId(roomSceneId);
+            // animationend performs normal cleanup. This is only a fallback
+            // for interrupted animations; a busy phone must finish its slide
+            // before we remove the outgoing layers.
             roomSceneTransitionRef.current = window.setTimeout(() => {
                 setDepartingRoomSceneId(null);
                 setDepartingWasCloseUp(false);
-            }, ROOM_SCENE_TRANSITION_MS);
+            }, window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : ROOM_SCENE_TRANSITION_MS + 1000);
             setRoomSceneId(sceneId);
         });
     };
@@ -2028,7 +2039,8 @@ const CustomizeFramePage = ({
     // whole strip of scenes (Close-Up included) transitions consistently.
     const renderPlainBackdrop = (phase) => (
         <div
-            key={`backdrop-${phase}-plain`}
+            key="backdrop-plain"
+            onAnimationEnd={finishRoomSceneTransition}
             className={`absolute inset-0 pointer-events-none z-[1] ${phase === 'outgoing' ? 'room-scene-slide-out' : 'room-scene-slide-in'} ${
                 isHovered || isMaxZoom || isFullScreen ? 'opacity-0' : 'opacity-100'
             }`}
@@ -2052,7 +2064,8 @@ const CustomizeFramePage = ({
                 : 'z-[1]';
         return (
             <div
-                key={`backdrop-${phase}-${room.id}`}
+                key={`backdrop-${room.id}`}
+                onAnimationEnd={finishRoomSceneTransition}
                 className={`absolute inset-0 pointer-events-none ${layerClass} ${
                     isHovered || isMaxZoom || isFullScreen ? 'opacity-0' : 'opacity-100'
                 }`}
@@ -2102,7 +2115,7 @@ const CustomizeFramePage = ({
                 : 'z-20';
         return (
             <div
-                key={`foreground-${phase}-${room.id}`}
+                key={`foreground-${room.id}`}
                 className={`room-scene-foreground absolute inset-0 pointer-events-none ${layerClass}`}
                 style={{ overflow: 'hidden', '--room-slide-dir': roomSlideDirection }}
                 aria-hidden="true"
@@ -2473,12 +2486,14 @@ const CustomizeFramePage = ({
                         {/* ── ROOM SCENE BACKDROP ──
                             Every scene fills the same calibrated visualizer canvas, so
                             the image can change without changing frame geometry. */}
-                        {departingRoom
-                            ? renderRoomBackdrop(departingRoom, departingRoomLayout, 'outgoing')
-                            : departingWasCloseUp ? renderPlainBackdrop('outgoing') : null}
-                        {activeRoom
-                            ? renderRoomBackdrop(activeRoom, roomLayout, isTransitioning ? 'incoming' : '')
-                            : isTransitioning ? renderPlainBackdrop('incoming') : null}
+                        {[
+                            departingRoom
+                                ? renderRoomBackdrop(departingRoom, departingRoomLayout, 'outgoing')
+                                : departingWasCloseUp ? renderPlainBackdrop('outgoing') : null,
+                            activeRoom
+                                ? renderRoomBackdrop(activeRoom, roomLayout, isTransitioning ? 'incoming' : '')
+                                : isTransitioning ? renderPlainBackdrop('incoming') : null,
+                        ]}
 
                         {/* ── THE FRAME ── */}
                         {(() => {
@@ -3328,8 +3343,10 @@ const CustomizeFramePage = ({
                             Keep this as a separate foreground pass so the
                             room backdrop can stay behind the frame, while
                             entryway console artefacts can sit in front. */}
-                        {renderRoomForeground(departingRoom, departingRoomLayout, 'outgoing')}
-                        {renderRoomForeground(activeRoom, roomLayout, isTransitioning ? 'incoming' : '')}
+                        {[
+                            renderRoomForeground(departingRoom, departingRoomLayout, 'outgoing'),
+                            renderRoomForeground(activeRoom, roomLayout, isTransitioning ? 'incoming' : ''),
+                        ]}
                         
                         {/* The zoomed-in disclaimer that used to fade in here is
                             gone: with the note pinned under the pane it's on
