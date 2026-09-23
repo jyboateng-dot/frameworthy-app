@@ -6,10 +6,11 @@ import { useWishlist } from '../context/WishlistContext';
 import { getThumbnailUrl } from '../services/storage';
 import { fetchMuseumArtworks } from '../services/museumApi';
 import { MUSEUM_SOURCES } from '../data/museumSources';
+import { ARCHIVAL_SOURCES } from '../data/archivalSources';
 
 const MuseumSourceArtPage = ({ sourceId, setProductMode, setSelectedSize, navigate, isSubPage = false, disableWindowScroll = false }) => {
     const { unit } = useUnit();
-    const source = MUSEUM_SOURCES.find(item => item.id === sourceId);
+    const source = [...MUSEUM_SOURCES, ...ARCHIVAL_SOURCES].find(item => item.id === sourceId);
     const [page, setPage] = useState(1);
     const [state, setState] = useState({ status: 'loading', artworks: [], total: 0, error: '' });
 

@@ -24,6 +24,7 @@ const MuseumArtPage = lazy(() => import('./MuseumArtPage'));
 import { PRODUCTS } from '../data/framed_prints';
 import { getThumbnailUrl } from '../services/storage';
 import { MUSEUM_SOURCES } from '../data/museumSources';
+import { ARCHIVAL_SOURCES } from '../data/archivalSources';
 
 const OPEN_COLLECTION_SECTIONS = [
     { id: 'met', label: 'Met Museum Collection' },
@@ -38,6 +39,7 @@ const OPEN_COLLECTION_SECTIONS = [
         const source = MUSEUM_SOURCES.find(item => item.id === sourceId);
         return { id: source.id, label: source.name };
     }),
+    ...ARCHIVAL_SOURCES.map(source => ({ id: source.id, label: source.name })),
     { id: 'originals', label: 'Original Paintings' },
 ];
 
@@ -308,7 +310,7 @@ const InspirationPage = ({ setProductMode, setSelectedFrame, setSelectedSize, na
                     <MuseumSourcesPage isSubPage={true} />
                 </div>
             )}
-            {MUSEUM_SOURCES.some(source => source.id === currentSection) && (
+            {[...MUSEUM_SOURCES, ...ARCHIVAL_SOURCES].some(source => source.id === currentSection) && (
                 <div className="max-w-[2560px] mx-auto py-8">
                     <MuseumSourceArtPage
                         key={currentSection}

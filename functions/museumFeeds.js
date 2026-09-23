@@ -89,6 +89,59 @@ async function paris(page, token) {
     throw error;
 }
 
+async function biodiversityHeritageLibrary(page) {
+    // BHL maintains a public Flickr Commons photostream. The feed is useful
+    // for discovery without exposing a BHL/Flickr key; item-level rights are
+    // retained and must still be checked before a work is sold as a print.
+    const params = new URLSearchParams({
+        tags: 'biodiversityheritagelibrary', tagmode: 'all', format: 'json', nojsoncallback: '1',
+    });
+    const data = await json(`https://www.flickr.com/services/feeds/photos_public.gne?${params}`);
+    const items = (data.items || []).slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+    return {
+        artworks: items.map(item => {
+            const preview = item.media?.m;
+            if (!preview) return null;
+            const fullRes = preview.replace('_m.', '_b.');
+            return {
+                id: item.link || item.title,
+                title: item.title || 'Biodiversity illustration',
+                artist: item.author || 'Biodiversity Heritage Library',
+                image: preview,
+                fullRes,
+                sourceUrl: item.link,
+                rights: 'Flickr Commons / verify item-level rights',
+            };
+        }).filter(Boolean),
+        total: data.items?.length || 0,
+    };
+}
+
+async function nasaOpenMedia(page) {
+    const params = new URLSearchParams({ q: 'space photography', media_type: 'image', page_size: String(PAGE_SIZE), page: String(page) });
+    const data = await json(`https://images-api.nasa.gov/search?${params}`);
+    const artworks = (data.collection?.items || []).map(item => {
+        const metadata = item.data?.[0] || {};
+        const links = item.links || [];
+        const preview = links.find(link => link.rel === 'preview')?.href || links.find(link => link.render === 'image')?.href;
+        const fullRes = links.find(link => link.rel === 'canonical')?.href || links.find(link => link.render === 'image' && link.width > 800)?.href || preview;
+        return preview ? {
+            id: metadata.nasa_id || item.href,
+            title: metadata.title || 'NASA image',
+            artist: metadata.secondary_creator || metadata.center || 'NASA',
+            image: preview,
+            fullRes,
+            imageWidth: links.find(link => link.href === fullRes)?.width,
+            imageHeight: links.find(link => link.href === fullRes)?.height,
+            description: metadata.description,
+            date: metadata.date_created,
+            sourceUrl: `https://images.nasa.gov/details/${metadata.nasa_id}`,
+            rights: 'NASA media; verify item-level usage guidance',
+        } : null;
+    }).filter(Boolean);
+    return { artworks, total: data.collection?.metadata?.total_hits || artworks.length };
+}
+
 async function museumFeed(source, page, env = process.env) {
     if (!Number.isInteger(page) || page < 1 || page > 10000) {
         const error = new Error('Invalid collection page.'); error.status = 400; throw error;
@@ -99,6 +152,8 @@ async function museumFeed(source, page, env = process.env) {
     let value;
     if (source === 'smithsonian-open-access') value = await smithsonian(page, env.SMITHSONIAN_API_KEY);
     else if (source === 'paris-musees') value = await paris(page, env.PARIS_MUSEES_API_TOKEN);
+    else if (source === 'biodiversity-heritage-library') value = await biodiversityHeritageLibrary(page);
+    else if (source === 'nasa-open-media') value = await nasaOpenMedia(page);
     else { const error = new Error('Unknown collection.'); error.status = 400; throw error; }
     if (cache.size >= 100) cache.delete(cache.keys().next().value);
     cache.set(key, { value, expires: Date.now() + 15 * 60 * 1000 });

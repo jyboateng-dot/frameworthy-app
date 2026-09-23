@@ -1,4 +1,5 @@
 import { MUSEUM_SOURCES } from '../data/museumSources';
+import { ARCHIVAL_SOURCES } from '../data/archivalSources';
 import { normalizeMuseumArtwork } from '../utils/museumArtwork';
 
 const PAGE_SIZE = 24;
@@ -7,7 +8,7 @@ const PAGE_SIZE = 24;
 const artInstituteImageUrl = (imageId, width = 843) =>
     `/api/artic-image?id=${encodeURIComponent(imageId)}&width=${width}`;
 
-const sourceById = (sourceId) => MUSEUM_SOURCES.find(source => source.id === sourceId);
+const sourceById = (sourceId) => [...MUSEUM_SOURCES, ...ARCHIVAL_SOURCES].find(source => source.id === sourceId);
 
 async function getJson(url) {
     const response = await fetch(url);
@@ -104,6 +105,32 @@ async function fetchNga(page) {
     const data = await getJson(`/museum-data/nga/${page}.json`);
     return { ...data, artworks: data.artworks.map(record => normalizeMuseumArtwork(record, sourceById('national-gallery-of-art'))) };
 }
+
+async function fetchLibraryOfCongress(page) {
+    const params = new URLSearchParams({
+        fo: 'json', c: String(PAGE_SIZE), sp: String(page),
+        q: 'map OR poster OR patent OR panorama',
+    });
+    const payload = await getJson(`https://www.loc.gov/search/?${params}`);
+    const source = sourceById('library-of-congress');
+    const artworks = (payload.results || []).map(item => {
+        const image = item.image_url?.find(url => /original|full|large/i.test(url)) || item.image_url?.[0];
+        return image ? normalizeMuseumArtwork({
+            id: item.id || item.url,
+            title: item.title,
+            artist: item.contributor?.join?.(', ') || item.contributor,
+            image,
+            fullRes: image,
+            sourceUrl: item.id || item.url,
+            date: item.date,
+        }, source) : null;
+    }).filter(Boolean);
+    return { artworks, total: payload.pagination?.total || artworks.length };
+}
+
+async function fetchNasa(page) {
+    return fetchServerCollection('nasa-open-media', page);
+}
 const LOADERS = {
     'art-institute-of-chicago': fetchArtInstitute,
     'cleveland-museum-of-art': fetchCleveland,
@@ -111,6 +138,9 @@ const LOADERS = {
     'smithsonian-open-access': page => fetchServerCollection('smithsonian-open-access', page),
     'paris-musees': page => fetchServerCollection('paris-musees', page),
     'national-gallery-of-art': fetchNga,
+    'library-of-congress': fetchLibraryOfCongress,
+    'nasa-open-media': fetchNasa,
+    'biodiversity-heritage-library': page => fetchServerCollection('biodiversity-heritage-library', page),
 };
 
 export async function fetchMuseumArtworks(sourceId, page = 1) {
