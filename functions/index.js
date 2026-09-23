@@ -9,6 +9,20 @@ const { FRAMEWORTHY_KNOWLEDGE_BASE } = require('./supportKnowledge');
 
 admin.initializeApp();
 
+exports.museumArtworks = onRequest({
+    region: 'us-central1', memory: '256MiB', timeoutSeconds: 180,
+    secrets: ['SMITHSONIAN_API_KEY', 'PARIS_MUSEES_API_TOKEN'],
+}, async (req, res) => {
+    if (req.method !== 'GET') { res.status(405).send('Method not allowed'); return; }
+    try {
+        const { museumFeed } = require('./museumFeeds');
+        const data = await museumFeed(req.query.source, Number(req.query.page || 1));
+        res.set('Cache-Control', 'public, max-age=300').json(data);
+    } catch (error) {
+        res.status(error.status || 502).json({ error: error.message });
+    }
+});
+
 // Stored in Secret Manager via `firebase functions:secrets:set PAYSTACK_SECRET_KEY`
 // — never committed to source, never sent to the client.
 const paystackSecretKey = defineSecret('PAYSTACK_SECRET_KEY');
@@ -838,6 +852,36 @@ exports.proxyArtworkImage = onRequest({ region: 'us-central1', timeoutSeconds: 1
     // skip re-fetching bymuseum.com on every AR open.
     res.set('Cache-Control', 'public, max-age=86400, immutable');
     res.status(200).send(bytes);
+});
+
+// The Art Institute's IIIF server requires a museum-style request header and
+// rejects direct browser image requests. Keep this relay narrow: only accept
+// image identifiers, only request the Art Institute host, and cap the width.
+exports.proxyArtInstituteImage = onRequest({ region: 'us-central1', timeoutSeconds: 15, maxInstances: 10 }, async (req, res) => {
+    const imageId = req.query.id;
+    const requestedWidth = Number(req.query.width || 843);
+    const width = Math.min(2400, Math.max(240, Number.isFinite(requestedWidth) ? requestedWidth : 843));
+    if (typeof imageId !== 'string' || !/^[a-f0-9-]{20,}$/i.test(imageId)) {
+        res.status(400).send('Invalid image id');
+        return;
+    }
+    try {
+        const upstream = await fetch(`https://www.artic.edu/iiif/2/${imageId}/full/${width},/0/default.jpg`, {
+            headers: { 'User-Agent': 'FrameWorthy/1.0', Referer: 'https://www.artic.edu/' },
+            signal: AbortSignal.timeout(10_000),
+        });
+        if (!upstream.ok) {
+            res.status(upstream.status).send('Art Institute image unavailable');
+            return;
+        }
+        res.set('Access-Control-Allow-Origin', '*');
+        res.set('Content-Type', upstream.headers.get('content-type') || 'image/jpeg');
+        res.set('Cache-Control', 'public, max-age=86400, immutable');
+        res.status(200).send(Buffer.from(await upstream.arrayBuffer()));
+    } catch (error) {
+        logger.error('proxyArtInstituteImage: upstream fetch failed', { imageId, message: error.message });
+        res.status(502).send('Upstream image fetch failed');
+    }
 });
 
 const dns = require('node:dns').promises;

@@ -39,6 +39,17 @@
     ],
     "rewrites": [
       {
+        "source": "/api/museum-artworks",
+        "function": { "functionId": "museumArtworks", "region": "us-central1" }
+      },
+      {
+        "source": "/api/artic-image",
+        "function": {
+          "functionId": "proxyArtInstituteImage",
+          "region": "us-central1"
+        }
+      },
+      {
         "source": "/api/proxy-artwork",
         "function": {
           "functionId": "proxyArtworkImage",

@@ -6,11 +6,12 @@ import { useWishlist } from '../context/WishlistContext';
 import PageMeta from '../components/common/PageMeta';
 
 /* Page-level sub-renderers from other files */
-import OriginalPaintingsPage from './OriginalPaintingsPage';
+import OriginalArtistsPage from './OriginalArtistsPage';
 import PrestigePaintingsPage from './PrestigePaintingsPage';
 import CanvasArtPage from './CanvasArtPage';
 import GlossyArtPage from './GlossyArtPage';
 import WebImagesPage from './WebImagesPage';
+import MuseumSourceArtPage from './MuseumSourceArtPage';
 // Lazy: each of these carries several MB of catalogue data (Met Museum,
 // album covers, movie posters) — only download it for the tab actually
 // opened, not for every Inspiration visit.
@@ -22,6 +23,23 @@ const MuseumArtPage = lazy(() => import('./MuseumArtPage'));
 
 import { PRODUCTS } from '../data/framed_prints';
 import { getThumbnailUrl } from '../services/storage';
+import { MUSEUM_SOURCES } from '../data/museumSources';
+
+const OPEN_COLLECTION_SECTIONS = [
+    { id: 'met', label: 'Met Museum Collection' },
+    ...[
+        'art-institute-of-chicago',
+        'rijksmuseum',
+        'national-gallery-of-art',
+        'smithsonian-open-access',
+        'cleveland-museum-of-art',
+        'paris-musees',
+    ].map(sourceId => {
+        const source = MUSEUM_SOURCES.find(item => item.id === sourceId);
+        return { id: source.id, label: source.name };
+    }),
+    { id: 'originals', label: 'Original Paintings' },
+];
 
 const TabLoadingFallback = () => (
     <div className="min-h-[40vh] flex items-center justify-center">
@@ -70,10 +88,9 @@ const InspirationPage = ({ setProductMode, setSelectedFrame, setSelectedSize, na
     // session that had 'inspiration' active before this shouldn't land on
     // an unreachable tab with no pill to select it back out of, hence the
     // guard below.
-    const SHELVED_SECTIONS = ['inspiration'];
     const [currentSection, setCurrentSection] = useState(() => {
         const stored = sessionStorage.getItem('fw_insp_section');
-        return stored && !SHELVED_SECTIONS.includes(stored) ? stored : 'museum';
+        return stored && OPEN_COLLECTION_SECTIONS.some(section => section.id === stored) ? stored : 'met';
     });
     // A result picked from the cross-category Search tab that needs its
     // native category's "Choose Framing Style" modal opened immediately —
@@ -192,22 +209,7 @@ const InspirationPage = ({ setProductMode, setSelectedFrame, setSelectedSize, na
 
 
     function renderTabs() {
-        const sections = [
-            { id: 'search', label: 'Search' },
-            { id: 'originals', label: 'Original Paintings' },
-            { id: 'prestige', label: 'Prestige Paintings' },
-            { id: 'albums', label: 'Album Artwork' },
-            { id: 'movies', label: 'Movie Posters' },
-            { id: 'museum', label: 'Artists & Masterpieces' },
-            // 'inspiration' (Framed Prints) is shelved again — see
-            // SHELVED_SECTIONS above. Content block, data, and its tab
-            // entry's shape are left just below this comment so it's a
-            // one-line re-add, same as the rest of this file's restore path.
-            { id: 'canvas', label: 'Canvas Art' },
-            { id: 'glossy', label: 'Glossy Art' },
-            { id: 'met', label: 'Met Museum Collection' },
-            { id: 'web', label: 'Web Images' },
-        ];
+        const sections = OPEN_COLLECTION_SECTIONS;
         return (
             <>
                 <div className="pt-8 pb-2 px-6 md:px-12 max-w-[2560px] mx-auto">
@@ -271,7 +273,7 @@ const InspirationPage = ({ setProductMode, setSelectedFrame, setSelectedSize, na
 
             {currentSection === 'originals' && (
                 <div className="max-w-[2560px] mx-auto py-8">
-                    <OriginalPaintingsPage setProductMode={setProductMode} setSelectedFrame={setSelectedFrame} setSelectedSize={setSelectedSize} navigate={navigate} isSubPage={true} disableWindowScroll={isModal} />
+                    <OriginalArtistsPage />
                 </div>
             )}
             {currentSection === 'prestige' && (
@@ -299,6 +301,24 @@ const InspirationPage = ({ setProductMode, setSelectedFrame, setSelectedSize, na
                     <Suspense fallback={<TabLoadingFallback />}>
                     <MetArtPage setProductMode={setProductMode} setSelectedFrame={setSelectedFrame} setSelectedSize={setSelectedSize} navigate={navigate} isSubPage={true} disableWindowScroll={isModal} />
                     </Suspense>
+                </div>
+            )}
+            {currentSection === 'museum-sources' && (
+                <div className="max-w-[2560px] mx-auto py-8">
+                    <MuseumSourcesPage isSubPage={true} />
+                </div>
+            )}
+            {MUSEUM_SOURCES.some(source => source.id === currentSection) && (
+                <div className="max-w-[2560px] mx-auto py-8">
+                    <MuseumSourceArtPage
+                        key={currentSection}
+                        sourceId={currentSection}
+                        setProductMode={setProductMode}
+                        setSelectedSize={setSelectedSize}
+                        navigate={navigate}
+                        isSubPage={true}
+                        disableWindowScroll={isModal}
+                    />
                 </div>
             )}
             {currentSection === 'museum' && (

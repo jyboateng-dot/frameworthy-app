@@ -1,0 +1,118 @@
+import React, { useEffect, useState } from 'react';
+import { ChevronLeft, ChevronRight, ExternalLink, Heart, RefreshCw } from 'lucide-react';
+import { FRAME_SIZES, formatDimensions } from '../data/constants';
+import { useUnit } from '../context/UnitContext';
+import { useWishlist } from '../context/WishlistContext';
+import { getThumbnailUrl } from '../services/storage';
+import { fetchMuseumArtworks } from '../services/museumApi';
+import { MUSEUM_SOURCES } from '../data/museumSources';
+
+const MuseumSourceArtPage = ({ sourceId, setProductMode, setSelectedSize, navigate, isSubPage = false, disableWindowScroll = false }) => {
+    const { unit } = useUnit();
+    const source = MUSEUM_SOURCES.find(item => item.id === sourceId);
+    const [page, setPage] = useState(1);
+    const [state, setState] = useState({ status: 'loading', artworks: [], total: 0, error: '' });
+
+    useEffect(() => {
+        let cancelled = false;
+        Promise.resolve().then(() => {
+            if (!cancelled) setState({ status: 'loading', artworks: [], total: 0, error: '' });
+        });
+        fetchMuseumArtworks(sourceId, page)
+            .then(result => { if (!cancelled) setState({ status: 'ready', ...result, error: '' }); })
+            .catch(error => { if (!cancelled) setState({ status: 'error', artworks: [], total: 0, error: error.message }); });
+        if (!disableWindowScroll) window.scrollTo({ top: 0, behavior: 'smooth' });
+        return () => { cancelled = true; };
+    }, [sourceId, page, disableWindowScroll]);
+
+    const handleGetThis = (artwork) => {
+        setProductMode('frame');
+        const recommendation = artwork.recommendedSize || FRAME_SIZES.find(size => size.id === '16x20') || FRAME_SIZES[0];
+        setSelectedSize(recommendation);
+        navigate('/frame/customize', {
+            state: {
+                presetImage: artwork.fullRes || artwork.image,
+                presetTitle: artwork.artist ? `${artwork.title} — ${artwork.artist}` : artwork.title,
+                initialSize: recommendation,
+                orientation: recommendation.orientation,
+            },
+        });
+    };
+
+    if (!source) return null;
+    const totalPages = Math.max(1, Math.ceil(state.total / 24));
+
+    return (
+        <div className={isSubPage ? 'text-stone-900' : 'min-h-screen bg-[#faf9f8] text-stone-900'} style={{ fontFamily: "'Inter', sans-serif" }}>
+            <header className="border-b border-stone-200">
+                <div className="max-w-[2560px] mx-auto px-6 md:px-12 pb-4 pt-1">
+                    <p className="text-[9px] uppercase tracking-[0.3em] text-stone-500 font-bold mb-1">{source.name}</p>
+                    <h1 className="font-serif font-light text-2xl md:text-3xl tracking-tight leading-none mb-2">{source.name} Collection</h1>
+                    <p className="text-sm text-stone-500 font-light max-w-2xl leading-relaxed">{source.description}</p>
+                </div>
+            </header>
+
+            <main className="max-w-[2560px] mx-auto px-6 md:px-12 pt-8 pb-12">
+                {state.status === 'loading' && (
+                    <div className="min-h-[30vh] flex flex-col items-center justify-center text-stone-400">
+                        <RefreshCw size={24} className="animate-spin mb-4" />
+                        <p className="text-sm">Loading public-domain artworks…</p>
+                    </div>
+                )}
+                {state.status === 'error' && (
+                    <div className="max-w-2xl border border-stone-200 bg-white p-6">
+                        <p className="text-sm font-medium text-stone-900 mb-2">Artwork feed is not available yet.</p>
+                        <p className="text-xs text-stone-500 leading-relaxed mb-4">{state.error}</p>
+                        <a href={source.apiUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 text-xs font-semibold text-stone-900 hover:text-stone-600">API documentation <ExternalLink size={13} /></a>
+                    </div>
+                )}
+                {state.status === 'ready' && (
+                    <>
+                        {state.artworks.length === 0 ? (
+                            <p className="py-20 text-center text-sm text-stone-500">No artwork with a usable public image was returned.</p>
+                        ) : (
+                            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-12">
+                                {state.artworks.map(artwork => (
+                                    <MuseumArtworkCard key={artwork.id} artwork={artwork} unit={unit} onGetThis={handleGetThis} />
+                                ))}
+                            </div>
+                        )}
+                        {totalPages > 1 && (
+                            <div className="flex justify-center items-center gap-4 mt-16 border-t border-stone-200 pt-8">
+                                <button type="button" disabled={page === 1} onClick={() => setPage(current => Math.max(1, current - 1))} className="inline-flex items-center gap-1 text-sm text-stone-500 disabled:opacity-40"><ChevronLeft size={16} /> Previous</button>
+                                <span className="text-xs text-stone-500">Page {page} of {totalPages}</span>
+                                <button type="button" disabled={page === totalPages} onClick={() => setPage(current => Math.min(totalPages, current + 1))} className="inline-flex items-center gap-1 text-sm text-stone-500 disabled:opacity-40">Next <ChevronRight size={16} /></button>
+                            </div>
+                        )}
+                    </>
+                )}
+            </main>
+        </div>
+    );
+};
+
+const MuseumArtworkCard = ({ artwork, unit, onGetThis }) => {
+    const { toggleWishlist, isInWishlist } = useWishlist();
+    const [hovered, setHovered] = useState(false);
+    const liked = isInWishlist(artwork.id);
+    const size = artwork.recommendedSize;
+    return (
+        <article className="group relative flex flex-col gap-3" onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}>
+            <div className="relative overflow-hidden bg-white flex items-center justify-center border border-stone-200/50 aspect-square">
+                <img src={getThumbnailUrl(artwork.image)} alt={artwork.title} loading="lazy" className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.03]" />
+                <div className={`absolute inset-0 bg-stone-50/20 flex items-center justify-center transition-opacity duration-300 ${hovered ? 'opacity-100' : 'opacity-0'}`}>
+                    <button type="button" onClick={() => onGetThis(artwork)} className="px-6 py-2.5 bg-white/80 backdrop-blur-md text-stone-900 border border-white/60 hover:bg-white text-[10px] font-semibold uppercase tracking-[0.2em] shadow-sm rounded-sm">Get This</button>
+                </div>
+                <button type="button" onClick={() => toggleWishlist(artwork)} className={`absolute top-2.5 right-2.5 p-1.5 z-10 ${liked ? 'text-stone-900' : 'text-stone-400 hover:text-stone-600'}`} aria-label="Save"><Heart size={13} fill={liked ? 'currentColor' : 'none'} strokeWidth={1.5} /></button>
+            </div>
+            <div className="flex flex-col gap-1 px-1">
+                <h3 className="text-sm text-stone-900 font-medium leading-tight truncate" title={artwork.title}>{artwork.title}</h3>
+                <p className="text-xs text-stone-500 truncate" title={artwork.artist}>{artwork.artist}</p>
+                <p className="text-[10px] text-stone-500 font-light leading-snug">Recommended {size ? formatDimensions(size.label, unit, size.orientation) : 'standard size'}</p>
+                <button type="button" onClick={() => onGetThis(artwork)} className="text-left text-[10px] uppercase tracking-wider mt-1 text-stone-900 hover:text-stone-700 font-bold">Get This</button>
+            </div>
+        </article>
+    );
+};
+
+export default MuseumSourceArtPage;
