@@ -13,8 +13,26 @@ test('mobile rooms slide as aligned layers and keep their foreground mounted', a
     await expect(next).toBeVisible({ timeout: 60_000 });
     await page.evaluate(() => {
         window.slideSamples = [];
+        window.frameSamples = [];
+        document.addEventListener('pointerdown', () => {
+            const frame = document.querySelector('[data-testid="frame-render"]');
+            window.beforeFrame = frame?.getBoundingClientRect().toJSON();
+        });
         document.addEventListener('animationstart', event => {
             if (event.animationName !== 'roomSceneSlideIn' || event.target.classList.contains('room-scene-foreground')) return;
+            const frame = document.querySelector('[data-testid="frame-render"]');
+            const move = frame.getAnimations().find(animation => animation.effect.getKeyframes().some(key => key.transform));
+            if (move) {
+                const time = move.currentTime;
+                move.pause();
+                move.currentTime = 0;
+                const start = frame.getBoundingClientRect().toJSON();
+                const width = frame.offsetWidth;
+                move.currentTime = 150;
+                window.frameSamples.push({ before: window.beforeFrame, start, width, duringWidth: frame.offsetWidth });
+                move.currentTime = time;
+                move.play();
+            }
             const layers = [...document.querySelectorAll('.room-scene-slide-in')];
             // Sample a deterministic point during motion, then resume it.
             const animations = layers.flatMap(el => el.getAnimations());
@@ -36,5 +54,13 @@ test('mobile rooms slide as aligned layers and keep their foreground mounted', a
         expect(sample[0].transform).not.toBe('none');
         await expect(page.locator('.room-scene-slide-in')).toHaveCount(0);
         expect(await page.evaluate(() => !window.incomingForeground || window.incomingForeground.isConnected)).toBe(true);
+    }
+    const moves = await page.evaluate(() => window.frameSamples);
+    expect(moves).toHaveLength(2);
+    for (const move of moves) {
+        expect(move.width).toBe(move.duringWidth);
+        for (const property of ['left', 'top', 'width', 'height']) {
+            expect(Math.abs(move.start[property] - move.before[property]), JSON.stringify({ property, move })).toBeLessThan(1);
+        }
     }
 });

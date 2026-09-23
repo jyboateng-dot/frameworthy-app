@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useLayoutEffect, useRef, useMemo } from 'react';
 import { useLocation } from 'react-router-dom';
 import { Capacitor } from '@capacitor/core';
 import {
@@ -394,6 +394,30 @@ const CustomizeFramePage = ({
     const visualizerPaneRef = useRef(null);
     const zoomTouchStartRef = useRef(null);
     const frameRenderRef = useRef(null);
+    const sceneFrameBoundsRef = useRef(null);
+    const sceneFrameAnimationRef = useRef(null);
+
+    // Close-Up changes both size and flex alignment. Lay out the destination
+    // once, then animate its composite from the previous on-screen bounds.
+    // Animating width would lay out and repaint every rail/mat on each tick.
+    useLayoutEffect(() => {
+        const before = sceneFrameBoundsRef.current;
+        sceneFrameBoundsRef.current = null;
+        const frame = frameRenderRef.current;
+        if (!before || !frame) return;
+        sceneFrameAnimationRef.current?.cancel();
+        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+        const after = frame.getBoundingClientRect();
+        if (!after.width || !after.height) return;
+        const transform = getComputedStyle(frame).transform;
+        const destination = transform === 'none' ? '' : transform;
+        const animation = frame.animate([
+            { transform: `translate(${before.left - after.left}px, ${before.top - after.top}px) ${destination} scale(${before.width / after.width}, ${before.height / after.height})`, transformOrigin: '0 0' },
+            { transform: destination || 'none', transformOrigin: '0 0' },
+        ], { duration: 360, easing: 'cubic-bezier(0.22, 1, 0.36, 1)' });
+        sceneFrameAnimationRef.current = animation;
+        return () => animation.cancel();
+    }, [roomSceneId]);
 
     useEffect(() => () => {
         window.clearTimeout(roomSceneTransitionRef.current);
@@ -788,6 +812,9 @@ const CustomizeFramePage = ({
     // always holds this render's freshly computed value regardless of what
     // changed it, and a fresh timer each render is exactly the debounce.
     useEffect(() => {
+        // Keep the current artwork texture throughout a scene move. Fetch
+        // its larger Close-Up version after the animation has settled.
+        if (departingRoomSceneId || departingWasCloseUp) return;
         const timer = setTimeout(() => {
             setCommittedImageWidthPx((prev) => (
                 targetImageWidthRef.current !== prev ? targetImageWidthRef.current : prev
@@ -1064,7 +1091,12 @@ const CustomizeFramePage = ({
         // number regardless would leave this whole block under-estimating
         // the piece in exactly the scenes where it comes closest to the
         // controls.
-        const activeSceneForMetrics = roomSceneId ? ROOM_SCENES.find((s) => s.id === roomSceneId) : null;
+        // Keep the mobile canvas fixed across Close-Up and rooms. A changing
+        // pane height causes ResizeObserver to recalculate frame geometry on
+        // every animation tick, fighting the frame's own transition.
+        const activeSceneForMetrics = roomSceneId
+            ? ROOM_SCENES.find((s) => s.id === roomSceneId)
+            : !isSideBySide ? ROOM_SCENES[0] : null;
         const frameWidthPct = activeSceneForMetrics
             ? (largestOuterWidthCm / (activeSceneForMetrics.wallSpanCm + (activeSceneForMetrics.canvasInsetLeftCm || 0))) * 100
             : (largestOuterWidthCm / FRAME_SCALE_REF_CM) * FRAME_SCALE_REF_PCT;
@@ -1302,6 +1334,8 @@ const CustomizeFramePage = ({
         // opacity animation drops frames and makes the transition feel jerky.
         void preloadRoomScene(sceneId).then(() => {
             if (selectionToken !== roomSceneSelectionTokenRef.current) return;
+            sceneFrameBoundsRef.current = (sceneId === null || roomSceneId === null)
+                ? frameRenderRef.current?.getBoundingClientRect() : null;
             window.clearTimeout(roomSceneTransitionRef.current);
             // Every change — including into or out of Close-Up — retains the
             // outgoing composition just long enough to slide into the next,
@@ -3035,7 +3069,7 @@ const CustomizeFramePage = ({
                                     // already relayouts each frame from the width
                                     // change — the one place here worth being
                                     // specific about.
-                                    className={`relative shadow-[0_25px_50px_rgba(0,0,0,0.3)] select-none transition-[width,margin,transform,box-shadow] ${isTransitioning ? ROOM_SCENE_MOTION : ZOOM_MOTION} ${
+                                    className={`relative shadow-[0_25px_50px_rgba(0,0,0,0.3)] select-none transition-[width,margin,transform,box-shadow] ${isTransitioning ? `scene-frame-transition ${ROOM_SCENE_MOTION}` : ZOOM_MOTION} ${
                                         isMaxZoom && !isFullScreen ? 'cursor-zoom-out' : isFullScreen ? '' : 'cursor-zoom-in'
                                     } ${
                                         isHovered || isMaxZoom || isFullScreen || isZoomedByDefault

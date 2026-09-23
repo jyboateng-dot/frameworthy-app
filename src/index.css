@@ -62,6 +62,13 @@
 .room-scene-slide-in { animation: roomSceneSlideIn 360ms cubic-bezier(0.22, 1, 0.36, 1) both; }
 .room-scene-slide-out { animation: roomSceneSlideOut 360ms cubic-bezier(0.22, 1, 0.36, 1) both; }
 
+/* Scene changes lay out the frame once; the Close-Up move is a composite
+   transform. Nested mat/rail transitions would otherwise repaint each tick. */
+.scene-frame-transition,
+.scene-frame-transition * {
+  transition: none !important;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .room-scene-slide-in,
   .room-scene-slide-out,
