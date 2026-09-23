@@ -95,7 +95,10 @@ async function fetchRijks(page) {
 }
 
 async function fetchServerCollection(sourceId, page) {
-    const response = await fetch(`/api/museum-artworks?source=${encodeURIComponent(sourceId)}&page=${page}`);
+    const archivalEndpoint = ['biodiversity-heritage-library', 'nasa-open-media'].includes(sourceId)
+        ? '/api/archival-artworks'
+        : '/api/museum-artworks';
+    const response = await fetch(`${archivalEndpoint}?source=${encodeURIComponent(sourceId)}&page=${page}`);
     const data = await response.json();
     if (!response.ok) throw new Error(data.error || 'The collection is temporarily unavailable.');
     return { ...data, artworks: data.artworks.map(record => normalizeMuseumArtwork(record, sourceById(sourceId))) };

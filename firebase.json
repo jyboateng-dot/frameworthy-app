@@ -43,6 +43,10 @@
         "function": { "functionId": "museumArtworks", "region": "us-central1" }
       },
       {
+        "source": "/api/archival-artworks",
+        "function": { "functionId": "archivalArtworks", "region": "us-central1" }
+      },
+      {
         "source": "/api/artic-image",
         "function": {
           "functionId": "proxyArtInstituteImage",

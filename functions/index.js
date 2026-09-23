@@ -23,6 +23,20 @@ exports.museumArtworks = onRequest({
     }
 });
 
+// Credential-free archival feeds deploy separately from optional museum feeds.
+exports.archivalArtworks = onRequest({
+    region: 'us-central1', memory: '256MiB', timeoutSeconds: 120, invoker: 'public',
+}, async (req, res) => {
+    if (req.method !== 'GET') { res.status(405).send('Method not allowed'); return; }
+    try {
+        const { archivalFeed } = require('./museumFeeds');
+        const data = await archivalFeed(req.query.source, Number(req.query.page || 1));
+        res.set('Cache-Control', 'public, max-age=300').json(data);
+    } catch (error) {
+        res.status(error.status || 502).json({ error: error.message });
+    }
+});
+
 // Stored in Secret Manager via `firebase functions:secrets:set PAYSTACK_SECRET_KEY`
 // — never committed to source, never sent to the client.
 const paystackSecretKey = defineSecret('PAYSTACK_SECRET_KEY');

@@ -160,4 +160,19 @@ async function museumFeed(source, page, env = process.env) {
     return value;
 }
 
-module.exports = { museumFeed, smithsonianRecord, parisQuery };
+async function archivalFeed(source, page) {
+    if (!Number.isInteger(page) || page < 1 || page > 10000) {
+        const error = new Error('Invalid collection page.'); error.status = 400; throw error;
+    }
+    const key = `archival:${source}:${page}`;
+    const hit = cache.get(key);
+    if (hit && hit.expires > Date.now()) return hit.value;
+    let value;
+    if (source === 'biodiversity-heritage-library') value = await biodiversityHeritageLibrary(page);
+    else if (source === 'nasa-open-media') value = await nasaOpenMedia(page);
+    else { const error = new Error('Unknown archival collection.'); error.status = 400; throw error; }
+    cache.set(key, { value, expires: Date.now() + 15 * 60 * 1000 });
+    return value;
+}
+
+module.exports = { museumFeed, archivalFeed, smithsonianRecord, parisQuery };
