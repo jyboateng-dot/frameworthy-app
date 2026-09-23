@@ -808,6 +808,7 @@ const CustomizeFramePage = ({
     // foreground cutouts are decoded before this begins, so mobile can use
     // the same composed slide as desktop without flashing between layers.
     const ROOM_SCENE_TRANSITION_MS = 360;
+    const ROOM_SCENE_MOTION = 'duration-[360ms] ease-[cubic-bezier(0.22,1,0.36,1)]';
 
     // ── ZOOM MOTION ──
     // One duration and one curve for everything that moves when the frame
@@ -1251,6 +1252,36 @@ const CustomizeFramePage = ({
         roomScenePreloadRef.current.set(sceneId, preload);
         return preload;
     };
+
+    // Keep the next swipe warm without putting image decode on the gesture's
+    // critical path.  The first scene adjacent to Close-Up is prefetched as
+    // soon as the pane settles; after that both directions stay one step
+    // ahead.  requestIdleCallback is deliberately used when available so a
+    // phone never competes with the current scene's first paint.
+    useEffect(() => {
+        const sceneOrder = [null, ...ROOM_SCENES.map((scene) => scene.id)];
+        const currentIndex = Math.max(0, sceneOrder.indexOf(roomSceneId));
+        const sceneIds = [sceneOrder[currentIndex - 1], sceneOrder[currentIndex + 1]]
+            .filter(Boolean);
+        if (!sceneIds.length) return undefined;
+
+        let cancelled = false;
+        const warm = () => {
+            if (cancelled) return;
+            sceneIds.forEach((sceneId) => { void preloadRoomScene(sceneId); });
+        };
+        const idle = typeof window.requestIdleCallback === 'function'
+            ? window.requestIdleCallback(warm, { timeout: 1200 })
+            : window.setTimeout(warm, 120);
+        return () => {
+            cancelled = true;
+            if (typeof window.cancelIdleCallback === 'function' && typeof idle === 'number') {
+                window.cancelIdleCallback(idle);
+            } else {
+                window.clearTimeout(idle);
+            }
+        };
+    }, [roomSceneId]);
 
     const selectRoomScene = (sceneId) => {
         if (sceneId === roomSceneId) return;
@@ -2989,7 +3020,7 @@ const CustomizeFramePage = ({
                                     // already relayouts each frame from the width
                                     // change — the one place here worth being
                                     // specific about.
-                                    className={`relative shadow-[0_25px_50px_rgba(0,0,0,0.3)] select-none transition-[width,margin,box-shadow] ${ZOOM_MOTION} ${
+                                    className={`relative shadow-[0_25px_50px_rgba(0,0,0,0.3)] select-none transition-[width,margin,transform,box-shadow] ${isTransitioning ? ROOM_SCENE_MOTION : ZOOM_MOTION} ${
                                         isMaxZoom && !isFullScreen ? 'cursor-zoom-out' : isFullScreen ? '' : 'cursor-zoom-in'
                                     } ${
                                         isHovered || isMaxZoom || isFullScreen || isZoomedByDefault

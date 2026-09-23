@@ -62,9 +62,39 @@
 .room-scene-slide-in { animation: roomSceneSlideIn 360ms cubic-bezier(0.22, 1, 0.36, 1) both; }
 .room-scene-slide-out { animation: roomSceneSlideOut 360ms cubic-bezier(0.22, 1, 0.36, 1) both; }
 
+/* The photographed furniture is a separate alpha cutout layered over the
+   wall.  Translating two full-size alpha images at the same time is expensive
+   on phone GPUs and is the source of the last few dropped frames during a
+   swipe.  Keep the backdrop's directional slide, but cross-fade the cutouts
+   in place on narrow screens; their geometry already matches the incoming or
+   outgoing backdrop, so no visual jump is introduced. */
+@keyframes roomSceneForegroundFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes roomSceneForegroundFadeOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+@media (max-width: 639px) {
+  .room-scene-foreground.room-scene-slide-in {
+    animation: roomSceneForegroundFadeIn 360ms cubic-bezier(0.22, 1, 0.36, 1) both;
+    will-change: opacity;
+  }
+
+  .room-scene-foreground.room-scene-slide-out {
+    animation: roomSceneForegroundFadeOut 360ms cubic-bezier(0.22, 1, 0.36, 1) both;
+    will-change: opacity;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .room-scene-slide-in,
-  .room-scene-slide-out { animation: none; }
+  .room-scene-slide-out,
+  .room-scene-foreground.room-scene-slide-in,
+  .room-scene-foreground.room-scene-slide-out { animation: none; }
 }
 
 .frame-grid-hidden .frame-card {
