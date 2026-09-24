@@ -59,7 +59,7 @@ const FAQ_DATA = [
             },
             {
                 q: 'Can I order curated art prints instead of uploading my own photos?',
-                a: 'Yes! Visit our "Inspiration" page to browse thousands of pre-formatted artwork pieces, including Met Museum Masterpieces, Prestige Paintings, Vintage Movie Posters, and Iconic Album Cover Art, all ready for custom framing.'
+                a: 'Yes! Visit our "Curated Art" page to browse thousands of pre-formatted artwork pieces, including Met Museum Masterpieces, Prestige Paintings, Vintage Movie Posters, and Iconic Album Cover Art, all ready for custom framing.'
             },
             {
                 q: "How is my frame's price calculated?",

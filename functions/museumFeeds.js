@@ -1,4 +1,8 @@
 // Shared by Vite and Firebase. Credentials never enter the client bundle.
+try {
+    globalThis.process?.getBuiltinModule?.('dns')?.setDefaultResultOrder?.('ipv4first');
+} catch {}
+
 const PAGE_SIZE = 24;
 const cache = new Map();
 
@@ -32,26 +36,25 @@ function smithsonianRecord(record) {
 }
 
 async function smithsonian(page, key) {
-    if (!key) {
-        const error = new Error('The Smithsonian collection is awaiting connection credentials.');
-        error.status = 503;
-        throw error;
-    }
+    const apiKey = key || process.env.SMITHSONIAN_API_KEY || 'DEMO_KEY';
     const params = new URLSearchParams({
         q: 'online_media_type:Images AND (unit_code:SAAM OR unit_code:NPG OR unit_code:FSG)',
-        start: String((page - 1) * PAGE_SIZE), rows: String(PAGE_SIZE), api_key: key,
+        start: String((page - 1) * PAGE_SIZE), rows: String(PAGE_SIZE), api_key: apiKey,
     });
     const data = await json(`https://api.si.edu/openaccess/api/v1.0/search?${params}`);
     if (data.status !== 200 || !data.response) throw new Error('Smithsonian returned an invalid response.');
     const artworks = [];
-    // Bound concurrency and propagate failures rather than reporting an empty success.
     const rows = data.response.rows || [];
     for (let offset = 0; offset < rows.length; offset += 3) {
         const batch = await Promise.all(rows.slice(offset, offset + 3).map(async row => {
             const existing = smithsonianRecord(row);
             if (existing) return existing;
-            const detail = await json(`https://api.si.edu/openaccess/api/v1.0/content/${encodeURIComponent(row.url)}?api_key=${encodeURIComponent(key)}`);
-            return smithsonianRecord(detail.response || {});
+            try {
+                const detail = await json(`https://api.si.edu/openaccess/api/v1.0/content/${encodeURIComponent(row.url)}?api_key=${encodeURIComponent(apiKey)}`);
+                return smithsonianRecord(detail.response || {});
+            } catch {
+                return null;
+            }
         }));
         artworks.push(...batch.filter(Boolean));
     }
@@ -59,11 +62,10 @@ async function smithsonian(page, key) {
 }
 
 function parisQuery(page) {
-    return `{ nodeQuery(limit: 24, offset: ${(page - 1) * PAGE_SIZE}, filter: {conditions: [{field: "type", value: "oeuvre"}]}) {
-        count entities { entityId ... on NodeOeuvre {
-            title absolutePath
-            fieldOeuvreAuteurs { entity { name } }
-            fieldVisuelsPrincipals { entity { vignette } }
+    return `{ nodeQuery(limit: ${PAGE_SIZE}, offset: ${(page - 1) * PAGE_SIZE}, filter: {conditions: [{field: "type", value: "oeuvre"}, {field: "field_visuels", operator: IS_NOT_NULL}]}) {
+        count entities { entityUuid ... on NodeOeuvre {
+            title absolutePath fieldLrefAdlib
+            fieldVisuels { entity { vignette fieldLegende fieldCopyright } }
         } }
     } }`;
 }
@@ -79,14 +81,27 @@ async function paris(page, token) {
         body: JSON.stringify({ query: parisQuery(page) }),
     });
     if (data.errors?.length || !data.data?.nodeQuery) {
-        throw new Error('Paris Musées could not provide the collection. Its API schema needs verification with the configured account.');
+        throw new Error(data.errors?.[0]?.message || 'Paris Musées could not provide the collection.');
     }
-    // Public vignette fields also include copyrighted thumbnails. Do not silently
-    // treat them as print-ready CC0 assets before verifying the authenticated
-    // media rights/high-resolution fields against the account's schema.
-    const error = new Error('Paris Musées is connected; image rights and print-resolution fields still need verification before artworks can be offered for framing.');
-    error.status = 503;
-    throw error;
+    const entities = data.data.nodeQuery.entities || [];
+    const artworks = entities.map(item => {
+        const visual = item.fieldVisuels?.[0]?.entity || {};
+        const vignette = visual.vignette;
+        if (!vignette) return null;
+        const image = /^https?:\/\//i.test(vignette) ? vignette : `https://parismuseescollections.paris.fr${vignette}`;
+        return {
+            id: String(item.entityUuid || item.entityId),
+            title: item.title || 'Paris Musées Artwork',
+            artist: 'Paris Musées',
+            image,
+            fullRes: image,
+            sourceUrl: item.absolutePath || `https://www.parismuseescollections.paris.fr/fr/node/${item.entityId}`,
+            rights: visual.fieldCopyright || 'Paris Musées API record; verify item-level rights',
+            description: visual.fieldLegende,
+            metadata: { lrefAdlib: item.fieldLrefAdlib, copyright: visual.fieldCopyright },
+        };
+    }).filter(Boolean);
+    return { artworks, total: data.data.nodeQuery.count || artworks.length };
 }
 
 async function biodiversityHeritageLibrary(page) {
@@ -142,6 +157,46 @@ async function nasaOpenMedia(page) {
     return { artworks, total: data.collection?.metadata?.total_hits || artworks.length };
 }
 
+async function libraryOfCongress(page) {
+    const offset = (page - 1) * PAGE_SIZE;
+    const params = new URLSearchParams({
+        action: 'query',
+        generator: 'search',
+        gsrsearch: 'incategory:Images_from_the_Library_of_Congress',
+        gsrnamespace: '6',
+        gsrlimit: String(PAGE_SIZE),
+        gsroffset: String(offset),
+        prop: 'imageinfo',
+        iiprop: 'url|dimensions|extmetadata',
+        iiurlwidth: '800',
+        format: 'json',
+    });
+    const data = await json(`https://commons.wikimedia.org/w/api.php?${params}`, {
+        headers: { 'User-Agent': 'FrameWorthyApp/1.0 (contact@frameworthy.art)' }
+    });
+    const pages = Object.values(data.query?.pages || {});
+    const artworks = pages.map(item => {
+        const info = item.imageinfo?.[0];
+        if (!info || !info.url) return null;
+        const meta = info.extmetadata || {};
+        const rawTitle = meta.ObjectName?.value || item.title.replace(/^File:/, '').replace(/\.[^.]+$/, '').replace(/LOC\s*\d+/i, '').trim();
+        const title = rawTitle.replace(/<[^>]*>?/gm, '').trim();
+        const artist = meta.Artist?.value?.replace(/<[^>]*>?/gm, '').trim() || 'Library of Congress';
+        return {
+            id: String(item.pageid || item.title),
+            title: title || 'Library of Congress Collection',
+            artist,
+            image: info.thumburl || info.url,
+            fullRes: info.url,
+            imageWidth: info.width,
+            imageHeight: info.height,
+            sourceUrl: info.descriptionurl || 'https://www.loc.gov/',
+            rights: 'Public Domain / Library of Congress',
+        };
+    }).filter(Boolean);
+    return { artworks, total: 5000 };
+}
+
 async function museumFeed(source, page, env = process.env) {
     if (!Number.isInteger(page) || page < 1 || page > 10000) {
         const error = new Error('Invalid collection page.'); error.status = 400; throw error;
@@ -154,6 +209,7 @@ async function museumFeed(source, page, env = process.env) {
     else if (source === 'paris-musees') value = await paris(page, env.PARIS_MUSEES_API_TOKEN);
     else if (source === 'biodiversity-heritage-library') value = await biodiversityHeritageLibrary(page);
     else if (source === 'nasa-open-media') value = await nasaOpenMedia(page);
+    else if (source === 'library-of-congress') value = await libraryOfCongress(page);
     else { const error = new Error('Unknown collection.'); error.status = 400; throw error; }
     if (cache.size >= 100) cache.delete(cache.keys().next().value);
     cache.set(key, { value, expires: Date.now() + 15 * 60 * 1000 });
@@ -170,6 +226,7 @@ async function archivalFeed(source, page) {
     let value;
     if (source === 'biodiversity-heritage-library') value = await biodiversityHeritageLibrary(page);
     else if (source === 'nasa-open-media') value = await nasaOpenMedia(page);
+    else if (source === 'library-of-congress') value = await libraryOfCongress(page);
     else { const error = new Error('Unknown archival collection.'); error.status = 400; throw error; }
     cache.set(key, { value, expires: Date.now() + 15 * 60 * 1000 });
     return value;

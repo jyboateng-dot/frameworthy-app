@@ -309,6 +309,16 @@ const AppLayout = () => {
           />
         } />
 
+        <Route path="/curated-art" element={
+          <InspirationPage
+            setProductMode={setProductMode}
+            setSelectedFrame={setSelectedFrame}
+            setSelectedSize={setSelectedSize}
+            setSelectedWall={setSelectedWall}
+            navigate={navigate}
+          />
+        } />
+
         <Route path="/inspiration" element={
           <InspirationPage
             setProductMode={setProductMode}

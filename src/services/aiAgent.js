@@ -93,9 +93,9 @@ export function getLocalAiResponse(userMessage) {
         return "Every frame arrives 100% ready to hang out of the box with pre-installed heavy-duty hanging wire, sawtooth hangers, or stainless steel D-rings! You can also use our Room Visualizer in the customizer to preview your frame against different wall colors and textures.";
     }
 
-    // 13. Inspiration Catalog
-    if (matchAny(text, ['inspiration', 'art', 'met', 'museum', 'poster', 'posters', 'album', 'albums'])) {
-        return "You can order pre-formatted artwork ready for custom framing from our Inspiration catalog! Collections include Met Museum Classics (Monet, Van Gogh, Hokusai), Prestige Contemporary Art, Vintage Movie Posters, and Iconic Album Covers.";
+    // 13. Curated Art Catalog
+    if (matchAny(text, ['curated art', 'inspiration', 'art', 'met', 'museum', 'poster', 'posters', 'album', 'albums'])) {
+        return "You can order pre-formatted artwork ready for custom framing from our Curated Art catalog! Collections include Met Museum Classics (Monet, Van Gogh, Hokusai), Prestige Contemporary Art, Vintage Movie Posters, and Iconic Album Covers.";
     }
 
     // 14. Multi-photo Collage

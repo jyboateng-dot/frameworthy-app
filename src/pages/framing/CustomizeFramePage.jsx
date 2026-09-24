@@ -3544,11 +3544,11 @@ const CustomizeFramePage = ({
 
                             {/* Inspiration Trigger */}
                             <button
-                                onClick={() => navigate('/inspiration')}
+                                onClick={() => navigate('/curated-art')}
                                 className="border border-stone-200 rounded-xl p-3 flex flex-col items-center justify-center hover:bg-stone-50 hover:border-stone-400 transition-colors h-[72px] text-center"
                             >
                                 <ImagePlus size={16} className="text-stone-500" />
-                                <span className="mt-1 text-[10px] font-bold uppercase tracking-wider text-stone-700 truncate w-full">Inspiration</span>
+                                <span className="mt-1 text-[10px] font-bold uppercase tracking-wider text-stone-700 truncate w-full">Curated Art</span>
                             </button>
                         </div>
                     </section>

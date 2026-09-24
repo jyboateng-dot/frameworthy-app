@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { ChevronLeft, ChevronRight, ExternalLink, Heart, RefreshCw } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ExternalLink, Heart } from 'lucide-react';
 import { FRAME_SIZES, formatDimensions } from '../data/constants';
 import { useUnit } from '../context/UnitContext';
 import { useWishlist } from '../context/WishlistContext';
@@ -8,20 +8,50 @@ import { fetchMuseumArtworks } from '../services/museumApi';
 import { MUSEUM_SOURCES } from '../data/museumSources';
 import { ARCHIVAL_SOURCES } from '../data/archivalSources';
 
+// In-memory session cache for 0ms tab switching
+const sourceArtCache = new Map();
+
+const ArtworkCardSkeleton = () => (
+    <div className="flex flex-col gap-3 animate-pulse">
+        <div className="bg-stone-200/70 border border-stone-200/50 aspect-square rounded-sm" />
+        <div className="flex flex-col gap-2 px-1">
+            <div className="h-4 bg-stone-200/80 rounded w-3/4" />
+            <div className="h-3 bg-stone-200/60 rounded w-1/2" />
+            <div className="h-3 bg-stone-200/50 rounded w-1/3" />
+        </div>
+    </div>
+);
+
 const MuseumSourceArtPage = ({ sourceId, setProductMode, setSelectedSize, navigate, isSubPage = false, disableWindowScroll = false }) => {
     const { unit } = useUnit();
     const source = [...MUSEUM_SOURCES, ...ARCHIVAL_SOURCES].find(item => item.id === sourceId);
     const [page, setPage] = useState(1);
-    const [state, setState] = useState({ status: 'loading', artworks: [], total: 0, error: '' });
+
+    const cacheKey = `${sourceId}_${page}`;
+    const [state, setState] = useState(() => {
+        const cached = sourceArtCache.get(cacheKey);
+        return cached ? { status: 'ready', ...cached, error: '' } : { status: 'loading', artworks: [], total: 0, error: '' };
+    });
 
     useEffect(() => {
         let cancelled = false;
-        Promise.resolve().then(() => {
-            if (!cancelled) setState({ status: 'loading', artworks: [], total: 0, error: '' });
-        });
-        fetchMuseumArtworks(sourceId, page)
-            .then(result => { if (!cancelled) setState({ status: 'ready', ...result, error: '' }); })
-            .catch(error => { if (!cancelled) setState({ status: 'error', artworks: [], total: 0, error: error.message }); });
+        const key = `${sourceId}_${page}`;
+        const cached = sourceArtCache.get(key);
+
+        if (cached) {
+            setState({ status: 'ready', ...cached, error: '' });
+        } else {
+            setState(prev => prev.status === 'ready' && prev.artworks.length ? prev : { status: 'loading', artworks: [], total: 0, error: '' });
+            fetchMuseumArtworks(sourceId, page)
+                .then(result => {
+                    sourceArtCache.set(key, result);
+                    if (!cancelled) setState({ status: 'ready', ...result, error: '' });
+                })
+                .catch(error => {
+                    if (!cancelled) setState({ status: 'error', artworks: [], total: 0, error: error.message });
+                });
+        }
+
         if (!disableWindowScroll) window.scrollTo({ top: 0, behavior: 'smooth' });
         return () => { cancelled = true; };
     }, [sourceId, page, disableWindowScroll]);
@@ -55,9 +85,10 @@ const MuseumSourceArtPage = ({ sourceId, setProductMode, setSelectedSize, naviga
 
             <main className="max-w-[2560px] mx-auto px-6 md:px-12 pt-8 pb-12">
                 {state.status === 'loading' && (
-                    <div className="min-h-[30vh] flex flex-col items-center justify-center text-stone-400">
-                        <RefreshCw size={24} className="animate-spin mb-4" />
-                        <p className="text-sm">Loading public-domain artworks…</p>
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-12">
+                        {Array.from({ length: 12 }, (_, i) => (
+                            <ArtworkCardSkeleton key={i} />
+                        ))}
                     </div>
                 )}
                 {state.status === 'error' && (
@@ -80,9 +111,9 @@ const MuseumSourceArtPage = ({ sourceId, setProductMode, setSelectedSize, naviga
                         )}
                         {totalPages > 1 && (
                             <div className="flex justify-center items-center gap-4 mt-16 border-t border-stone-200 pt-8">
-                                <button type="button" disabled={page === 1} onClick={() => setPage(current => Math.max(1, current - 1))} className="inline-flex items-center gap-1 text-sm text-stone-500 disabled:opacity-40"><ChevronLeft size={16} /> Previous</button>
-                                <span className="text-xs text-stone-500">Page {page} of {totalPages}</span>
-                                <button type="button" disabled={page === totalPages} onClick={() => setPage(current => Math.min(totalPages, current + 1))} className="inline-flex items-center gap-1 text-sm text-stone-500 disabled:opacity-40">Next <ChevronRight size={16} /></button>
+                                <button type="button" disabled={page === 1} onClick={() => setPage(current => Math.max(1, current - 1))} className="inline-flex items-center gap-1 text-sm text-stone-500 disabled:opacity-40 hover:text-stone-900 transition"><ChevronLeft size={16} /> Previous</button>
+                                <span className="text-xs text-stone-500 font-medium">Page {page} of {totalPages}</span>
+                                <button type="button" disabled={page === totalPages} onClick={() => setPage(current => Math.min(totalPages, current + 1))} className="inline-flex items-center gap-1 text-sm text-stone-500 disabled:opacity-40 hover:text-stone-900 transition">Next <ChevronRight size={16} /></button>
                             </div>
                         )}
                     </>
@@ -95,12 +126,24 @@ const MuseumSourceArtPage = ({ sourceId, setProductMode, setSelectedSize, naviga
 const MuseumArtworkCard = ({ artwork, unit, onGetThis }) => {
     const { toggleWishlist, isInWishlist } = useWishlist();
     const [hovered, setHovered] = useState(false);
+    const [imageLoaded, setImageLoaded] = useState(false);
     const liked = isInWishlist(artwork.id);
     const size = artwork.recommendedSize;
+
     return (
         <article className="group relative flex flex-col gap-3" onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}>
             <div className="relative overflow-hidden bg-white flex items-center justify-center border border-stone-200/50 aspect-square">
-                <img src={getThumbnailUrl(artwork.image)} alt={artwork.title} loading="lazy" className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.03]" />
+                <img
+                    src={getThumbnailUrl(artwork.image)}
+                    alt={artwork.title}
+                    loading="lazy"
+                    decoding="async"
+                    onLoad={() => setImageLoaded(true)}
+                    className={`w-full h-full object-cover transition-all duration-500 ease-out group-hover:scale-[1.03] ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
+                />
+                {!imageLoaded && (
+                    <div className="absolute inset-0 bg-stone-100 animate-pulse" />
+                )}
                 <div className={`absolute inset-0 bg-stone-50/20 flex items-center justify-center transition-opacity duration-300 ${hovered ? 'opacity-100' : 'opacity-0'}`}>
                     <button type="button" onClick={() => onGetThis(artwork)} className="px-6 py-2.5 bg-white/80 backdrop-blur-md text-stone-900 border border-white/60 hover:bg-white text-[10px] font-semibold uppercase tracking-[0.2em] shadow-sm rounded-sm">Get This</button>
                 </div>

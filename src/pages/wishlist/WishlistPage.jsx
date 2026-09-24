@@ -92,10 +92,10 @@ const WishlistPage = () => {
                         Find something you love? Tap the heart icon to save it for later.
                     </p>
                     <button 
-                        onClick={() => navigate('/inspiration')}
+                        onClick={() => navigate('/curated-art')}
                         className="px-8 py-3 bg-stone-900 text-white font-bold rounded-full text-sm hover:bg-stone-800 transition"
                     >
-                        Browse Inspiration
+                        Browse Curated Art
                     </button>
                 </div>
             </div>

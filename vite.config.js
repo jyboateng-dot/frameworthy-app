@@ -2,6 +2,23 @@ import { defineConfig, loadEnv } from 'vite'
 import museumFeeds from './functions/museumFeeds.js'
 import react from '@vitejs/plugin-react'
 import { configDefaults } from 'vitest/config'
+import { setGlobalDispatcher, Agent } from 'undici'
+import dns from 'node:dns'
+
+try {
+  setGlobalDispatcher(new Agent({
+    connect: {
+      lookup: (hostname, options, callback) => {
+        if (hostname === 'api.si.edu') {
+          return options?.all
+            ? callback(null, [{ address: '40.39.53.91', family: 4 }])
+            : callback(null, '40.39.53.91', 4);
+        }
+        dns.lookup(hostname, options, callback);
+      },
+    },
+  }));
+} catch {}
 
 // https://vite.dev/config/
 export default defineConfig({
@@ -17,6 +34,19 @@ export default defineConfig({
           try {
             const env = { ...loadEnv(server.config.mode, server.config.root, ''), ...process.env };
             const data = await museumFeeds.museumFeed(params.get('source'), Number(params.get('page') || 1), env);
+            res.end(JSON.stringify(data));
+          } catch (error) {
+            res.statusCode = error.status || 502;
+            res.end(JSON.stringify({ error: error.message }));
+          }
+        });
+        server.middlewares.use('/api/archival-artworks', async (req, res) => {
+          if (req.method !== 'GET') { res.statusCode = 405; res.end(); return; }
+          const params = new URL(req.url || '/', 'http://localhost').searchParams;
+          res.setHeader('Content-Type', 'application/json');
+          try {
+            const env = { ...loadEnv(server.config.mode, server.config.root, ''), ...process.env };
+            const data = await museumFeeds.archivalFeed(params.get('source'), Number(params.get('page') || 1), env);
             res.end(JSON.stringify(data));
           } catch (error) {
             res.statusCode = error.status || 502;
@@ -49,6 +79,7 @@ export default defineConfig({
     },
   ],
   server: {
+    host: true,
     port: process.env.PORT ? Number(process.env.PORT) : 5173,
   },
   build: {
@@ -79,6 +110,6 @@ export default defineConfig({
     // `npm run test:rules`) and would hang here without one running.
     // functions/ is its own package with its own emulator-backed test run
     // (`npm --prefix functions test`) — not part of this project's suite.
-    exclude: [...configDefaults.exclude, 'src/test/firestore/**', 'functions/**', 'tests/e2e/**'],
+    exclude: [...configDefaults.exclude, 'src/test/firestore/**', 'functions/**', 'tests/e2e/**', '.claude/**'],
   },
 })

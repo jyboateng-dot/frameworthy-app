@@ -95,7 +95,7 @@ async function fetchRijks(page) {
 }
 
 async function fetchServerCollection(sourceId, page) {
-    const archivalEndpoint = ['biodiversity-heritage-library', 'nasa-open-media'].includes(sourceId)
+    const archivalEndpoint = ['biodiversity-heritage-library', 'nasa-open-media', 'library-of-congress'].includes(sourceId)
         ? '/api/archival-artworks'
         : '/api/museum-artworks';
     const response = await fetch(`${archivalEndpoint}?source=${encodeURIComponent(sourceId)}&page=${page}`);
@@ -110,25 +110,7 @@ async function fetchNga(page) {
 }
 
 async function fetchLibraryOfCongress(page) {
-    const params = new URLSearchParams({
-        fo: 'json', c: String(PAGE_SIZE), sp: String(page),
-        q: 'map OR poster OR patent OR panorama',
-    });
-    const payload = await getJson(`https://www.loc.gov/search/?${params}`);
-    const source = sourceById('library-of-congress');
-    const artworks = (payload.results || []).map(item => {
-        const image = item.image_url?.find(url => /original|full|large/i.test(url)) || item.image_url?.[0];
-        return image ? normalizeMuseumArtwork({
-            id: item.id || item.url,
-            title: item.title,
-            artist: item.contributor?.join?.(', ') || item.contributor,
-            image,
-            fullRes: image,
-            sourceUrl: item.id || item.url,
-            date: item.date,
-        }, source) : null;
-    }).filter(Boolean);
-    return { artworks, total: payload.pagination?.total || artworks.length };
+    return fetchServerCollection('library-of-congress', page);
 }
 
 async function fetchNasa(page) {
@@ -147,6 +129,26 @@ const LOADERS = {
 };
 
 export async function fetchMuseumArtworks(sourceId, page = 1) {
+    // 1. Static pre-baked snapshot resolution (instant 10-20ms CDN load)
+    try {
+        const staticUrl = sourceId === 'national-gallery-of-art'
+            ? `/museum-data/nga/${page}.json`
+            : `/museum-data/${sourceId}/${page}.json`;
+        const res = await fetch(staticUrl);
+        if (res.ok) {
+            const data = await res.json();
+            if (Array.isArray(data.artworks) && data.artworks.length > 0) {
+                return {
+                    ...data,
+                    artworks: data.artworks.map(record => normalizeMuseumArtwork(record, sourceById(sourceId))),
+                };
+            }
+        }
+    } catch {
+        // Fall back to live loader if static snapshot is unavailable
+    }
+
+    // 2. Live API fallback for deeper browsing or dynamic feeds
     const loader = LOADERS[sourceId];
     if (!loader) throw new Error('Unknown museum collection.');
     return loader(page);

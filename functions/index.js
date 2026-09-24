@@ -11,7 +11,7 @@ admin.initializeApp();
 
 exports.museumArtworks = onRequest({
     region: 'us-central1', memory: '256MiB', timeoutSeconds: 180, invoker: 'public',
-    secrets: ['SMITHSONIAN_API_KEY', 'PARIS_MUSEES_API_TOKEN'],
+    secrets: ['PARIS_MUSEES_API_TOKEN'],
 }, async (req, res) => {
     if (req.method !== 'GET') { res.status(405).send('Method not allowed'); return; }
     try {

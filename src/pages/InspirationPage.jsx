@@ -27,7 +27,9 @@ import { MUSEUM_SOURCES } from '../data/museumSources';
 import { ARCHIVAL_SOURCES } from '../data/archivalSources';
 
 const OPEN_COLLECTION_SECTIONS = [
+    { id: 'originals', label: 'Original Paintings' },
     { id: 'met', label: 'Met Museum Collection' },
+    { id: 'library-of-congress', label: 'Library of Congress' },
     ...[
         'art-institute-of-chicago',
         'rijksmuseum',
@@ -39,8 +41,9 @@ const OPEN_COLLECTION_SECTIONS = [
         const source = MUSEUM_SOURCES.find(item => item.id === sourceId);
         return { id: source.id, label: source.name };
     }),
-    ...ARCHIVAL_SOURCES.map(source => ({ id: source.id, label: source.name })),
-    { id: 'originals', label: 'Original Paintings' },
+    ...ARCHIVAL_SOURCES
+        .filter(source => source.id !== 'library-of-congress')
+        .map(source => ({ id: source.id, label: source.name })),
 ];
 
 const TabLoadingFallback = () => (
@@ -215,7 +218,7 @@ const InspirationPage = ({ setProductMode, setSelectedFrame, setSelectedSize, na
         return (
             <>
                 <div className="pt-8 pb-2 px-6 md:px-12 max-w-[2560px] mx-auto">
-                    <h1 className="font-serif font-light text-3xl md:text-4xl text-stone-900 tracking-tight leading-none">Inspiration</h1>
+                    <h1 className="font-serif font-light text-3xl md:text-4xl text-stone-900 tracking-tight leading-none">Curated Art</h1>
                 </div>
                 <div className="bg-[#faf9f8]/95 backdrop-blur-sm border-b border-stone-200 sticky top-0 z-30 py-3">
                     <div className="max-w-[2560px] mx-auto px-6 md:px-12 flex items-center gap-2 overflow-x-auto no-scrollbar">
@@ -250,7 +253,7 @@ const InspirationPage = ({ setProductMode, setSelectedFrame, setSelectedSize, na
     return (
         <div className={isModal ? "min-h-full bg-[#faf9f8] text-stone-900" : "min-h-screen bg-[#faf9f8] text-stone-900"} style={{ fontFamily: "'Inter', sans-serif" }}>
             <PageMeta
-                title="Inspiration"
+                title="Curated Art"
                 description="Browse curated art, movie posters, album covers, and museum prints to frame — or paste in your own image."
             />
             {renderTabs()}
