@@ -20,6 +20,13 @@ jobs:
       - name: Install dependencies
         run: npm ci --ignore-scripts
 
+      # sharp is a real, trusted direct dependency (RoomPhotoForeground.test.jsx
+      # uses it to render and compare actual pixels) whose native binary only
+      # the skipped install script fetches. Rebuild just this one package
+      # rather than dropping --ignore-scripts for the whole tree.
+      - name: Rebuild sharp's native binary
+        run: npm rebuild sharp
+
       - name: Run unit tests
         run: npm test
 
