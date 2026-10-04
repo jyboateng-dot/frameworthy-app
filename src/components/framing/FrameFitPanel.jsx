@@ -3,22 +3,67 @@ import { createPortal } from 'react-dom';
 import { Focus, RotateCcw, X, Check } from 'lucide-react';
 import { FRAME_SIZES, formatDimensions } from '../../data/constants';
 import { DEFAULT_POSITION, frameGeometry, imageCrop, cropStyle } from '../../utils/frameFit';
+import { getFrameRail, getRailTextureStyle, getRailShading } from '../../utils/frameRail';
 import { bestFitOptions } from '../../utils/bestFitOptions';
 import Price from '../common/Price';
 
+const FRAME_SIDE_STYLES = {
+    top: geometry => ({ top: 0, left: 0, right: 0, height: `${geometry.rail / geometry.outerHeight * 100}%`,
+        clipPath: `polygon(0 0, 100% 0, ${100 - geometry.rail / geometry.outerWidth * 100}% 100%, ${geometry.rail / geometry.outerWidth * 100}% 100%)` }),
+    bottom: geometry => ({ bottom: 0, left: 0, right: 0, height: `${geometry.rail / geometry.outerHeight * 100}%`,
+        clipPath: `polygon(${geometry.rail / geometry.outerWidth * 100}% 0, ${100 - geometry.rail / geometry.outerWidth * 100}% 0, 100% 100%, 0 100%)` }),
+    left: geometry => ({ top: 0, bottom: 0, left: 0, width: `${geometry.rail / geometry.outerWidth * 100}%`,
+        clipPath: `polygon(0 0, 100% ${geometry.rail / geometry.outerHeight * 100}%, 100% ${100 - geometry.rail / geometry.outerHeight * 100}%, 0 100%)` }),
+    right: geometry => ({ top: 0, bottom: 0, right: 0, width: `${geometry.rail / geometry.outerWidth * 100}%`,
+        clipPath: `polygon(0 ${geometry.rail / geometry.outerHeight * 100}%, 100% 0, 100% 100%, 0 ${100 - geometry.rail / geometry.outerHeight * 100}%)` }),
+};
+
+function FrameSide({ side, frame, geometry }) {
+    const rail = getFrameRail(frame);
+    const textureStyle = getRailTextureStyle(side, rail);
+    return <div className="absolute z-10 overflow-hidden" style={{ ...FRAME_SIDE_STYLES[side](geometry), isolation: 'isolate' }}>
+        <div className="absolute inset-0" style={{ backgroundColor: frame.baseColor || '#8b4513' }} />
+        {textureStyle && <div className="absolute inset-0 pointer-events-none" style={textureStyle} />}
+        <div className="absolute inset-0 pointer-events-none" style={getRailShading(side, frame, rail)} />
+        <div className="absolute inset-0 pointer-events-none shadow-[inset_0_1px_1px_rgba(255,255,255,0.14),inset_0_-2px_3px_rgba(0,0,0,0.18)]" />
+    </div>;
+}
+
 export function FitPreview({ image, natural, geometry, position, frame, matColor }) {
     const crop = imageCrop(natural, geometry, position);
+    const railPctX = geometry.rail / geometry.outerWidth * 100;
+    const railPctY = geometry.rail / geometry.outerHeight * 100;
+    const matPctX = (geometry.rail + geometry.mat) / geometry.outerWidth * 100;
+    const matPctY = (geometry.rail + geometry.mat) / geometry.outerHeight * 100;
+    const borderSlice = frame?.borderImageSlicePct ?? ((geometry.rail / (8 + 2 * geometry.rail)) * 100);
     return <div className="flex items-center justify-center h-64 w-full">
         <div style={{ aspectRatio: `${geometry.outerWidth} / ${geometry.outerHeight}`,
             width: geometry.outerWidth >= geometry.outerHeight ? '100%' : 'auto',
             height: geometry.outerWidth >= geometry.outerHeight ? 'auto' : '100%', maxHeight: '100%', maxWidth: '100%',
-            background: frame.baseColor }} className="relative">
-            <div className="absolute" style={{ background: matColor,
-                inset: `${geometry.rail / geometry.outerHeight * 100}% ${geometry.rail / geometry.outerWidth * 100}%` }} />
-            <div className="absolute overflow-hidden" style={{
-                inset: `${(geometry.rail + geometry.mat) / geometry.outerHeight * 100}% ${(geometry.rail + geometry.mat) / geometry.outerWidth * 100}%` }}>
+            background: '#fff' }} className="relative shadow-[0_8px_20px_rgba(0,0,0,0.20)]">
+            {frame?.borderImageSource ? <div className="absolute inset-0 z-10 pointer-events-none" style={{
+                borderStyle: 'solid', borderWidth: '1px', borderColor: 'transparent',
+                borderImageWidth: `${railPctY}% ${railPctX}%`,
+                borderImageSource: `url(${frame.borderImageSource})`,
+                borderImageSlice: `${borderSlice}%`, borderImageRepeat: 'stretch',
+            }} /> : <>
+                {Object.keys(FRAME_SIDE_STYLES).map(side => <FrameSide key={side} side={side} frame={frame} geometry={geometry} />)}
+                <svg className="absolute inset-0 z-20 w-full h-full pointer-events-none" aria-hidden="true">
+                    <line x1="0" y1="0" x2={`${railPctX}%`} y2={`${railPctY}%`} stroke="rgba(0,0,0,0.28)" strokeWidth="1" />
+                    <line x1="100%" y1="0" x2={`${100 - railPctX}%`} y2={`${railPctY}%`} stroke="rgba(0,0,0,0.28)" strokeWidth="1" />
+                    <line x1="0" y1="100%" x2={`${railPctX}%`} y2={`${100 - railPctY}%`} stroke="rgba(0,0,0,0.28)" strokeWidth="1" />
+                    <line x1="100%" y1="100%" x2={`${100 - railPctX}%`} y2={`${100 - railPctY}%`} stroke="rgba(0,0,0,0.28)" strokeWidth="1" />
+                </svg>
+            </>}
+            <div className="absolute z-20 shadow-[0_2px_5px_rgba(0,0,0,0.15),_0_1px_2px_rgba(0,0,0,0.1)]" style={{
+                background: matColor, inset: `${railPctY}% ${railPctX}%` }}>
+                {geometry.mat > 0 && <div className="absolute inset-0 pointer-events-none shadow-[inset_0_1px_2px_rgba(0,0,0,0.14)]" />}
+            </div>
+            <div className="absolute z-30 overflow-hidden shadow-[inset_0_1px_3px_rgba(0,0,0,0.16)]" style={{
+                inset: `${matPctY}% ${matPctX}%` }}>
                 <img src={image} alt="Frame composition" style={cropStyle(natural, crop)} />
             </div>
+            <div className="absolute inset-0 z-40 pointer-events-none shadow-[inset_0_2px_12px_rgba(0,0,0,0.32)]" />
         </div>
     </div>;
 }
