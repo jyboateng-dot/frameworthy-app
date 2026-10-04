@@ -338,8 +338,12 @@ export default function ArViewer({
                     is why it stays mounted rather than swapping with the
                     canvas — the session would lose its overlay root. */}
                 <div ref={overlayRef} className="absolute inset-x-0 bottom-0 pointer-events-none">
+                    {/* Android renders the WebXR DOM overlay behind the gesture
+                        navigation bar, so a flat p-5 put these controls right on the
+                        swipe-up strip. The bottom padding grows past the inset when
+                        the OS reports one. */}
                     {inSession && (
-                        <div className="p-5 flex flex-col items-center gap-3 pointer-events-auto">
+                        <div className="p-5 pb-[max(1.25rem,calc(env(safe-area-inset-bottom,0px)+0.75rem))] flex flex-col items-center gap-3 pointer-events-auto">
                             <p className="text-xs text-white/90 bg-black/50 rounded-full px-4 py-2">
                                 {hasPlaced ? 'Looks good?' : 'Hold and drag onto your wall to view the frame in your room'}
                             </p>
