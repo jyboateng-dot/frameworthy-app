@@ -35,7 +35,7 @@ async function fetchArtInstitute(page) {
         artworks: [...(paintings.data || []), ...(drawings.data || [])].filter(item => item.image_id).map(item => normalizeMuseumArtwork({
             ...item,
             artist_display: item.artist_display,
-            image: artInstituteImageUrl(item.image_id, 843),
+            image: artInstituteImageUrl(item.image_id, 400),
             fullRes: artInstituteImageUrl(item.image_id, 2400),
             imageWidth: item.thumbnail?.width,
             imageHeight: item.thumbnail?.height,

@@ -34,6 +34,12 @@ export const uploadImageToCloud = (file) =>
  */
 export const getThumbnailUrl = (url, width = 400) => {
     if (!url || typeof url !== 'string') return url;
+    // Rijksmuseum and NGA IIIF records can point at the uncapped or 843px
+    // image. Request a grid-sized derivative instead of downloading large
+    // artwork files for thumbnails.
+    if (/\/full\/(?:max|!?\d+,\d+|\d+,)\//.test(url)) {
+        return url.replace(/\/full\/(?:max|!?\d+,\d+|\d+,)\//, `/full/${width},/`);
+    }
     if (url.includes('res.cloudinary.com/') && url.includes('/upload/')) {
         return url.replace('/upload/', `/upload/w_${width},c_limit,q_auto,f_auto/`);
     }

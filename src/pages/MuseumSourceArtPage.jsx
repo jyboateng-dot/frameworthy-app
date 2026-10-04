@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { ChevronLeft, ChevronRight, ExternalLink, Heart } from 'lucide-react';
+import { ExternalLink, Heart } from 'lucide-react';
 import { FRAME_SIZES, formatDimensions } from '../data/constants';
 import { useUnit } from '../context/UnitContext';
 import { useWishlist } from '../context/WishlistContext';
@@ -7,6 +7,7 @@ import { getThumbnailUrl } from '../services/storage';
 import { fetchMuseumArtworks } from '../services/museumApi';
 import { MUSEUM_SOURCES } from '../data/museumSources';
 import { ARCHIVAL_SOURCES } from '../data/archivalSources';
+import CollectionPagination from '../components/common/CollectionPagination';
 
 // In-memory session cache for 0ms tab switching
 const sourceArtCache = new Map();
@@ -30,25 +31,30 @@ const MuseumSourceArtPage = ({ sourceId, setProductMode, setSelectedSize, naviga
     const cacheKey = `${sourceId}_${page}`;
     const [state, setState] = useState(() => {
         const cached = sourceArtCache.get(cacheKey);
-        return cached ? { status: 'ready', ...cached, error: '' } : { status: 'loading', artworks: [], total: 0, error: '' };
+        return cached
+            ? { key: cacheKey, status: 'ready', ...cached, error: '' }
+            : { key: cacheKey, status: 'loading', artworks: [], total: 0, error: '' };
     });
+    const cachedPage = sourceArtCache.get(cacheKey);
+    const viewState = cachedPage
+        ? { key: cacheKey, status: 'ready', ...cachedPage, error: '' }
+        : state.key === cacheKey
+            ? state
+            : { key: cacheKey, status: 'loading', artworks: [], total: 0, error: '' };
 
     useEffect(() => {
         let cancelled = false;
         const key = `${sourceId}_${page}`;
         const cached = sourceArtCache.get(key);
 
-        if (cached) {
-            setState({ status: 'ready', ...cached, error: '' });
-        } else {
-            setState(prev => prev.status === 'ready' && prev.artworks.length ? prev : { status: 'loading', artworks: [], total: 0, error: '' });
+        if (!cached) {
             fetchMuseumArtworks(sourceId, page)
                 .then(result => {
                     sourceArtCache.set(key, result);
-                    if (!cancelled) setState({ status: 'ready', ...result, error: '' });
+                    if (!cancelled) setState({ key, status: 'ready', ...result, error: '' });
                 })
                 .catch(error => {
-                    if (!cancelled) setState({ status: 'error', artworks: [], total: 0, error: error.message });
+                    if (!cancelled) setState({ key, status: 'error', artworks: [], total: 0, error: error.message });
                 });
         }
 
@@ -71,7 +77,7 @@ const MuseumSourceArtPage = ({ sourceId, setProductMode, setSelectedSize, naviga
     };
 
     if (!source) return null;
-    const totalPages = Math.max(1, Math.ceil(state.total / 24));
+    const totalPages = Math.max(1, Math.ceil(viewState.total / 24));
 
     return (
         <div className={isSubPage ? 'text-stone-900' : 'min-h-screen bg-[#faf9f8] text-stone-900'} style={{ fontFamily: "'Inter', sans-serif" }}>
@@ -84,38 +90,32 @@ const MuseumSourceArtPage = ({ sourceId, setProductMode, setSelectedSize, naviga
             </header>
 
             <main className="max-w-[2560px] mx-auto px-6 md:px-12 pt-8 pb-12">
-                {state.status === 'loading' && (
+                {viewState.status === 'loading' && (
                     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-12">
                         {Array.from({ length: 12 }, (_, i) => (
                             <ArtworkCardSkeleton key={i} />
                         ))}
                     </div>
                 )}
-                {state.status === 'error' && (
+                {viewState.status === 'error' && (
                     <div className="max-w-2xl border border-stone-200 bg-white p-6">
                         <p className="text-sm font-medium text-stone-900 mb-2">Artwork feed is not available yet.</p>
-                        <p className="text-xs text-stone-500 leading-relaxed mb-4">{state.error}</p>
+                        <p className="text-xs text-stone-500 leading-relaxed mb-4">{viewState.error}</p>
                         <a href={source.apiUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 text-xs font-semibold text-stone-900 hover:text-stone-600">API documentation <ExternalLink size={13} /></a>
                     </div>
                 )}
-                {state.status === 'ready' && (
+                {viewState.status === 'ready' && (
                     <>
-                        {state.artworks.length === 0 ? (
+                        {viewState.artworks.length === 0 ? (
                             <p className="py-20 text-center text-sm text-stone-500">No artwork with a usable public image was returned.</p>
                         ) : (
                             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-12">
-                                {state.artworks.map(artwork => (
-                                    <MuseumArtworkCard key={artwork.id} artwork={artwork} unit={unit} onGetThis={handleGetThis} />
+                                {viewState.artworks.map((artwork, index) => (
+                                    <MuseumArtworkCard key={artwork.id} artwork={artwork} unit={unit} onGetThis={handleGetThis} prioritizeImage={index < 4} fetchPriority={index === 0 ? 'high' : 'auto'} />
                                 ))}
                             </div>
                         )}
-                        {totalPages > 1 && (
-                            <div className="flex justify-center items-center gap-4 mt-16 border-t border-stone-200 pt-8">
-                                <button type="button" disabled={page === 1} onClick={() => setPage(current => Math.max(1, current - 1))} className="inline-flex items-center gap-1 text-sm text-stone-500 disabled:opacity-40 hover:text-stone-900 transition"><ChevronLeft size={16} /> Previous</button>
-                                <span className="text-xs text-stone-500 font-medium">Page {page} of {totalPages}</span>
-                                <button type="button" disabled={page === totalPages} onClick={() => setPage(current => Math.min(totalPages, current + 1))} className="inline-flex items-center gap-1 text-sm text-stone-500 disabled:opacity-40 hover:text-stone-900 transition">Next <ChevronRight size={16} /></button>
-                            </div>
-                        )}
+                        <CollectionPagination currentPage={page} totalPages={totalPages} onPageChange={setPage} />
                     </>
                 )}
             </main>
@@ -123,7 +123,7 @@ const MuseumSourceArtPage = ({ sourceId, setProductMode, setSelectedSize, naviga
     );
 };
 
-const MuseumArtworkCard = ({ artwork, unit, onGetThis }) => {
+const MuseumArtworkCard = ({ artwork, unit, onGetThis, prioritizeImage, fetchPriority }) => {
     const { toggleWishlist, isInWishlist } = useWishlist();
     const [hovered, setHovered] = useState(false);
     const [imageLoaded, setImageLoaded] = useState(false);
@@ -136,7 +136,8 @@ const MuseumArtworkCard = ({ artwork, unit, onGetThis }) => {
                 <img
                     src={getThumbnailUrl(artwork.image)}
                     alt={artwork.title}
-                    loading="lazy"
+                    loading={prioritizeImage ? 'eager' : 'lazy'}
+                    fetchPriority={fetchPriority}
                     decoding="async"
                     onLoad={() => setImageLoaded(true)}
                     className={`w-full h-full object-cover transition-all duration-500 ease-out group-hover:scale-[1.03] ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}

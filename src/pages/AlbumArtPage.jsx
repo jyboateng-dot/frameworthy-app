@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Heart, Search, ChevronLeft, ChevronRight, Loader2, Music } from 'lucide-react';
+import { Heart, Search, Loader2, Music } from 'lucide-react';
 import { FRAME_SIZES } from '../data/constants';
 import { useWishlist } from '../context/WishlistContext';
 import { fetchAlbumPosterData } from '../utils/albumPoster';
@@ -7,6 +7,7 @@ import { fetchAlbumPosterData } from '../utils/albumPoster';
 // We'll import ALBUMS_LOCAL_COLLECTIONS but it might be empty initially until the background script finishes
 import { ALBUMS_LOCAL_COLLECTIONS } from '../data/albumsLocal';
 import { getThumbnailUrl } from '../services/storage';
+import CollectionPagination from '../components/common/CollectionPagination';
 
 const GENRES = ['Pop', 'HipHop', 'Rock', 'R&B', 'Blues', 'Jazz', 'Indie', 'Afro Pop', 'African', 'Reggae', 'Dancehall'];
 
@@ -357,41 +358,11 @@ const AlbumArtPage = ({ setProductMode, setSelectedSize, navigate, isSubPage = f
                         </div>
 
                         {/* Pagination */}
-                        {totalPages > 1 && (
-                            <div className="flex justify-center items-center gap-2 mt-16 border-t border-stone-200 pt-8">
-                                <button 
-                                    onClick={() => { setCurrentPage(p => Math.max(1, p - 1)); scrollToTop(); }}
-                                    disabled={currentPage === 1}
-                                    className="px-4 py-2 text-sm text-stone-500 hover:text-stone-900 disabled:opacity-50 transition-colors"
-                                >
-                                    Previous
-                                </button>
-                                
-                                <div className="flex gap-1 min-w-0 max-w-full overflow-x-auto no-scrollbar">
-                                    {Array.from({ length: totalPages }, (_, i) => i + 1).map(pageNum => (
-                                        <button
-                                            key={pageNum}
-                                            onClick={() => { setCurrentPage(pageNum); scrollToTop(); }}
-                                            className={`flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-sm text-sm transition-colors ${
-                                                currentPage === pageNum
-                                                ? 'bg-stone-900 text-white'
-                                                : 'text-stone-500 hover:bg-stone-200'
-                                            }`}
-                                        >
-                                            {pageNum}
-                                        </button>
-                                    ))}
-                                </div>
-                                
-                                <button 
-                                    onClick={() => { setCurrentPage(p => Math.min(totalPages, p + 1)); scrollToTop(); }}
-                                    disabled={currentPage === totalPages}
-                                    className="px-4 py-2 text-sm text-stone-500 hover:text-stone-900 disabled:opacity-50 transition-colors"
-                                >
-                                    Next
-                                </button>
-                            </div>
-                        )}
+                        <CollectionPagination
+                            currentPage={currentPage}
+                            totalPages={totalPages}
+                            onPageChange={nextPage => { setCurrentPage(nextPage); scrollToTop(); }}
+                        />
                     </>
                 )}
             </main>

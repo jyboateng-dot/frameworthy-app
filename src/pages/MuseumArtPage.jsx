@@ -4,6 +4,7 @@ import { FRAME_SIZES, findSizeByDimension, formatDimensions } from '../data/cons
 import { useUnit } from '../context/UnitContext';
 import { useWishlist } from '../context/WishlistContext';
 import { getThumbnailUrl } from '../services/storage';
+import CollectionPagination from '../components/common/CollectionPagination';
 
 // Bymuseum's own artist browser (bymuseum.com/artists/) is a two-tier
 // thing — a paginated index of portrait+bio artist cards, then a filtered
@@ -297,63 +298,11 @@ const MuseumArtPage = ({ setProductMode, setSelectedSize, navigate, isSubPage = 
                             ))}
                         </div>
 
-                        {totalPages > 1 && (
-                            <div className="flex justify-center items-center gap-2 mt-16 border-t border-stone-200 pt-8">
-                                <button
-                                    onClick={() => {
-                                        setCurrentPage(p => Math.max(1, p - 1));
-                                        scrollToTop();
-                                    }}
-                                    disabled={currentPage === 1}
-                                    className="px-4 py-2 text-sm text-stone-500 hover:text-stone-900 disabled:opacity-50 transition-colors"
-                                >
-                                    Previous
-                                </button>
-
-                                <div className="flex gap-1">
-                                    {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                                        let pageNum;
-                                        if (totalPages <= 5) {
-                                            pageNum = i + 1;
-                                        } else if (currentPage <= 3) {
-                                            pageNum = i + 1;
-                                        } else if (currentPage >= totalPages - 2) {
-                                            pageNum = totalPages - 4 + i;
-                                        } else {
-                                            pageNum = currentPage - 2 + i;
-                                        }
-
-                                        return (
-                                            <button
-                                                key={pageNum}
-                                                onClick={() => {
-                                                    setCurrentPage(pageNum);
-                                                    scrollToTop();
-                                                }}
-                                                className={`w-8 h-8 flex items-center justify-center rounded-sm text-sm transition-colors ${
-                                                    currentPage === pageNum
-                                                    ? 'bg-stone-900 text-white'
-                                                    : 'text-stone-500 hover:bg-stone-200'
-                                                }`}
-                                            >
-                                                {pageNum}
-                                            </button>
-                                        );
-                                    })}
-                                </div>
-
-                                <button
-                                    onClick={() => {
-                                        setCurrentPage(p => Math.min(totalPages, p + 1));
-                                        scrollToTop();
-                                    }}
-                                    disabled={currentPage === totalPages}
-                                    className="px-4 py-2 text-sm text-stone-500 hover:text-stone-900 disabled:opacity-50 transition-colors"
-                                >
-                                    Next
-                                </button>
-                            </div>
-                        )}
+                        <CollectionPagination
+                            currentPage={currentPage}
+                            totalPages={totalPages}
+                            onPageChange={nextPage => { setCurrentPage(nextPage); scrollToTop(); }}
+                        />
                     </>
                 )}
             </main>

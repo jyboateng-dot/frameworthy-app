@@ -1,5 +1,5 @@
 import React, { useState, useEffect, lazy, Suspense } from 'react';
-import { ArrowRight, Heart, ChevronLeft, ChevronRight, Search, ArrowUp } from 'lucide-react';
+import { ArrowRight, Heart, Search, ArrowUp } from 'lucide-react';
 import { FRAME_STYLES, FRAME_SIZES, findSizeByDimension, formatDimensions, parseCustomSize } from '../data/constants';
 import { useUnit } from '../context/UnitContext';
 import { useWishlist } from '../context/WishlistContext';
@@ -26,6 +26,7 @@ import { getThumbnailUrl } from '../services/storage';
 import { MUSEUM_SOURCES } from '../data/museumSources';
 import { ARCHIVAL_SOURCES } from '../data/archivalSources';
 import { prefetchMuseumSnapshot } from '../services/museumApi';
+import CollectionPagination from '../components/common/CollectionPagination';
 
 const OPEN_COLLECTION_SECTIONS = [
     { id: 'originals', label: 'Original Paintings' },
@@ -435,35 +436,11 @@ const InspirationPage = ({ setProductMode, setSelectedFrame, setSelectedSize, na
                                     ))}
                                 </div>
 
-                                {totalPagesInspiration > 1 && (
-                                    <div className="mt-16 flex items-center justify-center gap-1">
-                                        <button
-                                            onClick={() => { setPage(p => Math.max(1, p - 1)); scrollToTop(); }}
-                                            disabled={page === 1}
-                                            className="flex items-center gap-1.5 px-4 py-2.5 text-[10px] font-black uppercase tracking-[0.2em] text-stone-500 hover:text-stone-900 disabled:opacity-20 disabled:cursor-not-allowed transition-colors mr-3"
-                                        >
-                                            <ChevronLeft size={13} strokeWidth={2.5} /> Prev
-                                        </button>
-
-                                        {Array.from({ length: totalPagesInspiration }, (_, i) => i + 1).map(n => (
-                                            <button
-                                                key={n}
-                                                onClick={() => { setPage(n); scrollToTop(); }}
-                                                className={`w-9 h-9 text-[11px] font-black transition-all duration-150 ${page === n ? 'bg-stone-900 text-white' : 'text-stone-500 hover:text-stone-900'}`}
-                                            >
-                                                {n}
-                                            </button>
-                                        ))}
-
-                                        <button
-                                            onClick={() => { setPage(p => Math.min(totalPagesInspiration, p + 1)); scrollToTop(); }}
-                                            disabled={page === totalPagesInspiration}
-                                            className="flex items-center gap-1.5 px-4 py-2.5 text-[10px] font-black uppercase tracking-[0.2em] text-stone-500 hover:text-stone-900 disabled:opacity-20 disabled:cursor-not-allowed transition-colors ml-3"
-                                        >
-                                            Next <ChevronRight size={13} strokeWidth={2.5} />
-                                        </button>
-                                    </div>
-                                )}
+                                <CollectionPagination
+                                    currentPage={page}
+                                    totalPages={totalPagesInspiration}
+                                    onPageChange={nextPage => { setPage(nextPage); scrollToTop(); }}
+                                />
                             </>
                         )}
                     </main>
