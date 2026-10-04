@@ -43,7 +43,7 @@ const OPEN_COLLECTION_SECTIONS = [
         return { id: source.id, label: source.name };
     }),
     ...ARCHIVAL_SOURCES
-        .filter(source => source.id === 'biodiversity-heritage-library')
+        .filter(source => ['biodiversity-heritage-library', 'nasa-open-media'].includes(source.id))
         .map(source => ({ id: source.id, label: source.name })),
 ];
 

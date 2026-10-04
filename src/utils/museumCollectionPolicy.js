@@ -20,5 +20,8 @@ export function isFramableMuseumArtwork(sourceId, record) {
     if (sourceId === 'biodiversity-heritage-library') {
         return /\b(drawn|drawing|illustrat(?:ion|ed)|painting|painted|plate|print|engraving|lithograph|watercolou?r)\b/i.test(record.title || '');
     }
+    // NASA's archival endpoint is explicitly queried with media_type=image,
+    // so its curated category can safely accept the returned space imagery.
+    if (sourceId === 'nasa-open-media') return true;
     return false;
 }
