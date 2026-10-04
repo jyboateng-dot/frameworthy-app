@@ -1,10 +1,18 @@
 // Shared by Vite and Firebase. Credentials never enter the client bundle.
 try {
     globalThis.process?.getBuiltinModule?.('dns')?.setDefaultResultOrder?.('ipv4first');
-} catch {}
+} catch {
+    // DNS ordering is an optional Node runtime optimization.
+}
 
 const PAGE_SIZE = 24;
 const cache = new Map();
+const ART_TYPES = /\b(painting|drawing|print|engraving|etching|lithograph|illustration|watercolou?r|portrait miniature|peinture|dessin|estampe|aquarelle)\b/i;
+const PARIS_ART_TYPE_IDS = [
+    166168, 166238, 330934, 167938, 167983, 330958, 213549, 214341,
+    214461, 214484, 214499, 25, 130627, 130658, 349077, 307019,
+    307699, 358254, 350951, 430913,
+];
 
 async function json(url, options = {}) {
     const response = await fetch(url, { ...options, signal: AbortSignal.timeout(25000) });
@@ -21,6 +29,8 @@ async function json(url, options = {}) {
 function smithsonianRecord(record) {
     const content = record.content || {};
     const info = content.descriptiveNonRepeating || {};
+    const objectType = (content.freetext?.objectType || []).map(item => item.content).join(' ');
+    if (!ART_TYPES.test(objectType)) return null;
     // Metadata CC0 does not grant rights to the image. Check media usage.
     const media = info.online_media?.media?.find(item =>
         item.type === 'Images' && item.usage?.access === 'CC0' && item.content);
@@ -62,9 +72,10 @@ async function smithsonian(page, key) {
 }
 
 function parisQuery(page) {
-    return `{ nodeQuery(limit: ${PAGE_SIZE}, offset: ${(page - 1) * PAGE_SIZE}, filter: {conditions: [{field: "type", value: "oeuvre"}, {field: "field_visuels", operator: IS_NOT_NULL}]}) {
+    return `{ nodeQuery(limit: ${PAGE_SIZE}, offset: ${(page - 1) * PAGE_SIZE}, filter: {conditions: [{field: "type", value: "oeuvre"}, {field: "field_visuels", operator: IS_NOT_NULL}, {field: "field_oeuvre_types_objet", value: [${PARIS_ART_TYPE_IDS.map(id => `"${id}"`).join(',')}], operator: IN}]}) {
         count entities { entityUuid ... on NodeOeuvre {
-            title absolutePath fieldLrefAdlib
+            title absolutePath fieldLrefAdlib fieldCartelAuteur
+            fieldOeuvreTypesObjet { entity { entityLabel } }
             fieldVisuels { entity { vignette fieldLegende fieldCopyright } }
         } }
     } }`;
@@ -85,6 +96,9 @@ async function paris(page, token) {
     }
     const entities = data.data.nodeQuery.entities || [];
     const artworks = entities.map(item => {
+        if (!item) return null;
+        const objectType = item.fieldOeuvreTypesObjet?.map(type => type.entity?.entityLabel).filter(Boolean).join(', ') || '';
+        if (!ART_TYPES.test(objectType)) return null;
         const visual = item.fieldVisuels?.[0]?.entity || {};
         const vignette = visual.vignette;
         if (!vignette) return null;
@@ -92,12 +106,13 @@ async function paris(page, token) {
         return {
             id: String(item.entityUuid || item.entityId),
             title: item.title || 'Paris Musées Artwork',
-            artist: 'Paris Musées',
+            artist: item.fieldCartelAuteur || 'Paris Musées',
             image,
             fullRes: image,
             sourceUrl: item.absolutePath || `https://www.parismuseescollections.paris.fr/fr/node/${item.entityId}`,
             rights: visual.fieldCopyright || 'Paris Musées API record; verify item-level rights',
             description: visual.fieldLegende,
+            objectType,
             metadata: { lrefAdlib: item.fieldLrefAdlib, copyright: visual.fieldCopyright },
         };
     }).filter(Boolean);
@@ -115,6 +130,7 @@ async function biodiversityHeritageLibrary(page) {
     const items = (data.items || []).slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
     return {
         artworks: items.map(item => {
+            if (!/\b(drawn|drawing|illustrat(?:ion|ed)|painting|painted|plate|print|engraving|lithograph|watercolou?r)\b/i.test(item.title || '')) return null;
             const preview = item.media?.m;
             if (!preview) return null;
             const fullRes = preview.replace('_m.', '_b.');

@@ -1,8 +1,11 @@
 import { MUSEUM_SOURCES } from '../data/museumSources';
 import { ARCHIVAL_SOURCES } from '../data/archivalSources';
 import { normalizeMuseumArtwork } from '../utils/museumArtwork';
+import { isFramableMuseumArtwork } from '../utils/museumCollectionPolicy';
 
 const PAGE_SIZE = 24;
+const requestCache = new Map();
+const snapshotCache = new Map();
 
 
 const artInstituteImageUrl = (imageId, width = 843) =>
@@ -17,16 +20,19 @@ async function getJson(url) {
 }
 
 async function fetchArtInstitute(page) {
-    const params = new URLSearchParams({
-        page: String(page),
-        limit: String(PAGE_SIZE),
-        fields: 'id,title,artist_display,image_id,thumbnail,dimensions,date_display,is_public_domain',
-    });
-    params.set('query[term][is_public_domain]', 'true');
-    const payload = await getJson(`https://api.artic.edu/api/v1/artworks/search?${params}`);
+    const fetchType = async (type) => {
+        const params = new URLSearchParams({
+            page: String(page), limit: String(PAGE_SIZE / 2),
+            fields: 'id,title,artist_display,image_id,thumbnail,dimensions,date_display,is_public_domain,artwork_type_title',
+        });
+        params.set('query[bool][must][0][term][is_public_domain]', 'true');
+        params.set('query[bool][must][1][term][artwork_type_title.keyword]', type);
+        return getJson(`https://api.artic.edu/api/v1/artworks/search?${params}`);
+    };
+    const [paintings, drawings] = await Promise.all([fetchType('Painting'), fetchType('Drawing')]);
     const source = sourceById('art-institute-of-chicago');
     return {
-        artworks: (payload.data || []).filter(item => item.image_id).map(item => normalizeMuseumArtwork({
+        artworks: [...(paintings.data || []), ...(drawings.data || [])].filter(item => item.image_id).map(item => normalizeMuseumArtwork({
             ...item,
             artist_display: item.artist_display,
             image: artInstituteImageUrl(item.image_id, 843),
@@ -34,27 +40,28 @@ async function fetchArtInstitute(page) {
             imageWidth: item.thumbnail?.width,
             imageHeight: item.thumbnail?.height,
         }, source)),
-        total: payload.pagination?.total || 0,
+        total: (paintings.pagination?.total || 0) + (drawings.pagination?.total || 0),
     };
 }
 
 async function fetchCleveland(page) {
-    const params = new URLSearchParams({
-        cc0: '',
-        has_image: '1',
-        limit: String(PAGE_SIZE),
-        skip: String((page - 1) * PAGE_SIZE),
-    });
-    const payload = await getJson(`https://openaccess-api.clevelandart.org/api/artworks?${params}`);
+    const fetchType = (type) => {
+        const params = new URLSearchParams({
+            cc0: '', has_image: '1', type,
+            limit: String(PAGE_SIZE / 2), skip: String((page - 1) * PAGE_SIZE / 2),
+        });
+        return getJson(`https://openaccess-api.clevelandart.org/api/artworks?${params}`);
+    };
+    const [paintings, drawings] = await Promise.all([fetchType('Painting'), fetchType('Drawing')]);
     const source = sourceById('cleveland-museum-of-art');
     return {
-        artworks: (payload.data || []).filter(item => item.images?.web?.url).map(item => normalizeMuseumArtwork({
+        artworks: [...(paintings.data || []), ...(drawings.data || [])].filter(item => item.images?.web?.url).map(item => normalizeMuseumArtwork({
             ...item,
             artist: item.creators?.map(creator => creator.description).filter(Boolean).join(', '),
             image: item.images.web.url,
             fullRes: item.images.original?.url || item.images.print?.url || item.images.web.url,
         }, source)),
-        total: payload.info?.total || 0,
+        total: (paintings.info?.total || 0) + (drawings.info?.total || 0),
     };
 }
 
@@ -101,12 +108,16 @@ async function fetchServerCollection(sourceId, page) {
     const response = await fetch(`${archivalEndpoint}?source=${encodeURIComponent(sourceId)}&page=${page}`);
     const data = await response.json();
     if (!response.ok) throw new Error(data.error || 'The collection is temporarily unavailable.');
-    return { ...data, artworks: data.artworks.map(record => normalizeMuseumArtwork(record, sourceById(sourceId))) };
+    return { ...data, artworks: data.artworks
+        .filter(record => isFramableMuseumArtwork(sourceId, record))
+        .map(record => normalizeMuseumArtwork(record, sourceById(sourceId))) };
 }
 
 async function fetchNga(page) {
     const data = await getJson(`/museum-data/nga/${page}.json`);
-    return { ...data, artworks: data.artworks.map(record => normalizeMuseumArtwork(record, sourceById('national-gallery-of-art'))) };
+    return { ...data, artworks: data.artworks
+        .filter(record => isFramableMuseumArtwork('national-gallery-of-art', record))
+        .map(record => normalizeMuseumArtwork(record, sourceById('national-gallery-of-art'))) };
 }
 
 async function fetchLibraryOfCongress(page) {
@@ -129,7 +140,26 @@ const LOADERS = {
 };
 
 export async function fetchMuseumArtworks(sourceId, page = 1) {
-    // 1. Static pre-baked snapshot resolution (instant 10-20ms CDN load)
+    const requestKey = `${sourceId}:${page}`;
+    const existing = requestCache.get(requestKey);
+    if (existing) return existing;
+
+    // A prefetched snapshot may still be in flight. Resolve it before using a
+    // live loader, so switching to a warmed source reuses the same response.
+    // `null` is an intentional cache value for sources/pages without a local
+    // snapshot and must always fall through to the source's live loader.
+    const snapshot = snapshotCache.get(requestKey) || fetchMuseumSnapshot(sourceId, page);
+    snapshotCache.set(requestKey, snapshot);
+    const request = snapshot.then(data => data || fetchMuseumArtworksLive(sourceId, page));
+    requestCache.set(requestKey, request);
+    request.catch(() => requestCache.delete(requestKey));
+    return request;
+}
+
+async function fetchMuseumSnapshot(sourceId, page) {
+    // Older Chicago snapshots omit artwork type, so they cannot be safely
+    // screened. Use the typed live query until they are regenerated.
+    if (sourceId === 'art-institute-of-chicago') return null;
     try {
         const staticUrl = sourceId === 'national-gallery-of-art'
             ? `/museum-data/nga/${page}.json`
@@ -138,19 +168,34 @@ export async function fetchMuseumArtworks(sourceId, page = 1) {
         if (res.ok) {
             const data = await res.json();
             if (Array.isArray(data.artworks) && data.artworks.length > 0) {
+                const artworks = data.artworks.filter(record => isFramableMuseumArtwork(sourceId, record));
+                if (!artworks.length) return null;
                 return {
                     ...data,
-                    artworks: data.artworks.map(record => normalizeMuseumArtwork(record, sourceById(sourceId))),
+                    artworks: artworks.map(record => normalizeMuseumArtwork(record, sourceById(sourceId))),
                 };
             }
         }
     } catch {
-        // Fall back to live loader if static snapshot is unavailable
+        // A missing or failed snapshot is not a failed collection request.
     }
+    return null;
+}
 
-    // 2. Live API fallback for deeper browsing or dynamic feeds
+async function fetchMuseumArtworksLive(sourceId, page) {
     const loader = LOADERS[sourceId];
     if (!loader) throw new Error('Unknown museum collection.');
     return loader(page);
+}
+
+// Warm only local snapshots during idle time. This avoids adding network/API
+// pressure while making the next category switch instant where a snapshot is
+// available; categories without a snapshot still use their normal live loader.
+export function prefetchMuseumSnapshot(sourceId, page = 1) {
+    const requestKey = `${sourceId}:${page}`;
+    if (snapshotCache.has(requestKey)) return snapshotCache.get(requestKey);
+    const snapshot = fetchMuseumSnapshot(sourceId, page);
+    snapshotCache.set(requestKey, snapshot);
+    return snapshot;
 }
 

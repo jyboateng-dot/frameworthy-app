@@ -25,24 +25,24 @@ import { PRODUCTS } from '../data/framed_prints';
 import { getThumbnailUrl } from '../services/storage';
 import { MUSEUM_SOURCES } from '../data/museumSources';
 import { ARCHIVAL_SOURCES } from '../data/archivalSources';
+import { prefetchMuseumSnapshot } from '../services/museumApi';
 
 const OPEN_COLLECTION_SECTIONS = [
     { id: 'originals', label: 'Original Paintings' },
     { id: 'met', label: 'Met Museum Collection' },
-    { id: 'library-of-congress', label: 'Library of Congress' },
     ...[
+        'paris-musees',
         'art-institute-of-chicago',
         'rijksmuseum',
         'national-gallery-of-art',
         'smithsonian-open-access',
         'cleveland-museum-of-art',
-        'paris-musees',
     ].map(sourceId => {
         const source = MUSEUM_SOURCES.find(item => item.id === sourceId);
         return { id: source.id, label: source.name };
     }),
     ...ARCHIVAL_SOURCES
-        .filter(source => source.id !== 'library-of-congress')
+        .filter(source => source.id === 'biodiversity-heritage-library')
         .map(source => ({ id: source.id, label: source.name })),
 ];
 
@@ -97,6 +97,18 @@ const InspirationPage = ({ setProductMode, setSelectedFrame, setSelectedSize, na
         const stored = sessionStorage.getItem('fw_insp_section');
         return stored && OPEN_COLLECTION_SECTIONS.some(section => section.id === stored) ? stored : 'met';
     });
+
+    useEffect(() => {
+        const sourceIds = OPEN_COLLECTION_SECTIONS.map(section => section.id)
+            .filter(sourceId => [...MUSEUM_SOURCES, ...ARCHIVAL_SOURCES].some(source => source.id === sourceId));
+        const warm = () => sourceIds.forEach(sourceId => prefetchMuseumSnapshot(sourceId));
+        if ('requestIdleCallback' in window) {
+            const id = window.requestIdleCallback(warm, { timeout: 1200 });
+            return () => window.cancelIdleCallback(id);
+        }
+        const id = window.setTimeout(warm, 250);
+        return () => window.clearTimeout(id);
+    }, []);
     // A result picked from the cross-category Search tab that needs its
     // native category's "Choose Framing Style" modal opened immediately —
     // Album/Movie results can't navigate directly like the flat-catalog
@@ -313,7 +325,7 @@ const InspirationPage = ({ setProductMode, setSelectedFrame, setSelectedSize, na
                     <MuseumSourcesPage isSubPage={true} />
                 </div>
             )}
-            {[...MUSEUM_SOURCES, ...ARCHIVAL_SOURCES].some(source => source.id === currentSection) && (
+            {OPEN_COLLECTION_SECTIONS.some(section => section.id === currentSection) && [...MUSEUM_SOURCES, ...ARCHIVAL_SOURCES].some(source => source.id === currentSection) && (
                 <div className="max-w-[2560px] mx-auto py-8">
                     <MuseumSourceArtPage
                         key={currentSection}

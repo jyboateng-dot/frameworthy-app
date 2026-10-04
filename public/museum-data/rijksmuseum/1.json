@@ -1,0 +1,221 @@
+{
+  "artworks": [
+    {
+      "id": "200100988",
+      "title": "Misty Sea",
+      "artist": "Jan Toorop",
+      "image": "https://iiif.micr.io/mPymb/full/max/0/default.jpg",
+      "fullRes": "https://iiif.micr.io/mPymb/full/max/0/default.jpg",
+      "rights": "CC0 / Public Domain",
+      "sourceUrl": "https://id.rijksmuseum.nl/200100988"
+    },
+    {
+      "id": "200105887",
+      "title": "Cat at Play",
+      "artist": "Unknown artist",
+      "image": "https://iiif.micr.io/YAxov/full/max/0/default.jpg",
+      "fullRes": "https://iiif.micr.io/YAxov/full/max/0/default.jpg",
+      "rights": "CC0 / Public Domain",
+      "sourceUrl": "https://id.rijksmuseum.nl/200105887"
+    },
+    {
+      "id": "200105889",
+      "title": "Fishing Pinks in Breaking Waves",
+      "artist": "Hendrik Willem Mesdag",
+      "image": "https://iiif.micr.io/PbGmB/full/max/0/default.jpg",
+      "fullRes": "https://iiif.micr.io/PbGmB/full/max/0/default.jpg",
+      "rights": "CC0 / Public Domain",
+      "sourceUrl": "https://id.rijksmuseum.nl/200105889"
+    },
+    {
+      "id": "200105901",
+      "title": "Portret van een Surinaams meisje",
+      "artist": "anonymous",
+      "image": "https://iiif.micr.io/JdGJx/full/max/0/default.jpg",
+      "fullRes": "https://iiif.micr.io/JdGJx/full/max/0/default.jpg",
+      "rights": "CC0 / Public Domain",
+      "sourceUrl": "https://id.rijksmuseum.nl/200105901"
+    },
+    {
+      "id": "200105903",
+      "title": "Portraits of Surinamese Girls",
+      "artist": "anonymous",
+      "image": "https://iiif.micr.io/eUtaz/full/max/0/default.jpg",
+      "fullRes": "https://iiif.micr.io/eUtaz/full/max/0/default.jpg",
+      "rights": "CC0 / Public Domain",
+      "sourceUrl": "https://id.rijksmuseum.nl/200105903"
+    },
+    {
+      "id": "200105905",
+      "title": "Portret van een Surinaams meisje",
+      "artist": "Unknown artist",
+      "image": "https://iiif.micr.io/WTgck/full/max/0/default.jpg",
+      "fullRes": "https://iiif.micr.io/WTgck/full/max/0/default.jpg",
+      "rights": "CC0 / Public Domain",
+      "sourceUrl": "https://id.rijksmuseum.nl/200105905"
+    },
+    {
+      "id": "200105971",
+      "title": "Zelfportret",
+      "artist": "Unknown artist",
+      "image": "https://iiif.micr.io/QVEGH/full/max/0/default.jpg",
+      "fullRes": "https://iiif.micr.io/QVEGH/full/max/0/default.jpg",
+      "rights": "CC0 / Public Domain",
+      "sourceUrl": "https://id.rijksmuseum.nl/200105971"
+    },
+    {
+      "id": "200106038",
+      "title": "Landschap met stenen brug",
+      "artist": "Rembrandt van Rijn",
+      "image": "https://iiif.micr.io/hodeb/full/max/0/default.jpg",
+      "fullRes": "https://iiif.micr.io/hodeb/full/max/0/default.jpg",
+      "rights": "CC0 / Public Domain",
+      "sourceUrl": "https://id.rijksmuseum.nl/200106038"
+    },
+    {
+      "id": "200106077",
+      "title": "Portret van Paulus Joseph Gabriël, beeldhouwer",
+      "artist": "Unknown artist",
+      "image": "https://iiif.micr.io/LsoAQ/full/max/0/default.jpg",
+      "fullRes": "https://iiif.micr.io/LsoAQ/full/max/0/default.jpg",
+      "rights": "CC0 / Public Domain",
+      "sourceUrl": "https://id.rijksmuseum.nl/200106077"
+    },
+    {
+      "id": "200106078",
+      "title": "Het Raampoortje in Amsterdam",
+      "artist": "Wouter Johannes van Troostwijk",
+      "image": "https://iiif.micr.io/vHCad/full/max/0/default.jpg",
+      "fullRes": "https://iiif.micr.io/vHCad/full/max/0/default.jpg",
+      "rights": "CC0 / Public Domain",
+      "sourceUrl": "https://id.rijksmuseum.nl/200106078"
+    },
+    {
+      "id": "200106079",
+      "title": "Willem Bilderdijk (1759-1831), Poet and Historian",
+      "artist": "Charles Howard Hodges",
+      "image": "https://iiif.micr.io/pNXoS/full/max/0/default.jpg",
+      "fullRes": "https://iiif.micr.io/pNXoS/full/max/0/default.jpg",
+      "rights": "CC0 / Public Domain",
+      "sourceUrl": "https://id.rijksmuseum.nl/200106079"
+    },
+    {
+      "id": "200106080",
+      "title": "The Adoration of the Magi",
+      "artist": "anonymous",
+      "image": "https://iiif.micr.io/HhzPC/full/max/0/default.jpg",
+      "fullRes": "https://iiif.micr.io/HhzPC/full/max/0/default.jpg",
+      "rights": "CC0 / Public Domain",
+      "sourceUrl": "https://id.rijksmuseum.nl/200106080"
+    },
+    {
+      "id": "200106086",
+      "title": "A Young Woman Warming her Hands over a Brazier: Allegory of Winter",
+      "artist": "Unknown artist",
+      "image": "https://iiif.micr.io/nuhhV/full/max/0/default.jpg",
+      "fullRes": "https://iiif.micr.io/nuhhV/full/max/0/default.jpg",
+      "rights": "CC0 / Public Domain",
+      "sourceUrl": "https://id.rijksmuseum.nl/200106086"
+    },
+    {
+      "id": "200106799",
+      "title": "Fragment van een muurschildering",
+      "artist": "anonymous",
+      "image": "https://iiif.micr.io/tdAPv/full/max/0/default.jpg",
+      "fullRes": "https://iiif.micr.io/tdAPv/full/max/0/default.jpg",
+      "rights": "CC0 / Public Domain",
+      "sourceUrl": "https://id.rijksmuseum.nl/200106799"
+    },
+    {
+      "id": "200106839",
+      "title": "Ingelijste muurschildering voorstellende Xiwangmu en dienaressen",
+      "artist": "anonymous",
+      "image": "https://iiif.micr.io/ywbNv/full/max/0/default.jpg",
+      "fullRes": "https://iiif.micr.io/ywbNv/full/max/0/default.jpg",
+      "rights": "CC0 / Public Domain",
+      "sourceUrl": "https://id.rijksmuseum.nl/200106839"
+    },
+    {
+      "id": "200106864",
+      "title": "Man met een vrouw op schoot",
+      "artist": "anonymous",
+      "image": "https://iiif.micr.io/Yvgrq/full/max/0/default.jpg",
+      "fullRes": "https://iiif.micr.io/Yvgrq/full/max/0/default.jpg",
+      "rights": "CC0 / Public Domain",
+      "sourceUrl": "https://id.rijksmuseum.nl/200106864"
+    },
+    {
+      "id": "200106865",
+      "title": "Wachterfiguur",
+      "artist": "anonymous",
+      "image": "https://iiif.micr.io/VtGLU/full/max/0/default.jpg",
+      "fullRes": "https://iiif.micr.io/VtGLU/full/max/0/default.jpg",
+      "rights": "CC0 / Public Domain",
+      "sourceUrl": "https://id.rijksmuseum.nl/200106865"
+    },
+    {
+      "id": "200107007",
+      "title": "Fan painting with river landscape",
+      "artist": "anonymous",
+      "image": "https://iiif.micr.io/PYMfr/full/max/0/default.jpg",
+      "fullRes": "https://iiif.micr.io/PYMfr/full/max/0/default.jpg",
+      "rights": "CC0 / Public Domain",
+      "sourceUrl": "https://id.rijksmuseum.nl/200107007"
+    },
+    {
+      "id": "200107756",
+      "title": "The Meeting of Granida and Daifilo",
+      "artist": "Unknown artist",
+      "image": "https://iiif.micr.io/hQYKU/full/max/0/default.jpg",
+      "fullRes": "https://iiif.micr.io/hQYKU/full/max/0/default.jpg",
+      "rights": "CC0 / Public Domain",
+      "sourceUrl": "https://id.rijksmuseum.nl/200107756"
+    },
+    {
+      "id": "200107757",
+      "title": "Portret Govert van Slingelandt (1623-90), zijn eerste vrouw Christina van Beveren (1632-1656) en hun beide zoontjes",
+      "artist": "Unknown artist",
+      "image": "https://iiif.micr.io/cdqwm/full/max/0/default.jpg",
+      "fullRes": "https://iiif.micr.io/cdqwm/full/max/0/default.jpg",
+      "rights": "CC0 / Public Domain",
+      "sourceUrl": "https://id.rijksmuseum.nl/200107757"
+    },
+    {
+      "id": "200107761",
+      "title": "De ontmoeting van Jacob en Rachel",
+      "artist": "Claes Moeyaert",
+      "image": "https://iiif.micr.io/NxFOh/full/max/0/default.jpg",
+      "fullRes": "https://iiif.micr.io/NxFOh/full/max/0/default.jpg",
+      "rights": "CC0 / Public Domain",
+      "sourceUrl": "https://id.rijksmuseum.nl/200107761"
+    },
+    {
+      "id": "200107762",
+      "title": "Mooy-Aal and her Suitors",
+      "artist": "Claes Moeyaert",
+      "image": "https://iiif.micr.io/ClOve/full/max/0/default.jpg",
+      "fullRes": "https://iiif.micr.io/ClOve/full/max/0/default.jpg",
+      "rights": "CC0 / Public Domain",
+      "sourceUrl": "https://id.rijksmuseum.nl/200107762"
+    },
+    {
+      "id": "200107763",
+      "title": "De virginaalspeelster",
+      "artist": "Jan Miense Molenaer",
+      "image": "https://iiif.micr.io/PGbAW/full/max/0/default.jpg",
+      "fullRes": "https://iiif.micr.io/PGbAW/full/max/0/default.jpg",
+      "rights": "CC0 / Public Domain",
+      "sourceUrl": "https://id.rijksmuseum.nl/200107763"
+    },
+    {
+      "id": "200107764",
+      "title": "Sint-Hiëronymus in zijn studeervertrek",
+      "artist": "Lorenzo Monaco",
+      "image": "https://iiif.micr.io/VkLgO/full/max/0/default.jpg",
+      "fullRes": "https://iiif.micr.io/VkLgO/full/max/0/default.jpg",
+      "rights": "CC0 / Public Domain",
+      "sourceUrl": "https://id.rijksmuseum.nl/200107764"
+    }
+  ],
+  "total": 4874
+}

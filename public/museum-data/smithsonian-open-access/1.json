@@ -1,0 +1,1687 @@
+{
+  "artworks": [
+    {
+      "id": "ld1-1643399756728-1643399817474-0",
+      "title": "Sun Bird",
+      "artist": "Max Rosenthal, 23 Nov 1833 - 8 Aug 1918",
+      "image": "https://ids.si.edu/ids/deliveryService?id=NPG-S_NPG_2001_58_6_ext",
+      "fullRes": "https://ids.si.edu/ids/deliveryService?id=NPG-S_NPG_2001_58_6_ext",
+      "rights": "CC0",
+      "sourceUrl": "https://npg.si.edu/object/npg_S_NPG.2001.58.6",
+      "metadata": {
+        "freetext": {
+          "date": [
+            {
+              "label": "Date",
+              "content": "1851"
+            }
+          ],
+          "name": [
+            {
+              "label": "Artist",
+              "content": "Max Rosenthal, 23 Nov 1833 - 8 Aug 1918"
+            },
+            {
+              "label": "Copy after",
+              "content": "Henry Louis Stephens, 1824 - 1882"
+            },
+            {
+              "label": "Sitter",
+              "content": "James S. Wallace"
+            }
+          ],
+          "topic": [
+            {
+              "label": "Topic",
+              "content": "Exterior"
+            },
+            {
+              "label": "Topic",
+              "content": "Caricature"
+            },
+            {
+              "label": "Topic",
+              "content": "Nature & Environment\\Animal\\Bird"
+            },
+            {
+              "label": "Topic",
+              "content": "Book"
+            },
+            {
+              "label": "Topic",
+              "content": "Nature & Environment\\Plant\\Tree branch"
+            },
+            {
+              "label": "Topic",
+              "content": "James S. Wallace: Male"
+            },
+            {
+              "label": "Topic",
+              "content": "Portrait"
+            }
+          ],
+          "setName": [
+            {
+              "label": "See more items in",
+              "content": "National Portrait Gallery Collection"
+            },
+            {
+              "label": "Location",
+              "content": "Currently not on view"
+            }
+          ],
+          "creditLine": [
+            {
+              "label": "Credit Line",
+              "content": "National Portrait Gallery, Smithsonian Institution"
+            }
+          ],
+          "dataSource": [
+            {
+              "label": "Data Source",
+              "content": "National Portrait Gallery"
+            }
+          ],
+          "identifier": [
+            {
+              "label": "Object number",
+              "content": "S/NPG.2001.58.6"
+            }
+          ],
+          "objectType": [
+            {
+              "label": "Type",
+              "content": "Print"
+            }
+          ],
+          "objectRights": [
+            {
+              "label": "Restrictions & Rights",
+              "content": "CC0"
+            }
+          ],
+          "physicalDescription": [
+            {
+              "label": "Medium",
+              "content": "Color lithograph"
+            },
+            {
+              "label": "Dimensions",
+              "content": "Sheet: 27 × 17.5 cm (10 5/8 × 6 7/8\")"
+            },
+            {
+              "label": "Dimensions",
+              "content": "Book (closed): 28.1 × 19.8 × 3.5 cm (11 1/16 × 7 13/16 × 1 3/8\")"
+            },
+            {
+              "label": "Dimensions",
+              "content": "Book (opened): 28.1 × 41.2 cm (11 1/16 × 16 1/4\")"
+            }
+          ]
+        },
+        "indexedStructured": {
+          "date": [
+            "1850s"
+          ],
+          "name": [
+            "Stephens, Henry Louis",
+            "Rosenthal, Max",
+            "Wallace, James S."
+          ],
+          "topic": [
+            "Caricatures",
+            "Nature",
+            "Animals",
+            "Books and reading",
+            "Men",
+            "Tree branch",
+            "Birds",
+            "Portraits",
+            "Ecology",
+            "Plants"
+          ],
+          "object_type": [
+            "Exterior views",
+            "Prints"
+          ],
+          "online_media_type": [
+            "Images"
+          ]
+        },
+        "descriptiveNonRepeating": {
+          "guid": "http://n2t.net/ark:/65665/sm495ade37a-5893-475d-931c-f7fbed35add1",
+          "title": {
+            "label": "Title",
+            "content": "Sun Bird"
+          },
+          "record_ID": "npg_S_NPG.2001.58.6",
+          "unit_code": "NPG",
+          "title_sort": "SUN BIRD",
+          "data_source": "National Portrait Gallery",
+          "record_link": "https://npg.si.edu/object/npg_S_NPG.2001.58.6",
+          "online_media": {
+            "media": [
+              {
+                "id": "media:NPG-S_NPG_2001_58_6_ext",
+                "guid": "http://n2t.net/ark:/65665/tr284435c3d-143c-42e9-8053-fba38bf77b56",
+                "type": "Images",
+                "idsId": "NPG-S_NPG_2001_58_6_ext",
+                "usage": {
+                  "access": "CC0"
+                },
+                "content": "https://ids.si.edu/ids/deliveryService?id=NPG-S_NPG_2001_58_6_ext",
+                "thumbnail": "https://ids.si.edu/ids/deliveryService?id=NPG-S_NPG_2001_58_6_ext",
+                "altTextAccessibility": "Artist: Max Rosenthal, Sitter: James S. Wallace, Current owner: National Portrait Gallery, Smithsonian Institution",
+                "extDescrAccessibility": "",
+                "resources": [
+                  {
+                    "label": "High-resolution TIFF",
+                    "url": "https://ids.si.edu/ids/download?id=NPG-S_NPG_2001_58_6_ext.tif",
+                    "width": 4514,
+                    "height": 6873,
+                    "dimensions": "4514x6873"
+                  },
+                  {
+                    "label": "High-resolution JPEG",
+                    "url": "https://ids.si.edu/ids/download?id=NPG-S_NPG_2001_58_6_ext.jpg",
+                    "width": 4514,
+                    "height": 6873,
+                    "dimensions": "4514x6873"
+                  },
+                  {
+                    "label": "Screen Image",
+                    "url": "https://ids.si.edu/ids/download?id=NPG-S_NPG_2001_58_6_ext_screen"
+                  },
+                  {
+                    "label": "Thumbnail Image",
+                    "url": "https://ids.si.edu/ids/download?id=NPG-S_NPG_2001_58_6_ext_thumb"
+                  }
+                ]
+              }
+            ],
+            "mediaCount": 1
+          },
+          "metadata_usage": {
+            "access": "CC0"
+          }
+        }
+      }
+    },
+    {
+      "id": "ld1-1643399756728-1643399821305-1",
+      "title": "Unidentified Woman",
+      "artist": "Charles Balthazar Julien Févret de Saint-Mémin, 12 Mar 1770 - 23 Jun 1852",
+      "image": "https://ids.si.edu/ids/deliveryService?id=NPG-S_NPG_74_39_16_48Unidentified-000001",
+      "fullRes": "https://ids.si.edu/ids/deliveryService?id=NPG-S_NPG_74_39_16_48Unidentified-000001",
+      "rights": "CC0",
+      "sourceUrl": "https://npg.si.edu/object/npg_S_NPG.74.39.16.48",
+      "metadata": {
+        "freetext": {
+          "name": [
+            {
+              "label": "Artist",
+              "content": "Charles Balthazar Julien Févret de Saint-Mémin, 12 Mar 1770 - 23 Jun 1852"
+            },
+            {
+              "label": "Sitter",
+              "content": "Unidentified Woman"
+            }
+          ],
+          "topic": [
+            {
+              "label": "Topic",
+              "content": "Unidentified Woman: Female"
+            },
+            {
+              "label": "Topic",
+              "content": "Portrait"
+            }
+          ],
+          "setName": [
+            {
+              "label": "See more items in",
+              "content": "National Portrait Gallery Collection"
+            },
+            {
+              "label": "Location",
+              "content": "Currently not on view"
+            }
+          ],
+          "creditLine": [
+            {
+              "label": "Credit Line",
+              "content": "National Portrait Gallery, Smithsonian Institution; gift of Mr. and Mrs. Paul Mellon"
+            }
+          ],
+          "dataSource": [
+            {
+              "label": "Data Source",
+              "content": "National Portrait Gallery"
+            }
+          ],
+          "identifier": [
+            {
+              "label": "Object number",
+              "content": "S/NPG.74.39.16.48"
+            }
+          ],
+          "objectType": [
+            {
+              "label": "Type",
+              "content": "Print"
+            }
+          ],
+          "objectRights": [
+            {
+              "label": "Restrictions & Rights",
+              "content": "CC0"
+            }
+          ],
+          "physicalDescription": [
+            {
+              "label": "Medium",
+              "content": "Engraving on paper"
+            },
+            {
+              "label": "Dimensions",
+              "content": "Image: 6.6 × 6.2c m (2 5/8 × 2 7/16\")"
+            },
+            {
+              "label": "Dimensions",
+              "content": "Sheet: 54.5 × 39.5 cm (21 7/16 × 15 9/16\")"
+            }
+          ]
+        },
+        "indexedStructured": {
+          "name": [
+            "Saint-Memin, Charles Balthazar Julien Fevret de"
+          ],
+          "topic": [
+            "Women",
+            "Portraits"
+          ],
+          "usage_flag": [
+            "Unidentified Woman"
+          ],
+          "object_type": [
+            "Prints"
+          ],
+          "online_media_type": [
+            "Images"
+          ]
+        },
+        "descriptiveNonRepeating": {
+          "guid": "http://n2t.net/ark:/65665/sm4f1135957-bfff-4d54-a4ec-a57f6a07a6f5",
+          "title": {
+            "label": "Title",
+            "content": "Unidentified Woman"
+          },
+          "record_ID": "npg_S_NPG.74.39.16.48",
+          "unit_code": "NPG",
+          "title_sort": "UNIDENTIFIED WOMAN",
+          "data_source": "National Portrait Gallery",
+          "record_link": "https://npg.si.edu/object/npg_S_NPG.74.39.16.48",
+          "online_media": {
+            "media": [
+              {
+                "id": "media:NPG-S_NPG_74_39_16_48Unidentified-000001",
+                "guid": "http://n2t.net/ark:/65665/tr29ee7f89f-a329-4908-a100-8d0ff48ac766",
+                "type": "Images",
+                "idsId": "NPG-S_NPG_74_39_16_48Unidentified-000001",
+                "usage": {
+                  "access": "CC0"
+                },
+                "content": "https://ids.si.edu/ids/deliveryService?id=NPG-S_NPG_74_39_16_48Unidentified-000001",
+                "thumbnail": "https://ids.si.edu/ids/deliveryService?id=NPG-S_NPG_74_39_16_48Unidentified-000001",
+                "altTextAccessibility": "Artist: Charles Balthazar Julien Févret de Saint-Mémin, Sitter: Unidentified Woman, Current owner: National Portrait Gallery, Smithsonian Institution",
+                "extDescrAccessibility": "",
+                "resources": [
+                  {
+                    "label": "High-resolution TIFF",
+                    "url": "https://ids.si.edu/ids/download?id=NPG-S_NPG_74_39_16_48Unidentified-000001.tif",
+                    "width": 2148,
+                    "height": 2460,
+                    "dimensions": "2148x2460"
+                  },
+                  {
+                    "label": "High-resolution JPEG",
+                    "url": "https://ids.si.edu/ids/download?id=NPG-S_NPG_74_39_16_48Unidentified-000001.jpg",
+                    "width": 2148,
+                    "height": 2460,
+                    "dimensions": "2148x2460"
+                  },
+                  {
+                    "label": "Screen Image",
+                    "url": "https://ids.si.edu/ids/download?id=NPG-S_NPG_74_39_16_48Unidentified-000001_screen"
+                  },
+                  {
+                    "label": "Thumbnail Image",
+                    "url": "https://ids.si.edu/ids/download?id=NPG-S_NPG_74_39_16_48Unidentified-000001_thumb"
+                  }
+                ]
+              }
+            ],
+            "mediaCount": 1
+          },
+          "metadata_usage": {
+            "access": "CC0"
+          }
+        }
+      }
+    },
+    {
+      "id": "ld1-1643399756728-1643399820960-0",
+      "title": "John Reynolds",
+      "artist": "Charles Balthazar Julien Févret de Saint-Mémin, 12 Mar 1770 - 23 Jun 1852",
+      "image": "https://ids.si.edu/ids/deliveryService?id=NPG-S_NPG_74_39_4_40Reynolds-000001",
+      "fullRes": "https://ids.si.edu/ids/deliveryService?id=NPG-S_NPG_74_39_4_40Reynolds-000001",
+      "rights": "CC0",
+      "sourceUrl": "https://npg.si.edu/object/npg_S_NPG.74.39.4.40",
+      "metadata": {
+        "freetext": {
+          "date": [
+            {
+              "label": "Date",
+              "content": "1802"
+            }
+          ],
+          "name": [
+            {
+              "label": "Artist",
+              "content": "Charles Balthazar Julien Févret de Saint-Mémin, 12 Mar 1770 - 23 Jun 1852"
+            },
+            {
+              "label": "Sitter",
+              "content": "John Reynolds, born mid-late 18th century"
+            }
+          ],
+          "topic": [
+            {
+              "label": "Topic",
+              "content": "John Reynolds: Male"
+            },
+            {
+              "label": "Topic",
+              "content": "Portrait"
+            }
+          ],
+          "setName": [
+            {
+              "label": "See more items in",
+              "content": "National Portrait Gallery Collection"
+            },
+            {
+              "label": "Location",
+              "content": "Currently not on view"
+            }
+          ],
+          "creditLine": [
+            {
+              "label": "Credit Line",
+              "content": "National Portrait Gallery, Smithsonian Institution; gift of Mr. and Mrs. Paul Mellon"
+            }
+          ],
+          "dataSource": [
+            {
+              "label": "Data Source",
+              "content": "National Portrait Gallery"
+            }
+          ],
+          "identifier": [
+            {
+              "label": "Object number",
+              "content": "S/NPG.74.39.4.40"
+            }
+          ],
+          "objectType": [
+            {
+              "label": "Type",
+              "content": "Print"
+            }
+          ],
+          "objectRights": [
+            {
+              "label": "Restrictions & Rights",
+              "content": "CC0"
+            }
+          ],
+          "physicalDescription": [
+            {
+              "label": "Medium",
+              "content": "Engraving on paper"
+            },
+            {
+              "label": "Dimensions",
+              "content": "Image: 5.5 x 5.5 cm (2 3/16 x 2 3/16\")"
+            },
+            {
+              "label": "Dimensions",
+              "content": "Sheet: 55 x 40 cm (21 5/8 x 15 3/4\")"
+            }
+          ]
+        },
+        "indexedStructured": {
+          "date": [
+            "1800s"
+          ],
+          "name": [
+            "Saint-Memin, Charles Balthazar Julien Fevret de",
+            "Reynolds, John"
+          ],
+          "topic": [
+            "Men",
+            "Portraits"
+          ],
+          "object_type": [
+            "Prints"
+          ],
+          "online_media_type": [
+            "Images"
+          ]
+        },
+        "descriptiveNonRepeating": {
+          "guid": "http://n2t.net/ark:/65665/sm4c63813ed-12d3-4a8b-a797-6a5af1a57267",
+          "title": {
+            "label": "Title",
+            "content": "John Reynolds"
+          },
+          "record_ID": "npg_S_NPG.74.39.4.40",
+          "unit_code": "NPG",
+          "title_sort": "JOHN REYNOLDS",
+          "data_source": "National Portrait Gallery",
+          "record_link": "https://npg.si.edu/object/npg_S_NPG.74.39.4.40",
+          "online_media": {
+            "media": [
+              {
+                "id": "media:NPG-S_NPG_74_39_4_40Reynolds-000001",
+                "guid": "http://n2t.net/ark:/65665/tr2aa44967c-9a11-47c2-8ae3-9d21ec773fd2",
+                "type": "Images",
+                "idsId": "NPG-S_NPG_74_39_4_40Reynolds-000001",
+                "usage": {
+                  "access": "CC0"
+                },
+                "content": "https://ids.si.edu/ids/deliveryService?id=NPG-S_NPG_74_39_4_40Reynolds-000001",
+                "thumbnail": "https://ids.si.edu/ids/deliveryService?id=NPG-S_NPG_74_39_4_40Reynolds-000001",
+                "altTextAccessibility": "Artist: Charles Balthazar Julien Févret de Saint-Mémin, Sitter: John Reynolds, Current owner: National Portrait Gallery, Smithsonian Institution",
+                "extDescrAccessibility": "",
+                "resources": [
+                  {
+                    "label": "High-resolution TIFF",
+                    "url": "https://ids.si.edu/ids/download?id=NPG-S_NPG_74_39_4_40Reynolds-000001.tif",
+                    "width": 2345,
+                    "height": 2353,
+                    "dimensions": "2345x2353"
+                  },
+                  {
+                    "label": "High-resolution JPEG",
+                    "url": "https://ids.si.edu/ids/download?id=NPG-S_NPG_74_39_4_40Reynolds-000001.jpg",
+                    "width": 2345,
+                    "height": 2353,
+                    "dimensions": "2345x2353"
+                  },
+                  {
+                    "label": "Screen Image",
+                    "url": "https://ids.si.edu/ids/download?id=NPG-S_NPG_74_39_4_40Reynolds-000001_screen"
+                  },
+                  {
+                    "label": "Thumbnail Image",
+                    "url": "https://ids.si.edu/ids/download?id=NPG-S_NPG_74_39_4_40Reynolds-000001_thumb"
+                  }
+                ]
+              }
+            ],
+            "mediaCount": 1
+          },
+          "metadata_usage": {
+            "access": "CC0"
+          }
+        }
+      }
+    },
+    {
+      "id": "ld1-1643399756728-1643399810910-0",
+      "title": "1st Earl Charles Grey",
+      "artist": "Robert Pollard, 1755 - 1838",
+      "image": "https://ids.si.edu/ids/deliveryService?id=NPG-S_NPG_75_28_2_h",
+      "fullRes": "https://ids.si.edu/ids/deliveryService?id=NPG-S_NPG_75_28_2_h",
+      "rights": "CC0",
+      "sourceUrl": "https://npg.si.edu/object/npg_S_NPG.75.28.2.h",
+      "metadata": {
+        "freetext": {
+          "date": [
+            {
+              "label": "Date",
+              "content": "c. 1782"
+            }
+          ],
+          "name": [
+            {
+              "label": "Artist",
+              "content": "Robert Pollard, 1755 - 1838"
+            },
+            {
+              "label": "Sitter",
+              "content": "Charles Grey, 1st Earl Grey, 1729 - 1807"
+            }
+          ],
+          "place": [
+            {
+              "label": "Place",
+              "content": "United Kingdom\\England"
+            }
+          ],
+          "title": [
+            {
+              "label": "Associated Title",
+              "content": "Book: An Impartial History of the War in America"
+            }
+          ],
+          "topic": [
+            {
+              "label": "Topic",
+              "content": "Charles Grey, 1st Earl Grey: Male"
+            },
+            {
+              "label": "Topic",
+              "content": "Charles Grey, 1st Earl Grey: Military and Intelligence\\Soldier\\Revolutionary War"
+            },
+            {
+              "label": "Topic",
+              "content": "Portrait"
+            }
+          ],
+          "setName": [
+            {
+              "label": "See more items in",
+              "content": "National Portrait Gallery Collection"
+            },
+            {
+              "label": "Location",
+              "content": "Currently not on view"
+            }
+          ],
+          "creditLine": [
+            {
+              "label": "Credit Line",
+              "content": "National Portrait Gallery, Smithsonian Institution"
+            }
+          ],
+          "dataSource": [
+            {
+              "label": "Data Source",
+              "content": "National Portrait Gallery"
+            }
+          ],
+          "identifier": [
+            {
+              "label": "Object number",
+              "content": "S/NPG.75.28.2.h"
+            }
+          ],
+          "objectType": [
+            {
+              "label": "Type",
+              "content": "Print"
+            }
+          ],
+          "objectRights": [
+            {
+              "label": "Restrictions & Rights",
+              "content": "CC0"
+            }
+          ],
+          "physicalDescription": [
+            {
+              "label": "Medium",
+              "content": "Engraving on paper"
+            },
+            {
+              "label": "Dimensions",
+              "content": "Sheet: 20.5 x 12.3cm (8 1/16 x 4 13/16\")"
+            }
+          ]
+        },
+        "indexedStructured": {
+          "date": [
+            "1770s",
+            "1780s"
+          ],
+          "name": [
+            "Grey, Charles",
+            "Pollard, Robert"
+          ],
+          "place": [
+            "Europe",
+            "England",
+            "United Kingdom"
+          ],
+          "topic": [
+            "Soldiers",
+            "Military and Intelligence",
+            "Men",
+            "Portraits",
+            "American Revolution (1775-1783)"
+          ],
+          "geoLocation": [
+            {
+              "L1": {
+                "type": "Continent",
+                "content": "Europe"
+              },
+              "L2": {
+                "type": "Nation",
+                "content": "United Kingdom"
+              },
+              "L3": {
+                "type": "Country",
+                "content": "England"
+              }
+            }
+          ],
+          "object_type": [
+            "Prints"
+          ],
+          "online_media_type": [
+            "Images"
+          ]
+        },
+        "descriptiveNonRepeating": {
+          "guid": "http://n2t.net/ark:/65665/sm464f259ab-5b55-474e-9f7c-55545cde227d",
+          "title": {
+            "label": "Title",
+            "content": "1st Earl Charles Grey"
+          },
+          "record_ID": "npg_S_NPG.75.28.2.h",
+          "unit_code": "NPG",
+          "title_sort": "1ST EARL CHARLES GREY",
+          "data_source": "National Portrait Gallery",
+          "record_link": "https://npg.si.edu/object/npg_S_NPG.75.28.2.h",
+          "online_media": {
+            "media": [
+              {
+                "id": "media:NPG-S_NPG_75_28_2_h",
+                "guid": "http://n2t.net/ark:/65665/tr2a066bade-1380-445e-9186-c93b6e3b5f9e",
+                "type": "Images",
+                "idsId": "NPG-S_NPG_75_28_2_h",
+                "usage": {
+                  "access": "CC0"
+                },
+                "content": "https://ids.si.edu/ids/deliveryService?id=NPG-S_NPG_75_28_2_h",
+                "thumbnail": "https://ids.si.edu/ids/deliveryService?id=NPG-S_NPG_75_28_2_h",
+                "altTextAccessibility": "Artist: Robert Pollard, Sitter: Charles Grey, 1st Earl  Grey, Current owner: National Portrait Gallery, Smithsonian Institution",
+                "extDescrAccessibility": "",
+                "resources": [
+                  {
+                    "label": "High-resolution TIFF",
+                    "url": "https://ids.si.edu/ids/download?id=NPG-S_NPG_75_28_2_h.tif",
+                    "width": 2290,
+                    "height": 4000,
+                    "dimensions": "2290x4000"
+                  },
+                  {
+                    "label": "High-resolution JPEG",
+                    "url": "https://ids.si.edu/ids/download?id=NPG-S_NPG_75_28_2_h.jpg",
+                    "width": 2290,
+                    "height": 4000,
+                    "dimensions": "2290x4000"
+                  },
+                  {
+                    "label": "Screen Image",
+                    "url": "https://ids.si.edu/ids/download?id=NPG-S_NPG_75_28_2_h_screen"
+                  },
+                  {
+                    "label": "Thumbnail Image",
+                    "url": "https://ids.si.edu/ids/download?id=NPG-S_NPG_75_28_2_h_thumb"
+                  }
+                ]
+              }
+            ],
+            "mediaCount": 1
+          },
+          "metadata_usage": {
+            "access": "CC0"
+          }
+        }
+      }
+    },
+    {
+      "id": "ld1-1643399756728-1643399826157-1",
+      "title": "Frontispiece to \"A Narrative of the Adventures and Escape of Moses Roper, from American Slavery\"",
+      "artist": "John Cochran, 1821 - 1865",
+      "image": "https://ids.si.edu/ids/deliveryService?id=NPG-NPG_2016_149_ext",
+      "fullRes": "https://ids.si.edu/ids/deliveryService?id=NPG-NPG_2016_149_ext",
+      "rights": "CC0",
+      "sourceUrl": "https://npg.si.edu/object/npg_NPG.2016.149",
+      "metadata": {
+        "freetext": {
+          "date": [
+            {
+              "label": "Date",
+              "content": "1843"
+            }
+          ],
+          "name": [
+            {
+              "label": "Artist",
+              "content": "John Cochran, 1821 - 1865"
+            },
+            {
+              "label": "Copy after",
+              "content": "Henry Room, 1802 - 1850"
+            },
+            {
+              "label": "Sitter",
+              "content": "Moses Roper, c. 1815 - Apr 18 1891"
+            }
+          ],
+          "topic": [
+            {
+              "label": "Topic",
+              "content": "Book\\Frontispiece"
+            },
+            {
+              "label": "Topic",
+              "content": "Moses Roper: Male"
+            },
+            {
+              "label": "Topic",
+              "content": "Moses Roper: Arts and Culture\\Literature\\Writer"
+            },
+            {
+              "label": "Topic",
+              "content": "Moses Roper: Social Welfare and Reform\\Reformer\\Social reformer\\Civil rights activist\\Abolitionist"
+            },
+            {
+              "label": "Topic",
+              "content": "Moses Roper: Law and Crime\\Enslaved person"
+            },
+            {
+              "label": "Topic",
+              "content": "Portrait"
+            }
+          ],
+          "setName": [
+            {
+              "label": "See more items in",
+              "content": "National Portrait Gallery Collection"
+            },
+            {
+              "label": "Location",
+              "content": "Currently not on view"
+            }
+          ],
+          "creditLine": [
+            {
+              "label": "Credit Line",
+              "content": "National Portrait Gallery, Smithsonian Institution"
+            }
+          ],
+          "dataSource": [
+            {
+              "label": "Data Source",
+              "content": "National Portrait Gallery"
+            }
+          ],
+          "identifier": [
+            {
+              "label": "Object number",
+              "content": "NPG.2016.149"
+            }
+          ],
+          "objectType": [
+            {
+              "label": "Type",
+              "content": "Book"
+            }
+          ],
+          "objectRights": [
+            {
+              "label": "Restrictions & Rights",
+              "content": "CC0"
+            }
+          ],
+          "physicalDescription": [
+            {
+              "label": "Medium",
+              "content": "Stipple engraving on paper"
+            },
+            {
+              "label": "Dimensions",
+              "content": "Sheet: 14.3 × 8.7 cm (5 5/8 × 3 7/16\")"
+            },
+            {
+              "label": "Dimensions",
+              "content": "Book closed: 15.2 × 9.6 × 1.2 cm (6 × 3 3/4 × 1/2\")"
+            },
+            {
+              "label": "Dimensions",
+              "content": "Book open: 15.2 × 19.1 × 1 cm (6 × 7 1/2 × 3/8\")"
+            }
+          ]
+        },
+        "indexedStructured": {
+          "date": [
+            "1840s"
+          ],
+          "name": [
+            "Cochran, John",
+            "Room, Henry",
+            "Roper, Moses"
+          ],
+          "topic": [
+            "Social Welfare and Reform",
+            "Frontispiece",
+            "Books and reading",
+            "Arts and Culture",
+            "Literature",
+            "Writers",
+            "Portraits",
+            "Reformers",
+            "Civil rights activist",
+            "Abolitionists",
+            "Social reformer",
+            "Men",
+            "Law and Crime",
+            "Enslaved person"
+          ],
+          "object_type": [
+            "Books"
+          ],
+          "online_media_type": [
+            "Images"
+          ]
+        },
+        "descriptiveNonRepeating": {
+          "guid": "http://n2t.net/ark:/65665/sm457b64f02-2a78-4511-bdff-15542e72cd75",
+          "title": {
+            "label": "Title",
+            "content": "Frontispiece to \"A Narrative of the Adventures and Escape of Moses Roper, from American Slavery\""
+          },
+          "record_ID": "npg_NPG.2016.149",
+          "unit_code": "NPG",
+          "title_sort": "FRONTISPIECE TO \"A NARRATIVE OF THE ADVENTURES AND ESCAPE OF MOSES ROPER, FROM AMERICAN SLAVERY\"",
+          "data_source": "National Portrait Gallery",
+          "record_link": "https://npg.si.edu/object/npg_NPG.2016.149",
+          "online_media": {
+            "media": [
+              {
+                "id": "media:NPG-NPG_2016_149_ext",
+                "guid": "http://n2t.net/ark:/65665/tr2e2928ed0-af79-433c-97ed-8b769ae94af4",
+                "type": "Images",
+                "idsId": "NPG-NPG_2016_149_ext",
+                "usage": {
+                  "access": "CC0"
+                },
+                "content": "https://ids.si.edu/ids/deliveryService?id=NPG-NPG_2016_149_ext",
+                "thumbnail": "https://ids.si.edu/ids/deliveryService?id=NPG-NPG_2016_149_ext",
+                "altTextAccessibility": "Artist: John Cochran, Sitter: Moses Roper, Current owner: National Portrait Gallery, Smithsonian Institution",
+                "extDescrAccessibility": "",
+                "resources": [
+                  {
+                    "label": "High-resolution TIFF",
+                    "url": "https://ids.si.edu/ids/download?id=NPG-NPG_2016_149_ext.tif",
+                    "width": 3887,
+                    "height": 6559,
+                    "dimensions": "3887x6559"
+                  },
+                  {
+                    "label": "High-resolution JPEG",
+                    "url": "https://ids.si.edu/ids/download?id=NPG-NPG_2016_149_ext.jpg",
+                    "width": 3887,
+                    "height": 6559,
+                    "dimensions": "3887x6559"
+                  },
+                  {
+                    "label": "Screen Image",
+                    "url": "https://ids.si.edu/ids/download?id=NPG-NPG_2016_149_ext_screen"
+                  },
+                  {
+                    "label": "Thumbnail Image",
+                    "url": "https://ids.si.edu/ids/download?id=NPG-NPG_2016_149_ext_thumb"
+                  }
+                ]
+              }
+            ],
+            "mediaCount": 1
+          },
+          "metadata_usage": {
+            "access": "CC0"
+          }
+        }
+      }
+    },
+    {
+      "id": "ld1-1643399756728-1643399828277-0",
+      "title": "Pungwuni",
+      "artist": "John Warner Barber, 2 Feb 1798 - 22 Jun 1885",
+      "image": "https://ids.si.edu/ids/deliveryService?id=NPG-S_NPG_2018_83_11_int",
+      "fullRes": "https://ids.si.edu/ids/deliveryService?id=NPG-S_NPG_2018_83_11_int",
+      "rights": "CC0",
+      "sourceUrl": "https://npg.si.edu/object/npg_S_NPG.2018.83.11",
+      "metadata": {
+        "freetext": {
+          "date": [
+            {
+              "label": "Date",
+              "content": "1840"
+            }
+          ],
+          "name": [
+            {
+              "label": "Artist",
+              "content": "John Warner Barber, 2 Feb 1798 - 22 Jun 1885"
+            },
+            {
+              "label": "Sitter",
+              "content": "Pungwuni"
+            }
+          ],
+          "topic": [
+            {
+              "label": "Topic",
+              "content": "Silhouette"
+            },
+            {
+              "label": "Topic",
+              "content": "Book"
+            },
+            {
+              "label": "Topic",
+              "content": "Pungwuni: Male"
+            },
+            {
+              "label": "Topic",
+              "content": "Portrait"
+            }
+          ],
+          "setName": [
+            {
+              "label": "See more items in",
+              "content": "National Portrait Gallery Collection"
+            },
+            {
+              "label": "Location",
+              "content": "Currently not on view"
+            }
+          ],
+          "creditLine": [
+            {
+              "label": "Credit Line",
+              "content": "National Portrait Gallery, Smithsonian Institution"
+            }
+          ],
+          "dataSource": [
+            {
+              "label": "Data Source",
+              "content": "National Portrait Gallery"
+            }
+          ],
+          "identifier": [
+            {
+              "label": "Object number",
+              "content": "S/NPG.2018.83.11"
+            }
+          ],
+          "objectType": [
+            {
+              "label": "Type",
+              "content": "Print"
+            }
+          ],
+          "objectRights": [
+            {
+              "label": "Restrictions & Rights",
+              "content": "CC0"
+            }
+          ],
+          "physicalDescription": [
+            {
+              "label": "Medium",
+              "content": "Wood engraving on paper"
+            },
+            {
+              "label": "Dimensions",
+              "content": "Image: 4.5 × 3.1 cm (1 3/4 × 1 1/4\")"
+            },
+            {
+              "label": "Dimensions",
+              "content": "Sheet: 22 × 14.2 cm (8 11/16 × 5 9/16\")"
+            },
+            {
+              "label": "Dimensions",
+              "content": "Book closed: 22 × 14.2 × 0.3 cm (8 11/16 × 5 9/16 × 1/8\")"
+            },
+            {
+              "label": "Dimensions",
+              "content": "Book open: 22 × 27.5 × 0.3 cm (8 11/16 × 10 13/16 × 1/8\")"
+            }
+          ]
+        },
+        "indexedStructured": {
+          "date": [
+            "1840s"
+          ],
+          "name": [
+            "Barber, John Warner",
+            "Pungwuni"
+          ],
+          "topic": [
+            "Books and reading",
+            "Men",
+            "Portraits",
+            "Silhouette"
+          ],
+          "object_type": [
+            "Prints"
+          ],
+          "online_media_type": [
+            "Images"
+          ]
+        },
+        "descriptiveNonRepeating": {
+          "guid": "http://n2t.net/ark:/65665/sm49a04511d-21b3-4ebb-8955-bbf58addd3a0",
+          "title": {
+            "label": "Title",
+            "content": "Pungwuni"
+          },
+          "record_ID": "npg_S_NPG.2018.83.11",
+          "unit_code": "NPG",
+          "title_sort": "PUNGWUNI",
+          "data_source": "National Portrait Gallery",
+          "record_link": "https://npg.si.edu/object/npg_S_NPG.2018.83.11",
+          "online_media": {
+            "media": [
+              {
+                "id": "media:NPG-S_NPG_2018_83_11_int",
+                "guid": "http://n2t.net/ark:/65665/tr2548e973c-aeda-46ae-92c3-ea6cbbd559c2",
+                "type": "Images",
+                "idsId": "NPG-S_NPG_2018_83_11_int",
+                "usage": {
+                  "access": "CC0"
+                },
+                "content": "https://ids.si.edu/ids/deliveryService?id=NPG-S_NPG_2018_83_11_int",
+                "thumbnail": "https://ids.si.edu/ids/deliveryService?id=NPG-S_NPG_2018_83_11_int",
+                "altTextAccessibility": "Artist: John Warner Barber, Sitter: Pungwuni, Current owner: National Portrait Gallery, Smithsonian Institution",
+                "extDescrAccessibility": "",
+                "resources": [
+                  {
+                    "label": "High-resolution TIFF",
+                    "url": "https://ids.si.edu/ids/download?id=NPG-S_NPG_2018_83_11_int.tif",
+                    "width": 2732,
+                    "height": 3010,
+                    "dimensions": "2732x3010"
+                  },
+                  {
+                    "label": "High-resolution JPEG",
+                    "url": "https://ids.si.edu/ids/download?id=NPG-S_NPG_2018_83_11_int.jpg",
+                    "width": 2732,
+                    "height": 3010,
+                    "dimensions": "2732x3010"
+                  },
+                  {
+                    "label": "Screen Image",
+                    "url": "https://ids.si.edu/ids/download?id=NPG-S_NPG_2018_83_11_int_screen"
+                  },
+                  {
+                    "label": "Thumbnail Image",
+                    "url": "https://ids.si.edu/ids/download?id=NPG-S_NPG_2018_83_11_int_thumb"
+                  }
+                ]
+              }
+            ],
+            "mediaCount": 1
+          },
+          "metadata_usage": {
+            "access": "CC0"
+          }
+        }
+      }
+    },
+    {
+      "id": "ld1-1643399756728-1643399816050-0",
+      "title": "David G. Farragut",
+      "artist": "John Chester Buttre, 10 Jun 1821 - 2 Dec 1893",
+      "image": "https://ids.si.edu/ids/deliveryService?id=NPG-NPG_2008_122Farragut-000002",
+      "fullRes": "https://ids.si.edu/ids/deliveryService?id=NPG-NPG_2008_122Farragut-000002",
+      "rights": "CC0",
+      "sourceUrl": "https://npg.si.edu/object/npg_NPG.2008.122",
+      "metadata": {
+        "freetext": {
+          "date": [
+            {
+              "label": "Date",
+              "content": "1865"
+            }
+          ],
+          "name": [
+            {
+              "label": "Artist",
+              "content": "John Chester Buttre, 10 Jun 1821 - 2 Dec 1893"
+            },
+            {
+              "label": "Copy after",
+              "content": "Charles DeForest Fredricks, 11 Dec 1823 - 25 May 1894"
+            },
+            {
+              "label": "Sitter",
+              "content": "David Glasgow Farragut, 5 Jul 1801 - 15 Aug 1870"
+            }
+          ],
+          "topic": [
+            {
+              "label": "Topic",
+              "content": "Costume\\Dress Accessory\\Epaulet"
+            },
+            {
+              "label": "Topic",
+              "content": "Costume\\Dress Accessory\\Button\\Brass"
+            },
+            {
+              "label": "Topic",
+              "content": "David Glasgow Farragut: Male"
+            },
+            {
+              "label": "Topic",
+              "content": "David Glasgow Farragut: Military and Intelligence\\Navy\\Officer\\Admiral"
+            },
+            {
+              "label": "Topic",
+              "content": "David Glasgow Farragut: Military and Intelligence\\Navy\\Officer\\Rear Admiral"
+            },
+            {
+              "label": "Topic",
+              "content": "David Glasgow Farragut: Military and Intelligence\\Navy\\Officer\\Civil War\\Union"
+            },
+            {
+              "label": "Topic",
+              "content": "Portrait"
+            }
+          ],
+          "setName": [
+            {
+              "label": "See more items in",
+              "content": "National Portrait Gallery Collection"
+            },
+            {
+              "label": "Location",
+              "content": "Currently not on view"
+            }
+          ],
+          "creditLine": [
+            {
+              "label": "Credit Line",
+              "content": "National Portrait Gallery, Smithsonian Institution"
+            }
+          ],
+          "dataSource": [
+            {
+              "label": "Data Source",
+              "content": "National Portrait Gallery"
+            }
+          ],
+          "identifier": [
+            {
+              "label": "Object number",
+              "content": "NPG.2008.122"
+            }
+          ],
+          "objectType": [
+            {
+              "label": "Type",
+              "content": "Print"
+            }
+          ],
+          "objectRights": [
+            {
+              "label": "Restrictions & Rights",
+              "content": "CC0"
+            }
+          ],
+          "physicalDescription": [
+            {
+              "label": "Medium",
+              "content": "Engraving on paper"
+            },
+            {
+              "label": "Dimensions",
+              "content": "Sheet: 60.4 x 47.9cm (23 3/4 x 18 7/8\")"
+            },
+            {
+              "label": "Dimensions",
+              "content": "Mat: 71.1 x 55.9cm (28 x 22\")"
+            }
+          ]
+        },
+        "indexedStructured": {
+          "date": [
+            "1861-1885",
+            "1860s"
+          ],
+          "name": [
+            "Fredricks, Charles DeForest",
+            "United States. Navy",
+            "Buttre, John Chester",
+            "Farragut, David Glasgow"
+          ],
+          "topic": [
+            "Brass",
+            "American Civil War (1861-1865)",
+            "Dress accessories",
+            "Portraits",
+            "Union",
+            "Civil War, 1861-1865",
+            "Button",
+            "Admiral",
+            "Costume",
+            "Military and Intelligence",
+            "Men",
+            "Rear Admiral",
+            "Officer"
+          ],
+          "object_type": [
+            "Prints"
+          ],
+          "online_media_type": [
+            "Images"
+          ]
+        },
+        "descriptiveNonRepeating": {
+          "guid": "http://n2t.net/ark:/65665/sm4b3065c9a-6c42-4474-b859-423706bdd7b7",
+          "title": {
+            "label": "Title",
+            "content": "David G. Farragut"
+          },
+          "record_ID": "npg_NPG.2008.122",
+          "unit_code": "NPG",
+          "title_sort": "DAVID G. FARRAGUT",
+          "data_source": "National Portrait Gallery",
+          "record_link": "https://npg.si.edu/object/npg_NPG.2008.122",
+          "online_media": {
+            "media": [
+              {
+                "id": "media:NPG-NPG_2008_122Farragut-000002",
+                "guid": "http://n2t.net/ark:/65665/tr23ef9a79e-6464-4c5f-b669-564a2c2ecb75",
+                "type": "Images",
+                "idsId": "NPG-NPG_2008_122Farragut-000002",
+                "usage": {
+                  "access": "CC0"
+                },
+                "content": "https://ids.si.edu/ids/deliveryService?id=NPG-NPG_2008_122Farragut-000002",
+                "thumbnail": "https://ids.si.edu/ids/deliveryService?id=NPG-NPG_2008_122Farragut-000002",
+                "altTextAccessibility": "Artist: John Chester Buttre, Sitter: David Glasgow Farragut, Current owner: National Portrait Gallery, Smithsonian Institution",
+                "extDescrAccessibility": "",
+                "resources": [
+                  {
+                    "label": "High-resolution TIFF",
+                    "url": "https://ids.si.edu/ids/download?id=NPG-NPG_2008_122Farragut-000002.tif",
+                    "width": 3138,
+                    "height": 3970,
+                    "dimensions": "3138x3970"
+                  },
+                  {
+                    "label": "High-resolution JPEG",
+                    "url": "https://ids.si.edu/ids/download?id=NPG-NPG_2008_122Farragut-000002.jpg",
+                    "width": 3138,
+                    "height": 3970,
+                    "dimensions": "3138x3970"
+                  },
+                  {
+                    "label": "Screen Image",
+                    "url": "https://ids.si.edu/ids/download?id=NPG-NPG_2008_122Farragut-000002_screen"
+                  },
+                  {
+                    "label": "Thumbnail Image",
+                    "url": "https://ids.si.edu/ids/download?id=NPG-NPG_2008_122Farragut-000002_thumb"
+                  }
+                ]
+              }
+            ],
+            "mediaCount": 1
+          },
+          "metadata_usage": {
+            "access": "CC0"
+          }
+        }
+      }
+    },
+    {
+      "id": "ld1-1643399756728-1643399821016-1",
+      "title": "J. B. Loir",
+      "artist": "Charles Balthazar Julien Févret de Saint-Mémin, 12 Mar 1770 - 23 Jun 1852",
+      "image": "https://ids.si.edu/ids/deliveryService?id=NPG-S_NPG_74_39_6_46Loir-000001",
+      "fullRes": "https://ids.si.edu/ids/deliveryService?id=NPG-S_NPG_74_39_6_46Loir-000001",
+      "rights": "CC0",
+      "sourceUrl": "https://npg.si.edu/object/npg_S_NPG.74.39.6.46",
+      "metadata": {
+        "freetext": {
+          "date": [
+            {
+              "label": "Date",
+              "content": "1800"
+            }
+          ],
+          "name": [
+            {
+              "label": "Artist",
+              "content": "Charles Balthazar Julien Févret de Saint-Mémin, 12 Mar 1770 - 23 Jun 1852"
+            },
+            {
+              "label": "Sitter",
+              "content": "J. B. Loir"
+            }
+          ],
+          "topic": [
+            {
+              "label": "Topic",
+              "content": "J. B. Loir: Male"
+            },
+            {
+              "label": "Topic",
+              "content": "Portrait"
+            }
+          ],
+          "setName": [
+            {
+              "label": "See more items in",
+              "content": "National Portrait Gallery Collection"
+            },
+            {
+              "label": "Location",
+              "content": "Currently not on view"
+            }
+          ],
+          "creditLine": [
+            {
+              "label": "Credit Line",
+              "content": "National Portrait Gallery, Smithsonian Institution; gift of Mr. and Mrs. Paul Mellon"
+            }
+          ],
+          "dataSource": [
+            {
+              "label": "Data Source",
+              "content": "National Portrait Gallery"
+            }
+          ],
+          "identifier": [
+            {
+              "label": "Object number",
+              "content": "S/NPG.74.39.6.46"
+            }
+          ],
+          "objectType": [
+            {
+              "label": "Type",
+              "content": "Print"
+            }
+          ],
+          "objectRights": [
+            {
+              "label": "Restrictions & Rights",
+              "content": "CC0"
+            }
+          ],
+          "physicalDescription": [
+            {
+              "label": "Medium",
+              "content": "Engraving on paper"
+            },
+            {
+              "label": "Dimensions",
+              "content": "Image: 5.5 x 5.5 cm (2 3/16 x 2 3/16\")"
+            },
+            {
+              "label": "Dimensions",
+              "content": "Sheet: 55 x 40 cm (21 5/8 x 15 3/4\")"
+            }
+          ]
+        },
+        "indexedStructured": {
+          "date": [
+            "1800s"
+          ],
+          "name": [
+            "Loir, J. B.",
+            "Saint-Memin, Charles Balthazar Julien Fevret de"
+          ],
+          "topic": [
+            "Men",
+            "Portraits"
+          ],
+          "object_type": [
+            "Prints"
+          ],
+          "online_media_type": [
+            "Images"
+          ]
+        },
+        "descriptiveNonRepeating": {
+          "guid": "http://n2t.net/ark:/65665/sm4327f0a1a-f533-47d8-aff4-99d0f3ca9000",
+          "title": {
+            "label": "Title",
+            "content": "J. B. Loir"
+          },
+          "record_ID": "npg_S_NPG.74.39.6.46",
+          "unit_code": "NPG",
+          "title_sort": "J. B. LOIR",
+          "data_source": "National Portrait Gallery",
+          "record_link": "https://npg.si.edu/object/npg_S_NPG.74.39.6.46",
+          "online_media": {
+            "media": [
+              {
+                "id": "media:NPG-S_NPG_74_39_6_46Loir-000001",
+                "guid": "http://n2t.net/ark:/65665/tr2dcfb4fd3-de8c-4ef3-b4e3-049aa76f09a9",
+                "type": "Images",
+                "idsId": "NPG-S_NPG_74_39_6_46Loir-000001",
+                "usage": {
+                  "access": "CC0"
+                },
+                "content": "https://ids.si.edu/ids/deliveryService?id=NPG-S_NPG_74_39_6_46Loir-000001",
+                "thumbnail": "https://ids.si.edu/ids/deliveryService?id=NPG-S_NPG_74_39_6_46Loir-000001",
+                "altTextAccessibility": "Artist: Charles Balthazar Julien Févret de Saint-Mémin, Sitter: J. B. Loir, Current owner: National Portrait Gallery, Smithsonian Institution",
+                "extDescrAccessibility": "",
+                "resources": [
+                  {
+                    "label": "High-resolution TIFF",
+                    "url": "https://ids.si.edu/ids/download?id=NPG-S_NPG_74_39_6_46Loir-000001.tif",
+                    "width": 2309,
+                    "height": 2351,
+                    "dimensions": "2309x2351"
+                  },
+                  {
+                    "label": "High-resolution JPEG",
+                    "url": "https://ids.si.edu/ids/download?id=NPG-S_NPG_74_39_6_46Loir-000001.jpg",
+                    "width": 2309,
+                    "height": 2351,
+                    "dimensions": "2309x2351"
+                  },
+                  {
+                    "label": "Screen Image",
+                    "url": "https://ids.si.edu/ids/download?id=NPG-S_NPG_74_39_6_46Loir-000001_screen"
+                  },
+                  {
+                    "label": "Thumbnail Image",
+                    "url": "https://ids.si.edu/ids/download?id=NPG-S_NPG_74_39_6_46Loir-000001_thumb"
+                  }
+                ]
+              }
+            ],
+            "mediaCount": 1
+          },
+          "metadata_usage": {
+            "access": "CC0"
+          }
+        }
+      }
+    },
+    {
+      "id": "ld1-1643399756728-1643399821042-1",
+      "title": "Jean Marie Soulier",
+      "artist": "Charles Balthazar Julien Févret de Saint-Mémin, 12 Mar 1770 - 23 Jun 1852",
+      "image": "https://ids.si.edu/ids/deliveryService?id=NPG-S_NPG_74_39_7_48Soulier-000001",
+      "fullRes": "https://ids.si.edu/ids/deliveryService?id=NPG-S_NPG_74_39_7_48Soulier-000001",
+      "rights": "CC0",
+      "sourceUrl": "https://npg.si.edu/object/npg_S_NPG.74.39.7.48",
+      "metadata": {
+        "freetext": {
+          "date": [
+            {
+              "label": "Date",
+              "content": "1802"
+            }
+          ],
+          "name": [
+            {
+              "label": "Artist",
+              "content": "Charles Balthazar Julien Févret de Saint-Mémin, 12 Mar 1770 - 23 Jun 1852"
+            },
+            {
+              "label": "Sitter",
+              "content": "Jean Marie Soulier, c. 1760 - ?"
+            }
+          ],
+          "topic": [
+            {
+              "label": "Topic",
+              "content": "Jean Marie Soulier: Male"
+            },
+            {
+              "label": "Topic",
+              "content": "Portrait"
+            }
+          ],
+          "setName": [
+            {
+              "label": "See more items in",
+              "content": "National Portrait Gallery Collection"
+            },
+            {
+              "label": "Location",
+              "content": "Currently not on view"
+            }
+          ],
+          "creditLine": [
+            {
+              "label": "Credit Line",
+              "content": "National Portrait Gallery, Smithsonian Institution; gift of Mr. and Mrs. Paul Mellon"
+            }
+          ],
+          "dataSource": [
+            {
+              "label": "Data Source",
+              "content": "National Portrait Gallery"
+            }
+          ],
+          "identifier": [
+            {
+              "label": "Object number",
+              "content": "S/NPG.74.39.7.48"
+            }
+          ],
+          "objectType": [
+            {
+              "label": "Type",
+              "content": "Print"
+            }
+          ],
+          "objectRights": [
+            {
+              "label": "Restrictions & Rights",
+              "content": "CC0"
+            }
+          ],
+          "physicalDescription": [
+            {
+              "label": "Medium",
+              "content": "Engraving on paper"
+            },
+            {
+              "label": "Dimensions",
+              "content": "Image: 5.5 × 5.5 cm (2 3/16 × 2 3/16\")"
+            },
+            {
+              "label": "Dimensions",
+              "content": "Sheet: 54.5 × 39.8 cm (21 7/16 × 15 11/16\")"
+            }
+          ]
+        },
+        "indexedStructured": {
+          "date": [
+            "1800s"
+          ],
+          "name": [
+            "Soulier, Jean Marie",
+            "Saint-Memin, Charles Balthazar Julien Fevret de"
+          ],
+          "topic": [
+            "Men",
+            "Portraits"
+          ],
+          "object_type": [
+            "Prints"
+          ],
+          "online_media_type": [
+            "Images"
+          ]
+        },
+        "descriptiveNonRepeating": {
+          "guid": "http://n2t.net/ark:/65665/sm439ee15c1-d9bc-483d-85ec-bcd5dff73ac6",
+          "title": {
+            "label": "Title",
+            "content": "Jean Marie Soulier"
+          },
+          "record_ID": "npg_S_NPG.74.39.7.48",
+          "unit_code": "NPG",
+          "title_sort": "JEAN MARIE SOULIER",
+          "data_source": "National Portrait Gallery",
+          "record_link": "https://npg.si.edu/object/npg_S_NPG.74.39.7.48",
+          "online_media": {
+            "media": [
+              {
+                "id": "media:NPG-S_NPG_74_39_7_48Soulier-000001",
+                "guid": "http://n2t.net/ark:/65665/tr2a8c57ab5-0a11-48f6-9d1b-602e8f2c4504",
+                "type": "Images",
+                "idsId": "NPG-S_NPG_74_39_7_48Soulier-000001",
+                "usage": {
+                  "access": "CC0"
+                },
+                "content": "https://ids.si.edu/ids/deliveryService?id=NPG-S_NPG_74_39_7_48Soulier-000001",
+                "thumbnail": "https://ids.si.edu/ids/deliveryService?id=NPG-S_NPG_74_39_7_48Soulier-000001",
+                "altTextAccessibility": "Artist: Charles Balthazar Julien Févret de Saint-Mémin, Sitter: Jean Marie Soulier, Current owner: National Portrait Gallery, Smithsonian Institution",
+                "extDescrAccessibility": "",
+                "resources": [
+                  {
+                    "label": "High-resolution TIFF",
+                    "url": "https://ids.si.edu/ids/download?id=NPG-S_NPG_74_39_7_48Soulier-000001.tif",
+                    "width": 2363,
+                    "height": 2351,
+                    "dimensions": "2363x2351"
+                  },
+                  {
+                    "label": "High-resolution JPEG",
+                    "url": "https://ids.si.edu/ids/download?id=NPG-S_NPG_74_39_7_48Soulier-000001.jpg",
+                    "width": 2363,
+                    "height": 2351,
+                    "dimensions": "2363x2351"
+                  },
+                  {
+                    "label": "Screen Image",
+                    "url": "https://ids.si.edu/ids/download?id=NPG-S_NPG_74_39_7_48Soulier-000001_screen"
+                  },
+                  {
+                    "label": "Thumbnail Image",
+                    "url": "https://ids.si.edu/ids/download?id=NPG-S_NPG_74_39_7_48Soulier-000001_thumb"
+                  }
+                ]
+              }
+            ],
+            "mediaCount": 1
+          },
+          "metadata_usage": {
+            "access": "CC0"
+          }
+        }
+      }
+    }
+  ],
+  "total": 28218
+}

@@ -1,0 +1,829 @@
+{
+  "artworks": [
+    {
+      "id": "94979",
+      "title": "Nathaniel Hurd",
+      "artist": "John Singleton Copley (American, born The Thirteen Colonies, 1738–1815)",
+      "image": "https://openaccess-cdn.clevelandart.org/1915.534/1915.534_web.jpg",
+      "fullRes": "https://openaccess-cdn.clevelandart.org/1915.534/1915.534_print.jpg",
+      "imageWidth": "748",
+      "imageHeight": "893",
+      "rights": "CC0",
+      "sourceUrl": "https://clevelandart.org/art/1915.534",
+      "date": "c. 1765",
+      "medium": "oil on canvas",
+      "dimensions": {
+        "framed": {
+          "height": 0.905,
+          "height_inch": 35,
+          "height_inch_fraction": 0.625,
+          "width": 0.78,
+          "width_inch": 30,
+          "width_inch_fraction": 0.6875,
+          "depth": 0.065,
+          "depth_inch": 2,
+          "depth_inch_fraction": 0.5625
+        },
+        "unframed": {
+          "height": 0.762,
+          "height_inch": 30,
+          "height_inch_fraction": 0,
+          "width": 0.648,
+          "width_inch": 25,
+          "width_inch_fraction": 0.5
+        }
+      }
+    },
+    {
+      "id": "102578",
+      "title": "Portrait of Dora Wheeler",
+      "artist": "William Merritt Chase (American, 1849–1916)",
+      "image": "https://openaccess-cdn.clevelandart.org/1921.1239/1921.1239_web.jpg",
+      "fullRes": "https://openaccess-cdn.clevelandart.org/1921.1239/1921.1239_print.jpg",
+      "imageWidth": "939",
+      "imageHeight": "893",
+      "rights": "CC0",
+      "sourceUrl": "https://clevelandart.org/art/1921.1239",
+      "date": "1882–83",
+      "medium": "oil on canvas",
+      "dimensions": {
+        "framed": {
+          "height": 1.806,
+          "height_inch": 71,
+          "height_inch_fraction": 0.125,
+          "width": 1.886,
+          "width_inch": 74,
+          "width_inch_fraction": 0.25,
+          "depth": 0.11,
+          "depth_inch": 4,
+          "depth_inch_fraction": 0.3125
+        },
+        "unframed": {
+          "height": 1.598,
+          "height_inch": 62,
+          "height_inch_fraction": 0.9375,
+          "width": 1.664,
+          "width_inch": 65,
+          "width_inch_fraction": 0.5
+        }
+      }
+    },
+    {
+      "id": "92937",
+      "title": "Stag at Sharkey's",
+      "artist": "George Bellows (American, 1882–1925)",
+      "image": "https://openaccess-cdn.clevelandart.org/1922.1133/1922.1133_web.jpg",
+      "fullRes": "https://openaccess-cdn.clevelandart.org/1922.1133/1922.1133_print.jpg",
+      "imageWidth": "1194",
+      "imageHeight": "893",
+      "rights": "CC0",
+      "sourceUrl": "https://clevelandart.org/art/1922.1133",
+      "date": "1909",
+      "medium": "oil on canvas",
+      "dimensions": {
+        "framed": {
+          "height": 1.1,
+          "height_inch": 43,
+          "height_inch_fraction": 0.3125,
+          "width": 1.405,
+          "width_inch": 55,
+          "width_inch_fraction": 0.3125,
+          "depth": 0.085,
+          "depth_inch": 3,
+          "depth_inch_fraction": 0.375
+        },
+        "unframed": {
+          "height": 0.92,
+          "height_inch": 36,
+          "height_inch_fraction": 0.25,
+          "width": 1.226,
+          "width_inch": 48,
+          "width_inch_fraction": 0.25
+        }
+      }
+    },
+    {
+      "id": "151904",
+      "title": "The Biglin Brothers Turning the Stake",
+      "artist": "Thomas Eakins (American, 1844–1916)",
+      "image": "https://openaccess-cdn.clevelandart.org/1927.1984/1927.1984_web.jpg",
+      "fullRes": "https://openaccess-cdn.clevelandart.org/1927.1984/1927.1984_print.jpg",
+      "imageWidth": "1263",
+      "imageHeight": "835",
+      "rights": "CC0",
+      "sourceUrl": "https://clevelandart.org/art/1927.1984",
+      "date": "1873",
+      "medium": "oil on canvas",
+      "dimensions": {
+        "framed": {
+          "height": 1.17,
+          "height_inch": 46,
+          "height_inch_fraction": 0.0625,
+          "width": 1.67,
+          "width_inch": 65,
+          "width_inch_fraction": 0.75,
+          "depth": 0.065,
+          "depth_inch": 2,
+          "depth_inch_fraction": 0.5625
+        },
+        "unframed": {
+          "height": 1.013,
+          "height_inch": 39,
+          "height_inch_fraction": 0.875,
+          "width": 1.514,
+          "width_inch": 59,
+          "width_inch_fraction": 0.625
+        }
+      }
+    },
+    {
+      "id": "110180",
+      "title": "The Race Track (Death on a Pale Horse)",
+      "artist": "Albert Pinkham Ryder (American, 1847–1917)",
+      "image": "https://openaccess-cdn.clevelandart.org/1928.8/1928.8_web.jpg",
+      "fullRes": "https://openaccess-cdn.clevelandart.org/1928.8/1928.8_print.jpg",
+      "imageWidth": "900",
+      "imageHeight": "711",
+      "rights": "CC0",
+      "sourceUrl": "https://clevelandart.org/art/1928.8",
+      "date": "c. 1896–1908",
+      "medium": "oil on canvas",
+      "dimensions": {
+        "framed": {
+          "height": 0.845,
+          "height_inch": 33,
+          "height_inch_fraction": 0.25,
+          "width": 1.02,
+          "width_inch": 40,
+          "width_inch_fraction": 0.1875,
+          "depth": 0.065,
+          "depth_inch": 2,
+          "depth_inch_fraction": 0.5625
+        },
+        "unframed": {
+          "height": 0.705,
+          "height_inch": 27,
+          "height_inch_fraction": 0.75,
+          "width": 0.9,
+          "width_inch": 35,
+          "width_inch_fraction": 0.4375
+        }
+      }
+    },
+    {
+      "id": "137259",
+      "title": "Mme L . . . (Laure Borreau)",
+      "artist": "Gustave Courbet (French, 1819–1877)",
+      "image": "https://openaccess-cdn.clevelandart.org/1962.2/1962.2_web.jpg",
+      "fullRes": "https://openaccess-cdn.clevelandart.org/1962.2/1962.2_print.jpg",
+      "imageWidth": "684",
+      "imageHeight": "893",
+      "rights": "CC0",
+      "sourceUrl": "https://clevelandart.org/art/1962.2",
+      "date": "1863",
+      "medium": "oil on fabric",
+      "dimensions": {
+        "framed": {
+          "height": 1.124,
+          "height_inch": 44,
+          "height_inch_fraction": 0.25,
+          "width": 0.93,
+          "width_inch": 36,
+          "width_inch_fraction": 0.625,
+          "depth": 0.121,
+          "depth_inch": 4,
+          "depth_inch_fraction": 0.75
+        },
+        "unframed": {
+          "height": 0.81,
+          "height_inch": 31,
+          "height_inch_fraction": 0.875,
+          "width": 0.612,
+          "width_inch": 24,
+          "width_inch_fraction": 0.125
+        }
+      }
+    },
+    {
+      "id": "141639",
+      "title": "Twilight in the Wilderness",
+      "artist": "Frederic Edwin Church (American, 1826–1900)",
+      "image": "https://openaccess-cdn.clevelandart.org/1965.233/1965.233_web.jpg",
+      "fullRes": "https://openaccess-cdn.clevelandart.org/1965.233/1965.233_print.jpg",
+      "imageWidth": "900",
+      "imageHeight": "562",
+      "rights": "CC0",
+      "sourceUrl": "https://clevelandart.org/art/1965.233",
+      "date": "1860",
+      "medium": "oil on canvas",
+      "dimensions": {
+        "framed": {
+          "height": 1.24,
+          "height_inch": 48,
+          "height_inch_fraction": 0.8125,
+          "width": 1.85,
+          "width_inch": 72,
+          "width_inch_fraction": 0.8125,
+          "depth": 0.13,
+          "depth_inch": 5,
+          "depth_inch_fraction": 0.125
+        },
+        "unframed": {
+          "height": 1.016,
+          "height_inch": 40,
+          "height_inch_fraction": 0,
+          "width": 1.626,
+          "width_inch": 64,
+          "width_inch_fraction": 0
+        }
+      }
+    },
+    {
+      "id": "149112",
+      "title": "Church Street El",
+      "artist": "Charles Sheeler (American, 1883–1965)",
+      "image": "https://openaccess-cdn.clevelandart.org/1977.43/1977.43_web.jpg",
+      "fullRes": "https://openaccess-cdn.clevelandart.org/1977.43/1977.43_print.jpg",
+      "imageWidth": "1069",
+      "imageHeight": "893",
+      "rights": "CC0",
+      "sourceUrl": "https://clevelandart.org/art/1977.43",
+      "date": "1920",
+      "medium": "oil on canvas",
+      "dimensions": {
+        "framed": {
+          "height": 0.6,
+          "height_inch": 23,
+          "height_inch_fraction": 0.625,
+          "width": 0.675,
+          "width_inch": 26,
+          "width_inch_fraction": 0.5625,
+          "depth": 0.06,
+          "depth_inch": 2,
+          "depth_inch_fraction": 0.375
+        },
+        "unframed": {
+          "height": 0.41,
+          "height_inch": 16,
+          "height_inch_fraction": 0.125,
+          "width": 0.485,
+          "width_inch": 19,
+          "width_inch_fraction": 0.125
+        }
+      }
+    },
+    {
+      "id": "135299",
+      "title": "Adeline Ravoux",
+      "artist": "Vincent van Gogh (Dutch, 1853–1890)",
+      "image": "https://openaccess-cdn.clevelandart.org/1958.31/1958.31_web.jpg",
+      "fullRes": "https://openaccess-cdn.clevelandart.org/1958.31/1958.31_print.jpg",
+      "imageWidth": "900",
+      "imageHeight": "897",
+      "rights": "CC0",
+      "sourceUrl": "https://clevelandart.org/art/1958.31",
+      "date": "1890",
+      "medium": "oil on fabric",
+      "dimensions": {
+        "framed": {
+          "height": 0.725,
+          "height_inch": 28,
+          "height_inch_fraction": 0.5625,
+          "width": 0.735,
+          "width_inch": 28,
+          "width_inch_fraction": 0.9375,
+          "depth": 0.085,
+          "depth_inch": 3,
+          "depth_inch_fraction": 0.375
+        },
+        "unframed": {
+          "height": 0.502,
+          "height_inch": 19,
+          "height_inch_fraction": 0.75,
+          "width": 0.505,
+          "width_inch": 19,
+          "width_inch_fraction": 0.875
+        }
+      }
+    },
+    {
+      "id": "93014",
+      "title": "View of Schroon Mountain, Essex County, New York, After a Storm",
+      "artist": "Thomas Cole (American, born England,1801–1848)",
+      "image": "https://openaccess-cdn.clevelandart.org/1917.1335/1917.1335_web.jpg",
+      "fullRes": "https://openaccess-cdn.clevelandart.org/1917.1335/1917.1335_print.jpg",
+      "imageWidth": "1263",
+      "imageHeight": "775",
+      "rights": "CC0",
+      "sourceUrl": "https://clevelandart.org/art/1917.1335",
+      "date": "1838",
+      "medium": "oil on canvas",
+      "dimensions": {
+        "framed": {
+          "height": 1.325,
+          "height_inch": 52,
+          "height_inch_fraction": 0.1875,
+          "width": 1.935,
+          "width_inch": 76,
+          "width_inch_fraction": 0.1875,
+          "depth": 0.13,
+          "depth_inch": 5,
+          "depth_inch_fraction": 0.125
+        },
+        "unframed": {
+          "height": 0.998,
+          "height_inch": 39,
+          "height_inch_fraction": 0.3125,
+          "width": 1.606,
+          "width_inch": 63,
+          "width_inch_fraction": 0.25
+        }
+      }
+    },
+    {
+      "id": "135382",
+      "title": "The Red Kerchief",
+      "artist": "Claude Monet (French, 1840–1926)",
+      "image": "https://openaccess-cdn.clevelandart.org/1958.39/1958.39_web.jpg",
+      "fullRes": "https://openaccess-cdn.clevelandart.org/1958.39/1958.39_print.jpg",
+      "imageWidth": "723",
+      "imageHeight": "900",
+      "rights": "CC0",
+      "sourceUrl": "https://clevelandart.org/art/1958.39",
+      "date": "c. 1868–73",
+      "medium": "oil on fabric",
+      "dimensions": {
+        "framed": {
+          "height": 1.283,
+          "height_inch": 50,
+          "height_inch_fraction": 0.5,
+          "width": 1.057,
+          "width_inch": 41,
+          "width_inch_fraction": 0.625,
+          "depth": 0.146,
+          "depth_inch": 5,
+          "depth_inch_fraction": 0.75
+        },
+        "unframed": {
+          "height": 0.99,
+          "height_inch": 39,
+          "height_inch_fraction": 0,
+          "width": 0.798,
+          "width_inch": 31,
+          "width_inch_fraction": 0.4375
+        }
+      }
+    },
+    {
+      "id": "128391",
+      "title": "Portrait of a Family Playing Music",
+      "artist": "Pieter de Hooch (Dutch, 1629–1684)",
+      "image": "https://openaccess-cdn.clevelandart.org/1951.355/1951.355_web.jpg",
+      "fullRes": "https://openaccess-cdn.clevelandart.org/1951.355/1951.355_print.jpg",
+      "imageWidth": "900",
+      "imageHeight": "759",
+      "rights": "CC0",
+      "sourceUrl": "https://clevelandart.org/art/1951.355",
+      "date": "1663",
+      "medium": "oil on canvas",
+      "dimensions": {
+        "framed": {
+          "height": 1.245,
+          "height_inch": 49,
+          "height_inch_fraction": 0,
+          "width": 1.425,
+          "width_inch": 56,
+          "width_inch_fraction": 0.125,
+          "depth": 0.07,
+          "depth_inch": 2,
+          "depth_inch_fraction": 0.75
+        },
+        "unframed": {
+          "height": 0.987,
+          "height_inch": 38,
+          "height_inch_fraction": 0.875,
+          "width": 1.167,
+          "width_inch": 45,
+          "width_inch_fraction": 0.9375
+        }
+      }
+    },
+    {
+      "id": "140161",
+      "title": "A Woman's Work",
+      "artist": "John Sloan (American, 1871–1951)",
+      "image": "https://openaccess-cdn.clevelandart.org/1964.160/1964.160_web.jpg",
+      "fullRes": "https://openaccess-cdn.clevelandart.org/1964.160/1964.160_print.jpg",
+      "imageWidth": "730",
+      "imageHeight": "900",
+      "rights": "CC0",
+      "sourceUrl": "https://clevelandart.org/art/1964.160",
+      "date": "1912",
+      "medium": "oil on canvas",
+      "dimensions": {
+        "framed": {
+          "height": 0.972,
+          "height_inch": 38,
+          "height_inch_fraction": 0.25,
+          "width": 0.822,
+          "width_inch": 32,
+          "width_inch_fraction": 0.375,
+          "depth": 0.064,
+          "depth_inch": 2,
+          "depth_inch_fraction": 0.5
+        },
+        "unframed": {
+          "height": 0.803,
+          "height_inch": 31,
+          "height_inch_fraction": 0.625,
+          "width": 0.654,
+          "width_inch": 25,
+          "width_inch_fraction": 0.75
+        }
+      }
+    },
+    {
+      "id": "125104",
+      "title": "Frieze of Dancers",
+      "artist": "Edgar Degas (French, 1834–1917)",
+      "image": "https://openaccess-cdn.clevelandart.org/1946.83/1946.83_web.jpg",
+      "fullRes": "https://openaccess-cdn.clevelandart.org/1946.83/1946.83_print.jpg",
+      "imageWidth": "900",
+      "imageHeight": "314",
+      "rights": "CC0",
+      "sourceUrl": "https://clevelandart.org/art/1946.83",
+      "date": "c. 1895",
+      "medium": "oil on fabric",
+      "dimensions": {
+        "framed": {
+          "height": 1.03,
+          "height_inch": 40,
+          "height_inch_fraction": 0.5625,
+          "width": 2.335,
+          "width_inch": 91,
+          "width_inch_fraction": 0.9375,
+          "depth": 0.07,
+          "depth_inch": 2,
+          "depth_inch_fraction": 0.75
+        },
+        "unframed": {
+          "height": 0.7,
+          "height_inch": 27,
+          "height_inch_fraction": 0.5625,
+          "width": 2.005,
+          "width_inch": 78,
+          "width_inch_fraction": 0.9375
+        }
+      }
+    },
+    {
+      "id": "138464",
+      "title": "Cupid and Psyche",
+      "artist": "Jacques-Louis David (French, 1748–1825)",
+      "image": "https://openaccess-cdn.clevelandart.org/1962.37/1962.37_web.jpg",
+      "fullRes": "https://openaccess-cdn.clevelandart.org/1962.37/1962.37_print.jpg",
+      "imageWidth": "1180",
+      "imageHeight": "893",
+      "rights": "CC0",
+      "sourceUrl": "https://clevelandart.org/art/1962.37",
+      "date": "1817",
+      "medium": "oil on canvas",
+      "dimensions": {
+        "framed": {
+          "height": 2.21,
+          "height_inch": 87,
+          "height_inch_fraction": 0,
+          "width": 2.82,
+          "width_inch": 111,
+          "width_inch_fraction": 0,
+          "depth": 0.1,
+          "depth_inch": 3,
+          "depth_inch_fraction": 0.9375
+        },
+        "unframed": {
+          "height": 1.842,
+          "height_inch": 72,
+          "height_inch_fraction": 0.5,
+          "width": 2.416,
+          "width_inch": 95,
+          "width_inch_fraction": 0.125
+        }
+      }
+    },
+    {
+      "id": "127571",
+      "title": "Portrait of a Man, Possibly Girolamo Rosati",
+      "artist": "Lorenzo Lotto (Italian, 1480–1556)",
+      "image": "https://openaccess-cdn.clevelandart.org/1950.250/1950.250_web.jpg",
+      "fullRes": "https://openaccess-cdn.clevelandart.org/1950.250/1950.250_print.jpg",
+      "imageWidth": "824",
+      "imageHeight": "893",
+      "rights": "CC0",
+      "sourceUrl": "https://clevelandart.org/art/1950.250",
+      "date": "1533–34",
+      "medium": "oil on canvas",
+      "dimensions": {
+        "framed": {
+          "height": 1.359,
+          "height_inch": 53,
+          "height_inch_fraction": 0.5,
+          "width": 1.28,
+          "width_inch": 50,
+          "width_inch_fraction": 0.375,
+          "depth": 0.086,
+          "depth_inch": 3,
+          "depth_inch_fraction": 0.375
+        },
+        "unframed": {
+          "height": 1.082,
+          "height_inch": 42,
+          "height_inch_fraction": 0.625,
+          "width": 1.005,
+          "width_inch": 39,
+          "width_inch_fraction": 0.5625
+        }
+      }
+    },
+    {
+      "id": "109245",
+      "title": "Elizabeth Shewell West and Her Son, Raphael",
+      "artist": "Benjamin West (American, born The Thirteen Colonies, 1738–1820)",
+      "image": "https://openaccess-cdn.clevelandart.org/1927.393/1927.393_web.jpg",
+      "fullRes": "https://openaccess-cdn.clevelandart.org/1927.393/1927.393_print.jpg",
+      "imageWidth": "890",
+      "imageHeight": "893",
+      "rights": "CC0",
+      "sourceUrl": "https://clevelandart.org/art/1927.393",
+      "date": "c. 1770",
+      "medium": "oil on canvas",
+      "dimensions": {
+        "framed": {
+          "height": 0.88,
+          "height_inch": 34,
+          "height_inch_fraction": 0.625,
+          "width": 0.875,
+          "width_inch": 34,
+          "width_inch_fraction": 0.4375,
+          "depth": 0.09,
+          "depth_inch": 3,
+          "depth_inch_fraction": 0.5625
+        },
+        "unframed": {
+          "height": 0.665,
+          "height_inch": 26,
+          "height_inch_fraction": 0.1875,
+          "width": 0.663,
+          "width_inch": 26,
+          "width_inch_fraction": 0.125
+        }
+      }
+    },
+    {
+      "id": "160885",
+      "title": "Portrait of Tieleman Roosterman",
+      "artist": "Frans Hals (Dutch, c. 1581–1666)",
+      "image": "https://openaccess-cdn.clevelandart.org/1999.173/1999.173_web.jpg",
+      "fullRes": "https://openaccess-cdn.clevelandart.org/1999.173/1999.173_print.jpg",
+      "imageWidth": "664",
+      "imageHeight": "893",
+      "rights": "CC0",
+      "sourceUrl": "https://clevelandart.org/art/1999.173",
+      "date": "1634",
+      "medium": "oil on canvas",
+      "dimensions": {
+        "framed": {
+          "height": 1.39,
+          "height_inch": 54,
+          "height_inch_fraction": 0.75,
+          "width": 1.09,
+          "width_inch": 42,
+          "width_inch_fraction": 0.9375,
+          "depth": 0.055,
+          "depth_inch": 2,
+          "depth_inch_fraction": 0.1875
+        },
+        "unframed": {
+          "height": 1.17,
+          "height_inch": 46,
+          "height_inch_fraction": 0.0625,
+          "width": 0.87,
+          "width_inch": 34,
+          "width_inch_fraction": 0.25
+        }
+      }
+    },
+    {
+      "id": "140408",
+      "title": "Peregrine Falcons (Duck Hawks)",
+      "artist": "John James Audubon (American, born Haiti, 1785–1851)",
+      "image": "https://openaccess-cdn.clevelandart.org/1964.351/1964.351_web.jpg",
+      "fullRes": "https://openaccess-cdn.clevelandart.org/1964.351/1964.351_print.jpg",
+      "imageWidth": "1263",
+      "imageHeight": "892",
+      "rights": "CC0",
+      "sourceUrl": "https://clevelandart.org/art/1964.351",
+      "date": "c. 1827",
+      "medium": "oil on canvas",
+      "dimensions": {
+        "framed": {
+          "height": 0.749,
+          "height_inch": 29,
+          "height_inch_fraction": 0.5,
+          "width": 1.01,
+          "width_inch": 39,
+          "width_inch_fraction": 0.75,
+          "depth": 0.102,
+          "depth_inch": 4,
+          "depth_inch_fraction": 0
+        },
+        "unframed": {
+          "height": 0.645,
+          "height_inch": 25,
+          "height_inch_fraction": 0.375,
+          "width": 0.915,
+          "width_inch": 36,
+          "width_inch_fraction": 0
+        }
+      }
+    },
+    {
+      "id": "117032",
+      "title": "The Sacrifice of Isaac",
+      "artist": "Andrea del Sarto (Italian, 1486–1530)",
+      "image": "https://openaccess-cdn.clevelandart.org/1937.577/1937.577_web.jpg",
+      "fullRes": "https://openaccess-cdn.clevelandart.org/1937.577/1937.577_print.jpg",
+      "imageWidth": "697",
+      "imageHeight": "900",
+      "rights": "CC0",
+      "sourceUrl": "https://clevelandart.org/art/1937.577",
+      "date": "c. 1527",
+      "medium": "oil on wood",
+      "dimensions": {
+        "framed": {
+          "height": 2.08,
+          "height_inch": 81,
+          "height_inch_fraction": 0.875,
+          "width": 1.71,
+          "width_inch": 67,
+          "width_inch_fraction": 0.3125,
+          "depth": 0.125,
+          "depth_inch": 4,
+          "depth_inch_fraction": 0.9375
+        },
+        "unframed": {
+          "height": 1.78,
+          "height_inch": 70,
+          "height_inch_fraction": 0.0625,
+          "width": 1.38,
+          "width_inch": 54,
+          "width_inch_fraction": 0.3125
+        }
+      }
+    },
+    {
+      "id": "135428",
+      "title": "Hunting near Hartenfels Castle",
+      "artist": "Lucas Cranach (German, 1472–1553)",
+      "image": "https://openaccess-cdn.clevelandart.org/1958.425/1958.425_web.jpg",
+      "fullRes": "https://openaccess-cdn.clevelandart.org/1958.425/1958.425_print.jpg",
+      "imageWidth": "1263",
+      "imageHeight": "866",
+      "rights": "CC0",
+      "sourceUrl": "https://clevelandart.org/art/1958.425",
+      "date": "1540",
+      "medium": "oil, originally on wood, transferred to masonite",
+      "dimensions": {
+        "framed": {
+          "height": 1.33,
+          "height_inch": 52,
+          "height_inch_fraction": 0.375,
+          "width": 1.855,
+          "width_inch": 73,
+          "width_inch_fraction": 0.0625,
+          "depth": 0.073,
+          "depth_inch": 2,
+          "depth_inch_fraction": 0.875
+        },
+        "unframed": {
+          "height": 1.168,
+          "height_inch": 46,
+          "height_inch_fraction": 0,
+          "width": 1.702,
+          "width_inch": 67,
+          "width_inch_fraction": 0
+        }
+      }
+    },
+    {
+      "id": "131819",
+      "title": "A Genoese Lady with Her Child",
+      "artist": "Anthony van Dyck (Flemish, 1599–1641)",
+      "image": "https://openaccess-cdn.clevelandart.org/1954.392/1954.392_web.jpg",
+      "fullRes": "https://openaccess-cdn.clevelandart.org/1954.392/1954.392_print.jpg",
+      "imageWidth": "595",
+      "imageHeight": "893",
+      "rights": "CC0",
+      "sourceUrl": "https://clevelandart.org/art/1954.392",
+      "date": "c. 1623–25",
+      "medium": "oil on canvas",
+      "dimensions": {
+        "framed": {
+          "height": 2.665,
+          "height_inch": 104,
+          "height_inch_fraction": 0.9375,
+          "width": 1.84,
+          "width_inch": 72,
+          "width_inch_fraction": 0.4375,
+          "depth": 0.12,
+          "depth_inch": 4,
+          "depth_inch_fraction": 0.75
+        },
+        "unframed": {
+          "height": 2.178,
+          "height_inch": 85,
+          "height_inch_fraction": 0.75,
+          "width": 1.46,
+          "width_inch": 57,
+          "width_inch_fraction": 0.5
+        }
+      }
+    },
+    {
+      "id": "150389",
+      "title": "The Holy Family on the Steps",
+      "artist": "Nicolas Poussin (French, 1594–1665)",
+      "image": "https://openaccess-cdn.clevelandart.org/1981.18/1981.18_web.jpg",
+      "fullRes": "https://openaccess-cdn.clevelandart.org/1981.18/1981.18_print.jpg",
+      "imageWidth": "1263",
+      "imageHeight": "867",
+      "rights": "CC0",
+      "sourceUrl": "https://clevelandart.org/art/1981.18",
+      "date": "1648",
+      "medium": "oil on canvas",
+      "dimensions": {
+        "framed": {
+          "height": 1.035,
+          "height_inch": 40,
+          "height_inch_fraction": 0.75,
+          "width": 1.353,
+          "width_inch": 53,
+          "width_inch_fraction": 0.25,
+          "depth": 0.133,
+          "depth_inch": 5,
+          "depth_inch_fraction": 0.25
+        },
+        "unframed": {
+          "height": 0.733,
+          "height_inch": 28,
+          "height_inch_fraction": 0.875,
+          "width": 1.058,
+          "width_inch": 41,
+          "width_inch_fraction": 0.625
+        },
+        "former": {
+          "height": 0.723,
+          "height_inch": 28,
+          "height_inch_fraction": 0.4375,
+          "width": 1.04,
+          "width_inch": 40,
+          "width_inch_fraction": 0.9375
+        }
+      }
+    },
+    {
+      "id": "148758",
+      "title": "The Crucifixion of Saint Andrew",
+      "artist": "Caravaggio (Italian, 1571–1610)",
+      "image": "https://openaccess-cdn.clevelandart.org/1976.2/1976.2_web.jpg",
+      "fullRes": "https://openaccess-cdn.clevelandart.org/1976.2/1976.2_print.jpg",
+      "imageWidth": "678",
+      "imageHeight": "900",
+      "rights": "CC0",
+      "sourceUrl": "https://clevelandart.org/art/1976.2",
+      "date": "1606–7",
+      "medium": "oil on canvas",
+      "dimensions": {
+        "framed": {
+          "height": 2.335,
+          "height_inch": 91,
+          "height_inch_fraction": 0.9375,
+          "width": 1.84,
+          "width_inch": 72,
+          "width_inch_fraction": 0.4375,
+          "depth": 0.12,
+          "depth_inch": 4,
+          "depth_inch_fraction": 0.75
+        },
+        "unframed": {
+          "height": 2.025,
+          "height_inch": 79,
+          "height_inch_fraction": 0.75,
+          "width": 1.527,
+          "width_inch": 60,
+          "width_inch_fraction": 0.125
+        }
+      }
+    }
+  ],
+  "total": 41561
+}
