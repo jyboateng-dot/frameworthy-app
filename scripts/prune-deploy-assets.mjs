@@ -40,6 +40,11 @@ const TEXT_EXT = new Set(['.js', '.jsx', '.json', '.html', '.css']);
 const PRUNABLE = [
   { dir: 'frames', matchBasename: true },
   { dir: 'met_local_exceptions', matchBasename: false },
+  // Superseded JPEG originals of the carousel slides, kept on disk as the
+  // sources the WebP versions were encoded from. Referenced by full path
+  // only, so basename matching is not needed (and would be wrong: slide-1.jpg
+  // and slide-1.webp share a stem).
+  { dir: 'landing_carousel', matchBasename: false },
 ];
 
 function collectText(dir, out = []) {
