@@ -92,6 +92,19 @@ export default defineConfig({
       output: {
         manualChunks(id) {
           const normalized = id.replace(/\\/g, '/');
+          // Vendor libraries barely change between deploys, but they were
+          // landing in the app shell — so every app change forced a fresh
+          // re-download of React, Firebase and the whole icon set. Split
+          // out, they stay cached across deploys and load in parallel.
+          const nodeModule = normalized.includes('/node_modules/')
+            ? normalized.split('/node_modules/').pop()
+            : '';
+          if (nodeModule) {
+            const pkg = nodeModule.split('/')[0];
+            if (['react', 'react-dom', 'react-router', 'react-router-dom', 'scheduler'].includes(pkg)) return 'vendor-react';
+            if (pkg === 'firebase' || pkg === '@firebase') return 'vendor-firebase';
+            if (pkg === 'lucide-react') return 'vendor-icons';
+          }
           if (normalized.includes('/src/data/albumsLocal.js')) return 'catalog-albums';
           if (normalized.includes('/src/data/metLocal.js')) return 'catalog-met';
           if (normalized.includes('/src/data/moviesLocal.js')) return 'catalog-movies';

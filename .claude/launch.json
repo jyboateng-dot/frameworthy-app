@@ -4,14 +4,31 @@
     {
       "name": "frameworthy-vite",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev"],
+      "runtimeArgs": [
+        "run",
+        "dev"
+      ],
       "autoPort": true
     },
     {
       "name": "frameworkthy-app-next",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev", "--prefix", "frameworkthy-app"],
+      "runtimeArgs": [
+        "run",
+        "dev",
+        "--prefix",
+        "frameworkthy-app"
+      ],
       "port": 3000
+    },
+    {
+      "name": "frameworthy-preview",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run",
+        "preview"
+      ],
+      "port": 4173
     }
   ]
 }
