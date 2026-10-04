@@ -59,7 +59,7 @@ const SLIDES = [
         body: 'Create a stunning focal point in your living room with our premium, handcrafted frames.',
     },
     {
-        image: '/landing_carousel/slide-7.jpg',
+        image: '/landing_carousel/slide-7.webp',
         eyebrow: 'Feature spotlight',
         title: 'Delivered to Your Door',
         body: 'We handcraft your custom frame and deliver it securely to your doorstep.',
