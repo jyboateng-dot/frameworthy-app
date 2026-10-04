@@ -31,14 +31,21 @@ jobs:
           path: ~/.cache/firebase/emulators
           key: firebase-emulators-${{ hashFiles('package-lock.json') }}
 
-      # --ignore-scripts: skips @capacitor/assets' sharp postinstall (native image
-      # tooling unrelated to running tests) so CI doesn't depend on it succeeding.
+      # --ignore-scripts: skips postinstall scripts from the full dependency
+      # tree so CI doesn't depend on arbitrary ones succeeding (or trust them).
       - name: Install app dependencies
         run: npm ci --ignore-scripts
 
       - name: Install functions dependencies
         run: npm ci --ignore-scripts
         working-directory: functions
+
+      # sharp is a real, trusted direct dependency (RoomPhotoForeground.test.jsx
+      # uses it to render and compare actual pixels) whose native binary only
+      # the skipped install script fetches. Rebuild just this one package
+      # rather than dropping --ignore-scripts for the whole tree.
+      - name: Rebuild sharp's native binary
+        run: npm rebuild sharp
 
       - name: Unit tests (pricing, cart/wishlist, formatters, storage)
         run: npm test

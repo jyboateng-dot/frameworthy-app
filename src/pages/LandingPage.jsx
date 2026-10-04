@@ -114,7 +114,7 @@ export default function LandingPage({ onStartFraming, navigate, setSelectedFrame
                                         currentSlide === index ? 'opacity-100 scale-100 z-10' : 'opacity-0 scale-105 z-0'
                                     }`}
                                 >
-                                    <div className="absolute inset-0 bg-stone-900 transition-opacity duration-1000" style={{opacity: currentSlide === index ? 0 : 0.3}} z-20 />
+                                    <div className="absolute inset-0 bg-stone-900 transition-opacity duration-1000" style={{opacity: currentSlide === index ? 0 : 0.3}} />
                                     <img src={slide.img} alt={slide.title} className="w-full h-full object-cover" />
                                 </div>
                             ))}

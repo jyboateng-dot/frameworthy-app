@@ -76,10 +76,13 @@ describe('complete catalogue against room scenes', () => {
         for (const [id, placement] of Object.entries(results)) {
             expect(placement.overflows, id).toBe(false);
         }
+        // tooTall is a wall-height check now, not a furniture check (see
+        // computeRoomPlacement) — every scene's wall clears a 180cm piece
+        // with room to spare, entryway included.
         expect(results['studio-loft'].tooTall).toBe(false);
         expect(results['dining-room'].tooTall).toBe(false);
         expect(results.bedroom.tooTall).toBe(false);
-        expect(results.entryway.tooTall).toBe(true);
+        expect(results.entryway.tooTall).toBe(false);
         expect(results['home-office'].tooTall).toBe(false);
     });
 });
