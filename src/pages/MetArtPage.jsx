@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Heart, RefreshCw, ChevronDown } from 'lucide-react';
-import { FRAME_SIZES, findSizeByDimension, formatDimensions } from '../data/constants';
+import { formatDimensions } from '../data/constants';
 import { useUnit } from '../context/UnitContext';
 import { useWishlist } from '../context/WishlistContext';
 import { MET_LOCAL_COLLECTIONS } from '../data/metLocal';
-import WEB_MET_DIMS from '../data/web_met_dims.json';
 import { getThumbnailUrl } from '../services/storage';
 import CollectionPagination from '../components/common/CollectionPagination';
+import { getMetRecommendedSize } from '../utils/metArtworkSizing';
 
 const PRIMARY_COLLECTIONS_ORDER = [
     'Classic Masterpieces',
@@ -29,8 +29,7 @@ const MetProductCard = ({ product, onGetThis }) => {
     const liked = isInWishlist(product.id);
     const [hovered, setHovered] = useState(false);
 
-    const filename = product.image.split('/').pop();
-    const dims = WEB_MET_DIMS[filename] || '40 x 50 cm';
+    const recommendedSize = getMetRecommendedSize(product);
 
     return (
         <div 
@@ -65,7 +64,7 @@ const MetProductCard = ({ product, onGetThis }) => {
             <div className="flex flex-col gap-1 px-1">
                 <h3 className="text-sm text-stone-900 font-medium leading-tight truncate" title={product.title}>{product.title}</h3>
                 <p className="text-xs text-stone-500 truncate">{product.artist}</p>
-                <p className="text-[10px] text-stone-500 font-light leading-snug">{formatDimensions(dims, unit, product.orientation)}</p>
+                <p className="text-[10px] text-stone-500 font-light leading-snug">Recommended {formatDimensions(recommendedSize.label, unit, recommendedSize.orientation)}</p>
                 <div className="flex items-center gap-2 text-[10px] uppercase tracking-wider mt-1">
                     <button onClick={() => onGetThis(product)} className="text-stone-900 hover:text-stone-700 font-bold transition-colors duration-150">Get This</button>
                 </div>
@@ -129,10 +128,7 @@ const MetArtPage = ({ setProductMode, setSelectedSize, navigate, isSubPage = fal
             return;
         }
         setProductMode('frame');
-        const filename = product.image.split('/').pop();
-        const dims = WEB_MET_DIMS[filename] || '40 x 50 cm';
-        
-        const sizeObj = findSizeByDimension(dims) || FRAME_SIZES.find(s => s.id === '16x20') || FRAME_SIZES[0];
+        const sizeObj = getMetRecommendedSize(product);
         if (sizeObj) setSelectedSize(sizeObj);
 
         navigate('/frame/customize', {

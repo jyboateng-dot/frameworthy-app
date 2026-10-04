@@ -33,7 +33,7 @@ import {
     maxMatWidthForSize,
     MAT_RENDER_MAX_PCT,
 } from '../../utils/matting';
-import WEB_MET_DIMS from '../../data/web_met_dims.json';
+import { getMetRecommendedSize } from '../../utils/metArtworkSizing';
 import { useUnit } from '../../context/UnitContext';
 import { useCart } from '../../context/CartContext';
 import { uploadImageToCloud, getThumbnailUrl } from '../../services/storage';
@@ -987,9 +987,7 @@ const CustomizeFramePage = ({
     // and the preset/poster flags stale from whatever was loaded before, and
     // never resolved a frame/size for the newly-selected artwork at all.
     const handleMetArtSelect = (art) => {
-        const filename = art.image.split('/').pop();
-        const dims = WEB_MET_DIMS[filename] || '40 x 50 cm';
-        const sizeObj = findSizeByDimension(dims) || FRAME_SIZES.find(s => s.id === '16x20') || FRAME_SIZES[0];
+        const sizeObj = getMetRecommendedSize(art);
 
         applyInspirationSelection({
             presetImage: art.image,
