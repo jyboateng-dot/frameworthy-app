@@ -62,9 +62,26 @@ Before creating a release tag:
    and Android devices.
 5. Confirm the App Check logs show verified requests from both native apps.
 
+## Universal Links and Android App Links
+
+The app-side routing is configured for `frameworthyco.com` and
+`www.frameworthyco.com`. Two signing-bound website files are still required
+before the operating systems will verify those links:
+
+- Apple: enable Associated Domains for `com.frameworthyco.app`, regenerate
+  `frameworthy_profile`, and publish
+  `/.well-known/apple-app-site-association` with the Apple Team ID plus the
+  bundle ID.
+- Android: obtain the SHA-256 fingerprint of the Play App Signing certificate
+  (or the upload certificate before Play App Signing is enabled), then publish
+  it in `/.well-known/assetlinks.json` for package
+  `com.frameworthyco.app`.
+
+Do not guess either identifier. A mismatched Team ID or certificate fingerprint
+makes verification fail silently and links continue opening in the browser.
+
 ## Known native follow-ups
 
-- Configure Universal Links and Android App Links.
 - Add Google Play internal-track publishing.
 - Replace placeholder native tests with launch and critical-flow smoke tests.
 - Decide which assets and flows should be bundled for an offline launch
