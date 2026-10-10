@@ -59,6 +59,14 @@ workflows:
         script: npm install --legacy-peer-deps
       - name: Sync Capacitor Android project
         script: npx cap sync android
+      - name: Set Android app version from release tag
+        script: |
+          APP_VERSION="${CM_TAG#android-}"
+          if [ -z "$APP_VERSION" ] || [ "$APP_VERSION" = "$CM_TAG" ]; then
+            echo "Expected a release tag in the form android-1.2.3"
+            exit 1
+          fi
+          echo "APP_VERSION=$APP_VERSION" >> "$CM_ENV"
       - name: Decode Android release keystore
         script: |
           if [ -z "$CM_KEYSTORE" ]; then
@@ -166,10 +174,16 @@ workflows:
         script: npx cap sync ios
       - name: Set up provisioning profile and export options
         script: xcode-project use-profiles
-      - name: Increment build number
+      - name: Set iOS version and build number from release tag
         script: |
+          APP_VERSION="${CM_TAG#ios-}"
+          if [ -z "$APP_VERSION" ] || [ "$APP_VERSION" = "$CM_TAG" ]; then
+            echo "Expected a release tag in the form ios-1.2.3"
+            exit 1
+          fi
           cd ios/App
-          agvtool new-version -all $BUILD_NUMBER
+          agvtool new-marketing-version "$APP_VERSION"
+          agvtool new-version -all "$BUILD_NUMBER"
       - name: Build ipa for distribution
         script: |
           xcode-project build-ipa \

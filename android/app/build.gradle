@@ -1,5 +1,8 @@
 apply plugin: 'com.android.application'
 
+def ciBuildNumber = System.getenv("BUILD_NUMBER")
+def releaseVersionName = System.getenv("APP_VERSION") ?: "1.0"
+
 def hasReleaseSigning = System.getenv("CM_KEYSTORE_PATH") &&
         System.getenv("CM_KEYSTORE_PASSWORD") &&
         System.getenv("CM_KEY_ALIAS") &&
@@ -12,8 +15,11 @@ android {
         applicationId "com.frameworthyco.app"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1
-        versionName "1.0"
+        // Codemagic provides a monotonically increasing BUILD_NUMBER. Google Play
+        // rejects a release when versionCode repeats, so derive it from CI while
+        // keeping stable local defaults for Android Studio builds.
+        versionCode ciBuildNumber ? ciBuildNumber.toInteger() : 1
+        versionName releaseVersionName
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
