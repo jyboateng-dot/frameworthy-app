@@ -6,6 +6,7 @@ const admin = require('firebase-admin');
 const crypto = require('crypto');
 const { recomputeOrderTotal } = require('./pricing');
 const { FRAMEWORTHY_KNOWLEDGE_BASE } = require('./supportKnowledge');
+const prodigi = require('./prodigi');
 
 admin.initializeApp();
 
@@ -1222,4 +1223,37 @@ exports.pruneArRelayObjects = onSchedule({ schedule: 'every 60 minutes', region:
             await file.delete().catch((err) => logger.warn('pruneArRelayObjects: delete failed', { name: file.name, message: err.message }));
         }
     }));
+});
+
+// Live Prodigi quote for the UK or Jersey, returned as FrameWorthy's retail
+// price in GBP (Prodigi cost × markup, plus shipping at cost; see prodigi.js).
+// The supplier cost is logged but never returned to the client.
+// Stored in Secret Manager via `firebase functions:secrets:set PRODIGI_API_KEY`
+// — must exist before this deploys, or the whole functions deploy fails.
+const prodigiApiKey = defineSecret('PRODIGI_API_KEY');
+
+exports.getProdigiQuote = onCall({ secrets: [prodigiApiKey], region: 'us-central1', timeoutSeconds: 30, maxInstances: 5 }, async (request) => {
+    let quote;
+    try {
+        quote = await prodigi.getQuote(prodigiApiKey.value(), request.data || {});
+    } catch (err) {
+        if (err instanceof prodigi.ProdigiError) {
+            logger.warn('Prodigi quote failed', { code: err.code, message: err.message, details: err.details });
+            throw new HttpsError(err.code, err.message);
+        }
+        logger.error('Prodigi quote crashed', err);
+        throw new HttpsError('internal', 'Could not get a Prodigi quote');
+    }
+    logger.info('Prodigi quote', {
+        environment: prodigi.PRODIGI_ENVIRONMENT,
+        destination: quote.destinationCountryCode,
+        supplier: quote.supplier,
+        retail: quote.retail,
+    });
+    return {
+        currency: quote.currency,
+        destinationCountryCode: quote.destinationCountryCode,
+        shippingMethod: quote.shippingMethod,
+        total: quote.retail.total,
+    };
 });

@@ -99,6 +99,12 @@ describe('server pricing matches client pricing', () => {
         });
         expect(priceFromStaleId).not.toBe(Math.round(clampedPrice * (canvasFrame.priceMod || 1)));
     });
+
+    it('refuses to price Prodigi frames, which are quoted live by Prodigi instead', () => {
+        const prodigiFrame = FRAME_STYLES.find(f => f.prodigiProduct);
+        expect(priceForItem({ selectedFrame: prodigiFrame, selectedSize: smallSize, matWidth: 'none', glassType: 'standard', hardwareType: 'wire' }))
+            .toBeNull();
+    });
 });
 
 describe('generated price table is in sync with source constants', () => {

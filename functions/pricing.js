@@ -46,6 +46,11 @@ const priceForItem = (item) => {
     const frameId = item?.selectedFrame?.id;
     const sizeId = item?.selectedSize?.id;
 
+    // Prodigi frames are priced from a live Prodigi quote (see prodigi.js),
+    // not from this table. Their pricing-data.json entries only exist to keep
+    // the table in sync with FRAME_STYLES, so never price them here.
+    if (typeof frameId === 'string' && frameId.startsWith('prodigi-')) return null;
+
     const sizePrice = sizePriceFor(sizeId);
     if (sizePrice === null || sizePrice === undefined) return null;
 
