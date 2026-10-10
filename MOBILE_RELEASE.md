@@ -51,6 +51,12 @@ The Codemagic configuration expects:
 - provisioning profile `frameworthy_profile`
 - the `production` environment group with the production `VITE_*` values
 
+The Apple App ID uses Team ID `PRNK95XA3F` and bundle ID
+`com.frameworthyco.app`. Associated Domains is enabled, and the App Store
+provisioning profile was regenerated after enabling it. Replace the
+`frameworthy_profile` file in Codemagic with the regenerated profile before
+the next iOS release.
+
 ## Release checks
 
 Before creating a release tag:
@@ -65,20 +71,24 @@ Before creating a release tag:
 ## Universal Links and Android App Links
 
 The app-side routing is configured for `frameworthyco.com` and
-`www.frameworthyco.com`. Two signing-bound website files are still required
-before the operating systems will verify those links:
+`www.frameworthyco.com`.
 
-- Apple: enable Associated Domains for `com.frameworthyco.app`, regenerate
-  `frameworthy_profile`, and publish
-  `/.well-known/apple-app-site-association` with the Apple Team ID plus the
-  bundle ID.
-- Android: obtain the SHA-256 fingerprint of the Play App Signing certificate
-  (or the upload certificate before Play App Signing is enabled), then publish
-  it in `/.well-known/assetlinks.json` for package
-  `com.frameworthyco.app`.
+Apple verification is configured with:
 
-Do not guess either identifier. A mismatched Team ID or certificate fingerprint
-makes verification fail silently and links continue opening in the browser.
+- Team ID `PRNK95XA3F`
+- bundle ID `com.frameworthyco.app`
+- Associated Domains enabled for the App ID
+- `public/.well-known/apple-app-site-association` published with the matching
+  application identifier
+- the regenerated App Store provisioning profile
+
+Android verification still requires the SHA-256 fingerprint of the Play App
+Signing certificate. After Google Play account verification and app creation,
+publish that fingerprint in `/.well-known/assetlinks.json` for package
+`com.frameworthyco.app`.
+
+Do not guess the Android certificate fingerprint. A mismatch makes verification
+fail silently and links continue opening in the browser.
 
 ## Known native follow-ups
 
