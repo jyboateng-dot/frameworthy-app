@@ -48,6 +48,8 @@ import { renderMoviePoster } from '../../utils/moviePoster';
 import { useAuth } from '../../context/AuthContext';
 import AuthModal from '../../components/AuthModal';
 import Price from '../../components/common/Price';
+import { useProdigiQuote } from '../../hooks/useProdigiQuote';
+import { PRODIGI_DESTINATIONS } from '../../services/prodigi';
 import FrameFitPanel from '../../components/framing/FrameFitPanel';
 import { DEFAULT_POSITION, frameGeometry, imageCrop, cropStyle } from '../../utils/frameFit';
 import { prepareFrameOutput } from '../../services/frameFitOutput';
@@ -426,6 +428,9 @@ const CustomizeFramePage = ({
     }, []);
     const [loadingAction, setLoadingAction] = useState(null);
     const [wasAddedToCart, setWasAddedToCart] = useState(false);
+    // Prodigi frames are printed and shipped by Prodigi in the UK, priced
+    // live per destination.
+    const [prodigiDestination, setProdigiDestination] = useState('GB');
     // Always holds the uploadedImage value from the most recent render, updated
     // synchronously (not via an effect) so a stale image-load callback can tell
     // it's no longer for the current image even before its effect's own cleanup
@@ -1743,8 +1748,23 @@ const CustomizeFramePage = ({
         }
     };
 
+    const prodigiQuote = useProdigiQuote(selectedFrame, selectedSize, prodigiDestination);
+    const prodigiBlocked = Boolean(selectedFrame?.prodigiProduct) && prodigiQuote.status !== 'ready';
+    const prodigiMessage = {
+        unorderable: 'This Prodigi frame can’t be ordered yet. Try a Prodigi Box frame or framed canvas.',
+        unavailable: 'Prodigi doesn’t make this frame in the selected size. Try another size.',
+        loading: 'Getting the Prodigi price…',
+        error: 'We couldn’t get a Prodigi price right now. Please try again.',
+    }[prodigiQuote.status];
+
     const buildCartItem = (visualizerImage) => {
-        const calculatedTotal = Math.round((selectedSize?.price || 0) * (selectedFrame?.priceMod || 1)) +
+        const prodigiFields = selectedFrame?.prodigiProduct && prodigiQuote.status === 'ready' ? {
+            prodigiQuoteId: prodigiQuote.quote.quoteId,
+            prodigiQuoteExpiresAt: prodigiQuote.quote.expiresAt,
+            prodigiDestination: prodigiQuote.quote.destinationCountryCode,
+            prodigiSku: prodigiQuote.sku.sku,
+        } : null;
+        const calculatedTotal = prodigiFields ? prodigiQuote.quote.total : Math.round((selectedSize?.price || 0) * (selectedFrame?.priceMod || 1)) +
             (selectedFrame?.id !== 'frame-canvas' && glassType !== 'canvas-floater' && glassType !== 'canvas-traditional' && matWidth !== 'none' ? (matColor.price || 75) : 0) +
             (selectedFrame?.id !== 'frame-canvas' ? (glassType === 'non-glare' ? 100 : glassType === 'museum' ? 200 : 0) : 0) +
             (selectedFrame?.id !== 'frame-canvas' && glassType === 'canvas-floater' ? 400 : 0) +
@@ -1781,12 +1801,13 @@ const CustomizeFramePage = ({
             } : isMoviePosterPrint && posterData ? {
                 title: posterData.movie.title,
                 director: posterData.details.director
-            } : null
+            } : null,
+            ...prodigiFields
         };
     };
 
     const completeCheckoutAction = async (action) => {
-        if (selectedFrame?.prodigiProduct) return;
+        if (prodigiBlocked) return;
         setLoadingAction(action);
         setFitError('');
         try {
@@ -3970,7 +3991,23 @@ const CustomizeFramePage = ({
                 <div className={`bottom-0 z-20 backdrop-blur-md border-t border-stone-200 shadow-[0_-10px_40px_rgba(0,0,0,0.03)] flex ${isSideBySide ? 'flex-col gap-0 items-start py-1.5 px-3' : 'items-center justify-between gap-4 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom,0px))] px-5'} ${isSideBySide ? 'relative bg-white/85' : 'sticky bg-white/95'}`}>
                     <div className="flex flex-col">
                         {selectedFrame?.prodigiProduct ? (
-                            <span className="max-w-56 text-[10px] leading-4 text-amber-800">Prodigi checkout is not connected yet. You can preview and configure this supplier frame, but ordering is disabled until live SKU pricing and fulfillment are wired.</span>
+                            <div className="flex flex-col gap-0.5">
+                                {prodigiQuote.status === 'ready'
+                                    ? <Price amount={prodigiQuote.quote.total} className="text-lg font-bold text-stone-900 tracking-tight" />
+                                    : <span className="max-w-56 text-[10px] leading-4 text-amber-800">{prodigiMessage}</span>}
+                                <label className="flex items-center gap-1 text-[9px] text-stone-500 whitespace-nowrap">
+                                    Ships from the UK to
+                                    <select
+                                        aria-label="Prodigi delivery destination"
+                                        value={prodigiDestination}
+                                        onChange={(e) => setProdigiDestination(e.target.value)}
+                                        className="bg-transparent font-semibold text-stone-700 outline-none"
+                                    >
+                                        {PRODIGI_DESTINATIONS.map(({ code, label }) => <option key={code} value={code}>{label}</option>)}
+                                    </select>
+                                    · delivery included
+                                </label>
+                            </div>
                         ) : <Price
                             amount={
                                 Math.round((selectedSize?.price || 0) * (selectedFrame?.priceMod || 1)) +
@@ -3989,8 +4026,8 @@ const CustomizeFramePage = ({
                     <div className={`flex w-full mt-1 ${isSideBySide ? 'gap-1.5' : 'gap-2 max-w-[300px]'}`}>
                         <button
                             onClick={() => completeCheckoutAction('cart')}
-                            disabled={!hasImage || isCloudUploadPending || loadingAction !== null || Boolean(selectedFrame?.prodigiProduct)}
-                            className={`flex-1 bg-white border rounded-full text-[10px] font-bold uppercase tracking-widest transition-colors flex items-center justify-center gap-1.5 shadow-sm ${isSideBySide ? 'py-1.5' : 'py-2.5'} ${!hasImage || isCloudUploadPending || loadingAction !== null || selectedFrame?.prodigiProduct ? 'opacity-50 cursor-not-allowed border-stone-200 text-stone-400 bg-stone-50' : 'text-stone-900 border-stone-200 hover:bg-stone-50'}`}
+                            disabled={!hasImage || isCloudUploadPending || loadingAction !== null || prodigiBlocked}
+                            className={`flex-1 bg-white border rounded-full text-[10px] font-bold uppercase tracking-widest transition-colors flex items-center justify-center gap-1.5 shadow-sm ${isSideBySide ? 'py-1.5' : 'py-2.5'} ${!hasImage || isCloudUploadPending || loadingAction !== null || prodigiBlocked ? 'opacity-50 cursor-not-allowed border-stone-200 text-stone-400 bg-stone-50' : 'text-stone-900 border-stone-200 hover:bg-stone-50'}`}
                         >
                             {loadingAction === 'cart' && <Loader size={12} className="animate-spin" />}
                             {loadingAction === 'cart' ? 'Adding…' : (wasAddedToCart ? 'Added' : 'Add to Cart')}
@@ -4007,8 +4044,8 @@ const CustomizeFramePage = ({
                                 }
                                 completeCheckoutAction('pay');
                             }}
-                            disabled={!hasImage || isCloudUploadPending || loadingAction !== null || Boolean(selectedFrame?.prodigiProduct)}
-                            className={`flex-1 border rounded-full text-[10px] font-bold uppercase tracking-widest transition-colors flex items-center justify-center gap-1.5 shadow-sm ${isSideBySide ? 'py-1.5' : 'py-2.5'} ${!hasImage || isCloudUploadPending || loadingAction !== null || selectedFrame?.prodigiProduct ? 'opacity-50 cursor-not-allowed border-stone-200 text-stone-400 bg-stone-50' : 'bg-[#c9a84c] border-[#c9a84c] text-[#0a0a0a] hover:bg-[#d4b55c]'}`}
+                            disabled={!hasImage || isCloudUploadPending || loadingAction !== null || prodigiBlocked}
+                            className={`flex-1 border rounded-full text-[10px] font-bold uppercase tracking-widest transition-colors flex items-center justify-center gap-1.5 shadow-sm ${isSideBySide ? 'py-1.5' : 'py-2.5'} ${!hasImage || isCloudUploadPending || loadingAction !== null || prodigiBlocked ? 'opacity-50 cursor-not-allowed border-stone-200 text-stone-400 bg-stone-50' : 'bg-[#c9a84c] border-[#c9a84c] text-[#0a0a0a] hover:bg-[#d4b55c]'}`}
                         >
                             {loadingAction === 'pay' && <Loader size={12} className="animate-spin" />}
                             Pay Now
