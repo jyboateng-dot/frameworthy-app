@@ -1,10 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { CATEGORIES } from '../data/constants';
-
-import { framesForCategory, categoryForFrame } from '../data/frameBrowsing';
+import { framesForCategory, categoryForFrame, displayCategoryName, PRODIGI_FRAME_CATEGORIES } from '../data/frameBrowsing';
 
 export default function FrameSelectionModal({ isOpen, onClose, selectedFrame, onSelect }) {
-    const [activeCategory, setActiveCategory] = useState(() => categoryForFrame(selectedFrame));
+    const [activeCategory, setActiveCategory] = useState(() => {
+        const savedCategory = categoryForFrame(selectedFrame);
+        return PRODIGI_FRAME_CATEGORIES.includes(savedCategory) ? savedCategory : PRODIGI_FRAME_CATEGORIES[0];
+    });
     const selectedCardRef = useRef(null);
 
     // Scrolls the current selection into view once, right after the grid for
@@ -23,51 +24,57 @@ export default function FrameSelectionModal({ isOpen, onClose, selectedFrame, on
 
     return (
         <div className="fixed inset-0 z-[200] flex flex-col bg-white">
-            <div className="flex justify-between items-center p-4 pt-[calc(1rem+env(safe-area-inset-top,0px))] border-b border-gray-100 shrink-0">
-                <h2 className="text-xl font-bold tracking-tight text-stone-900">Select Frame Style</h2>
-                <button onClick={onClose} className="p-2 bg-gray-50 hover:bg-gray-100 rounded-full text-gray-500 transition-colors" aria-label="Close">
+            <div className="mx-auto w-full max-w-6xl px-5 pt-[calc(1rem+env(safe-area-inset-top,0px))] pb-4 shrink-0">
+                <div className="flex items-start justify-between gap-4">
+                    <div>
+                        <h2 className="text-2xl font-bold tracking-tight text-stone-900 sm:text-3xl">Curated Frame Collection</h2>
+                        <p className="mt-2 max-w-xl text-sm leading-5 text-stone-500">Browse our frame collection, organized by design and material.</p>
+                    </div>
+                    <button onClick={onClose} className="mt-1 p-2 bg-gray-50 hover:bg-gray-100 rounded-full text-gray-500 transition-colors" aria-label="Close">
                     ✕
-                </button>
+                    </button>
+                </div>
             </div>
 
             {/* Categories */}
             <div className="flex items-center overflow-x-auto no-scrollbar p-3.5 gap-1.5 border-b border-gray-50 bg-stone-50/50 shrink-0">
-                {CATEGORIES.map(cat => (
+                {PRODIGI_FRAME_CATEGORIES.map(cat => (
                     <button
                         key={cat}
                         onClick={() => setActiveCategory(cat)}
                         aria-pressed={activeCategory === cat}
                         className={`flex-shrink-0 whitespace-nowrap px-3 py-1.5 rounded-full text-xs font-semibold transition-all ${activeCategory === cat ? 'bg-black text-white shadow-md' : 'bg-white text-stone-600 hover:bg-stone-100 border border-stone-200'}`}
                     >
-                        {cat}
+                        {displayCategoryName(cat)}
                     </button>
                 ))}
             </div>
 
             {/* Grid */}
-            <div className="flex-1 overflow-y-auto p-4 pb-[calc(1rem+env(safe-area-inset-bottom,0px))] bg-stone-50">
-                <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-4 max-w-6xl mx-auto">
+            <div className="flex-1 overflow-y-auto px-5 pt-2 pb-[calc(1rem+env(safe-area-inset-bottom,0px))] bg-white">
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-x-5 gap-y-6 max-w-6xl mx-auto">
                     {filteredFrames.map(f => (
                         <button
                             key={f.id}
                             ref={selectedFrame?.id === f.id ? selectedCardRef : null}
                             onClick={() => { onSelect(f); onClose(); }}
-                            className={`group flex flex-col bg-white rounded-lg overflow-hidden border transition-all ${selectedFrame?.id === f.id ? 'border-black ring-2 ring-black ring-offset-1 shadow-md' : 'border-gray-200 hover:border-gray-300 hover:shadow-sm'}`}
+                            className={`group flex flex-col bg-white rounded-2xl overflow-hidden text-left transition-all ${selectedFrame?.id === f.id ? 'ring-2 ring-stone-900 ring-offset-2' : ''}`}
                         >
-                            <div className="aspect-square bg-gray-50 overflow-hidden relative">
+                            <div className="aspect-square bg-stone-100 overflow-hidden relative rounded-2xl">
                                 <img
                                     src={f.cornerImage || f.previewImg || `/frames/${f.filename}`}
                                     alt={f.name}
                                     loading="lazy"
                                     decoding="async"
-                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                    className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-300"
                                 />
                                 {selectedFrame?.id === f.id && (
                                     <div className="absolute top-2 right-2 bg-black text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">✓</div>
                                 )}
                             </div>
-                            <div className="p-2 text-left">
-                                <h3 className="text-[10px] font-bold text-gray-900 leading-tight uppercase tracking-wider line-clamp-2">{f.name}</h3>
+                            <div className="pt-3 text-left">
+                                <h3 className="text-sm font-bold text-stone-900 leading-tight line-clamp-2">{f.name.replace(/^Prodigi (Classic Canvas|Float Canvas|Eco Canvas|Classic|Box|Aluminium) · /, '')}</h3>
+                                <p className="mt-1.5 text-xs text-stone-500">{displayCategoryName(f.category)}</p>
                             </div>
                         </button>
                     ))}

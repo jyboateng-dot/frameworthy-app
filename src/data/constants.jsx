@@ -244,7 +244,63 @@ export const CATEGORIES = [
     'Rustic & Distressed',
     'Glossy Finishes',
     'Textured & Decorative',
-    'Canvas'
+    'Canvas',
+    'Prodigi Classic Frames',
+    'Prodigi Box Frames',
+    'Prodigi Aluminium Frames',
+    'Prodigi Classic Framed Canvas',
+    'Prodigi Float Framed Canvas',
+    'Prodigi Eco Framed Canvas',
+];
+
+// Prodigi frames are separate fulfilment products, but use the same picker
+// and visualizer record contract as FrameWorthy's existing mouldings.
+const PRODIGI_FRAME_RECORDS = [
+    ...['black', 'white', 'natural', 'antique-silver', 'brown', 'antique-gold', 'dark-grey', 'light-grey'].map((color, index) => ({
+        id: `prodigi-classic-${color}`,
+        name: `Prodigi Classic · ${color.replace(/(^|-)/g, ' ').trim().replace(/\b\w/g, (letter) => letter.toUpperCase())}`,
+        category: 'Prodigi Classic Frames',
+        baseColor: ['#242321', '#f4f1e9', '#b08a5a', '#aaa9a5', '#68472f', '#c4a357', '#555451', '#c3c1bd'][index],
+        width: '20px', widthCategory: 'standard', priceMod: 1, type: 'Prodigi Framed Print',
+        desc: 'Solid wood classic frame · Perspex, float glass or Motheye glaze.',
+        previewImg: `https://www.prodigi.com/img/products/chevrons/classic-${color}.png`, cornerImage: `https://www.prodigi.com/img/products/chevrons/classic-${color}.png`, borderImageSource: `https://www.prodigi.com/img/products/chevrons/classic-${color}.png`, borderImageSlicePct: 27,
+        mouldingWidthIn: 20 / 25.4, rabbetDepthIn: 17 / 25.4, renderProfile: 'flat', finish: /gold|silver/.test(color) ? 'metallic' : 'matte', prodigiProduct: 'classic', prodigiColor: color,
+    })),
+    ...['black', 'white', 'natural'].map((color, index) => ({
+        id: `prodigi-box-${color}`, name: `Prodigi Box · ${color[0].toUpperCase()}${color.slice(1)}`, category: 'Prodigi Box Frames',
+        baseColor: ['#242321', '#f4f1e9', '#b08a5a'][index], width: '20px', widthCategory: 'standard', priceMod: 1, type: 'Prodigi Box Frame',
+        desc: 'Hand-stained solid wood box frame · 33 mm wall depth.',
+        previewImg: `https://www.prodigi.com/download/product-range/box-frames/Box%20${color}%20framed%20print%20chevron.jpg`, cornerImage: `https://www.prodigi.com/download/product-range/box-frames/Box%20${color}%20framed%20print%20chevron.jpg`, borderImageSource: `https://www.prodigi.com/download/product-range/box-frames/Box%20${color}%20framed%20print%20chevron.jpg`, borderImageSlicePct: 27,
+        mouldingWidthIn: 20 / 25.4, rabbetDepthIn: 30 / 25.4, renderProfile: 'deep', finish: 'matte', prodigiProduct: 'box', prodigiColor: color,
+    })),
+    ...['black', 'silver', 'gold'].map((color, index) => ({
+        id: `prodigi-aluminium-${color}`, name: `Prodigi Aluminium · ${color[0].toUpperCase()}${color.slice(1)}`, category: 'Prodigi Aluminium Frames',
+        baseColor: ['#242321', '#aaa9a5', '#c4a357'][index], width: '10px', widthCategory: 'narrow', priceMod: 1, type: 'Prodigi Aluminium Frame',
+        desc: 'Lightweight aluminium frame · shatterproof Perspex glaze.',
+        previewImg: `https://www.prodigi.com/img/products/chevrons/aluminium-${color}.png`, cornerImage: `https://www.prodigi.com/img/products/chevrons/aluminium-${color}.png`, borderImageSource: `https://www.prodigi.com/img/products/chevrons/aluminium-${color}.png`, borderImageSlicePct: 27,
+        mouldingWidthIn: 10 / 25.4, rabbetDepthIn: 12 / 25.4, renderProfile: 'flat', finish: 'metallic', prodigiProduct: 'aluminium', prodigiColor: color,
+    })),
+    ...['black', 'white', 'natural', 'antique-silver', 'brown', 'antique-gold', 'dark-grey', 'light-grey'].map((color, index) => ({
+        id: `prodigi-classic-canvas-${color}`, name: `Prodigi Classic Canvas · ${color.replace(/(^|-)/g, ' ').trim().replace(/\b\w/g, (letter) => letter.toUpperCase())}`,
+        category: 'Prodigi Classic Framed Canvas', baseColor: ['#242321', '#f4f1e9', '#b08a5a', '#aaa9a5', '#68472f', '#c4a357', '#555451', '#c3c1bd'][index],
+        width: '20px', widthCategory: 'standard', priceMod: 1, type: 'Prodigi Canvas Frame', desc: '400 gsm cotton canvas in the classic satin-laminated frame.',
+        previewImg: 'https://www.prodigi.com/img/products/additional/classic-framed-canvas/classic-frame-canvas-woman-print-a_.webp', cornerImage: 'https://www.prodigi.com/img/products/additional/classic-framed-canvas/prodigi-classic-framed-canvas-19mm-corner.webp', borderImageSource: `https://www.prodigi.com/img/products/chevrons/classic-${color}.png`, borderImageSlicePct: 27,
+        mouldingWidthIn: 20 / 25.4, rabbetDepthIn: 17 / 25.4, renderProfile: 'flat', finish: /gold|silver/.test(color) ? 'metallic' : 'matte', prodigiProduct: 'canvas-classic', prodigiColor: color, canvasThicknessMm: 19, canvasFrameStyle: 'traditional',
+    })),
+    ...['black', 'white', 'antique-gold', 'antique-silver', 'natural', 'brown'].map((color, index) => ({
+        id: `prodigi-float-canvas-${color}`, name: `Prodigi Float Canvas · ${color.replace(/(^|-)/g, ' ').trim().replace(/\b\w/g, (letter) => letter.toUpperCase())}`,
+        category: 'Prodigi Float Framed Canvas', baseColor: ['#242321', '#f4f1e9', '#c4a357', '#aaa9a5', '#b08a5a', '#68472f'][index],
+        width: '12px', widthCategory: 'narrow', priceMod: 1, type: 'Prodigi Canvas Frame', desc: '38 mm cotton canvas · floating frame with a 5 mm reveal.',
+        previewImg: `https://www.prodigi.com/img/products/chevrons/canvas-float-${color}.png`, cornerImage: 'https://www.prodigi.com/download/product-range/framed-canvas/Black%20framed%20canvas%20near%20corner.jpg', borderImageSource: `https://www.prodigi.com/img/products/chevrons/canvas-float-${color}.png`, borderImageSlicePct: 27,
+        mouldingWidthIn: 12 / 25.4, rabbetDepthIn: 40 / 25.4, renderProfile: 'floater', finish: /gold|silver/.test(color) ? 'metallic' : 'matte', prodigiProduct: 'canvas-float', prodigiColor: color, canvasThicknessMm: 38, canvasFrameStyle: 'floater', canvasGapMm: 5,
+    })),
+    ...['black', 'white', 'antique-gold', 'antique-silver', 'natural', 'brown'].map((color, index) => ({
+        id: `prodigi-eco-canvas-${color}`, name: `Prodigi Eco Canvas · ${color.replace(/(^|-)/g, ' ').trim().replace(/\b\w/g, (letter) => letter.toUpperCase())}`,
+        category: 'Prodigi Eco Framed Canvas', baseColor: ['#242321', '#f4f1e9', '#c4a357', '#aaa9a5', '#b08a5a', '#68472f'][index],
+        width: '12px', widthCategory: 'narrow', priceMod: 1, type: 'Prodigi Canvas Frame', desc: '38 mm recycled satin canvas · floating frame with a 5 mm reveal.',
+        previewImg: `https://www.prodigi.com/img/products/chevrons/eco-canvas-float-${color}.png`, cornerImage: 'https://www.prodigi.com/img/products/additional/eco-framed-canvas/eco-framed-canvas_2.webp', borderImageSource: `https://www.prodigi.com/img/products/chevrons/eco-canvas-float-${color}.png`, borderImageSlicePct: 27,
+        mouldingWidthIn: 12 / 25.4, rabbetDepthIn: 40 / 25.4, renderProfile: 'floater', finish: /gold|silver/.test(color) ? 'metallic' : 'matte', prodigiProduct: 'canvas-eco', prodigiColor: color, canvasThicknessMm: 38, canvasFrameStyle: 'floater', canvasGapMm: 5,
+    })),
 ];
 
 export const FRAME_STYLES = [
@@ -6066,6 +6122,8 @@ export const FRAME_STYLES = [
         textureDerived: false
     }
 ];
+
+FRAME_STYLES.push(...PRODIGI_FRAME_RECORDS);
 
 export const WALL_TEXTURES = [
     { name: 'Clean White', class: 'bg-gray-50' },          // 0: Classic neutral

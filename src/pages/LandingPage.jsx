@@ -1,13 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { ArrowRight, ChevronRight, ChevronLeft, Sparkles, Upload, Frame as FrameIcon, SlidersHorizontal, Eye, Truck } from 'lucide-react';
-import { FRAME_STYLES, CATEGORIES } from '../data/constants';
-import { framesForCategory } from '../data/frameBrowsing';
+import { framesForCategory, displayCategoryName, displayFrameName, PRODIGI_FRAME_CATEGORIES } from '../data/frameBrowsing';
 import { CAROUSEL_SLIDES } from '../data/landingCarouselSlides';
 import { openExternalLinkFromEvent as openExternalLink } from '../utils/nativeLinks';
 import PageMeta from '../components/common/PageMeta';
 
 export default function LandingPage({ onStartFraming, navigate, setSelectedFrame }) {
-    const [activeCategory, setActiveCategory] = useState(CATEGORIES[0]);
+    const [activeCategory, setActiveCategory] = useState(PRODIGI_FRAME_CATEGORIES[0]);
     const [currentPage, setCurrentPage] = useState(1);
     const [currentSlide, setCurrentSlide] = useState(0);
 
@@ -27,6 +26,7 @@ export default function LandingPage({ onStartFraming, navigate, setSelectedFrame
     
     // Pagination logic
     const filteredFrames = framesForCategory(activeCategory);
+    const prodigiFrameCount = PRODIGI_FRAME_CATEGORIES.reduce((count, category) => count + framesForCategory(category).length, 0);
     const itemsPerPage = 12;
     const totalPages = Math.ceil(filteredFrames.length / itemsPerPage);
     const currentFrames = filteredFrames.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
@@ -150,65 +150,41 @@ export default function LandingPage({ onStartFraming, navigate, setSelectedFrame
                     <div className="flex flex-col md:flex-row justify-between items-end mb-12">
                         <div>
                             <h2 className="text-3xl lg:text-4xl font-bold tracking-tight text-stone-900 mb-4">Curated Frame Collection</h2>
-                            <p className="text-stone-500 max-w-md">Browse our extensive collection of {FRAME_STYLES.length} museum-quality frames, organized by design aesthetic.</p>
+                            <p className="text-stone-500 max-w-md">Browse {prodigiFrameCount} Prodigi frame and canvas options, organized by product style.</p>
                         </div>
                     </div>
                     
                     {/* Category Tabs */}
                     <div className="flex overflow-x-auto gap-2 pb-6 mb-4 hide-scrollbar">
-                        {CATEGORIES.map(cat => (
+                        {PRODIGI_FRAME_CATEGORIES.map(cat => (
                             <button
                                 key={cat}
                                 onClick={() => handleCategoryChange(cat)}
                                 aria-pressed={activeCategory === cat}
                                 className={`px-5 py-2.5 rounded-full text-sm font-semibold whitespace-nowrap transition-all ${activeCategory === cat ? 'bg-stone-900 text-white shadow-md' : 'bg-stone-50 text-stone-600 hover:bg-stone-100 border border-stone-200'}`}
                             >
-                                {cat}
+                                {displayCategoryName(cat)}
                             </button>
                         ))}
                     </div>
 
                     {/* Frame Grid */}
-                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mb-12">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-x-5 gap-y-6 mb-12">
                         {currentFrames.map((frame) => (
                             <div key={frame.id} className="group cursor-pointer" onClick={() => handleFrameSelect(frame)}>
-                                <div className="aspect-square rounded-2xl bg-stone-100 overflow-hidden mb-4 relative transition-transform duration-500 group-hover:scale-[1.02]">
-                                    {/* Corner-profile shots ship with generous white margin around
-                                        the moulding (product photography convention), so a 1:1 crop
-                                        renders the frame as a small inset swatch. Scaling well past
-                                        100% before object-cover crops lets the wood/finish fill the
-                                        card edge-to-edge instead, matching a macro product shot
-                                        rather than a thumbnail on a mount board. The origin is
-                                        biased toward the lower-middle rather than dead center: most
-                                        shots concentrate the frame's solid mass toward the bottom of
-                                        the frame (mitre pointing down) with the open mat/background
-                                        toward the top, so zooming from that point crops into more
-                                        moulding and less background than a centered zoom would —
-                                        including on the minority of shots framed off-axis with the
-                                        inner mat opening still visible. */}
+                                <div className="aspect-square rounded-2xl bg-stone-100 overflow-hidden mb-3 relative transition-transform duration-300 group-hover:scale-[1.02]">
                                     <img
                                         src={frame.cornerImage || frame.previewImg || `/frames/${frame.filename}`}
                                         alt={frame.name}
-                                        className="w-full h-full object-cover scale-[1.65] origin-[50%_68%] transition-transform duration-700 group-hover:scale-[1.78]"
+                                        loading="lazy"
+                                        decoding="async"
+                                        className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
                                     />
-                                    {/* Soft inset vignette — grounds every corner shot in the same
-                                        gentle studio-light falloff regardless of that source photo's
-                                        own background/lighting, so the grid reads as one consistent
-                                        set rather than a patchwork of differently-lit product photos. */}
-                                    <div className="absolute inset-0 shadow-[inset_0_0_46px_12px_rgba(28,26,23,0.18)] pointer-events-none" />
-                                    <div className="absolute inset-0 opacity-0 group-hover:opacity-100 bg-black/10 transition-opacity duration-300 z-10" />
-
-                                    {/* Hover overlay with button */}
-                                    <div className="absolute inset-0 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-20">
-                                        <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-xl transform translate-y-4 group-hover:translate-y-0 transition-all duration-300">
-                                            <ArrowRight className="w-5 h-5 text-stone-900" />
-                                        </div>
-                                    </div>
                                 </div>
                                 
                                 <div>
-                                    <h3 className="text-lg font-bold text-stone-900 mb-1">{frame.name}</h3>
-                                    <p className="text-sm text-stone-500">{frame.category}</p>
+                                    <h3 className="text-sm font-bold text-stone-900 leading-tight">{displayFrameName(frame)}</h3>
+                                    <p className="mt-1.5 text-xs text-stone-500">{displayCategoryName(frame.category)}</p>
                                 </div>
                             </div>
                         ))}

@@ -2,27 +2,27 @@ import React from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import LandingPage from './LandingPage';
-import { framesForCategory } from '../data/frameBrowsing';
+import { framesForCategory, PRODIGI_FRAME_CATEGORIES } from '../data/frameBrowsing';
 import { CAROUSEL_SLIDES } from '../data/landingCarouselSlides';
 
 afterEach(cleanup);
 
 describe('home catalogue and carousel', () => {
-    it('paginates featured frames and resets the page when changing categories', () => {
+    it('shows only the six Prodigi categories and selects the chosen family finish', () => {
         const setSelectedFrame = vi.fn();
         const navigate = vi.fn();
         render(<LandingPage setSelectedFrame={setSelectedFrame} navigate={navigate} />);
-        const featured = framesForCategory('Featured Frames');
-        expect(screen.getByText('Page 1 of 2')).toBeInTheDocument();
-        expect(screen.getByRole('heading', { name: featured[0].name })).toBeInTheDocument();
-        fireEvent.click(screen.getByRole('button', { name: 'Next page' }));
-        expect(screen.getByText('Page 2 of 2')).toBeInTheDocument();
-        fireEvent.click(screen.getByRole('heading', { name: featured[12].name }));
-        expect(setSelectedFrame).toHaveBeenCalledWith(featured[12]);
+        expect(screen.getByText(/34 Prodigi frame and canvas options/)).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: 'Classic Frames' })).toHaveAttribute('aria-pressed', 'true');
+        expect(screen.getByRole('heading', { name: 'Black' })).toBeInTheDocument();
+        expect(screen.getAllByRole('button').filter(button => button.hasAttribute('aria-pressed'))).toHaveLength(6);
+        fireEvent.click(screen.getByRole('button', { name: 'Float Framed Canvas' }));
+        const floatFrames = framesForCategory(PRODIGI_FRAME_CATEGORIES[4]);
+        fireEvent.click(screen.getByRole('heading', { name: /Natural/ }));
+        expect(setSelectedFrame).toHaveBeenCalledWith(floatFrames.find(frame => frame.id.endsWith('-natural')));
         expect(navigate).toHaveBeenCalledWith('/frame/customize');
-        fireEvent.click(screen.getByRole('button', { name: 'Canvas', exact: true }));
-        expect(screen.getByRole('heading', { name: 'Gallery Wrapped Canvas' })).toBeInTheDocument();
-        expect(screen.queryByText('Page 2 of 2')).not.toBeInTheDocument();
+        fireEvent.click(screen.getByRole('button', { name: 'Classic Framed Canvas', exact: true }));
+        expect(screen.getByRole('heading', { name: 'Antique Gold' })).toBeInTheDocument();
     });
 
     it('exposes only the visible slide action and opens Met art only from its slide', () => {

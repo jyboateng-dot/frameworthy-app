@@ -1786,6 +1786,7 @@ const CustomizeFramePage = ({
     };
 
     const completeCheckoutAction = async (action) => {
+        if (selectedFrame?.prodigiProduct) return;
         setLoadingAction(action);
         setFitError('');
         try {
@@ -2005,7 +2006,8 @@ const CustomizeFramePage = ({
     // a paper mat, so matting is hidden for it the same way it's hidden for
     // the frame-less 'frame-canvas' Gallery Wrapped Canvas style.
     const canvasMountStyle = glassType === 'canvas-floater' ? 'floater' : glassType === 'canvas-traditional' ? 'traditional' : null;
-    const isCanvasGlazing = !!canvasMountStyle && selectedFrame?.id !== 'frame-canvas';
+    const effectiveCanvasMountStyle = selectedFrame?.canvasFrameStyle || canvasMountStyle;
+    const isCanvasGlazing = Boolean(effectiveCanvasMountStyle) && selectedFrame?.id !== 'frame-canvas';
 
     const showMatting = selectedFrame?.id !== 'frame-canvas' && !isCanvasGlazing && !isPreset;
     const stepMatting = showMatting ? stepCounter++ : null;
@@ -2581,6 +2583,8 @@ const CustomizeFramePage = ({
                             let projectedRailPx = railWidthCm * pixelsPerCm;
                             let mouldingPctW = (projectedRailPx / renderedFrameWidthPx) * 100;
                             let mouldingPctH = (projectedRailPx / renderedFrameHeightPx) * 100;
+                            // Canvas thickness is the depth into the wall; it is
+                            // not the visible front face width of the frame.
                             
                             // Mat inset as % of frame width/height.
                             // Clamp the max inset so we don't mathematically collapse the artwork to 0 or negative.
@@ -2919,8 +2923,9 @@ const CustomizeFramePage = ({
                             // Traditional lets the frame's inner lip overlap and hide the canvas
                             // edge. Both a fixed physical inch amount converted to %, same
                             // derivation as matPct above, so they scale sensibly across sizes.
-                            const floaterGapPctW = (0.25 / (wInch + 2 * railWidthIn)) * 100;
-                            const floaterGapPctH = (0.25 / (hInch + 2 * railWidthIn)) * 100;
+                            const supplierGapIn = (selectedFrame?.canvasGapMm || 6.35) / 25.4;
+                            const floaterGapPctW = (supplierGapIn / (wInch + 2 * railWidthIn)) * 100;
+                            const floaterGapPctH = (supplierGapIn / (hInch + 2 * railWidthIn)) * 100;
                             const traditionalOverlapPctW = Math.min(0.375 / (wInch + 2 * railWidthIn) * 100, mouldingPctW);
                             const traditionalOverlapPctH = Math.min(0.375 / (hInch + 2 * railWidthIn) * 100, mouldingPctH);
 
@@ -3278,7 +3283,7 @@ const CustomizeFramePage = ({
                                                         bottom: `${mouldingPctH}%`,
                                                         left: `${mouldingPctW}%`,
                                                         right: `${mouldingPctW}%`,
-                                                        backgroundColor: (!isCanvasGlazing && matWidth !== 'none') ? matColor.hex : (canvasMountStyle === 'floater' ? '#78716c' : '#fff')
+                                                        backgroundColor: (!isCanvasGlazing && matWidth !== 'none') ? matColor.hex : (effectiveCanvasMountStyle === 'floater' ? '#78716c' : '#fff')
                                                     }}
                                                 >
                                                     {/* Outer Mat Bevel (where mat meets frame) */}
@@ -3329,12 +3334,12 @@ const CustomizeFramePage = ({
                                     {/* Artwork Area */}
                                     {!isPreset && (
                                         <div
-                                            className={`absolute overflow-hidden transition-all duration-300 ${isCanvasGlazing && canvasMountStyle === 'traditional' ? 'z-[5]' : 'z-20'} ${selectedFrame?.id === 'frame-canvas' || isCanvasGlazing ? 'shadow-[inset_0_0_0_1px_rgba(255,255,255,0.1)]' : 'shadow-[inset_0_1px_3px_rgba(0,0,0,0.1)]'}`}
+                                            className={`absolute overflow-hidden transition-all duration-300 ${isCanvasGlazing && effectiveCanvasMountStyle === 'traditional' ? 'z-[5]' : 'z-20'} ${selectedFrame?.id === 'frame-canvas' || isCanvasGlazing ? 'shadow-[inset_0_0_0_1px_rgba(255,255,255,0.1)]' : 'shadow-[inset_0_1px_3px_rgba(0,0,0,0.1)]'}`}
                                         style={{
-                                            top: selectedFrame?.id === 'frame-canvas' || isPreset ? '0%' : isCanvasGlazing ? (canvasMountStyle === 'floater' ? `${mouldingPctH + floaterGapPctH}%` : `${Math.max(0, mouldingPctH - traditionalOverlapPctH)}%`) : `${mouldingPctH + matPctTop}%`,
-                                            bottom: selectedFrame?.id === 'frame-canvas' || isPreset ? '0%' : isCanvasGlazing ? (canvasMountStyle === 'floater' ? `${mouldingPctH + floaterGapPctH}%` : `${Math.max(0, mouldingPctH - traditionalOverlapPctH)}%`) : `${mouldingPctH + matPctBottom}%`,
-                                            left: selectedFrame?.id === 'frame-canvas' || isPreset ? '0%' : isCanvasGlazing ? (canvasMountStyle === 'floater' ? `${mouldingPctW + floaterGapPctW}%` : `${Math.max(0, mouldingPctW - traditionalOverlapPctW)}%`) : `${mouldingPctW + matPctW}%`,
-                                            right: selectedFrame?.id === 'frame-canvas' || isPreset ? '0%' : isCanvasGlazing ? (canvasMountStyle === 'floater' ? `${mouldingPctW + floaterGapPctW}%` : `${Math.max(0, mouldingPctW - traditionalOverlapPctW)}%`) : `${mouldingPctW + matPctW}%`,
+                                            top: selectedFrame?.id === 'frame-canvas' || isPreset ? '0%' : isCanvasGlazing ? (effectiveCanvasMountStyle === 'floater' ? `${mouldingPctH + floaterGapPctH}%` : `${Math.max(0, mouldingPctH - traditionalOverlapPctH)}%`) : `${mouldingPctH + matPctTop}%`,
+                                            bottom: selectedFrame?.id === 'frame-canvas' || isPreset ? '0%' : isCanvasGlazing ? (effectiveCanvasMountStyle === 'floater' ? `${mouldingPctH + floaterGapPctH}%` : `${Math.max(0, mouldingPctH - traditionalOverlapPctH)}%`) : `${mouldingPctH + matPctBottom}%`,
+                                            left: selectedFrame?.id === 'frame-canvas' || isPreset ? '0%' : isCanvasGlazing ? (effectiveCanvasMountStyle === 'floater' ? `${mouldingPctW + floaterGapPctW}%` : `${Math.max(0, mouldingPctW - traditionalOverlapPctW)}%`) : `${mouldingPctW + matPctW}%`,
+                                            right: selectedFrame?.id === 'frame-canvas' || isPreset ? '0%' : isCanvasGlazing ? (effectiveCanvasMountStyle === 'floater' ? `${mouldingPctW + floaterGapPctW}%` : `${Math.max(0, mouldingPctW - traditionalOverlapPctW)}%`) : `${mouldingPctW + matPctW}%`,
                                             backgroundColor: (selectedFrame?.id !== 'frame-canvas' && !isCanvasGlazing && matWidth !== 'none' && !isPreset) ? matColor.hex : 'transparent'
                                         }}
                                     >
@@ -3505,6 +3510,9 @@ const CustomizeFramePage = ({
                     <div>
                         <h1 className="text-xl font-serif font-bold text-stone-900 mb-1">Customize Your Frame</h1>
                         <p className="text-sm text-stone-500">Perfectly customized to your space.</p>
+                        <a href="/prodigi/catalogue" className="mt-3 inline-flex items-center rounded-full border border-[#d8c28d] bg-[#fbf8ef] px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-stone-700 transition hover:border-[#b8964a] hover:text-stone-950">
+                            Explore Prodigi frames & canvas
+                        </a>
                     </div>
 
                     {/* Only ever appears when clampSizeToValidRange actually
@@ -3961,7 +3969,9 @@ const CustomizeFramePage = ({
                 {/* Sticky Checkout Footer */}
                 <div className={`bottom-0 z-20 backdrop-blur-md border-t border-stone-200 shadow-[0_-10px_40px_rgba(0,0,0,0.03)] flex ${isSideBySide ? 'flex-col gap-0 items-start py-1.5 px-3' : 'items-center justify-between gap-4 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom,0px))] px-5'} ${isSideBySide ? 'relative bg-white/85' : 'sticky bg-white/95'}`}>
                     <div className="flex flex-col">
-                        <Price
+                        {selectedFrame?.prodigiProduct ? (
+                            <span className="max-w-56 text-[10px] leading-4 text-amber-800">Prodigi checkout is not connected yet. You can preview and configure this supplier frame, but ordering is disabled until live SKU pricing and fulfillment are wired.</span>
+                        ) : <Price
                             amount={
                                 Math.round((selectedSize?.price || 0) * (selectedFrame?.priceMod || 1)) +
                                 (selectedFrame?.id !== 'frame-canvas' && glassType !== 'canvas-floater' && glassType !== 'canvas-traditional' && matWidth !== 'none' ? (matColor.price || 75) : 0) +
@@ -3971,16 +3981,16 @@ const CustomizeFramePage = ({
                                 (hardwareType === 'french-cleat' ? 50 : 0)
                             }
                             className="text-lg font-bold text-stone-900 tracking-tight"
-                        />
-                        <span className="text-[8px] text-stone-500 whitespace-nowrap">
+                        />}
+                        {!selectedFrame?.prodigiProduct && <span className="text-[8px] text-stone-500 whitespace-nowrap">
                             {isCloudUploadPending ? 'Finishing image upload…' : 'Shipping fee paid upon delivery'}
-                        </span>
+                        </span>}
                     </div>
                     <div className={`flex w-full mt-1 ${isSideBySide ? 'gap-1.5' : 'gap-2 max-w-[300px]'}`}>
                         <button
                             onClick={() => completeCheckoutAction('cart')}
-                            disabled={!hasImage || isCloudUploadPending || loadingAction !== null}
-                            className={`flex-1 bg-white border rounded-full text-[10px] font-bold uppercase tracking-widest transition-colors flex items-center justify-center gap-1.5 shadow-sm ${isSideBySide ? 'py-1.5' : 'py-2.5'} ${!hasImage || isCloudUploadPending || loadingAction !== null ? 'opacity-50 cursor-not-allowed border-stone-200 text-stone-400 bg-stone-50' : 'text-stone-900 border-stone-200 hover:bg-stone-50'}`}
+                            disabled={!hasImage || isCloudUploadPending || loadingAction !== null || Boolean(selectedFrame?.prodigiProduct)}
+                            className={`flex-1 bg-white border rounded-full text-[10px] font-bold uppercase tracking-widest transition-colors flex items-center justify-center gap-1.5 shadow-sm ${isSideBySide ? 'py-1.5' : 'py-2.5'} ${!hasImage || isCloudUploadPending || loadingAction !== null || selectedFrame?.prodigiProduct ? 'opacity-50 cursor-not-allowed border-stone-200 text-stone-400 bg-stone-50' : 'text-stone-900 border-stone-200 hover:bg-stone-50'}`}
                         >
                             {loadingAction === 'cart' && <Loader size={12} className="animate-spin" />}
                             {loadingAction === 'cart' ? 'Adding…' : (wasAddedToCart ? 'Added' : 'Add to Cart')}
@@ -3997,8 +4007,8 @@ const CustomizeFramePage = ({
                                 }
                                 completeCheckoutAction('pay');
                             }}
-                            disabled={!hasImage || isCloudUploadPending || loadingAction !== null}
-                            className={`flex-1 border rounded-full text-[10px] font-bold uppercase tracking-widest transition-colors flex items-center justify-center gap-1.5 shadow-sm ${isSideBySide ? 'py-1.5' : 'py-2.5'} ${!hasImage || isCloudUploadPending || loadingAction !== null ? 'opacity-50 cursor-not-allowed border-stone-200 text-stone-400 bg-stone-50' : 'bg-[#c9a84c] border-[#c9a84c] text-[#0a0a0a] hover:bg-[#d4b55c]'}`}
+                            disabled={!hasImage || isCloudUploadPending || loadingAction !== null || Boolean(selectedFrame?.prodigiProduct)}
+                            className={`flex-1 border rounded-full text-[10px] font-bold uppercase tracking-widest transition-colors flex items-center justify-center gap-1.5 shadow-sm ${isSideBySide ? 'py-1.5' : 'py-2.5'} ${!hasImage || isCloudUploadPending || loadingAction !== null || selectedFrame?.prodigiProduct ? 'opacity-50 cursor-not-allowed border-stone-200 text-stone-400 bg-stone-50' : 'bg-[#c9a84c] border-[#c9a84c] text-[#0a0a0a] hover:bg-[#d4b55c]'}`}
                         >
                             {loadingAction === 'pay' && <Loader size={12} className="animate-spin" />}
                             Pay Now

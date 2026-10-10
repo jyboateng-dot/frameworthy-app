@@ -12,6 +12,7 @@ const PUBLIC_PATHS = ['/', '/terms', '/privacy', '/refund-policy', '/delivery-po
 
 const TesterGate = ({ children }) => {
     const isPublicPath = PUBLIC_PATHS.includes(window.location.pathname);
+    const isLocalPreview = import.meta.env.DEV && import.meta.env.VITE_SKIP_TESTER_GATE === 'true';
     const [hasAccess, setHasAccess] = useState(() => localStorage.getItem(ACCESS_KEY) === 'granted');
     const [hasSeenCarousel, setHasSeenCarousel] = useState(() => localStorage.getItem(CAROUSEL_KEY) === 'true');
 
@@ -25,7 +26,7 @@ const TesterGate = ({ children }) => {
         setHasSeenCarousel(true);
     };
 
-    if (isPublicPath) return children;
+    if (isPublicPath || isLocalPreview) return children;
 
     if (!hasAccess) return <AccessGate onUnlock={handleUnlock} />;
     if (!hasSeenCarousel) return <ValueCarousel onDone={handleCarouselDone} />;

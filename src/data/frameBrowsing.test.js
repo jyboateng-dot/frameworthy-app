@@ -1,8 +1,30 @@
 import { describe, expect, it } from 'vitest';
 import { CATEGORIES, FRAME_STYLES } from './constants';
-import { categoryForFrame, framesForCategory, FEATURED_FRAME_IDS } from './frameBrowsing';
+import { categoryForFrame, framesForCategory, FEATURED_FRAME_IDS, prodigiPresentationForFrame, displayCategoryName, PRODIGI_FRAME_CATEGORIES } from './frameBrowsing';
 
 describe('frame catalogue browsing', () => {
+    it('includes detailed Prodigi options in all six requested frame categories', () => {
+        const prodigiCategories = CATEGORIES.filter(category => category.startsWith('Prodigi '));
+        expect(prodigiCategories).toEqual([
+            'Prodigi Classic Frames', 'Prodigi Box Frames', 'Prodigi Aluminium Frames',
+            'Prodigi Classic Framed Canvas', 'Prodigi Float Framed Canvas', 'Prodigi Eco Framed Canvas',
+        ]);
+        for (const category of prodigiCategories) {
+            const frames = framesForCategory(category);
+            expect(frames.length).toBeGreaterThan(0);
+            expect(frames.every(frame => frame.borderImageSource && frame.mouldingWidthIn > 0)).toBe(true);
+            expect(prodigiPresentationForFrame(frames[0])).toMatchObject({ page: expect.stringContaining('prodigi.com'), views: expect.any(Array), specs: expect.any(Array) });
+        }
+    });
+
+    it('shows concise category names in the shared curated picker', () => {
+        expect(displayCategoryName('Prodigi Classic Framed Canvas')).toBe('Classic Framed Canvas');
+        expect(displayCategoryName('Wood Finishes')).toBe('Wood Finishes');
+        expect(PRODIGI_FRAME_CATEGORIES).toHaveLength(6);
+        expect(PRODIGI_FRAME_CATEGORIES.every(category => category.startsWith('Prodigi '))).toBe(true);
+        expect(categoryForFrame({ id: 'frame-8446', category: 'Modern & Minimalist' })).toBe('Featured Frames');
+    });
+
     it('places every frame in exactly one nonempty category', () => {
         const groups = CATEGORIES.filter(category => category !== 'Featured Frames');
         const frames = groups.flatMap(category => {

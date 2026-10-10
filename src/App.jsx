@@ -10,6 +10,7 @@ import LandingPage from './pages/LandingPage';
 const CartPage = lazy(() => import('./pages/cart/CartPage'));
 const WishlistPage = lazy(() => import('./pages/wishlist/WishlistPage'));
 const CustomizeFramePage = lazy(() => import('./pages/framing/CustomizeFramePage'));
+const ProdigiCataloguePage = lazy(() => import('./pages/ProdigiCataloguePage'));
 const CheckoutPage = lazy(() => import('./pages/checkout/CheckoutPage'));
 const SuccessPage = lazy(() => import('./pages/SuccessPage'));
 const InspirationPage = lazy(() => import('./pages/InspirationPage'));
@@ -255,6 +256,7 @@ const AppLayout = () => {
             setPresetDims={setPresetDims}
           />
         } />
+        <Route path="/prodigi/catalogue" element={<ProdigiCataloguePage />} />
 
         {/* AUTH ROUTE */}
         <Route path="/auth" element={

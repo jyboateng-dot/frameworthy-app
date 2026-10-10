@@ -1,4 +1,7 @@
 import { FRAME_STYLES, CATEGORIES } from './constants';
+import { PRODIGI_PRESENTATION } from './prodigiProductPresentation';
+
+export const PRODIGI_FRAME_CATEGORIES = CATEGORIES.filter(category => category.startsWith('Prodigi '));
 
 // Editorial selection: distinct profiles and finishes, not a sales ranking.
 // Each landing-page batch of 12 includes everyday choices and statement styles.
@@ -27,6 +30,12 @@ export const FEATURED_FRAME_IDS = [
     'frame-83732', // Glossy Red Scoop
     'frame-9213',  // Textured Black Contemporary
     'frame-10272', // Wide Natural Bamboo
+    'prodigi-classic-black',
+    'prodigi-box-black',
+    'prodigi-aluminium-black',
+    'prodigi-classic-canvas-black',
+    'prodigi-float-canvas-black',
+    'prodigi-eco-canvas-black',
 ];
 
 export function framesForCategory(category) {
@@ -37,8 +46,21 @@ export function framesForCategory(category) {
         .sort((a, b) => a.name.localeCompare(b.name, 'en', { numeric: true }) || a.id.localeCompare(b.id));
 }
 
+export function displayCategoryName(category) {
+    return category.replace(/^Prodigi /, '');
+}
+
+export function displayFrameName(frame) {
+    return frame.name.replace(/^Prodigi (Classic Canvas|Float Canvas|Eco Canvas|Classic|Box|Aluminium) · /, '');
+}
+
 export function categoryForFrame(frame) {
+    if (frame?.prodigiProduct) return FRAME_STYLES.find(item => item.id === frame.id)?.category || frame.category || PRODIGI_FRAME_CATEGORIES[0];
     if (FEATURED_FRAME_IDS.includes(frame?.id)) return 'Featured Frames';
     // Saved carts can contain a category from an earlier catalogue version.
     return FRAME_STYLES.find(item => item.id === frame?.id)?.category || CATEGORIES[0];
+}
+
+export function prodigiPresentationForFrame(frame) {
+    return frame?.prodigiProduct ? PRODIGI_PRESENTATION[frame.prodigiProduct] || null : null;
 }

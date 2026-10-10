@@ -17,7 +17,13 @@ import { getFrameRenderProfile } from './frameRenderProfile';
 const HORIZONTAL = new Set(['top', 'bottom']);
 
 export function getFrameRail(frame) {
-    return FRAME_RAILS.rails?.[frame?.id] || null;
+    const savedRail = FRAME_RAILS.rails?.[frame?.id];
+    if (savedRail) return savedRail;
+    // Prodigi mouldings use Prodigi's published actual chevron/corner photos
+    // as their material source. The detailed visualizer still renders them
+    // through the same tiled-rail renderer as our scanned frame catalogue.
+    if (frame?.prodigiRail?.h && frame?.prodigiRail?.v) return frame.prodigiRail;
+    return null;
 }
 
 /**

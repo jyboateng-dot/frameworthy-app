@@ -6,7 +6,7 @@ import { FRAME_STYLES } from '../data/constants';
 
 afterEach(() => { cleanup(); vi.restoreAllMocks(); });
 
-it('restores a saved selection in its current category, then reopens a featured selection', () => {
+it('limits the curated picker to Prodigi categories and selects a Prodigi finish', () => {
     const scrollIntoView = vi.fn();
     const original = HTMLElement.prototype.scrollIntoView;
     HTMLElement.prototype.scrollIntoView = scrollIntoView;
@@ -15,17 +15,32 @@ it('restores a saved selection in its current category, then reopens a featured 
         const onClose = vi.fn();
         const props = { isOpen: true, onSelect, onClose };
         const { unmount } = render(<FrameSelectionModal {...props} selectedFrame={{ id: 'frame-83735', category: 'Textured & Decorative' }} />);
-        expect(screen.getByRole('button', { name: 'Glossy Finishes' })).toHaveAttribute('aria-pressed', 'true');
-        expect(scrollIntoView).toHaveBeenCalled();
-        fireEvent.click(screen.getByRole('button', { name: 'Featured Frames' }));
-        fireEvent.click(screen.getByRole('button', { name: /Flat Black Deep/ }));
-        const selected = FRAME_STYLES.find(frame => frame.id === 'frame-8446');
+        expect(screen.getByRole('button', { name: 'Classic Frames' })).toHaveAttribute('aria-pressed', 'true');
+        expect(screen.getAllByRole('button').filter(button => button.hasAttribute('aria-pressed'))).toHaveLength(6);
+        fireEvent.click(screen.getByRole('button', { name: 'Box Frames' }));
+        fireEvent.click(screen.getByRole('button', { name: /Black/ }));
+        const selected = FRAME_STYLES.find(frame => frame.id === 'prodigi-box-black');
         expect(onSelect).toHaveBeenCalledWith(selected);
         expect(onClose).toHaveBeenCalledOnce();
         unmount();
         render(<FrameSelectionModal {...props} selectedFrame={selected} />);
-        expect(screen.getByRole('button', { name: 'Featured Frames' })).toHaveAttribute('aria-pressed', 'true');
+        expect(screen.getByRole('button', { name: 'Box Frames' })).toHaveAttribute('aria-pressed', 'true');
     } finally {
         HTMLElement.prototype.scrollIntoView = original;
     }
+});
+
+it('presents Prodigi finishes as selectable cards in the shared curated collection', () => {
+    HTMLElement.prototype.scrollIntoView = vi.fn();
+    const onSelect = vi.fn();
+    const onClose = vi.fn();
+    render(<FrameSelectionModal isOpen onSelect={onSelect} onClose={onClose} selectedFrame={{ id: 'frame-8446' }} />);
+
+    expect(screen.getByRole('heading', { name: 'Curated Frame Collection' })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Classic Frames' }));
+    const classicBlack = screen.getByRole('button', { name: /Black/ });
+    expect(classicBlack.querySelector('img')).toHaveAttribute('src', expect.stringContaining('classic-black.png'));
+    fireEvent.click(classicBlack);
+    expect(onSelect).toHaveBeenCalledWith(FRAME_STYLES.find(frame => frame.id === 'prodigi-classic-black'));
+    expect(onClose).toHaveBeenCalledOnce();
 });
