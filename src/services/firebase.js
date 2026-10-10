@@ -1,6 +1,6 @@
 // Import the functions you need from the SDKs you need
 import { initializeApp } from "firebase/app";
-import { initializeAppCheck, ReCaptchaV3Provider } from "firebase/app-check";
+import { getToken as getAppCheckTokenFromSdk, initializeAppCheck, ReCaptchaV3Provider } from "firebase/app-check";
 import { getAuth, GoogleAuthProvider, OAuthProvider } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 import { getFunctions } from "firebase/functions";
@@ -29,6 +29,7 @@ const app = initializeApp(firebaseConfig);
 // set this block is a no-op, so the app runs identically until App Check is
 // deployed and enforced. See SECURITY_APPCHECK.md for the rollout steps.
 const appCheckSiteKey = import.meta.env.VITE_APPCHECK_RECAPTCHA_SITE_KEY;
+let appCheckInstance = null;
 if (appCheckSiteKey) {
     // In local dev, App Check would otherwise reject requests from localhost.
     // Setting this global before initializeAppCheck makes the SDK print a
@@ -37,11 +38,25 @@ if (appCheckSiteKey) {
     if (import.meta.env.DEV) {
         self.FIREBASE_APPCHECK_DEBUG_TOKEN = true;
     }
-    initializeAppCheck(app, {
+    appCheckInstance = initializeAppCheck(app, {
         provider: new ReCaptchaV3Provider(appCheckSiteKey),
         isTokenAutoRefreshEnabled: true,
     });
 }
+
+// Raw HTTP functions do not receive App Check automatically the way Firebase
+// callable functions do. Callers can use this helper to attach the current
+// token explicitly. Returning null keeps local and unconfigured environments
+// working while the production rollout is still in monitoring mode.
+export const getAppCheckToken = async () => {
+    if (!appCheckInstance) return null;
+    try {
+        const result = await getAppCheckTokenFromSdk(appCheckInstance);
+        return result.token || null;
+    } catch {
+        return null;
+    }
+};
 
 // Initialize Auth
 export const auth = getAuth(app);
