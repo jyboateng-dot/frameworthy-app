@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { importArtworkFromUrl, isPrivateOrReservedIp } from '../index.js';
+import { importArtworkFromUrl, inspectAppCheckRequest, isPrivateOrReservedIp } from '../index.js';
 
 const PUBLIC_IP = '93.184.216.34';
 const originalFetch = global.fetch;
@@ -42,6 +42,27 @@ describe('isPrivateOrReservedIp', () => {
     });
 });
 
+describe('inspectAppCheckRequest', () => {
+    it('reports missing tokens without invoking verification', async () => {
+        const verifyToken = vi.fn();
+        await expect(inspectAppCheckRequest(makeReq(), verifyToken)).resolves.toEqual({ status: 'missing' });
+        expect(verifyToken).not.toHaveBeenCalled();
+    });
+
+    it('verifies supplied tokens and returns the app id', async () => {
+        const verifyToken = vi.fn().mockResolvedValue({ app_id: 'frameworthy-web' });
+        await expect(inspectAppCheckRequest(makeReq({ headers: { 'x-firebase-appcheck': 'valid-token' } }), verifyToken))
+            .resolves.toEqual({ status: 'valid', appId: 'frameworthy-web' });
+        expect(verifyToken).toHaveBeenCalledWith('valid-token');
+    });
+
+    it('reports invalid tokens without throwing during monitoring', async () => {
+        const verifyToken = vi.fn().mockRejectedValue(new Error('bad token'));
+        await expect(inspectAppCheckRequest(makeReq({ headers: { 'x-firebase-appcheck': 'bad-token' } }), verifyToken))
+            .resolves.toEqual({ status: 'invalid', error: 'bad token' });
+    });
+});
+
 describe('importArtworkFromUrl', () => {
     it('accepts only POST requests', async () => {
         const res = makeRes();
@@ -53,6 +74,7 @@ describe('importArtworkFromUrl', () => {
         const res = makeRes();
         await importArtworkFromUrl(makeReq({ method: 'OPTIONS', headers: { origin: 'https://frameworthyco.com' } }), res);
         expect(res.headers['Access-Control-Allow-Origin']).toBe('https://frameworthyco.com');
+        expect(res.headers['Access-Control-Allow-Headers']).toContain('X-Firebase-AppCheck');
     });
 
     it('does not grant CORS access to a third-party origin', async () => {

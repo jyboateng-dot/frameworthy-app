@@ -1016,6 +1016,25 @@ function filenameFromArtworkUrl(url, contentType) {
 // for free, at this project's expense. Restricting to an explicit allowlist
 // doesn't change how the app itself calls this (same-origin requests don't
 // need the header at all), it only stops third-party pages from doing so.
+// Raw onRequest functions do not validate App Check automatically. Keep the
+// verification result separate from enforcement so the rollout can first
+// measure real production traffic without locking customers out.
+async function inspectAppCheckRequest(req, verifyToken = token => admin.appCheck().verifyToken(token)) {
+    const rawToken = req.get?.('X-Firebase-AppCheck')
+        ?? req.headers?.['x-firebase-appcheck']
+        ?? req.headers?.['X-Firebase-AppCheck'];
+    const token = Array.isArray(rawToken) ? rawToken[0] : rawToken;
+    if (!token || typeof token !== 'string') return { status: 'missing' };
+
+    try {
+        const decoded = await verifyToken(token);
+        return { status: 'valid', appId: decoded.app_id || null };
+    } catch (error) {
+        return { status: 'invalid', error: error?.message || 'verification failed' };
+    }
+}
+exports.inspectAppCheckRequest = inspectAppCheckRequest;
+
 const IMPORT_ARTWORK_ALLOWED_ORIGINS = new Set([
     'https://frameworthyco.com',
     'https://www.frameworthyco.com',
@@ -1030,7 +1049,7 @@ exports.importArtworkFromUrl = onRequest({ region: 'us-central1', timeoutSeconds
     if (origin && IMPORT_ARTWORK_ALLOWED_ORIGINS.has(origin)) {
         res.set('Access-Control-Allow-Origin', origin);
     }
-    res.set('Access-Control-Allow-Headers', 'Content-Type');
+    res.set('Access-Control-Allow-Headers', 'Content-Type, X-Firebase-AppCheck');
     res.set('Access-Control-Allow-Methods', 'POST, OPTIONS');
     if (req.method === 'OPTIONS') {
         res.status(204).send('');
@@ -1040,6 +1059,17 @@ exports.importArtworkFromUrl = onRequest({ region: 'us-central1', timeoutSeconds
         res.status(405).send('Method not allowed');
         return;
     }
+
+    const appCheck = await inspectAppCheckRequest(req);
+    if (appCheck.status === 'valid') {
+        logger.info('importArtworkFromUrl App Check verified', { appId: appCheck.appId });
+    } else {
+        logger.warn('importArtworkFromUrl App Check not verified', {
+            status: appCheck.status,
+            error: appCheck.error,
+        });
+    }
+
     const target = req.body?.url;
     if (typeof target !== 'string' || !target.trim()) {
         res.status(400).send('Missing URL');

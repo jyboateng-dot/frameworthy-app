@@ -1,4 +1,5 @@
 import { getGoogleDriveAccessToken, preloadGoogleDriveAuth } from '../utils/googleDriveAuth';
+import { getAppCheckToken } from './firebase';
 
 const MAX_ARTWORK_BYTES = 20 * 1024 * 1024;
 const URL_IMPORT_ENDPOINT = '/api/artwork/import-url';
@@ -183,9 +184,13 @@ export async function importArtworkFromUrl(rawUrl) {
 
     let response;
     try {
+        const headers = { 'Content-Type': 'application/json' };
+        const appCheckToken = await getAppCheckToken();
+        if (appCheckToken) headers['X-Firebase-AppCheck'] = appCheckToken;
+
         response = await fetch(URL_IMPORT_ENDPOINT, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers,
             body: JSON.stringify({ url }),
         });
     } catch {

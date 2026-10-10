@@ -74,19 +74,18 @@ Where things actually stand right now, for reference:
 ### The one gap App Check's own toggle won't cover
 
 `importArtworkFromUrl` (the "paste an image link" endpoint) is an `onRequest`
-function, not an `onCall` one — Functions' Enforce toggle (once turned on)
-only covers `onCall` functions automatically. An `onRequest` function has to
-verify the App Check token itself in code
-(`getAppCheck().verifyToken(req.header('X-Firebase-AppCheck'))`), and the
-client has to actually attach that header to the `fetch()` call in the first
-place — neither exists yet. `src/services/artworkImport.js` (where that
-fetch call lives) was mid-rewrite in another session when this was checked,
-so this wasn't touched to avoid colliding with that work — worth wiring up
-once that settles, following the same "verify but don't reject yet, watch
-the logs, then start rejecting" pattern as the rest of this rollout.
+function, not an `onCall` one, so the Functions Enforce toggle does not cover
+it automatically. The client now attaches `X-Firebase-AppCheck` when App
+Check is configured, and the function verifies the token with the Admin SDK.
 
-In the meantime, that endpoint's CORS was tightened from `*` (any website)
-to an explicit allowlist of this app's own origins — a real improvement, but
-CORS is a browser-enforced convention, not a security boundary against a
-non-browser client (curl, a script) calling the raw function URL directly.
-The App Check token check above is the piece that actually closes that.
+The endpoint is deliberately in **monitoring mode** for the first rollout:
+missing and invalid tokens are logged but are not rejected yet. After the new
+client has been live long enough to show that legitimate imports consistently
+log `App Check verified`, change the function to reject `missing` and
+`invalid` results before fetching the supplied URL. This ordering prevents an
+App Check configuration problem from locking customers out of URL imports.
+
+The endpoint's CORS allowlist remains useful browser hardening, but CORS is
+not the security boundary. Enforcing the verified App Check result after the
+monitoring window is what prevents scripts and other non-browser clients from
+using the raw function URL.
