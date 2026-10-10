@@ -8,7 +8,7 @@ struct HomeView: View {
                     VStack(alignment: .leading, spacing: 12) {
                         Text("Frame your best moments.")
                             .font(.system(size: 36, weight: .bold, design: .serif))
-                            .foregroundStyle(.frameworthyInk)
+                            .foregroundStyle(Color.frameworthyInk)
                         Text("Design a custom frame from your photo, then send it to FrameWorthy for a precise quote.")
                             .font(.body)
                             .foregroundStyle(.secondary)
