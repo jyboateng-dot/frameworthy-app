@@ -150,11 +150,23 @@ const AppLayout = () => {
   // of discarding their path and always landing on the homepage.
   React.useEffect(() => {
     if (!Capacitor.isNativePlatform()) return;
-    const listenerPromise = CapacitorApp.addListener('appUrlOpen', ({ url }) => {
+    let cancelled = false;
+    const openAppLink = (url) => {
       const destination = routeFromAppLink(url);
-      if (destination) navigate(destination);
-    });
-    return () => { listenerPromise.then(listener => listener.remove()); };
+      if (!cancelled && destination) navigate(destination);
+    };
+
+    // getLaunchUrl covers a cold start; appUrlOpen covers links received while
+    // the process is already alive or returning from the background.
+    CapacitorApp.getLaunchUrl()
+      .then(result => openAppLink(result?.url))
+      .catch(() => {});
+    const listenerPromise = CapacitorApp.addListener('appUrlOpen', ({ url }) => openAppLink(url));
+
+    return () => {
+      cancelled = true;
+      listenerPromise.then(listener => listener.remove());
+    };
   }, [navigate]);
 
   // Android's hardware/gesture back button exits the whole app by default
