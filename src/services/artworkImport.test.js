@@ -1,7 +1,14 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { importArtworkFromDevice, importArtworkFromUrl } from './artworkImport';
+import { getAppCheckToken } from './firebase';
+
+vi.mock('./firebase', () => ({ getAppCheckToken: vi.fn() }));
 
 const originalFetch = globalThis.fetch;
+
+beforeEach(() => {
+    getAppCheckToken.mockResolvedValue(null);
+});
 
 afterEach(() => {
     globalThis.fetch = originalFetch;
@@ -43,6 +50,24 @@ describe('artworkImport', () => {
         expect(artwork.source).toBe('url');
         expect(artwork.file.name).toBe('art.png');
         expect(artwork.file.type).toBe('image/png');
+    });
+
+    it('sends an App Check token when Firebase provides one', async () => {
+        getAppCheckToken.mockResolvedValue('app-check-token');
+        globalThis.fetch = vi.fn().mockResolvedValue({
+            ok: true,
+            headers: new Headers({ 'content-type': 'image/png' }),
+            blob: async () => new Blob(['pixels'], { type: 'image/png' }),
+        });
+
+        await importArtworkFromUrl('https://example.com/art.png');
+
+        expect(globalThis.fetch).toHaveBeenCalledWith('/api/artwork/import-url', expect.objectContaining({
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Firebase-AppCheck': 'app-check-token',
+            },
+        }));
     });
 
     it('maps endpoint failures to actionable messages', async () => {
