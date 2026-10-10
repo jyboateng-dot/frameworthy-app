@@ -21,3 +21,25 @@ export const openExternalLinkFromEvent = (e, url) => {
     e.preventDefault();
     Browser.open({ url });
 };
+
+
+const FRAMEWORTHY_APP_LINK_HOSTS = new Set([
+    'frameworthyco.com',
+    'www.frameworthyco.com',
+]);
+
+// Converts a verified Universal Link / Android App Link into the equivalent
+// React Router destination. Rejecting every other host prevents a crafted
+// appUrlOpen event from navigating the trusted WebView to an external site.
+export const routeFromAppLink = (rawUrl) => {
+    if (!rawUrl || typeof rawUrl !== 'string') return null;
+    try {
+        const url = new URL(rawUrl);
+        if (url.protocol !== 'https:' || !FRAMEWORTHY_APP_LINK_HOSTS.has(url.hostname.toLowerCase())) {
+            return null;
+        }
+        return `${url.pathname || '/'}${url.search}${url.hash}`;
+    } catch {
+        return null;
+    }
+};

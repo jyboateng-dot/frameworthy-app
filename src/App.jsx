@@ -47,6 +47,7 @@ import NetworkStatusBanner from './components/NetworkStatusBanner';
 import CookieConsentBanner from './components/common/CookieConsentBanner';
 import ChatFloater from './components/chat/ChatFloater';
 import { visualizerFullScreenState } from './utils/visualizerFullScreenState';
+import { routeFromAppLink } from './utils/nativeLinks';
 
 // Shown briefly while a lazy-loaded route's chunk downloads — most routes
 // are cached after the first visit, so this is typically only seen once
@@ -143,6 +144,30 @@ const AppLayout = () => {
       localStorage.setItem('fw_returning_user', 'true');
     }
   }, []);
+
+  // Universal Links and Android App Links arrive through Capacitor's App
+  // plugin. Route trusted FrameWorthy URLs inside the existing SPA instead
+  // of discarding their path and always landing on the homepage.
+  React.useEffect(() => {
+    if (!Capacitor.isNativePlatform()) return;
+    let cancelled = false;
+    const openAppLink = (url) => {
+      const destination = routeFromAppLink(url);
+      if (!cancelled && destination) navigate(destination);
+    };
+
+    // getLaunchUrl covers a cold start; appUrlOpen covers links received while
+    // the process is already alive or returning from the background.
+    CapacitorApp.getLaunchUrl()
+      .then(result => openAppLink(result?.url))
+      .catch(() => {});
+    const listenerPromise = CapacitorApp.addListener('appUrlOpen', ({ url }) => openAppLink(url));
+
+    return () => {
+      cancelled = true;
+      listenerPromise.then(listener => listener.remove());
+    };
+  }, [navigate]);
 
   // Android's hardware/gesture back button exits the whole app by default
   // in a Capacitor WebView instead of navigating back through the app's own
