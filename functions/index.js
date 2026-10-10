@@ -4,8 +4,9 @@ const { defineSecret } = require('firebase-functions/params');
 const { logger } = require('firebase-functions');
 const admin = require('firebase-admin');
 const crypto = require('crypto');
-const { recomputeOrderTotal } = require('./pricing');
+const { recomputeOrderTotal, isProdigiItem } = require('./pricing');
 const { FRAMEWORTHY_KNOWLEDGE_BASE } = require('./supportKnowledge');
+const prodigi = require('./prodigi');
 
 admin.initializeApp();
 
@@ -41,6 +42,29 @@ exports.archivalArtworks = onRequest({
 // — never committed to source, never sent to the client.
 const paystackSecretKey = defineSecret('PAYSTACK_SECRET_KEY');
 
+// Stored in Secret Manager via `firebase functions:secrets:set PRODIGI_API_KEY`
+// — must exist before this deploys, or the whole functions deploy fails.
+// Payment verification needs it too, since a paid order with Prodigi items
+// is sent to Prodigi as part of finalizing it.
+const prodigiApiKey = defineSecret('PRODIGI_API_KEY');
+
+// Fetches the stored quotes behind an order's Prodigi items. A quote only
+// counts if it was still valid when the order was created; anything else is
+// left out, so recomputeOrderTotal fails closed on that item.
+async function loadProdigiQuotes(order) {
+    const ids = [...new Set((order.items || []).map((item) => item?.prodigiQuoteId).filter((id) => typeof id === 'string' && id))];
+    if (ids.length === 0) return {};
+    const db = admin.firestore();
+    const snaps = await db.getAll(...ids.map((id) => db.collection('prodigiQuotes').doc(id)));
+    const orderCreatedAt = order.createdAt?.toMillis?.() ?? Date.now();
+    const quotes = {};
+    for (const snap of snaps) {
+        const quote = snap.exists ? snap.data() : null;
+        if (quote && quote.expiresAt?.toMillis?.() >= orderCreatedAt) quotes[snap.id] = quote;
+    }
+    return quotes;
+}
+
 // Shared by verifyPaystackPayment (client-triggered) and paystackWebhook
 // (Paystack-triggered) — both end up with the same three facts (orderId,
 // reference, verified amount+currency) from different sources, and both need
@@ -72,7 +96,8 @@ async function finalizeOrderPayment({ orderId, reference, amount, currency }) {
     // against it would only prove "they paid what they said they'd pay" —
     // a tampered client could claim totalPrice: 1 and pay GHS 1 for a GHS 321
     // frame. The price table in pricing-data.json is the server's own copy.
-    const recomputed = recomputeOrderTotal(order);
+    const prodigiQuotes = await loadProdigiQuotes(order);
+    const recomputed = recomputeOrderTotal(order, { prodigiQuotes });
     if (recomputed.error) {
         logger.error('Could not recompute order total', { orderId, reference, reason: recomputed.error });
         return { ok: false, reason: 'pricing-error' };
@@ -142,6 +167,16 @@ async function finalizeOrderPayment({ orderId, reference, amount, currency }) {
         throw err;
     }
 
+    // Hand Prodigi items to Prodigi now the money is in. Never fails the
+    // payment: an outage is marked for retryProdigiSubmissions instead.
+    if (order.items?.some(isProdigiItem)) {
+        try {
+            await submitPaidProdigiOrder(orderRef, { ...order, paymentStatus: 'paid' });
+        } catch (err) {
+            logger.warn('Prodigi submission deferred', { orderId, message: err.message });
+        }
+    }
+
     return { ok: true, alreadyVerified: false };
 }
 
@@ -153,7 +188,7 @@ async function finalizeOrderPayment({ orderId, reference, amount, currency }) {
 // fail to reach the client at all if the tab closes/network drops right
 // after Paystack actually charges the customer, which is exactly what the
 // webhook exists to catch).
-exports.verifyPaystackPayment = onCall({ secrets: [paystackSecretKey], region: 'us-central1', timeoutSeconds: 30, maxInstances: 10 }, async (request) => {
+exports.verifyPaystackPayment = onCall({ secrets: [paystackSecretKey, prodigiApiKey], region: 'us-central1', timeoutSeconds: 30, maxInstances: 10 }, async (request) => {
     const { reference, orderId } = request.data || {};
     if (!reference || !orderId) {
         throw new HttpsError('invalid-argument', 'reference and orderId are required');
@@ -227,7 +262,7 @@ exports.verifyPaystackPayment = onCall({ secrets: [paystackSecretKey], region: '
 // -> Webhook URL. Paystack signs every request with the secret key via the
 // x-paystack-signature header (HMAC SHA512 over the raw body) — requests
 // that don't match are rejected before any Firestore access.
-exports.paystackWebhook = onRequest({ secrets: [paystackSecretKey], region: 'us-central1', timeoutSeconds: 30, maxInstances: 10 }, async (req, res) => {
+exports.paystackWebhook = onRequest({ secrets: [paystackSecretKey, prodigiApiKey], region: 'us-central1', timeoutSeconds: 30, maxInstances: 10 }, async (req, res) => {
     if (req.method !== 'POST') {
         res.status(405).send('Method not allowed');
         return;
@@ -1222,4 +1257,125 @@ exports.pruneArRelayObjects = onSchedule({ schedule: 'every 60 minutes', region:
             await file.delete().catch((err) => logger.warn('pruneArRelayObjects: delete failed', { name: file.name, message: err.message }));
         }
     }));
+});
+
+// Live Prodigi quote for one item (one copy) shipped to the UK or Jersey,
+// priced as FrameWorthy's retail price in GHS: Prodigi cost × markup plus
+// shipping in GBP (see prodigi.js), converted at a live rate with a buffer.
+// The quote is stored so payment verification can recompute the order total
+// from it instead of trusting the client; the supplier cost stays server-side.
+
+const toHttpsError = (err, fallbackMessage) => {
+    if (err instanceof prodigi.ProdigiError) {
+        logger.warn('Prodigi request failed', { code: err.code, message: err.message, details: err.details });
+        return new HttpsError(err.code, err.message);
+    }
+    logger.error(fallbackMessage, err);
+    return new HttpsError('internal', fallbackMessage);
+};
+
+exports.getProdigiQuote = onCall({ secrets: [prodigiApiKey], region: 'us-central1', timeoutSeconds: 30, maxInstances: 5 }, async (request) => {
+    const { items, destinationCountryCode } = request.data || {};
+    // One copy per quote: the cart multiplies by quantity, and order
+    // verification prices each item from its own quote.
+    if (!Array.isArray(items) || items.length !== 1 || (items[0]?.copies ?? 1) !== 1) {
+        throw new HttpsError('invalid-argument', 'Quote exactly one item, one copy');
+    }
+
+    let quote;
+    let rate;
+    try {
+        quote = await prodigi.getQuote(prodigiApiKey.value(), { items, destinationCountryCode, shippingMethod: 'Standard' });
+        rate = await prodigi.gbpToGhsRate();
+    } catch (err) {
+        throw toHttpsError(err, 'Could not get a Prodigi quote');
+    }
+
+    const totalGhs = prodigi.gbpToGhs(quote.retail.total, rate);
+    const expiresAt = admin.firestore.Timestamp.fromMillis(Date.now() + prodigi.QUOTE_TTL_MS);
+    const [item] = prodigi.normalizeQuoteRequest({ items, destinationCountryCode }).items;
+    const ref = await admin.firestore().collection('prodigiQuotes').add({
+        sku: item.sku,
+        attributes: item.attributes,
+        destinationCountryCode: quote.destinationCountryCode,
+        shippingMethod: quote.shippingMethod,
+        supplierGbp: quote.supplier,
+        retailGbp: quote.retail.total,
+        gbpToGhsRate: rate,
+        totalGhs,
+        environment: prodigi.PRODIGI_ENVIRONMENT,
+        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+        expiresAt,
+    });
+
+    return {
+        quoteId: ref.id,
+        currency: 'GHS',
+        destinationCountryCode: quote.destinationCountryCode,
+        total: totalGhs,
+        expiresAt: expiresAt.toMillis(),
+    };
+});
+
+// Sends a paid order's Prodigi items to Prodigi and records the outcome on
+// the order. Uses the quoted SKU and attributes, never the client's copy.
+// Errors worth retrying (Prodigi unreachable) are marked 'retry' and
+// rethrown; anything Prodigi or our checks reject is marked 'failed' for an
+// admin to fix. Prodigi's idempotency key (the order id) means a repeat
+// submission returns the existing Prodigi order instead of printing twice.
+async function submitPaidProdigiOrder(orderRef, order) {
+    const items = order.items || [];
+    if (!items.some(isProdigiItem) || order.paymentStatus !== 'paid' || order.prodigi?.orderId) return null;
+
+    const quotes = await loadProdigiQuotes(order);
+    const record = (prodigiFields) => orderRef.update({ prodigi: { ...prodigiFields, updatedAt: admin.firestore.FieldValue.serverTimestamp() } });
+
+    try {
+        const missing = items.find((item) => !quotes[item.prodigiQuoteId]);
+        if (missing) throw new prodigi.ProdigiError('failed-precondition', 'Order references an unknown or expired Prodigi quote');
+        const address = order.shippingAddress || {};
+        const result = await prodigi.createOrder(prodigiApiKey.value(), {
+            orderId: orderRef.id,
+            recipient: {
+                name: order.customerName,
+                email: order.userEmail,
+                phoneNumber: address.phone,
+                address: {
+                    line1: address.address,
+                    townOrCity: address.city,
+                    postalOrZipCode: address.postcode,
+                    countryCode: address.countryCode,
+                },
+            },
+            items: items.map((item) => {
+                const quote = quotes[item.prodigiQuoteId];
+                return { sku: quote.sku, attributes: quote.attributes, copies: Number(item.quantity) || 1, imageUrl: item.image };
+            }),
+        });
+        await record({ status: 'submitted', orderId: result.prodigiOrderId, outcome: result.outcome, stage: result.status, environment: result.environment });
+        return result;
+    } catch (err) {
+        if (err instanceof prodigi.ProdigiError && err.code !== 'unavailable') {
+            logger.error('Prodigi rejected a paid order', { orderId: orderRef.id, code: err.code, message: err.message, details: err.details });
+            await record({ status: 'failed', error: err.message });
+            return null;
+        }
+        // Prodigi or Firestore unreachable: leave it for retryProdigiSubmissions.
+        logger.warn('Prodigi submission will be retried', { orderId: orderRef.id, message: err.message });
+        await record({ status: 'retry', error: err.message }).catch(() => {});
+        throw err;
+    }
+}
+exports.submitPaidProdigiOrder = submitPaidProdigiOrder; // exported for direct testing
+
+// Paid orders whose Prodigi submission hit an outage are retried here.
+exports.retryProdigiSubmissions = onSchedule({ schedule: 'every 30 minutes', secrets: [prodigiApiKey], region: 'us-central1', timeoutSeconds: 300 }, async () => {
+    const pending = await admin.firestore().collection('orders').where('prodigi.status', '==', 'retry').limit(20).get();
+    for (const doc of pending.docs) {
+        try {
+            await submitPaidProdigiOrder(doc.ref, doc.data());
+        } catch (err) {
+            logger.warn('Prodigi retry still failing', { orderId: doc.id, message: err.message });
+        }
+    }
 });

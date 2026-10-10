@@ -8,3 +8,4 @@ process.env.GEMINI_API_KEY = 'test-gemini-api-key';
 // standing in for whatever the real MASTER_TESTER_PIN secret is in production.
 process.env.MASTER_TESTER_PIN = 'JYB187';
 process.env.IMAGEKIT_PRIVATE_KEY = 'test-imagekit-private-key';
+process.env.PRODIGI_API_KEY = 'test-prodigi-api-key';

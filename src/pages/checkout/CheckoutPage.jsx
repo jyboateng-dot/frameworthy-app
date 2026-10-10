@@ -14,6 +14,7 @@ import { useUnit } from '../../context/UnitContext';
 import { calculateSubtotal, resolvePromoCode, calculatePromoDiscount, calculateFinalTotal } from '../../utils/pricing';
 import Price from '../../components/common/Price';
 import { getThumbnailUrl } from '../../services/storage';
+import { isProdigiCartItem, PRODIGI_DESTINATIONS, PRODIGI_QUOTE_MIN_REMAINING_MS } from '../../services/prodigi';
 
 const PAYSTACK_PUBLIC_KEY = import.meta.env.VITE_PAYSTACK_PUBLIC_KEY;
 const EMAILJS_SERVICE_ID = import.meta.env.VITE_EMAILJS_SERVICE_ID;
@@ -95,6 +96,15 @@ const CheckoutPage = () => {
     const [phoneNumber, setPhoneNumber] = useState('');
     const [city, setCity] = useState('');
     const [deliveryAddress, setDeliveryAddress] = useState('');
+    const [postcode, setPostcode] = useState('');
+
+    // Prodigi frames are printed in the UK and shipped to the UK or Jersey,
+    // so their orders need a postcode and can't share a delivery with local
+    // frames. The destination is fixed by the price quoted on the item.
+    const prodigiItems = checkoutItems.filter(isProdigiCartItem);
+    const isProdigiOrder = prodigiItems.length > 0;
+    const prodigiDestination = prodigiItems[0]?.prodigiDestination;
+    const prodigiDestinationLabel = PRODIGI_DESTINATIONS.find(({ code }) => code === prodigiDestination)?.label;
 
     const [savedAddresses, setSavedAddresses] = useState([]);
     const [selectedAddressId, setSelectedAddressId] = useState('new');
@@ -218,6 +228,26 @@ const CheckoutPage = () => {
             setError('Please complete delivery address details.');
             return;
         }
+        if (isProdigiOrder) {
+            if (prodigiItems.length !== checkoutItems.length) {
+                setError('Prodigi frames ship from the UK, so please check them out separately from other frames.');
+                return;
+            }
+            if (prodigiItems.some((item) => item.prodigiDestination !== prodigiDestination)) {
+                setError('Prodigi frames in one order must all ship to the same country.');
+                return;
+            }
+            const stale = prodigiItems.find((item) => !item.prodigiQuoteId
+                || !(item.prodigiQuoteExpiresAt - Date.now() > PRODIGI_QUOTE_MIN_REMAINING_MS));
+            if (stale) {
+                setError(`The price for ${stale.selectedFrame?.name || 'a Prodigi frame'} has expired. Please remove it and add it again to get today's price.`);
+                return;
+            }
+            if (!postcode.trim()) {
+                setError('Please enter your postcode.');
+                return;
+            }
+        }
 
         setIsProcessing(true);
         setError('');
@@ -232,7 +262,8 @@ const CheckoutPage = () => {
                 address: deliveryAddress,
                 phone: phoneNumber,
                 city: city,
-                zip: '00233'
+                zip: isProdigiOrder ? postcode.trim() : '00233',
+                ...(isProdigiOrder ? { postcode: postcode.trim(), countryCode: prodigiDestination } : {})
             },
             items: checkoutItems.map(item => ({
                 productMode: item.productMode,
@@ -273,7 +304,14 @@ const CheckoutPage = () => {
                 isAlbumPoster: !!item.isAlbumPoster,
                 isMoviePoster: !!item.isMoviePoster,
                 isMoviePosterPrint: !!item.isMoviePosterPrint,
-                posterMeta: item.posterMeta || null
+                posterMeta: item.posterMeta || null,
+                // The server prices and fulfils Prodigi items from this
+                // stored quote; the SKU is for the admin view only.
+                ...(isProdigiCartItem(item) ? {
+                    prodigiQuoteId: item.prodigiQuoteId || null,
+                    prodigiSku: item.prodigiSku || null,
+                    prodigiDestination: item.prodigiDestination || null
+                } : {})
             })),
             totalPrice: finalTotal,
             currency: 'GHS',
@@ -298,7 +336,7 @@ const CheckoutPage = () => {
         const attemptKey = [
             checkoutItems.map(i => i.id).sort().join(','),
             appliedPromo?.code || '',
-            email, phoneNumber, city, deliveryAddress, fullName
+            email, phoneNumber, city, deliveryAddress, fullName, postcode
         ].join('|');
 
         (async () => {
@@ -490,12 +528,28 @@ const CheckoutPage = () => {
                                         id="checkout-city"
                                         type="text"
                                         required
-                                        placeholder="City (e.g. Accra)"
+                                        placeholder={isProdigiOrder ? 'Town or City' : 'City (e.g. Accra)'}
                                         className="w-full border-b border-stone-200 py-1.5 text-base focus:outline-none focus:border-stone-500 bg-transparent"
                                         value={city}
                                         onChange={handleFieldChange(setCity)}
                                     />
                                 </div>
+                                {isProdigiOrder && (
+                                    <div>
+                                        <label htmlFor="checkout-postcode" className="sr-only">Postcode</label>
+                                        <input
+                                            id="checkout-postcode"
+                                            type="text"
+                                            required
+                                            autoComplete="postal-code"
+                                            placeholder="Postcode"
+                                            className="w-full border-b border-stone-200 py-1.5 text-base focus:outline-none focus:border-stone-500 bg-transparent"
+                                            value={postcode}
+                                            onChange={handleFieldChange(setPostcode)}
+                                        />
+                                        <p className="mt-1 text-xs text-stone-500">Printed and shipped by Prodigi to {prodigiDestinationLabel || 'the UK'}.</p>
+                                    </div>
+                                )}
                                 <div>
                                     <label htmlFor="checkout-address" className="sr-only">Delivery Address / Landmark</label>
                                     <textarea

@@ -31,6 +31,21 @@ const customSizePrice = (sizeId) => {
     return Math.round(((w * h) / 1000) * 10) + 40;
 };
 
+const isProdigiItem = (item) => {
+    const frameId = item?.selectedFrame?.id;
+    return Boolean(item?.prodigiQuoteId) || (typeof frameId === 'string' && frameId.startsWith('prodigi-'));
+};
+
+// A Prodigi item's unit price is the GHS total of the quote it was added to
+// the cart with (one copy, shipping included). The quote is looked up by the
+// caller (it lives in Firestore) and must ship to the order's country.
+const prodigiUnitPrice = (item, order, prodigiQuotes) => {
+    const quote = prodigiQuotes?.[item?.prodigiQuoteId];
+    if (!quote || !Number.isFinite(quote.totalGhs)) return null;
+    if (quote.destinationCountryCode !== order?.shippingAddress?.countryCode) return null;
+    return quote.totalGhs;
+};
+
 const sizePriceFor = (sizeId) => {
     if (sizeId && Object.prototype.hasOwnProperty.call(data.sizePrices, sizeId)) {
         return data.sizePrices[sizeId];
@@ -45,6 +60,11 @@ const sizePriceFor = (sizeId) => {
 const priceForItem = (item) => {
     const frameId = item?.selectedFrame?.id;
     const sizeId = item?.selectedSize?.id;
+
+    // Prodigi frames are priced from a stored Prodigi quote (see
+    // prodigiUnitPrice below), not from this table. Their pricing-data.json
+    // entries only exist to keep the table in sync with FRAME_STYLES.
+    if (isProdigiItem(item)) return null;
 
     const sizePrice = sizePriceFor(sizeId);
     if (sizePrice === null || sizePrice === undefined) return null;
@@ -98,15 +118,25 @@ const discountFor = (promoCode, subtotal) => {
 
 /**
  * Recomputes what an order should cost from its configuration alone.
+ * `prodigiQuotes` maps quote id → stored quote for any Prodigi items.
  * @returns {{ total: number } | { error: string }}
  */
-const recomputeOrderTotal = (order) => {
+const recomputeOrderTotal = (order, { prodigiQuotes = {} } = {}) => {
     const items = Array.isArray(order?.items) ? order.items : null;
     if (!items || items.length === 0) return { error: 'Order has no items' };
 
+    // Prodigi items ship from the UK and local frames from Ghana, so one
+    // order (one delivery address) can't hold both. Checkout prevents this.
+    const prodigiCount = items.filter(isProdigiItem).length;
+    if (prodigiCount > 0 && prodigiCount < items.length) {
+        return { error: 'Order mixes Prodigi and local items' };
+    }
+
     let subtotal = 0;
     for (const item of items) {
-        const unitPrice = priceForItem(item);
+        const unitPrice = isProdigiItem(item)
+            ? prodigiUnitPrice(item, order, prodigiQuotes)
+            : priceForItem(item);
         if (unitPrice === null) {
             return { error: `Unrecognised product configuration (frame=${item?.selectedFrame?.id}, size=${item?.selectedSize?.id})` };
         }
@@ -126,4 +156,4 @@ const recomputeOrderTotal = (order) => {
     return { total: Math.max(0, subtotal - discount) };
 };
 
-module.exports = { recomputeOrderTotal, priceForItem, discountFor, customSizePrice };
+module.exports = { recomputeOrderTotal, priceForItem, discountFor, customSizePrice, isProdigiItem };
