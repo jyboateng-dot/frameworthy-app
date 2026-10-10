@@ -31,6 +31,18 @@ const MAX_COPIES = 10;
 // values against the SKU itself; this only keeps arbitrary keys out.
 const ATTRIBUTE_KEYS = ['color', 'mount', 'mountColor', 'glaze', 'paperType', 'wrap', 'edge', 'style'];
 
+// Customers pay through Paystack in GHS, so the GBP retail price is
+// converted at a live rate. The buffer covers the drift between quoting and
+// paying Prodigi's GBP invoice; prices round up to the whole cedi.
+const FX_RATE_URL = 'https://open.er-api.com/v6/latest/GBP';
+const FX_BUFFER = 1.04;
+const FX_CACHE_MS = 60 * 60 * 1000;
+// Outside this band the feed is broken, not the market. Fail closed.
+const FX_SANE_RANGE = [5, 100];
+
+// How long a stored quote can back a new order (see getProdigiQuote).
+const QUOTE_TTL_MS = 24 * 60 * 60 * 1000;
+
 const SKU_PATTERN = /^[A-Z0-9][A-Z0-9-]{2,63}$/i;
 
 class ProdigiError extends Error {
@@ -149,6 +161,30 @@ async function getQuote(apiKey, request) {
     };
 }
 
+let cachedRate = null;
+
+async function gbpToGhsRate(now = Date.now()) {
+    if (cachedRate && now - cachedRate.fetchedAt < FX_CACHE_MS) return cachedRate.rate;
+    let rate;
+    try {
+        const response = await fetch(FX_RATE_URL, { signal: AbortSignal.timeout(10_000) });
+        const result = await response.json();
+        rate = Number(result?.rates?.GHS);
+        if (!response.ok || result?.result !== 'success') rate = NaN;
+    } catch {
+        rate = NaN;
+    }
+    if (!Number.isFinite(rate) || rate < FX_SANE_RANGE[0] || rate > FX_SANE_RANGE[1]) {
+        throw new ProdigiError('unavailable', 'Could not get a GBP to GHS exchange rate');
+    }
+    cachedRate = { rate, fetchedAt: now };
+    return rate;
+}
+
+const resetRateCache = () => { cachedRate = null; };
+
+const gbpToGhs = (gbp, rate) => Math.ceil(Math.round(gbp * rate * FX_BUFFER * 100) / 100);
+
 const requiredString = (value, field, max = 100) => {
     if (typeof value !== 'string' || !value.trim() || value.length > max) {
         throw new ProdigiError('invalid-argument', `${field} is required`);
@@ -220,6 +256,10 @@ async function createOrder(apiKey, { orderId, shippingMethod = 'Standard', recip
 
 module.exports = {
     getQuote,
+    gbpToGhsRate,
+    gbpToGhs,
+    resetRateCache,
+    QUOTE_TTL_MS,
     createOrder,
     normalizeQuoteRequest,
     retailPrice,
