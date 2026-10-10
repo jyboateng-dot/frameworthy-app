@@ -1,0 +1,17 @@
+{
+  "applinks": {
+    "details": [
+      {
+        "appIDs": [
+          "PRNK95XA3F.com.frameworthyco.app"
+        ],
+        "components": [
+          {
+            "/": "/*",
+            "comment": "Open FrameWorthy website routes in the native iOS app."
+          }
+        ]
+      }
+    ]
+  }
+}
