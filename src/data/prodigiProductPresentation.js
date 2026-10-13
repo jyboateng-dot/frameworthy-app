@@ -1,9 +1,13 @@
-const productImage = (path) => `https://www.prodigi.com/${path}`;
+// Product-page links remain external, but every image below is a reviewed
+// local copy prepared from the official asset downloads. This keeps the
+// catalogue stable if Prodigi reorganises its CDN and makes the selected
+// references available to the renderer without runtime hotlinking.
+const localAsset = (path) => `/prodigi/${path}`;
 
 const boxFrameColors = {
-    black: productImage('download/product-range/box-frames/Box%20black%20framed%20print%20chevron.jpg'),
-    white: productImage('download/product-range/box-frames/Box%20white%20framed%20print%20chevron.jpg'),
-    natural: productImage('download/product-range/box-frames/Box%20natural%20framed%20print%20chevron.jpg'),
+    black: localAsset('finishes/box-black.png'),
+    white: localAsset('finishes/box-white.png'),
+    natural: localAsset('finishes/box-natural.png'),
 };
 
 const floatFrameColors = (prefix) => Object.fromEntries([
@@ -13,35 +17,28 @@ const floatFrameColors = (prefix) => Object.fromEntries([
     ['silver', 'antique-silver'],
     ['natural', 'natural'],
     ['brown', 'brown'],
-].map(([color, slug]) => [color, productImage(`img/products/chevrons/${prefix}-${slug}.png`)]));
+].map(([color, slug]) => [color, localAsset(`finishes/${prefix === 'eco-canvas-float' ? 'canvas-eco' : prefix}-${slug}.png`)]));
 
 const classicFrameColors = {
-    black: productImage('img/products/chevrons/classic-black.png'),
-    white: productImage('img/products/chevrons/classic-white.png'),
-    natural: productImage('img/products/chevrons/classic-natural.png'),
-    silver: productImage('img/products/chevrons/classic-antique-silver.png'),
-    brown: productImage('img/products/chevrons/classic-brown.png'),
-    gold: productImage('img/products/chevrons/classic-antique-gold.png'),
-    'dark grey': productImage('img/products/chevrons/classic-dark-grey.png'),
-    'light grey': productImage('img/products/chevrons/classic-light-grey.png'),
+    black: localAsset('finishes/classic-black.png'),
+    white: localAsset('finishes/classic-white.png'),
+    natural: localAsset('finishes/classic-natural.png'),
+    silver: localAsset('finishes/classic-antique-silver.png'),
+    brown: localAsset('finishes/classic-brown.png'),
+    gold: localAsset('finishes/classic-antique-gold.png'),
+    'dark grey': localAsset('finishes/classic-dark-grey.png'),
+    'light grey': localAsset('finishes/classic-light-grey.png'),
 };
-
-const boxDirectory = 'download/product-range/box-frames/';
-const floatDirectory = 'download/product-range/framed-canvas/';
-const classicDirectory = 'img/products/additional/classic-framed-canvas/';
-const ecoDirectory = 'img/products/additional/eco-framed-canvas/';
-const aluminiumDirectory = 'img/products/additional/aluminium-frames/';
-const stretchedCanvasDirectory = 'download/product-range/stretched-canvas/';
 
 export const PRODIGI_PRESENTATION = {
     classic: {
         page: 'https://www.prodigi.com/products/wall-art/framed-prints/classic-frames/',
-        thumbnail: productImage('download/product-range/classic-frames/Classic%20black%20framed%20print%20near%20corner.jpg'),
+        thumbnail: localAsset('views/classic-corner.jpg'),
         colors: classicFrameColors,
         views: [
-            { id: 'product', label: 'Product view', src: productImage('download/product-range/classic-frames/Classic%20black%20framed%20print%20flat.jpg') },
-            { id: 'corner', label: 'Frame corner', src: productImage('download/product-range/classic-frames/Classic%20black%20framed%20print%20near%20corner.jpg') },
-            { id: 'back', label: 'Frame reverse', src: productImage('download/product-range/classic-frames/Prodigi-classic-frame-back.jpg') },
+            { id: 'product', label: 'Product view', src: localAsset('views/classic-product.jpg') },
+            { id: 'corner', label: 'Frame corner', src: localAsset('views/classic-corner.jpg') },
+            { id: 'back', label: 'Frame reverse', src: localAsset('views/classic-back.jpg') },
         ],
         specs: [
             ['Frame face', '20 mm'], ['Depth from wall', '22 mm'], ['Rebate', '5 mm wide · 17 mm deep'],
@@ -52,12 +49,12 @@ export const PRODIGI_PRESENTATION = {
     },
     box: {
         page: 'https://www.prodigi.com/products/wall-art/framed-prints/box-frames/',
-        thumbnail: productImage(`${boxDirectory}Box%20black%20framed%20print%20face%20on.jpg`),
+        thumbnail: localAsset('views/box-product.jpg'),
         colors: boxFrameColors,
         views: [
-            { id: 'product', label: 'Product view', src: productImage(`${boxDirectory}Box%20black%20framed%20print%20face%20on.jpg`) },
-            { id: 'profile', label: 'Side profile', src: productImage(`${boxDirectory}Box%20black%20framed%20print%20end%20on.jpg`) },
-            { id: 'section', label: 'Frame section', src: productImage(`${boxDirectory}Box%20frame%20cross-section.png`) },
+            { id: 'product', label: 'Product view', src: localAsset('views/box-product.jpg') },
+            { id: 'profile', label: 'Side profile', src: localAsset('views/box-profile.jpg') },
+            { id: 'section', label: 'Frame section', src: localAsset('diagrams/box-section.png') },
         ],
         specs: [
             ['Frame face', '20 mm'], ['Depth from wall', '33 mm'], ['Rebate', '8 mm wide · 30 mm deep'],
@@ -69,16 +66,16 @@ export const PRODIGI_PRESENTATION = {
     },
     aluminium: {
         page: 'https://www.prodigi.com/products/wall-art/framed-prints/aluminium-frames/',
-        thumbnail: productImage(`${aluminiumDirectory}prodigi-black-aluminium-frame.webp`),
+        thumbnail: localAsset('views/aluminium-product.webp'),
         colors: {
-            black: productImage('img/products/chevrons/aluminium-black.png'),
-            silver: productImage('img/products/chevrons/aluminium-silver.png'),
-            gold: productImage('img/products/chevrons/aluminium-gold.png'),
+            black: localAsset('finishes/aluminium-black.png'),
+            silver: localAsset('finishes/aluminium-silver.png'),
+            gold: localAsset('finishes/aluminium-gold.png'),
         },
         views: [
-            { id: 'product', label: 'Product view', src: productImage(`${aluminiumDirectory}prodigi-black-aluminium-frame.webp`) },
-            { id: 'silver', label: 'Silver finish', src: productImage('img/products/chevrons/aluminium-silver.png') },
-            { id: 'gold', label: 'Gold finish', src: productImage('img/products/chevrons/aluminium-gold.png') },
+            { id: 'product', label: 'Product view', src: localAsset('views/aluminium-product.webp') },
+            { id: 'silver', label: 'Silver finish', src: localAsset('views/aluminium-silver.webp') },
+            { id: 'gold', label: 'Gold finish', src: localAsset('views/aluminium-gold.webp') },
         ],
         specs: [
             ['Frame face', '10 mm'], ['Depth from wall', '19 mm'], ['Rebate depth', '12 mm'],
@@ -89,13 +86,13 @@ export const PRODIGI_PRESENTATION = {
     },
     'canvas-float': {
         page: 'https://www.prodigi.com/products/wall-art/canvas/framed-canvas/framed-canvas/',
-        thumbnail: productImage(`${floatDirectory}Black%20framed%20canvas%20near%20corner.jpg`),
+        thumbnail: localAsset('views/canvas-float-corner.jpg'),
         colors: floatFrameColors('canvas-float'),
         views: [
-            { id: 'product', label: 'Product view', src: productImage(`${floatDirectory}White%20framed%20canvas.jpg`) },
-            { id: 'corner', label: 'Frame corner', src: productImage(`${floatDirectory}Black%20framed%20canvas%20near%20corner.jpg`) },
-            { id: 'profile', label: 'Side profile', src: productImage(`${floatDirectory}Canvas%20framed%20black%20end-on.jpg`) },
-            { id: 'section', label: 'Frame section', src: productImage(`${floatDirectory}Framed%20canvas%20cross-section.png`) },
+            { id: 'product', label: 'Product view', src: localAsset('views/canvas-float-product.jpg') },
+            { id: 'corner', label: 'Frame corner', src: localAsset('views/canvas-float-corner.jpg') },
+            { id: 'profile', label: 'Side profile', src: localAsset('views/canvas-float-profile.jpg') },
+            { id: 'section', label: 'Frame section', src: localAsset('diagrams/canvas-float-section.png') },
         ],
         specs: [
             ['Canvas', '38 mm · 400 gsm cotton'], ['Frame face', '12 mm'], ['Shadow gap', '5 mm'],
@@ -106,12 +103,12 @@ export const PRODIGI_PRESENTATION = {
     },
     'canvas-classic': {
         page: 'https://www.prodigi.com/products/wall-art/canvas/framed-canvas/classic-framed-canvas/',
-        thumbnail: productImage(`${classicDirectory}prodigi-classic-framed-19mm-canvas-natural.webp`),
+        thumbnail: localAsset('views/canvas-classic-product.webp'),
         colors: classicFrameColors,
         views: [
-            { id: 'product', label: 'Product view', src: productImage(`${classicDirectory}classic-frame-canvas-woman-print-a_.webp`) },
-            { id: 'corner', label: 'Frame corner', src: productImage(`${classicDirectory}prodigi-classic-framed-canvas-19mm-corner.webp`) },
-            { id: 'profile', label: 'Full frame', src: productImage(`${classicDirectory}framed-canvas-19mm-full.webp`) },
+            { id: 'product', label: 'Product view', src: localAsset('views/canvas-classic-product.webp') },
+            { id: 'corner', label: 'Frame corner', src: localAsset('views/canvas-classic-corner.webp') },
+            { id: 'profile', label: 'Full frame', src: localAsset('views/canvas-classic-profile.webp') },
         ],
         specs: [
             ['Canvas', '19 mm · 400 gsm cotton'], ['Frame', 'Classic satin-laminated picture frame'],
@@ -121,12 +118,12 @@ export const PRODIGI_PRESENTATION = {
     },
     'canvas-eco': {
         page: 'https://www.prodigi.com/products/wall-art/canvas/framed-canvas/eco-framed-canvas/',
-        thumbnail: productImage(`${ecoDirectory}eco-framed-canvas_3.webp`),
+        thumbnail: localAsset('views/canvas-eco-product.webp'),
         colors: floatFrameColors('eco-canvas-float'),
         views: [
-            { id: 'product', label: 'Product view', src: productImage(`${ecoDirectory}eco-framed-canvas_3.webp`) },
-            { id: 'detail', label: 'Frame detail', src: productImage(`${ecoDirectory}eco-framed-canvas_2.webp`) },
-            { id: 'profile', label: 'Frame profile', src: productImage(`${ecoDirectory}eco-framed-canvas_1.webp`) },
+            { id: 'product', label: 'Product view', src: localAsset('views/canvas-eco-product.webp') },
+            { id: 'detail', label: 'Frame detail', src: localAsset('views/canvas-eco-detail.webp') },
+            { id: 'profile', label: 'Frame profile', src: localAsset('views/canvas-eco-profile.webp') },
         ],
         specs: [
             ['Canvas', '38 mm · 330 gsm satin'], ['Canvas material', 'Recycled plastic bottles'], ['Frame face', '12 mm'],
@@ -138,18 +135,18 @@ export const PRODIGI_PRESENTATION = {
     },
     'stretched-canvas': {
         page: 'https://www.prodigi.com/products/wall-art/canvas/stretched-canvas/stretched-canvas/',
-        thumbnail: productImage(`${stretchedCanvasDirectory}Stretched%2038mm%20canvas%20corner.jpg`),
+        thumbnail: localAsset('views/stretched-canvas-product.jpg'),
         colors: {},
         views: [
-            { id: 'product', label: 'Product view', src: productImage(`${stretchedCanvasDirectory}Stretched%2038mm%20canvas.jpg`) },
-            { id: 'corner', label: 'Stretcher-bar corner', src: productImage(`${stretchedCanvasDirectory}Stretched%2038mm%20canvas%20corner.jpg`) },
-            { id: 'texture', label: 'Canvas texture', src: productImage(`${stretchedCanvasDirectory}Canvas-substrate-texture.jpg`) },
-            { id: 'white-edge', label: 'White 38 mm edge', src: productImage(`${stretchedCanvasDirectory}White%20edge%2038mm%20canvas.jpg`) },
-            { id: 'image-wrap', label: 'Image-wrap edge', src: productImage(`${stretchedCanvasDirectory}Image%20wrap%20on%20a%2038mm%20stretched%20canvas.jpg`) },
-            { id: 'mirror-wrap', label: 'Mirror-wrap edge', src: productImage(`${stretchedCanvasDirectory}Mirror%20wrap%20on%20a%2038mm%20stretched%20canvas.jpg`) },
-            { id: 'black-wrap', label: 'Black-wrap edge', src: productImage(`${stretchedCanvasDirectory}Black%20wrap%20on%20a%2038mm%20stretched%20canvas.jpg`) },
-            { id: 'white-wrap', label: 'White-wrap edge', src: productImage(`${stretchedCanvasDirectory}White%20wrap%20on%20a%2038mm%20stretched%20canvas.jpg`) },
-            { id: 'blank-mockup', label: 'Blank canvas mockup', src: productImage(`${stretchedCanvasDirectory}Prodigi-global-canvas-8x10-blank.jpg`) },
+            { id: 'product', label: 'Product view', src: localAsset('views/stretched-canvas-product.jpg') },
+            { id: 'corner', label: 'Stretcher-bar corner', src: localAsset('views/stretched-canvas-corner.jpg') },
+            { id: 'texture', label: 'Canvas texture', src: localAsset('views/stretched-canvas-texture.jpg') },
+            { id: 'white-edge', label: 'White 38 mm edge', src: localAsset('views/stretched-canvas-white-edge.jpg') },
+            { id: 'image-wrap', label: 'Image-wrap edge', src: localAsset('views/stretched-canvas-image-wrap.jpg') },
+            { id: 'mirror-wrap', label: 'Mirror-wrap edge', src: localAsset('views/stretched-canvas-mirror-wrap.jpg') },
+            { id: 'black-wrap', label: 'Black-wrap edge', src: localAsset('views/stretched-canvas-black-wrap.jpg') },
+            { id: 'white-wrap', label: 'White-wrap edge', src: localAsset('views/stretched-canvas-white-wrap.jpg') },
+            { id: 'blank-mockup', label: 'Blank canvas mockup', src: localAsset('views/stretched-canvas-blank.jpg') },
         ],
         downloads: [
             { label: 'Stretched canvas product sheet (PDF)', href: 'https://www.prodigi.com/download/product-range/Prodigi%20Stretched%20canvas.pdf' },
@@ -160,7 +157,7 @@ export const PRODIGI_PRESENTATION = {
             ['Stretcher material', 'European kiln-dried knotless pine'], ['Edge finishes', 'Image wrap, mirror wrap, black or white'],
             ['Finish', 'Hand stretched and finished'], ['Display permanence', 'Up to 200 years'],
             ['Print method', 'Latex inks or UVgel'], ['Hanging equipment', 'Not included'],
-            ['File guidance', 'JPG or PDF · 300 dpi'], ['Colour profile', 'Prodigi Standard Canvas · 400 gsm'],
+            ['File guidance', 'JPG or PDF · 300 dpi'], ['Colour profile', 'Standard cotton canvas · 400 gsm'],
             ['Fulfilment', 'Global print-on-demand · nearest print lab'], ['Packaging', 'White-label · double-wall corrugated box in GB/EU/US/AU'],
             ['Eco credentials', 'Vegan-friendly; local fulfilment reduces carbon'],
         ],

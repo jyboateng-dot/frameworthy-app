@@ -1,6 +1,7 @@
 import React, { useState, useEffect, lazy, Suspense } from 'react';
 import { ArrowRight, Heart, Search, ArrowUp } from 'lucide-react';
-import { FRAME_STYLES, FRAME_SIZES, findSizeByDimension, formatDimensions, parseCustomSize } from '../data/constants';
+import { FRAME_SIZES, findSizeByDimension, formatDimensions, parseCustomSize } from '../data/constants';
+import { activeFrameOrDefault } from '../data/frameBrowsing';
 import { useUnit } from '../context/UnitContext';
 import { useWishlist } from '../context/WishlistContext';
 import PageMeta from '../components/common/PageMeta';
@@ -177,7 +178,7 @@ const InspirationPage = ({ setProductMode, setSelectedFrame, setSelectedSize, na
     // state don't need to recompute the identical lookup a second time.
     const _loadFrameAndSize = (product) => {
         setProductMode('frame');
-        const frame = FRAME_STYLES.find(f => f.id === product.frameStyleId) || FRAME_STYLES.find(f => f.id === 'frame-10512');
+        const frame = activeFrameOrDefault();
         if (frame) setSelectedFrame(frame);
         const size = parseCustomSize(product.dims) || findSizeByDimension(product.dims) || FRAME_SIZES.find(s => s.id === product.sizeId);
         if (size) setSelectedSize(size);

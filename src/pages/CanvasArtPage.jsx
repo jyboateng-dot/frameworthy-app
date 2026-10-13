@@ -114,7 +114,7 @@ const CanvasArtPage = ({ setProductMode, setSelectedSize, navigate, isSubPage = 
             {!isSubPage && (
                 <PageMeta
                     title="Canvas Art"
-                    description="Browse gallery-wrapped canvas art prints and order them custom-framed, delivered across Ghana."
+                    description="Browse canvas art and preview it in a made-to-order canvas style."
                 />
             )}
 

@@ -3,7 +3,7 @@ import { buildFrameMesh } from './frameMesh';
 import { buildHardwareParts } from './frameHardware';
 import { buildGlb } from './glbWriter';
 import { buildUsda, packUsdz } from './usdzWriter';
-import { loadRailTexture, renderArtworkTexture } from './arTextures';
+import { loadRailTexture, renderArtworkTexture, renderCanvasEdgeTextures } from './arTextures';
 
 /**
  * Builds the pair of models the AR viewer needs — .glb for Android and
@@ -75,9 +75,9 @@ export function clearArModelCache() {
  * @param {string} config.artworkUrl
  * @returns {Promise<{glbUrl: string, usdzUrl: string, outerWidthM: number, outerHeightM: number, profile: string, isMeasured: boolean}>}
  */
-export async function buildArModel({ frame, widthIn, heightIn, matReveal, matColorHex, artworkUrl, hardwareType }) {
+export async function buildArModel({ frame, widthIn, heightIn, matReveal, matColorHex, glassType = 'standard', artworkUrl, hardwareType, canvasWrap = 'ImageWrap' }) {
     const key = JSON.stringify([
-        frame?.id, widthIn, heightIn, matReveal, matColorHex, artworkUrl, hardwareType,
+        frame?.id, widthIn, heightIn, matReveal, matColorHex, glassType, artworkUrl, hardwareType, canvasWrap,
     ]);
 
     if (cache.has(key)) {
@@ -95,7 +95,7 @@ export async function buildArModel({ frame, widthIn, heightIn, matReveal, matCol
         // Exposure parity with the 2D asset makes a dynamic normal map
         // inappropriate here: unlit materials intentionally ignore it.
         loadRailTexture(frame, { includeNormal: false }),
-        renderArtworkTexture(artworkUrl, widthIn, heightIn),
+        renderArtworkTexture(artworkUrl, widthIn, heightIn, glassType),
     ]);
 
     const mesh = buildFrameMesh({
@@ -103,8 +103,15 @@ export async function buildArModel({ frame, widthIn, heightIn, matReveal, matCol
         artworkHeightIn: heightIn,
         mouldingWidthIn: renderProfile.mouldingWidthIn,
         rabbetDepthIn: renderProfile.rabbetDepthIn,
+        totalDepthIn: renderProfile.totalDepthIn,
+        openingGapIn: renderProfile.openingGapIn,
+        canvasThicknessIn: renderProfile.canvasThicknessIn,
+        canvasOnly: renderProfile.isCanvasOnly,
+        crossSection: renderProfile.crossSection,
+        splitRailSurfaces: renderProfile.splitRailSurfaces,
+        matBoardIn: renderProfile.matBoardIn,
         profile: renderProfile.profile,
-        matReveal,
+        matReveal: frame?.isCanvas ? { topIn: 0, sideIn: 0, bottomIn: 0 } : matReveal,
         // Falls back to a 4:1 strip when no rail photography resolved,
         // which only affects how often a texture that isn't there would
         // have repeated.
@@ -137,6 +144,10 @@ export async function buildArModel({ frame, widthIn, heightIn, matReveal, matCol
     // third down the frame, not a third down the picture.
     mesh.parts.push(...buildHardwareParts(hardwareType, mesh));
 
+    const canvasEdges = renderProfile.canvasThicknessIn > 0
+        ? await renderCanvasEdgeTextures(artTexture, widthIn, heightIn, renderProfile.canvasThicknessIn, canvasWrap)
+        : {};
+
     const materials = {
         rail: railTexture
             ? {
@@ -154,6 +165,16 @@ export async function buildArModel({ frame, widthIn, heightIn, matReveal, matCol
             metallic: 0,
             roughness: 1,
         },
+        ...Object.fromEntries(Object.entries(canvasEdges).map(([name, texture]) => [name, {
+            texture, unlit: true, metallic: 0, roughness: 1,
+        }])),
+        railSide: { baseColor: [...hexToRgb(frame?.baseColor), 1],
+            metallic: frame?.prodigiProduct === 'aluminium' ? 0.85 : renderProfile.finish === 'metallic' ? 0.55 : 0,
+            roughness: frame?.prodigiProduct === 'aluminium' ? 0.35 : renderProfile.finish === 'metallic' ? 0.48 : 0.8 },
+        railInner: { baseColor: [...hexToRgb(frame?.canvasGapMm && frame?.prodigiColor === 'natural' ? '#202022' : frame?.baseColor), 1],
+            metallic: frame?.prodigiProduct === 'aluminium' ? 0.85 : 0,
+            roughness: frame?.prodigiProduct === 'aluminium' ? 0.35 : 0.9 },
+        shadowGap: { baseColor: [...hexToRgb('#24211e'), 1], metallic: 0, roughness: 1 },
         // Mat board is uncoated stock — flat, and never shiny.
         mat: { baseColor: [...hexToRgb(matColorHex || '#ffffff'), 1], unlit: true, metallic: 0, roughness: 0.94 },
         // The bevel is the board's own cut core, which is near-white on

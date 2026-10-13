@@ -148,7 +148,7 @@ const OrdersPage = () => {
                                             Total
                                         </p>
                                         <p className="text-stone-800 font-medium">
-                                            <Price amount={order.totalPrice ?? order.items?.reduce((sum, i) => sum + (i.price || 0) * (i.quantity || 1), 0) ?? 0} />
+                                            <Price amount={order.totalPrice ?? order.items?.reduce((sum, i) => sum + (i.price || 0) * (i.quantity || 1), 0) ?? 0} currency={order.currency || order.items?.[0]?.currency || 'GHS'} />
                                         </p>
                                     </div>
                                     <div className="text-right">
@@ -210,7 +210,7 @@ const OrdersPage = () => {
                                                 </div>
                                                 <div className="mt-1 flex items-end justify-between">
                                                     <p className="text-base font-bold text-stone-900">
-                                                        <Price amount={item.price ?? item.totalPrice ?? 0} />
+                                                        <Price amount={item.price ?? item.totalPrice ?? 0} currency={item.currency || order.currency || 'GHS'} />
                                                     </p>
                                                 </div>
                                             </div>

@@ -1,5 +1,3 @@
-import FRAME_RENDER_PROFILES from '../data/frameRenderProfiles.json';
-
 const FALLBACK_FACE_WIDTH_IN = {
     narrow: 0.5,
     standard: 1,
@@ -41,12 +39,23 @@ function inferVisualProfile(frame) {
  * category estimate instead of pretending a measurement exists.
  */
 export function getFrameRenderProfile(frame) {
-    const catalog = FRAME_RENDER_PROFILES.profiles?.[frame?.id] || null;
+    const catalog = null;
     const inferred = inferVisualProfile(frame);
-    const profile = catalog?.profile || inferred.profile;
-    const finish = catalog?.finish || inferred.finish;
-    const mouldingWidthIn = catalog?.mouldingWidthIn ?? FALLBACK_FACE_WIDTH_IN[frame?.widthCategory] ?? 1;
-    const rabbetDepthIn = catalog?.rabbetDepthIn ?? FALLBACK_RABBET_DEPTH_IN[profile] ?? 0.375;
+    const profile = catalog?.profile || frame?.renderProfile || inferred.profile;
+    const finish = catalog?.finish || frame?.finish || inferred.finish;
+    const directMouldingWidth = frame?.mouldingWidthIn == null ? NaN : Number(frame.mouldingWidthIn);
+    const directRabbetDepth = frame?.rabbetDepthIn == null ? NaN : Number(frame.rabbetDepthIn);
+    const directTotalDepth = frame?.totalDepthIn == null ? NaN : Number(frame.totalDepthIn);
+    const mouldingWidthIn = catalog?.mouldingWidthIn
+        ?? (Number.isFinite(directMouldingWidth) ? directMouldingWidth : null)
+        ?? FALLBACK_FACE_WIDTH_IN[frame?.widthCategory]
+        ?? 1;
+    const rabbetDepthIn = catalog?.rabbetDepthIn
+        ?? (Number.isFinite(directRabbetDepth) ? directRabbetDepth : null)
+        ?? FALLBACK_RABBET_DEPTH_IN[profile]
+        ?? 0.375;
+    const totalDepthIn = catalog?.totalDepthIn
+        ?? (Number.isFinite(directTotalDepth) ? directTotalDepth : null);
 
     return {
         ...catalog,
@@ -54,16 +63,46 @@ export function getFrameRenderProfile(frame) {
         finish,
         mouldingWidthIn,
         rabbetDepthIn,
-        isMeasured: Number.isFinite(catalog?.mouldingWidthIn),
+        totalDepthIn,
+        openingGapIn: Math.max(0, Number(frame?.canvasGapMm) || 0) / 25.4,
+        canvasThicknessIn: Math.max(0, Number(frame?.canvasThicknessMm) || 0) / 25.4,
+        isCanvasOnly: Boolean(frame?.canvasOnly),
+        // Published wood/metal products have a square face, not the generic
+        // decorative shadow-box step. Edge radii are conservative visual
+        // approximations because supplier cross-sections omit those radii.
+        crossSection: frame?.canvasGapMm && frame?.prodigiProduct ? [
+            { s: 0, z: 0 },
+            { s: 0, z: 0.98 },
+            { s: 0.025, z: 1 },
+            { s: 0.975, z: 1 },
+            { s: 1, z: 0.98 },
+            // Published 32mm base extends 20mm inward from the 12mm
+            // front rim, beneath the 5mm gap and the canvas. Base height
+            // follows the published 53mm total minus 40mm rebate.
+            { s: 1, z: 13 / 53 },
+            { s: 32 / 12, z: 13 / 53 },
+            { s: 32 / 12, z: 0 },
+        ] : frame?.prodigiProduct && mouldingWidthIn > 0 ? [
+            { s: 0, z: 0 },
+            { s: 0, z: 0.98 },
+            { s: 0.025, z: 1 },
+            { s: 0.975, z: 1 },
+            { s: 1, z: 0.98 },
+            { s: 1, z: 0 },
+        ] : null,
+        splitRailSurfaces: Boolean(frame?.prodigiProduct),
+        matBoardIn: frame?.prodigiProduct ? 2.4 / 25.4 : null,
+        isMeasured: Number.isFinite(catalog?.mouldingWidthIn) || Number.isFinite(directMouldingWidth),
     };
 }
 
 export function getFrameExteriorDimensions(openingWidthIn, openingHeightIn, frame, matInches = 0) {
     const renderProfile = getFrameRenderProfile(frame);
-    const isCanvas = frame?.isCanvas || frame?.id === 'frame-canvas';
-    const mouldingWidthIn = isCanvas ? 0 : renderProfile.mouldingWidthIn;
-    const mat = isCanvas ? 0 : Math.max(0, Number(matInches) || 0);
-    const outerWidthIn = openingWidthIn + (mouldingWidthIn + mat) * 2;
-    const outerHeightIn = openingHeightIn + (mouldingWidthIn + mat) * 2;
+    const isCanvasOnly = frame?.canvasOnly || frame?.id === 'frame-canvas';
+    const mouldingWidthIn = isCanvasOnly ? 0 : renderProfile.mouldingWidthIn;
+    const mat = frame?.isCanvas || isCanvasOnly ? 0 : Math.max(0, Number(matInches) || 0);
+    const openingGapIn = isCanvasOnly ? 0 : renderProfile.openingGapIn;
+    const outerWidthIn = openingWidthIn + (mouldingWidthIn + openingGapIn + mat) * 2;
+    const outerHeightIn = openingHeightIn + (mouldingWidthIn + openingGapIn + mat) * 2;
     return { ...renderProfile, mouldingWidthIn, outerWidthIn, outerHeightIn };
 }

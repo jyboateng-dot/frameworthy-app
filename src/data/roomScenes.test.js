@@ -29,7 +29,6 @@ describe('computeRoomPlacement', () => {
                 expect(layout.height).toBeCloseTo(height, 8);
                 // Artwork uses the wall-width scale unless a shallow viewport
                 // needs its height to cap it so the entire frame stays visible.
-                const placement = computeRoomPlacement(room, 60, 90);
                 expect(layout.scale).toBeLessThanOrEqual(width / room.wallSpanCm);
                 expect(60 * layout.scale).toBeLessThanOrEqual(layout.width + 0.001);
             }

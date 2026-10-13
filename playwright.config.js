@@ -8,7 +8,7 @@ export default defineConfig({
         viewport: { width: 1280, height: 800 },
     },
     webServer: {
-        command: 'npm run dev -- --host 127.0.0.1 --port 4174',
+        command: 'node ./node_modules/vite/bin/vite.js --host 127.0.0.1 --port 4174',
         url: 'http://127.0.0.1:4174',
         reuseExistingServer: !process.env.CI,
         // A cold Vite start of this app doesn't reliably finish inside 30s.

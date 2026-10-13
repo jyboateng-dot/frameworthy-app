@@ -8,14 +8,15 @@ import { CAROUSEL_SLIDES } from '../data/landingCarouselSlides';
 afterEach(cleanup);
 
 describe('home catalogue and carousel', () => {
-    it('shows only the six Prodigi categories and selects the chosen family finish', () => {
+    it('shows the seven fulfilment categories without exposing the supplier and selects the chosen finish', () => {
         const setSelectedFrame = vi.fn();
         const navigate = vi.fn();
         render(<LandingPage setSelectedFrame={setSelectedFrame} navigate={navigate} />);
-        expect(screen.getByText(/34 Prodigi frame and canvas options/)).toBeInTheDocument();
+        expect(screen.getByText(/Explore made-to-order frames and canvases/)).toBeInTheDocument();
+        expect(screen.queryByText(/Prodigi/i)).not.toBeInTheDocument();
         expect(screen.getByRole('button', { name: 'Classic Frames' })).toHaveAttribute('aria-pressed', 'true');
         expect(screen.getByRole('heading', { name: 'Black' })).toBeInTheDocument();
-        expect(screen.getAllByRole('button').filter(button => button.hasAttribute('aria-pressed'))).toHaveLength(6);
+        expect(screen.getAllByRole('button').filter(button => button.hasAttribute('aria-pressed'))).toHaveLength(7);
         fireEvent.click(screen.getByRole('button', { name: 'Float Framed Canvas' }));
         const floatFrames = framesForCategory(PRODIGI_FRAME_CATEGORIES[4]);
         fireEvent.click(screen.getByRole('heading', { name: /Natural/ }));

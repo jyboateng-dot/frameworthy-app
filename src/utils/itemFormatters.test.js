@@ -130,6 +130,14 @@ describe('formatOrderForClient', () => {
         expect(text).not.toContain('Print-Ready JPEG');
     });
 
+    it('uses GBP for a GBP order summary', () => {
+        const text = formatOrderForClient({
+            id: 'abcdef1234567890', currency: 'GBP', items: [{ presetTitle: 'Classic Frame', price: 45.42 }], totalPrice: 45.42,
+        });
+        expect(text).toContain('£ 45.42');
+        expect(text).not.toContain('GHS');
+    });
+
     it('falls back to "there" and totals of 0 when name/price are missing', () => {
         const order = { id: 'abcdef1234567890', items: [] };
         const text = formatOrderForClient(order);
@@ -141,7 +149,7 @@ describe('formatOrderForClient', () => {
 describe('label maps stay in sync with the values used elsewhere in the app', () => {
     it('covers the expected glass, hardware, and mat-width codes', () => {
         expect(Object.keys(GLASS_LABELS)).toEqual(['standard', 'non-glare', 'museum', 'canvas-traditional', 'canvas-floater']);
-        expect(Object.keys(HARDWARE_LABELS)).toEqual(['wire', 'sawtooth', 'french-cleat', 'easel']);
+        expect(Object.keys(HARDWARE_LABELS)).toEqual(['wire', 'sawtooth', 'cobra-hook', 'built-in-rear-hanger', 'french-cleat', 'easel']);
         expect(Object.keys(MAT_WIDTH_LABELS)).toEqual(['none', 'narrow', 'standard', 'wide']);
     });
 });

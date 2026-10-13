@@ -115,3 +115,6 @@ frameworthy_codebase.zip
 /artists_and_masterpieces_prefilter_backup.json
 /museum_other_categories_backup/
 
+
+__pycache__/
+*.pyc

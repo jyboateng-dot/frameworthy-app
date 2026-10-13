@@ -4,7 +4,7 @@
 // probe that turned out to lie on real hardware. iOS must now be decided
 // by user agent alone, with no feature probe that could reintroduce the
 // same silent failure.
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { describe, it, expect, afterEach, vi } from 'vitest';
 
 vi.mock('@capacitor/core', () => ({
     Capacitor: { isNativePlatform: vi.fn(() => false) },

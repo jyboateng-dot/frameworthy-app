@@ -13,7 +13,7 @@ const SITE_NAME = 'FrameWorthy';
 
 const PageMeta = ({ title, description }) => {
     useEffect(() => {
-        const fullTitle = title ? `${title} | ${SITE_NAME}` : `${SITE_NAME} — Custom Picture Framing in Ghana`;
+        const fullTitle = title ? `${title} | ${SITE_NAME}` : `${SITE_NAME} — Made-to-Order Frames & Canvas`;
         document.title = fullTitle;
 
         const setMeta = (selector, attr, value) => {

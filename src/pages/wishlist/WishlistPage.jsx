@@ -1,75 +1,26 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useWishlist } from '../../context/WishlistContext';
-import { useCart } from '../../context/CartContext';
-import { Heart, Trash2, ChevronRight, ArrowLeft } from 'lucide-react';
-import { FRAME_STYLES, FRAME_SIZES, parseCustomSize, findSizeByDimension, clampSizeToValidRange } from '../../data/constants';
+import { Heart, Trash2, ArrowLeft } from 'lucide-react';
+import { FRAME_SIZES, parseCustomSize, findSizeByDimension, clampSizeToValidRange } from '../../data/constants';
+import { DEFAULT_PRODIGI_FRAME } from '../../data/frameBrowsing';
 
 const WishlistPage = () => {
     const { wishlistItems, removeFromWishlist } = useWishlist();
-    const { addToCart } = useCart();
     const navigate = useNavigate();
 
-    // Helper to generate a default cart item from an inspiration product
-    const createCartItemFromProduct = (product) => {
-        const frameObj = FRAME_STYLES.find(f => f.id === product.frameStyleId) || FRAME_STYLES.find(f => f.id === 'frame-8446');
+    const customizeProduct = (product) => {
         const rawSizeObj = parseCustomSize(product.dims) || findSizeByDimension(product.dims) || FRAME_SIZES.find(s => s.id === product.sizeId) || FRAME_SIZES[0];
-        // This is a direct add-to-cart, skipping CustomizeFramePage (and its
-        // sizeClampNotice banner) entirely — parseCustomSize does no bounds
-        // checking, so without this a wishlisted item outside the
-        // 13x18-180x180cm production range would reach checkout unclamped.
-        // No UI surface here to show a notice, but the clamp itself is not
-        // optional: a stale/out-of-range size is a fulfillment problem, not
-        // just a missing notification.
         const { size: sizeObj } = clampSizeToValidRange(rawSizeObj);
-        
-        const isPreset = true;
-        const presetTitle = product.title;
-        const presetDims = product.dims;
-        const isAlbumArt = false;
-        const isAlbumPoster = false;
-        const isMoviePoster = false;
-        
-        const matWidth = 'none';
-        const matColor = null;
-
-        // Mirrors CustomizeFramePage's pricing formula — matWidth/glassType/
-        // hardwareType are fixed to their free defaults above, so the only
-        // surcharge that still applies here is the frame's own priceMod.
-        const calculatedPrice = Math.round(sizeObj.price * (frameObj.priceMod || 1));
-
-        return {
-            id: `cart-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-            isPreset,
-            presetTitle,
-            presetDims,
-            isAlbumArt,
-            isAlbumPoster,
-            isMoviePoster,
-            uploadedImage: product.fullRes || product.image,
+        navigate('/frame/customize', { state: {
+            presetImage: product.fullRes || product.image,
             productionImage: product.fullRes || product.image,
-            selectedFrame: frameObj,
-            selectedSize: sizeObj,
+            presetTitle: product.title,
+            presetDims: product.dims,
+            initialFrame: DEFAULT_PRODIGI_FRAME,
+            initialSize: sizeObj,
             orientation: sizeObj.orientation || 'portrait',
-            matColor,
-            matWidth,
-            glassType: 'standard',
-            hardwareType: 'wire',
-            totalPrice: calculatedPrice,
-            quantity: 1,
-            isSelected: true
-        };
-    };
-
-    const handleAddToCart = (product) => {
-        const cartItem = createCartItemFromProduct(product);
-        addToCart(cartItem);
-    };
-
-    const handleBuyNow = (product) => {
-        const cartItem = createCartItemFromProduct(product);
-        addToCart(cartItem);
-        navigate('/checkout');
+        }});
     };
 
     if (wishlistItems.length === 0) {
@@ -149,18 +100,12 @@ const WishlistPage = () => {
                                         </div>
                                     </div>
 
-                                    <div className="mt-3 flex items-center gap-2">
+                                    <div className="mt-3 flex items-center">
                                         <button 
-                                            onClick={() => handleAddToCart(product)}
-                                            className="flex-1 bg-white border border-stone-200 text-stone-900 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest hover:bg-stone-50 transition-colors"
-                                        >
-                                            Add to Cart
-                                        </button>
-                                        <button 
-                                            onClick={() => handleBuyNow(product)}
+                                            onClick={() => customizeProduct(product)}
                                             className="flex-1 bg-stone-900 text-white py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest hover:bg-stone-800 transition-colors"
                                         >
-                                            Buy Now
+                                            Customize
                                         </button>
                                     </div>
                                 </div>

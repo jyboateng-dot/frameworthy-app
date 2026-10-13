@@ -126,7 +126,7 @@ const OriginalPaintingsPage = ({ setProductMode, setSelectedSize, navigate, isSu
             {!isSubPage && (
                 <PageMeta
                     title="Original Paintings"
-                    description="Browse original paintings and order them custom-framed, delivered across Ghana."
+                    description="Browse original paintings and preview them in a made-to-order frame."
                 />
             )}
 

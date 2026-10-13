@@ -35,7 +35,8 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import { CartProvider, useCart } from './context/CartContext';
 import { WishlistProvider } from './context/WishlistContext';
 
-import { FRAME_STYLES, FRAME_SIZES, WALL_TEXTURES, MAT_COLORS, DEFAULT_DEMO_IMAGE } from './data/constants';
+import { FRAME_SIZES, WALL_TEXTURES, MAT_COLORS, DEFAULT_DEMO_IMAGE } from './data/constants';
+import { DEFAULT_PRODIGI_FRAME } from './data/frameBrowsing';
 import { MAT_WIDTH_DEFAULT_IN } from './utils/matting';
 import { Capacitor } from '@capacitor/core';
 import { App as CapacitorApp } from '@capacitor/app';
@@ -89,7 +90,7 @@ const AppLayout = () => {
   // FRAMING STATE
   const [uploadedImage, setUploadedImage] = useState(DEFAULT_DEMO_IMAGE);
   const [productionImage, setProductionImage] = useState(null);
-  const [selectedFrame, setSelectedFrame] = useState(() => FRAME_STYLES.find(f => f.id === 'frame-8446') || FRAME_STYLES[0]); // Flat Black default
+  const [selectedFrame, setSelectedFrame] = useState(DEFAULT_PRODIGI_FRAME);
   const [selectedSize, setSelectedSize] = useState(FRAME_SIZES[3]); // Large Portrait default
   const [, setSelectedWall] = useState(WALL_TEXTURES[2]); // For visualizer persistence
   // Hoisted (rather than local to CustomizeFramePage) for the same reason as

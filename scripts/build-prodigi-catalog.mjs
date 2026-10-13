@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const sourceDir = process.argv[2] || path.join(process.env.TEMP || process.env.TMPDIR || '.', 'frameworthy-prodigi-pricing');
-const updatedAt = '2026-10-04';
+const updatedAt = process.env.PRODIGI_CATALOG_DATE || new Date().toISOString().slice(0, 10);
 
 const parseCsv = (text) => {
     const rows = [];
@@ -48,15 +48,36 @@ const parseMoney = (value) => {
     return Number.isFinite(amount) ? amount : null;
 };
 
-const productFamily = (sku, frame) => {
+const dimensionFromDescription = (description, unit) => {
+    const suffix = unit === 'cm' ? 'cm' : '(?:inches|")';
+    const match = description.match(new RegExp(`\\b(\\d+(?:\\.\\d+)?)\\s*x\\s*(\\d+(?:\\.\\d+)?)\\s*${suffix}`, 'i'));
+    return match ? `${match[1]}x${match[2]}${unit === 'cm' ? 'cm' : '"'}` : '';
+};
+
+const productFamily = (sku, frame, description = '') => {
+    // Backloader SKUs are ready-made frames without a printed artwork and are
+    // a separate product despite sharing the GLOBAL-CFP prefix.
+    if (sku.includes('-BACKLOADER')) return null;
+    // GB-made float-glass variants use local FRA SKUs rather than the GLOBAL
+    // Perspex/Motheye families. Keep the paper and 2.4 mm mount aligned with
+    // the existing FrameWorthy offering; 1.4 mm mounts remain out of scope.
+    if (sku.startsWith('FRA-CLA-EMA-MOUNT2-GLA-')) return 'classic-mounted-float';
+    if (sku.startsWith('FRA-CLA-EMA-NM-GLA-')) return 'classic-float';
+    if (sku.startsWith('FRA-BOX-EMA-MOUNT2-GLA-')) return 'box-mounted-float';
+    if (sku.startsWith('FRA-BOX-EMA-NM-GLA-')) return 'box-float';
+    if (sku.startsWith('GLOBAL-CFPM-MOTH-')) return 'classic-mounted-motheye';
+    if (sku.startsWith('GLOBAL-CFP-MOTH-')) return 'classic-motheye';
+    if (sku.startsWith('GLOBAL-CFPM-')) return 'classic-mounted';
+    if (sku.startsWith('GLOBAL-CFP-')) return 'classic';
     if (sku.startsWith('GLOBAL-BOXM-MOTH-')) return 'box-mounted-motheye';
     if (sku.startsWith('GLOBAL-BOX-MOTH-')) return 'box-motheye';
     if (sku.startsWith('GLOBAL-BOXM-')) return 'box-mounted';
     if (sku.startsWith('GLOBAL-BOX-')) return 'box';
+    if (sku.startsWith('GLOBAL-FRA-ALU-')) return 'aluminium';
     if (sku.startsWith('GLOBAL-FRA-SLIMCAN-')) return 'canvas-classic';
     if (sku.startsWith('ECO-FRA-CAN-')) return 'canvas-eco';
     if (sku.startsWith('GLOBAL-FRA-CAN-')) return 'canvas-float';
-    if (sku.startsWith('GLOBAL-CAN-') && /^38mm\b/i.test(frame || '')) return 'stretched-canvas';
+    if (sku.startsWith('GLOBAL-CAN-') && /(?:^|\b)38\s*mm\b/i.test(`${frame || ''} ${description}`)) return 'stretched-canvas';
     return null;
 };
 
@@ -92,7 +113,10 @@ for (const [file, market] of datasets) {
     for (const row of rows) {
         if (row[index['Destination country']] !== market || row[index['Shipping method']] !== 'Standard') continue;
         const sku = row[index.SKU];
-        const family = productFamily(sku, row[index.Frame]);
+        const description = row[index['Product description']]?.trim() || '';
+        const frame = row[index.Frame]?.trim()
+            || (/\b38\s*mm\s+standard\s+stretcher\s+bar\b/i.test(description) ? '38mm standard stretcher bar' : '');
+        const family = productFamily(sku, frame, description);
         if (!family) continue;
 
         const options = {
@@ -106,16 +130,15 @@ for (const [file, market] of datasets) {
         };
         const optionKey = Object.values(options).join('|');
         const key = `${sku}::${optionKey}`;
-        const description = row[index['Product description']]?.trim() || '';
         const product = productsByKey.get(key) || {
             id: key,
             sku,
             family,
             name: row[index['Product type']]?.trim() || 'Prodigi framed artwork',
             description,
-            sizeInches: row[index['Size (inches)']]?.trim() || description.match(/\b\d+(?:\.\d+)?x\d+(?:\.\d+)?\s*(?:inches|\")/i)?.[0] || '',
-            sizeCm: row[index['Size (cm)']]?.trim() || description.match(/\b\d+(?:\.\d+)?x\d+(?:\.\d+)?\s*cm/i)?.[0] || '',
-            frame: row[index.Frame]?.trim() || '',
+            sizeInches: row[index['Size (inches)']]?.trim() || dimensionFromDescription(description, 'in'),
+            sizeCm: row[index['Size (cm)']]?.trim() || dimensionFromDescription(description, 'cm'),
+            frame,
             style: row[index.Style]?.trim() || '',
             options,
             markets: {},

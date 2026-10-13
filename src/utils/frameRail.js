@@ -1,4 +1,4 @@
-import FRAME_RAILS from '../data/frameRails.json';
+import PRODIGI_RENDER_ASSETS from '../data/prodigiRenderAssets.json';
 import { getFrameRenderProfile } from './frameRenderProfile';
 
 /**
@@ -17,8 +17,8 @@ import { getFrameRenderProfile } from './frameRenderProfile';
 const HORIZONTAL = new Set(['top', 'bottom']);
 
 export function getFrameRail(frame) {
-    const savedRail = FRAME_RAILS.rails?.[frame?.id];
-    if (savedRail) return savedRail;
+    const prodigiRail = PRODIGI_RENDER_ASSETS.rails?.[frame?.id];
+    if (prodigiRail) return { ...prodigiRail, version: PRODIGI_RENDER_ASSETS.version };
     // Prodigi mouldings use Prodigi's published actual chevron/corner photos
     // as their material source. The detailed visualizer still renders them
     // through the same tiled-rail renderer as our scanned frame catalogue.
@@ -54,7 +54,7 @@ export function getRailTextureStyle(side, rail) {
     const horizontal = HORIZONTAL.has(side);
     const url = horizontal ? rail.h : rail.v;
     if (!url) return null;
-    const version = encodeURIComponent(FRAME_RAILS.generatedAt || 'current');
+    const version = encodeURIComponent(rail.version || PRODIGI_RENDER_ASSETS.version || 'current');
 
     const flip = side === 'bottom' ? 'scaleY(-1)' : side === 'left' ? 'scaleX(-1)' : 'none';
 

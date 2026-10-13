@@ -27,8 +27,8 @@ const clientPrice = ({ selectedSize, selectedFrame, matWidth, matColor, glassTyp
     (selectedFrame?.id !== 'frame-canvas' && glassType === 'canvas-traditional' ? 350 : 0) +
     (hardwareType === 'french-cleat' ? 50 : 0);
 
-const canvasFrame = FRAME_STYLES.find(f => f.id === 'frame-canvas');
-const woodFrame = FRAME_STYLES.find(f => f.id !== 'frame-canvas');
+const canvasFrame = FRAME_STYLES.find(f => f.id === 'prodigi-stretched-canvas');
+const woodFrame = FRAME_STYLES.find(f => f.id === 'prodigi-classic-black');
 const smallSize = FRAME_SIZES.find(s => s.id === '8x10');
 const bigSize = FRAME_SIZES.find(s => s.id === '11x14');
 const whiteMat = MAT_COLORS.find(m => m.id === 'white');
@@ -42,7 +42,7 @@ const configs = [
     { name: 'museum glazing', selectedFrame: woodFrame, selectedSize: bigSize, matWidth: 'none', glassType: 'museum', hardwareType: 'wire' },
     { name: 'french cleat hardware', selectedFrame: woodFrame, selectedSize: smallSize, matWidth: 'none', glassType: 'standard', hardwareType: 'french-cleat' },
     { name: 'everything at once', selectedFrame: woodFrame, selectedSize: bigSize, matWidth: 'wide', matColor: pricierMat, glassType: 'museum', hardwareType: 'french-cleat' },
-    { name: 'canvas frame (no mat/glazing surcharges apply)', selectedFrame: canvasFrame, selectedSize: bigSize, matWidth: 'standard', matColor: whiteMat, glassType: 'standard', hardwareType: 'wire' },
+    { name: 'canvas frame with its fixed selections', selectedFrame: canvasFrame, selectedSize: bigSize, matWidth: 'none', glassType: 'standard', hardwareType: 'wire' },
     { name: 'canvas floater glazing', selectedFrame: woodFrame, selectedSize: bigSize, matWidth: 'none', glassType: 'canvas-floater', hardwareType: 'wire' },
     { name: 'canvas traditional glazing', selectedFrame: woodFrame, selectedSize: bigSize, matWidth: 'none', glassType: 'canvas-traditional', hardwareType: 'wire' },
 ];

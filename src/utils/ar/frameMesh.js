@@ -202,11 +202,32 @@ function addBevelRing(part, frontW, frontH, frontZ, backW, backH, backZ, offsetY
  *                                       of tiling the rail strip through them
  * @returns {{parts: MeshPart[], outerWidthM: number, outerHeightM: number, depthM: number}}
  */
+function buildCanvasSides(hw, hh, backZ, frontZ) {
+    const faces = [
+        ['Top', [-hw, hh, backZ], [hw, hh, backZ], [hw, hh, frontZ], [-hw, hh, frontZ], [0, 1, 0]],
+        ['Bottom', [hw, -hh, backZ], [-hw, -hh, backZ], [-hw, -hh, frontZ], [hw, -hh, frontZ], [0, -1, 0]],
+        ['Left', [-hw, -hh, backZ], [-hw, hh, backZ], [-hw, hh, frontZ], [-hw, -hh, frontZ], [-1, 0, 0]],
+        ['Right', [hw, hh, backZ], [hw, -hh, backZ], [hw, -hh, frontZ], [hw, hh, frontZ], [1, 0, 0]],
+    ];
+    return faces.map(([name, a, b, c, d, normal]) => {
+        const part = new MeshPart(`canvas${name}`);
+        part.addQuad(a, b, c, d, [0, 1], [1, 1], [1, 0], [0, 0], normal);
+        return part;
+    });
+}
+
 export function buildFrameMesh({
     artworkWidthIn,
     artworkHeightIn,
     mouldingWidthIn,
     rabbetDepthIn,
+    totalDepthIn: measuredTotalDepthIn,
+    openingGapIn = 0,
+    canvasThicknessIn = 0,
+    canvasOnly = false,
+    crossSection = null,
+    splitRailSurfaces = false,
+    matBoardIn = MAT_BOARD_IN,
     profile,
     matReveal = { topIn: 0, sideIn: 0, bottomIn: 0 },
     railTileAspect = 4,
@@ -223,16 +244,38 @@ export function buildFrameMesh({
     // opening: a wider bottom reveal than top pushes the window upward
     // (more room left below it), by half the difference between the two.
     const matOffsetInM = ((matBottomIn - matTopIn) / 2) * IN_TO_M;
-    const outerWidthIn = sightWidthIn + mouldingWidthIn * 2;
-    const outerHeightIn = sightHeightIn + mouldingWidthIn * 2;
+    const safeGapIn = Math.max(0, Number(openingGapIn) || 0);
+    const outerWidthIn = sightWidthIn + (mouldingWidthIn + safeGapIn) * 2;
+    const outerHeightIn = sightHeightIn + (mouldingWidthIn + safeGapIn) * 2;
 
-    const totalDepthIn = rabbetDepthIn + BACKING_IN;
+    const totalDepthIn = measuredTotalDepthIn != null && Number.isFinite(Number(measuredTotalDepthIn))
+        ? Number(measuredTotalDepthIn)
+        : rabbetDepthIn + BACKING_IN;
     const depthM = totalDepthIn * IN_TO_M;
     const railWidthM = mouldingWidthIn * IN_TO_M;
     const outerHalfW = (outerWidthIn * IN_TO_M) / 2;
     const outerHalfH = (outerHeightIn * IN_TO_M) / 2;
 
-    const section = buildCrossSection(profile);
+    if (canvasOnly) {
+        const canvasDepthM = Math.max(Number(canvasThicknessIn) || totalDepthIn, 0.01) * IN_TO_M;
+        const widthM = artworkWidthIn * IN_TO_M;
+        const heightM = artworkHeightIn * IN_TO_M;
+        const halfW = widthM / 2;
+        const halfH = heightM / 2;
+        const front = new MeshPart('art');
+        const back = new MeshPart('backing');
+
+        front.addQuad(
+            [-halfW, -halfH, canvasDepthM], [halfW, -halfH, canvasDepthM],
+            [halfW, halfH, canvasDepthM], [-halfW, halfH, canvasDepthM],
+            [0, 1], [1, 1], [1, 0], [0, 0], [0, 0, 1]
+        );
+        back.addQuad([-halfW, -halfH, 0], [halfW, -halfH, 0], [halfW, halfH, 0], [-halfW, halfH, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0, -1]);
+
+        return { parts: [front, ...buildCanvasSides(halfW, halfH, 0, canvasDepthM), back], outerWidthM: widthM, outerHeightM: heightM, depthM: canvasDepthM };
+    }
+
+    const section = crossSection || buildCrossSection(profile);
 
     // The rail texture tiles at the scale its own photograph implies:
     // the strip's short axis IS the moulding face, so one tile spans
@@ -247,6 +290,8 @@ export function buildFrameMesh({
     const repeatFor = (lengthM) => Math.max(0.01, lengthM / Math.max(tileLengthM, 1e-4));
 
     const railPart = new MeshPart('rail');
+    const sidePart = new MeshPart('railSide');
+    const innerPart = new MeshPart('railInner');
     const cornerPart = new MeshPart('railCorner');
 
     // A real photographed corner shot is one specific mitre, not a
@@ -337,7 +382,11 @@ export function buildFrameMesh({
                 : (length, lat, z) => [lat, length, z];
 
             if (!hasCorner) {
-                railPart.addQuad(
+                const surfacePart = splitRailSurfaces && Math.abs(ds) < 1e-9 && a.s === 1
+                    ? innerPart
+                    : splitRailSurfaces && (Math.min(a.z, b.z) < 0.75 || Math.abs(ds) < 1e-9)
+                        ? sidePart : railPart;
+                surfacePart.addQuad(
                     makePoint(-halfLenA, latA, zA), makePoint(halfLenA, latA, zA),
                     makePoint(halfLenB, latB, zB), makePoint(-halfLenB, latB, zB),
                     [0, a.s], [repeat, a.s], [repeat, b.s], [0, b.s],
@@ -387,14 +436,14 @@ export function buildFrameMesh({
     // moulding holds its artwork close to the surface.
     const innerLip = section[section.length - 2]?.z ?? getFaceRelief(profile);
     const glazingZ = innerLip * depthM * 0.97;
-    const matBoardM = MAT_BOARD_IN * IN_TO_M;
+    const matBoardM = (matBoardIn ?? MAT_BOARD_IN) * IN_TO_M;
 
     const sightWidthM = sightWidthIn * IN_TO_M;
     const sightHeightM = sightHeightIn * IN_TO_M;
     const artWidthM = artworkWidthIn * IN_TO_M;
     const artHeightM = artworkHeightIn * IN_TO_M;
 
-    const parts = [railPart, cornerPart];
+    const parts = [railPart, cornerPart, sidePart, innerPart];
 
     if (showCornerSeams) {
         const seamPart = new MeshPart('railSeam');
@@ -425,6 +474,24 @@ export function buildFrameMesh({
     }
 
     let artZ = glazingZ;
+
+    // A canvas is a physical box, not a paper-thin panel dropped to the
+    // bottom of the float rail. The 53mm frame / 38mm canvas leaves a 13mm
+    // base and a small front setback. The exact attachment clearance is
+    // unmeasured; 2mm is a conservative visual approximation.
+    if (canvasThicknessIn > 0) {
+        const canvasDepthM = canvasThicknessIn * IN_TO_M;
+        artZ = Math.max(canvasDepthM, depthM - Math.min(0.002, depthM * 0.04));
+        const canvasBackZ = Math.max(0, artZ - canvasDepthM);
+        const canvasSides = buildCanvasSides(artWidthM / 2, artHeightM / 2, canvasBackZ, artZ);
+        parts.push(...canvasSides);
+        if (safeGapIn > 0) {
+            const gap = new MeshPart('shadowGap');
+            addFlatRing(gap, sightWidthM + safeGapIn * IN_TO_M * 2,
+                sightHeightM + safeGapIn * IN_TO_M * 2, artWidthM, artHeightM, canvasBackZ + 0.0001);
+            parts.push(gap);
+        }
+    }
 
     if (hasMat) {
         const matPart = new MeshPart('mat');

@@ -34,10 +34,10 @@ const TermsPage = ({ navigate }) => (
 
         <LegalSection title="4. Orders, Pricing &amp; Payment">
             <p>
-                All prices are listed in Ghanaian Cedis (GHS) and are subject to change without
-                notice until an order is placed. Payments are processed securely through Paystack via
-                card or mobile money — we never see or store your full card number or mobile money
-                PIN. An order is only confirmed once payment has been verified.
+                Prices for the current United Kingdom and Jersey collection are quoted in Pounds
+                Sterling (GBP) and are subject to change until an order is placed. Online payment for
+                this collection will be enabled once the payment gateway is ready. An order is only
+                confirmed once payment has been verified.
             </p>
             <p>
                 We reserve the right to refuse or cancel any order, including in cases of suspected
@@ -67,9 +67,8 @@ const TermsPage = ({ navigate }) => (
 
         <LegalSection title="7. Delivery">
             <p>
-                The price you pay at checkout covers your order only. Delivery is not included and is
-                billed separately — the delivery fee is paid directly to the courier when your order
-                arrives.
+                The live price shown for the current United Kingdom and Jersey collection includes
+                standard delivery and applicable tax for the selected destination.
             </p>
             <p>
                 Delivery timeframes shown at checkout are estimates, not guarantees. Risk of loss

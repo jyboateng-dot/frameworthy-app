@@ -41,7 +41,7 @@ export function FitPreview({ image, natural, geometry, position, frame, matColor
             width: geometry.outerWidth >= geometry.outerHeight ? '100%' : 'auto',
             height: geometry.outerWidth >= geometry.outerHeight ? 'auto' : '100%', maxHeight: '100%', maxWidth: '100%',
             background: '#fff' }} className="relative shadow-[0_8px_20px_rgba(0,0,0,0.20)]">
-            {frame?.borderImageSource ? <div className="absolute inset-0 z-10 pointer-events-none" style={{
+            {frame?.borderImageSource && !getFrameRail(frame) ? <div className="absolute inset-0 z-10 pointer-events-none" style={{
                 borderStyle: 'solid', borderWidth: '1px', borderColor: 'transparent',
                 borderImageWidth: `${railPctY}% ${railPctX}%`,
                 borderImageSource: `url(${frame.borderImageSource})`,

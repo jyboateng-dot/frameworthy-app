@@ -88,7 +88,7 @@ const ChatFloater = ({ isOpen, setIsOpen }) => {
                         </div>
                         <p className="font-serif font-bold text-stone-900 text-base mb-1">Welcome to Instant Messaging 👋</p>
                         <p className="text-xs font-medium text-stone-700 leading-relaxed max-w-xs mx-auto">
-                            Ask me anything about frame styles, custom dimensions, glass, canvas finishes, pricing, or Ghana delivery!
+                            Ask me anything about frame styles, sizes, glazing, canvas finishes, live GBP pricing, or delivery!
                         </p>
                     </div>
                 ) : (
