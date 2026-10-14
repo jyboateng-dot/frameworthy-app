@@ -154,9 +154,9 @@ workflows:
       ios_signing:
         distribution_type: app_store
         certificates:
-          - frameworthy_cert
+          - frameworthy_cert_2026
         provisioning_profiles:
-          - frameworthy_profile
+          - frameworthy_profile_2026
       vars:
         PACKAGE_NAME: "com.frameworthyco.app"
     triggering:
