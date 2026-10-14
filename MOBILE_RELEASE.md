@@ -47,16 +47,16 @@ it to TestFlight.
 The Codemagic configuration expects:
 
 - App Store Connect integration `frameworthy_asc`
-- signing certificate `frameworthy_cert`
-- provisioning profile `frameworthy_profile`
+- signing certificate `frameworthy_cert_2026`
+- provisioning profile `frameworthy_profile_2026`
 - the `production` environment group with the production `VITE_*` values
 
 The Apple App ID uses Team ID `PRNK95XA3F` and bundle ID
 `com.frameworthyco.app`. The refreshed App Store profile has been checked
-locally and contains the Associated Domains entitlement. It is registered in
-Codemagic under the existing `frameworthy_profile` identity. The matching
-Apple Distribution certificate still needs to be uploaded as
-`frameworthy_cert` before the next iOS release.
+locally and contains the Associated Domains entitlement. The 2026 certificate
+and profile are uploaded to Codemagic. The latest uploaded build is available
+in App Store Connect TestFlight as Build 25 and is currently in **Testing**
+status.
 
 ## Release checks
 
@@ -83,6 +83,9 @@ publish that fingerprint in `/.well-known/assetlinks.json` for package
 
 ## Known native follow-ups
 
+- Add the production Android release keystore and its four `CM_*` secrets to
+  Codemagic before creating an `android-X.Y.Z` tag. Do not generate a new key
+  unless it is intentionally selected as the app's Play signing key.
 - Add Google Play internal-track publishing.
 - Replace placeholder native tests with launch and critical-flow smoke tests.
 - Decide which assets and flows should be bundled for an offline launch
