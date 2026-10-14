@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build && node scripts/prune-deploy-assets.mjs",
+    "postinstall": "node scripts/patch-capacitor-apple-sign-in.mjs",
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "vitest run",
