@@ -69,12 +69,19 @@ workflows:
           echo "APP_VERSION=$APP_VERSION" >> "$CM_ENV"
       - name: Decode Android release keystore
         script: |
-          if [ -z "$CM_KEYSTORE" ]; then
-            echo "CM_KEYSTORE is not set. Add a base64-encoded release keystore to the Codemagic production environment group."
-            exit 1
-          fi
+          for required in CM_KEYSTORE CM_KEYSTORE_PASSWORD CM_KEY_ALIAS CM_KEY_PASSWORD; do
+            if [ -z "${!required}" ]; then
+              echo "$required is not set. Add all four Android signing secrets to the Codemagic production environment group."
+              exit 1
+            fi
+          done
           echo "$CM_KEYSTORE" | base64 --decode > "$CM_BUILD_DIR/android-release.keystore"
           echo "CM_KEYSTORE_PATH=$CM_BUILD_DIR/android-release.keystore" >> "$CM_ENV"
+          if ! keytool -list -keystore "$CM_BUILD_DIR/android-release.keystore" \
+              -storepass "$CM_KEYSTORE_PASSWORD" -alias "$CM_KEY_ALIAS" >/dev/null 2>&1; then
+            echo "The Android keystore, alias, or password is invalid. Verify the existing Play signing key before releasing."
+            exit 1
+          fi
       - name: Build signed Android App Bundle
         script: |
           cd android
