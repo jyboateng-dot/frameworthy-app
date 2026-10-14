@@ -11,18 +11,22 @@ firebase functions:secrets:set PRODIGI_API_KEY
 firebase functions:secrets:set PRODIGI_CALLBACK_TOKEN
 ```
 
-Set these server environment values for the Firebase project:
+The Firebase project is currently configured for the Prodigi sandbox with
+these non-secret operating values:
 
 ```dotenv
 PRODIGI_ENVIRONMENT=sandbox
-PRODIGI_GHS_PER_GBP=0
-PRODIGI_GHS_PER_EUR=0
-PRODIGI_GHS_PER_USD=0
+PRODIGI_GHS_PER_GBP=16
+PRODIGI_GHS_PER_EUR=13.5
+PRODIGI_GHS_PER_USD=12
 PRODIGI_RETAIL_MARKUP_PERCENT=35
 PRODIGI_CALLBACK_URL=https://YOUR_HOST/api/prodigi-callback?token=YOUR_CALLBACK_TOKEN
 ```
 
-Replace the zero exchange rates with approved operating rates. Until the rate for the supplier currency is positive, the catalogue can show a live wholesale quote but checkout stays disabled for that product.
+The deployed `getProdigiQuote` function has been exercised successfully with a
+GB aluminium SKU and returned a GBP supplier quote, delivery, tax, and signed
+retail quote token. Keep the sandbox key and environment in place until the
+full artwork-to-sandbox-order test is complete.
 
 The callback token in `PRODIGI_CALLBACK_URL` must exactly match the `PRODIGI_CALLBACK_TOKEN` secret. Prodigi callbacks are verified by fetching the referenced order from Prodigi before FrameWorthy updates Firestore.
 
