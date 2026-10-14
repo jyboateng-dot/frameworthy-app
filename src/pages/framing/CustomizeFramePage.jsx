@@ -1789,6 +1789,25 @@ const CustomizeFramePage = ({
         };
     };
 
+    // The visualizer thumbnail is helpful but optional. It may involve a
+    // cross-origin image load plus an upload to the image host, so a blocked
+    // image host or a temporarily unavailable upload endpoint must never leave
+    // Add to Cart spinning forever. The cart and order still have the full
+    // production artwork URL as their canonical fallback.
+    const captureVisualizerImageWithTimeout = async (timeoutMs = 5000) => {
+        let timeoutId;
+        try {
+            return await Promise.race([
+                captureVisualizerImage(),
+                new Promise((resolve) => {
+                    timeoutId = setTimeout(() => resolve(null), timeoutMs);
+                }),
+            ]);
+        } finally {
+            if (timeoutId) clearTimeout(timeoutId);
+        }
+    };
+
     const completeCheckoutAction = async (action) => {
         if (selectedFrame?.prodigiProduct && !prodigiSelection?.quoteTotalGbp) {
             setFitError(hasOrderableProdigiProduct
@@ -1805,7 +1824,7 @@ const CustomizeFramePage = ({
                 if (action === 'pay') toggleAllSelection(false);
                 addToCart({ ...buildCartItem(output.visualizerImage), ...output });
             } else {
-                const visualizerImage = await captureVisualizerImage();
+                const visualizerImage = await captureVisualizerImageWithTimeout();
                 if (action === 'pay') toggleAllSelection(false);
                 addToCart(buildCartItem(visualizerImage));
             }
