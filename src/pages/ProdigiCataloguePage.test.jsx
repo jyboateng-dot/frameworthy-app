@@ -3,13 +3,23 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { cleanup, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
-import ProdigiCataloguePage from './ProdigiCataloguePage';
+import ProdigiCataloguePage, { uniqueDisplaySizes } from './ProdigiCataloguePage';
 
 afterEach(cleanup);
 
 const renderCatalogue = () => render(<MemoryRouter><ProdigiCataloguePage /></MemoryRouter>);
 
 describe('ProdigiCataloguePage', () => {
+    it('collapses metric and inch SKU aliases into one visible size choice', () => {
+        const sizes = uniqueDisplaySizes([
+            { sku: 'GLOBAL-BOX-305X406', sizeInches: '12x16"', sizeCm: '30x40cm' },
+            { sku: 'GLOBAL-BOX-12X16', sizeInches: '12x16"', sizeCm: '30x40cm' },
+            { sku: 'GLOBAL-BOX-16X20', sizeInches: '16x20"', sizeCm: '40x50cm' },
+        ]);
+
+        expect(sizes.map((item) => item.sku)).toEqual(['GLOBAL-BOX-12X16', 'GLOBAL-BOX-16X20']);
+    });
+
     it('shows a live supplier-cost breakdown for Jersey and switches to UK availability', async () => {
         const user = userEvent.setup();
         renderCatalogue();
