@@ -54,22 +54,21 @@ console — it takes effect within minutes, no redeploy needed. To disable App
 Check on the client entirely, unset `VITE_APPCHECK_RECAPTCHA_SITE_KEY` and
 redeploy.
 
-## Current status (checked in console, 2026-09-07)
+## Current status (checked in Firebase Console, 2026-10-14)
 
-Where things actually stand right now, for reference:
+- **Web app**: registered with reCAPTCHA and marked **Registered**.
+- **iOS app** (`com.frameworthyco.app`): **not registered**. Firebase offers
+  DeviceCheck or App Attest, but either choice requires native App Check SDK
+  integration and provider credentials before it can be saved.
+- **Cloud Firestore** and **Authentication**: **Unenforced**.
+- **Cloud Functions**: enforcement still requires the callable App Check
+  configuration; the console currently shows documentation rather than an
+  enforcement toggle.
 
-- **Web app**: registered, reCAPTCHA provider attached — matches the client
-  code. Step 1-2 above are done.
-- **iOS app** (`com.frameworthyco.app`): **not registered at all** — shows
-  "Register" with no attestation provider. The Capacitor iOS build currently
-  gets no App Check coverage.
-- **Cloud Firestore** and **Authentication**: both in **Monitoring**, not
-  Enforce — 0% of traffic showing as verified so far (likely mostly just low
-  volume, since the site's still behind the private-preview gate — worth
-  confirming this climbs once real traffic starts, not assuming it will).
-- **Cloud Functions**: no App Check enforcement configured at all yet — the
-  console just shows a "view docs" link, not a monitoring/enforce toggle like
-  Firestore has.
+Do not enable enforcement yet. The web client has no configured
+`VITE_APPCHECK_RECAPTCHA_SITE_KEY` in this checkout, and the native iOS app has
+no registered attestation provider. Enabling enforcement now would reject
+legitimate traffic.
 
 ### The one gap App Check's own toggle won't cover
 
