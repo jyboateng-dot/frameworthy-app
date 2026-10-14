@@ -68,6 +68,13 @@
         }
       },
       {
+        "source": "/api/prodigi-callback",
+        "function": {
+          "functionId": "prodigiCallback",
+          "region": "us-central1"
+        }
+      },
+      {
         "source": "/api/ar-relay",
         "function": {
           "functionId": "arRelay",

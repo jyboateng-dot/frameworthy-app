@@ -18,7 +18,9 @@ try {
       },
     },
   }));
-} catch {}
+} catch {
+  // The custom dispatcher is an optional local-development optimisation.
+}
 
 // https://vite.dev/config/
 export default defineConfig({

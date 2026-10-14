@@ -21,7 +21,7 @@ describe('PageMeta', () => {
 
     it('falls back to the site default title when none is given', () => {
         render(<PageMeta />);
-        expect(document.title).toBe('FrameWorthy — Custom Picture Framing in Ghana');
+        expect(document.title).toBe('FrameWorthy — Made-to-Order Frames & Canvas');
     });
 
     it('writes the description to the meta tag, creating it if missing', () => {

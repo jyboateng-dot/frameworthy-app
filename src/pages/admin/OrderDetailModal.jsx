@@ -45,8 +45,8 @@ const ItemFulfillmentCard = ({ item }) => {
                     {item.selectedFrame && (
                         <div className="w-32 h-32 relative">
                             <div className="w-full h-full bg-white rounded-lg overflow-hidden border border-gray-200 flex items-center justify-center p-2">
-                                {item.selectedFrame.previewImg ? (
-                                    <img src={item.selectedFrame.previewImg} alt={item.selectedFrame.name} className="w-full h-full object-contain drop-shadow-sm" />
+                                {(item.selectedFrame.thumbnailImage || item.selectedFrame.previewImg) ? (
+                                    <img src={item.selectedFrame.thumbnailImage || item.selectedFrame.previewImg} alt={item.selectedFrame.name} className="w-full h-full object-contain drop-shadow-sm" />
                                 ) : (
                                     <ImageOff size={24} className="text-gray-300" />
                                 )}

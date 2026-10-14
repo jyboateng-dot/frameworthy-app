@@ -100,13 +100,15 @@ const discountFor = (promoCode, subtotal) => {
  * Recomputes what an order should cost from its configuration alone.
  * @returns {{ total: number } | { error: string }}
  */
-const recomputeOrderTotal = (order) => {
+const recomputeOrderTotal = (order, { prodigiPriceForItem } = {}) => {
     const items = Array.isArray(order?.items) ? order.items : null;
     if (!items || items.length === 0) return { error: 'Order has no items' };
 
     let subtotal = 0;
     for (const item of items) {
-        const unitPrice = priceForItem(item);
+        const unitPrice = item?.prodigi?.sku && prodigiPriceForItem
+            ? prodigiPriceForItem(item)
+            : priceForItem(item);
         if (unitPrice === null) {
             return { error: `Unrecognised product configuration (frame=${item?.selectedFrame?.id}, size=${item?.selectedSize?.id})` };
         }

@@ -5,7 +5,7 @@ const DeliveryPolicyPage = ({ navigate }) => (
     <LegalPageLayout
         navigate={navigate}
         title="Delivery Policy"
-        metaDescription="Production timelines and delivery details for FrameWorthy orders across Ghana."
+        metaDescription="Production timelines and delivery details for FrameWorthy orders in the United Kingdom and Jersey."
         effectiveDate="15 July 2026"
     >
         <LegalSection title="1. Overview">
@@ -16,22 +16,22 @@ const DeliveryPolicyPage = ({ navigate }) => (
 
         <LegalSection title="2. Production Timelines">
             <p>
-                Since each frame is custom-made, please allow 3-5 business days for production after your order is confirmed and payment is processed. Production begins immediately once your order is placed.
+                Each product is made to order. The current production and delivery estimate is shown with the live quote for the selected product and destination.
             </p>
         </LegalSection>
 
         <LegalSection title="3. Delivery Locations and Costs">
             <p>
-                We currently deliver across Ghana. Delivery fees are separate from the product cost paid at checkout.
+                The current collection is available for delivery in the United Kingdom and Jersey. Standard delivery and applicable tax are included in the live GBP quote.
             </p>
             <p>
-                The estimated delivery cost will be communicated to you before dispatch. This fee is paid directly to our courier partner upon delivery of your item. Delivery costs vary depending on your location and the size/weight of your order.
+                Any optional shipping upgrade will be shown before payment. No separate standard-delivery payment is due to the courier.
             </p>
         </LegalSection>
 
         <LegalSection title="4. Shipping Timelines">
             <p>
-                Once production is complete, your order will be dispatched. Delivery times typically range from 1-3 business days depending on your location within Ghana. Please note that these are estimates and not guarantees. 
+                Once production is complete, the order is dispatched using the shipping method shown in the quote. Delivery dates are estimates and are not guaranteed.
             </p>
         </LegalSection>
 

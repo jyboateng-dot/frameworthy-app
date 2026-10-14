@@ -63,10 +63,10 @@ describe('complete catalogue against room scenes', () => {
     }
 
     it('reports the 180 × 180 cm custom size against each complete wall', () => {
-        // Use the default Flat Black Deep rail, as the customizer does on its
+        // Use the active Classic Black rail, as the customizer does on its
         // initial state. The artwork is 180cm square; its outer frame adds
-        // one-inch moulding on each edge.
-        const defaultStyle = FRAME_STYLES.find((frame) => frame.id === 'frame-10727');
+        // the published moulding width on each edge.
+        const defaultStyle = FRAME_STYLES.find((frame) => frame.id === 'prodigi-classic-black');
         const outerCm = 180 + defaultStyle.mouldingWidthIn * 2 * 2.54;
         const results = Object.fromEntries(ROOM_SCENES.map((room) => [
             room.id,

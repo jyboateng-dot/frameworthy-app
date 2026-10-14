@@ -1,0 +1,647 @@
+{
+  "provider": "Prodigi",
+  "purpose": "Reference sources for FrameWorthy 2D, 3D, and AR render asset derivation",
+  "shippingPolicy": "Source files are stored outside public and are not bundled into the app",
+  "assets": [
+    {
+      "family": "colour-profiles",
+      "path": "resources/prodigi/source/colour-profiles/prodigi-budget-art-paper-180gsm-bap.icc",
+      "sourceUrl": "https://www.prodigi.com/download/colour-profiles/prodigi-budget-art-paper-180gsm-bap.icc",
+      "bytes": 824788,
+      "sha256": "27990010976023c3731533879ba029358b3d3e403c9b6c403946592bd41e63b0",
+      "mediaType": "application/vnd.iccprofile"
+    },
+    {
+      "family": "colour-profiles",
+      "path": "resources/prodigi/source/colour-profiles/prodigi-cold-press-watercolour-paper-315gsm-cpwp.icc",
+      "sourceUrl": "https://www.prodigi.com/download/colour-profiles/prodigi-cold-press-watercolour-paper-315gsm-cpwp.icc",
+      "bytes": 884832,
+      "sha256": "58d2ab02368505dce0197bb5021c44ab0826c8492e53b664fc44c79ec2a42ec0",
+      "mediaType": "application/vnd.iccprofile"
+    },
+    {
+      "family": "colour-profiles",
+      "path": "resources/prodigi/source/colour-profiles/prodigi-enhanced-matt-art-paper-200gsm-ema.icc",
+      "sourceUrl": "https://www.prodigi.com/download/colour-profiles/prodigi-enhanced-matt-art-paper-200gsm-ema.icc",
+      "bytes": 824816,
+      "sha256": "997a83cc0706986e74b6caf873b3039376cb86845a4657c2fb502fd586ca5036",
+      "mediaType": "application/vnd.iccprofile"
+    },
+    {
+      "family": "colour-profiles",
+      "path": "resources/prodigi/source/colour-profiles/prodigi-hahnemuhle-german-etching-310gsm-hge.icc",
+      "sourceUrl": "https://www.prodigi.com/download/colour-profiles/prodigi-hahnemuhle-german-etching-310gsm-hge.icc",
+      "bytes": 824796,
+      "sha256": "5948bdf5050b652f429bdd6edc1583091203a310ec392f93eb79345c2cc760ef",
+      "mediaType": "application/vnd.iccprofile"
+    },
+    {
+      "family": "colour-profiles",
+      "path": "resources/prodigi/source/colour-profiles/prodigi-hahnemuhle-photo-rag-308gsm-hpr.icc",
+      "sourceUrl": "https://www.prodigi.com/download/colour-profiles/prodigi-hahnemuhle-photo-rag-308gsm-hpr.icc",
+      "bytes": 824776,
+      "sha256": "b7f762c6751f78ed94e0334564db8a54d07fd8ad3612e7aede664aa327dc34cd",
+      "mediaType": "application/vnd.iccprofile"
+    },
+    {
+      "family": "colour-profiles",
+      "path": "resources/prodigi/source/colour-profiles/prodigi-lustre-photo-paper-240gsm-lpp.icc",
+      "sourceUrl": "https://www.prodigi.com/download/colour-profiles/prodigi-lustre-photo-paper-240gsm-lpp.icc",
+      "bytes": 821792,
+      "sha256": "8de2378404728f576058567036b50b5bdfd14361e0b405ac375b2572ff852d8a",
+      "mediaType": "application/vnd.iccprofile"
+    },
+    {
+      "family": "colour-profiles",
+      "path": "resources/prodigi/source/colour-profiles/prodigi-smooth-art-paper-240gsm-sap.icc",
+      "sourceUrl": "https://www.prodigi.com/download/colour-profiles/prodigi-smooth-art-paper-240gsm-sap.icc",
+      "bytes": 885000,
+      "sha256": "1b86ec667145e31a0aeb740c8623d21491eca28502efa588afab043cf6d3a11f",
+      "mediaType": "application/vnd.iccprofile"
+    },
+    {
+      "family": "colour-profiles",
+      "path": "resources/prodigi/source/colour-profiles/prodigi-metallic-canvas-440gsm-mc.icc",
+      "sourceUrl": "https://www.prodigi.com/download/colour-profiles/prodigi-metallic-canvas-440gsm-mc.icc",
+      "bytes": 824768,
+      "sha256": "ca2fb372fddb1641c6bab8e0dee5b71afb7215c226aea4598cc8e699c4b211f3",
+      "mediaType": "application/vnd.iccprofile"
+    },
+    {
+      "family": "colour-profiles",
+      "path": "resources/prodigi/source/colour-profiles/prodigi-standard-canvas-400gsm-sc.icc",
+      "sourceUrl": "https://www.prodigi.com/download/colour-profiles/prodigi-standard-canvas-400gsm-sc.icc",
+      "bytes": 2435156,
+      "sha256": "733e2f3091f7f0a608e7abfc88fe14dada8837719400d1dc3ad4cce34c7a7dad",
+      "mediaType": "application/vnd.iccprofile"
+    },
+    {
+      "family": "classic",
+      "path": "resources/prodigi/source/classic/prodigi-classic-frames-photo-assets.zip",
+      "sourceUrl": "https://www.prodigi.com/download/product-range/classic-frames/prodigi-classic-frames-photo-assets.zip",
+      "bytes": 7088380,
+      "sha256": "be06035f9056a5cc1b9facd5a4cb8cbb0785957ea782d99a4e380f26d2d29a1d",
+      "mediaType": "application/zip"
+    },
+    {
+      "family": "classic",
+      "path": "resources/prodigi/source/classic/prodigi-classic-frame-blanks.zip",
+      "sourceUrl": "https://www.prodigi.com/download/blanks/prodigi-classic-frame-blanks.zip",
+      "bytes": 4028642,
+      "sha256": "fc8f379ec6723399c8924c598c1020a0124681b0a48474899a6014a9ebfea63f",
+      "mediaType": "application/zip"
+    },
+    {
+      "family": "classic",
+      "path": "resources/prodigi/source/classic/Prodigi Classic frames.pdf",
+      "sourceUrl": "https://www.prodigi.com/download/product-range/Prodigi%20Classic%20frames.pdf",
+      "bytes": 635915,
+      "sha256": "6b8ab7efb48816e74943d1d1d24ad28ddcb84aff913f80cff47b05ceb3e95f27",
+      "mediaType": "application/pdf"
+    },
+    {
+      "family": "classic",
+      "path": "resources/prodigi/source/classic/classic-black.png",
+      "sourceUrl": "https://www.prodigi.com/img/products/chevrons/classic-black.png",
+      "bytes": 50845,
+      "sha256": "5958a9da9047cced25b05798b173c464a7a3d7b3756bd19fc541f6e3c12f6891",
+      "mediaType": "image/png"
+    },
+    {
+      "family": "classic",
+      "path": "resources/prodigi/source/classic/classic-white.png",
+      "sourceUrl": "https://www.prodigi.com/img/products/chevrons/classic-white.png",
+      "bytes": 37461,
+      "sha256": "481d34212ea54844b5dfaa61ef31d1b72c7448ba4320526d53ed99773b2e185e",
+      "mediaType": "image/png"
+    },
+    {
+      "family": "classic",
+      "path": "resources/prodigi/source/classic/classic-natural.png",
+      "sourceUrl": "https://www.prodigi.com/img/products/chevrons/classic-natural.png",
+      "bytes": 131405,
+      "sha256": "e9afedf71507645bbfcb343ec95eb653688baaf07a51ee2779449e39ab1382d0",
+      "mediaType": "image/png"
+    },
+    {
+      "family": "classic",
+      "path": "resources/prodigi/source/classic/classic-antique-silver.png",
+      "sourceUrl": "https://www.prodigi.com/img/products/chevrons/classic-antique-silver.png",
+      "bytes": 59675,
+      "sha256": "333c09ca5cb7c7f29d50ff06573418073c194eac6cace3995cc5290cddfdc619",
+      "mediaType": "image/png"
+    },
+    {
+      "family": "classic",
+      "path": "resources/prodigi/source/classic/classic-brown.png",
+      "sourceUrl": "https://www.prodigi.com/img/products/chevrons/classic-brown.png",
+      "bytes": 110773,
+      "sha256": "340adcae9a8fb3ab4c7830f927e3eb56e33387f4f5875f21bc7904a391654755",
+      "mediaType": "image/png"
+    },
+    {
+      "family": "classic",
+      "path": "resources/prodigi/source/classic/classic-antique-gold.png",
+      "sourceUrl": "https://www.prodigi.com/img/products/chevrons/classic-antique-gold.png",
+      "bytes": 87066,
+      "sha256": "6ca636d8266e5d8f3e95fa38fde7fb2f233904210888b66af44d482eee829515",
+      "mediaType": "image/png"
+    },
+    {
+      "family": "classic",
+      "path": "resources/prodigi/source/classic/classic-dark-grey.png",
+      "sourceUrl": "https://www.prodigi.com/img/products/chevrons/classic-dark-grey.png",
+      "bytes": 49771,
+      "sha256": "f1829ea0350828d3189803565a5166223a8762e8882485f870dbe18e05e21a62",
+      "mediaType": "image/png"
+    },
+    {
+      "family": "classic",
+      "path": "resources/prodigi/source/classic/classic-light-grey.png",
+      "sourceUrl": "https://www.prodigi.com/img/products/chevrons/classic-light-grey.png",
+      "bytes": 38567,
+      "sha256": "57a58f9f01b4fe8300a010cbc5cee4f24f114448cd649d776739df383775cdcf",
+      "mediaType": "image/png"
+    },
+    {
+      "family": "classic",
+      "path": "resources/prodigi/source/classic/frame-classic-black.png",
+      "sourceUrl": "https://www.prodigi.com/img/products/swatches/frame-classic-black.png",
+      "bytes": 1047,
+      "sha256": "f94f05746a08bb8827e2c34102abae65b9fe07ebc26212c3e0205a756a79237e",
+      "mediaType": "image/png"
+    },
+    {
+      "family": "classic",
+      "path": "resources/prodigi/source/classic/frame-classic-white.png",
+      "sourceUrl": "https://www.prodigi.com/img/products/swatches/frame-classic-white.png",
+      "bytes": 1047,
+      "sha256": "6ba879bbeb37588315a06f337e31f4069896af83df4132bbb7af5efa2e4728e2",
+      "mediaType": "image/png"
+    },
+    {
+      "family": "classic",
+      "path": "resources/prodigi/source/classic/frame-classic-natural.jpg",
+      "sourceUrl": "https://www.prodigi.com/img/products/swatches/frame-classic-natural.jpg",
+      "bytes": 2812,
+      "sha256": "b0ea338c6c89a84674b5ba461c7c4ce01430b353ec07d7b7abedd4f7a8a0b376",
+      "mediaType": "image/jpeg"
+    },
+    {
+      "family": "classic",
+      "path": "resources/prodigi/source/classic/frame-classic-antique-silver.jpg",
+      "sourceUrl": "https://www.prodigi.com/img/products/swatches/frame-classic-antique-silver.jpg",
+      "bytes": 2357,
+      "sha256": "5662d7fc8c9ff015c22ad835a4dce36a93e86d70706ef7e29d969c521533c600",
+      "mediaType": "image/jpeg"
+    },
+    {
+      "family": "classic",
+      "path": "resources/prodigi/source/classic/frame-classic-brown.png",
+      "sourceUrl": "https://www.prodigi.com/img/products/swatches/frame-classic-brown.png",
+      "bytes": 1811,
+      "sha256": "d51c3a8cd6acf572baff422f0eb609c7c2e926f3ebd8e5dec1e388a7a99c9be2",
+      "mediaType": "image/png"
+    },
+    {
+      "family": "classic",
+      "path": "resources/prodigi/source/classic/frame-classic-antique-gold.jpg",
+      "sourceUrl": "https://www.prodigi.com/img/products/swatches/frame-classic-antique-gold.jpg",
+      "bytes": 2740,
+      "sha256": "eaf46eb88d38e9c7c2d9537472773971a4d121b7733ab28036733f390dad29f1",
+      "mediaType": "image/jpeg"
+    },
+    {
+      "family": "classic",
+      "path": "resources/prodigi/source/classic/frame-classic-dark-grey.png",
+      "sourceUrl": "https://www.prodigi.com/img/products/swatches/frame-classic-dark-grey.png",
+      "bytes": 1047,
+      "sha256": "05fcf769e9a18d3def56e0a882381a7cfe59265de13af63a108933bd041e2702",
+      "mediaType": "image/png"
+    },
+    {
+      "family": "classic",
+      "path": "resources/prodigi/source/classic/frame-classic-light-grey.png",
+      "sourceUrl": "https://www.prodigi.com/img/products/swatches/frame-classic-light-grey.png",
+      "bytes": 1047,
+      "sha256": "6dd2dd460cde999a063e4b267a5cc83d71982478c3235232d7faea8521b007f7",
+      "mediaType": "image/png"
+    },
+    {
+      "family": "box",
+      "path": "resources/prodigi/source/box/prodigi-box-frames-photo-assets.zip",
+      "sourceUrl": "https://www.prodigi.com/download/product-range/box-frames/prodigi-box-frames-photo-assets.zip",
+      "bytes": 3426372,
+      "sha256": "796f4933e8ff68306bee774f0422fc1e9d6daa63efd8cd133fe8ce6e0be45729",
+      "mediaType": "application/zip"
+    },
+    {
+      "family": "box",
+      "path": "resources/prodigi/source/box/Prodigi Box frames.pdf",
+      "sourceUrl": "https://www.prodigi.com/download/product-range/Prodigi%20Box%20frames.pdf",
+      "bytes": 333238,
+      "sha256": "bf68ce78c329629732ec137af1620dcabdc266c8c6d02e9c0421b3d8253a6272",
+      "mediaType": "application/pdf"
+    },
+    {
+      "family": "box",
+      "path": "resources/prodigi/source/box/box-black.png",
+      "sourceUrl": "https://www.prodigi.com/img/products/chevrons/box-black.png",
+      "bytes": 88367,
+      "sha256": "8defd932c1c4f2fc3043ecf55edf154df8f5daef8692fa90d481814964b6b2c9",
+      "mediaType": "image/png"
+    },
+    {
+      "family": "box",
+      "path": "resources/prodigi/source/box/box-white.png",
+      "sourceUrl": "https://www.prodigi.com/img/products/chevrons/box-white.png",
+      "bytes": 66942,
+      "sha256": "7d6816c42ecccf65ea027f5dfc13ed48c5ed1aab7f1322b812068d448c20bd35",
+      "mediaType": "image/png"
+    },
+    {
+      "family": "box",
+      "path": "resources/prodigi/source/box/box-natural.png",
+      "sourceUrl": "https://www.prodigi.com/img/products/chevrons/box-natural.png",
+      "bytes": 116223,
+      "sha256": "59abbbce795f655082399a54af52bfa52961230934a9590c0c5e1cc8d0e9f45f",
+      "mediaType": "image/png"
+    },
+    {
+      "family": "aluminium",
+      "path": "resources/prodigi/source/aluminium/prodigi-aluminium-frames-blank-assets.zip",
+      "sourceUrl": "https://www.prodigi.com/download/blanks/prodigi-aluminium-frames-blank-assets.zip",
+      "bytes": 469614,
+      "sha256": "fe1538b4b60d50584eb7a2f9e643038cf0a468a8cb1ab46e3a029267f25f5ced",
+      "mediaType": "application/zip"
+    },
+    {
+      "family": "aluminium",
+      "path": "resources/prodigi/source/aluminium/Prodigi Aluminium frames.pdf",
+      "sourceUrl": "https://www.prodigi.com/download/product-range/Prodigi%20Aluminium%20frames.pdf",
+      "bytes": 250340,
+      "sha256": "633003cddc2b9d07801dac9d72a3f3d52962ee148a01737541d0ab1d536a5ccc",
+      "mediaType": "application/pdf"
+    },
+    {
+      "family": "aluminium",
+      "path": "resources/prodigi/source/aluminium/prodigi-aluminium-metal-frames.webp",
+      "sourceUrl": "https://www.prodigi.com/img/products/additional/aluminium-frames/prodigi-aluminium-metal-frames.webp",
+      "bytes": 74366,
+      "sha256": "6658b6bac3690f2074ac0d4adb140a3b4a56ddac0e5709dc24788e604fa8426b",
+      "mediaType": "image/webp"
+    },
+    {
+      "family": "aluminium",
+      "path": "resources/prodigi/source/aluminium/prodigi-silver-aluminium-frame-detail.webp",
+      "sourceUrl": "https://www.prodigi.com/img/products/additional/aluminium-frames/prodigi-silver-aluminium-frame-detail.webp",
+      "bytes": 38590,
+      "sha256": "d463cfdab48b9131e1f04bcb2aaaec1511b3f8ca32a9cf6d03706646f5721d80",
+      "mediaType": "image/webp"
+    },
+    {
+      "family": "aluminium",
+      "path": "resources/prodigi/source/aluminium/gold-aluminium-frame-3-2.webp",
+      "sourceUrl": "https://www.prodigi.com/img/products/additional/aluminium-frames/gold-aluminium-frame-3-2.webp",
+      "bytes": 144934,
+      "sha256": "7f14e5a2445634c27e8190010568c048cb9ffe0dc41e6af2e9b0c24c085cfc73",
+      "mediaType": "image/webp"
+    },
+    {
+      "family": "aluminium",
+      "path": "resources/prodigi/source/aluminium/prodigi-aluminium-metal-frames-detail.webp",
+      "sourceUrl": "https://www.prodigi.com/img/products/additional/aluminium-frames/prodigi-aluminium-metal-frames-detail.webp",
+      "bytes": 47232,
+      "sha256": "c215fec4e00e62e470aa17ccc92b2579c956281e47e96ed7e55de7a1e37a7a8c",
+      "mediaType": "image/webp"
+    },
+    {
+      "family": "aluminium",
+      "path": "resources/prodigi/source/aluminium/black-aluminium-frame-3-2.webp",
+      "sourceUrl": "https://www.prodigi.com/img/products/additional/aluminium-frames/black-aluminium-frame-3-2.webp",
+      "bytes": 121502,
+      "sha256": "68086cde612752c1936e455e85a37f579eeb06d0c255488a368ddfd6abf719c7",
+      "mediaType": "image/webp"
+    },
+    {
+      "family": "aluminium",
+      "path": "resources/prodigi/source/aluminium/prodigi-black-aluminium-frame.webp",
+      "sourceUrl": "https://www.prodigi.com/img/products/additional/aluminium-frames/prodigi-black-aluminium-frame.webp",
+      "bytes": 70596,
+      "sha256": "4406bbcbd3123f70d3253c0ecc1718229c8974bb4a0e490109189424d5524d65",
+      "mediaType": "image/webp"
+    },
+    {
+      "family": "aluminium",
+      "path": "resources/prodigi/source/aluminium/prodigi-gold-aluminium-frame.webp",
+      "sourceUrl": "https://www.prodigi.com/img/products/additional/aluminium-frames/prodigi-gold-aluminium-frame.webp",
+      "bytes": 39114,
+      "sha256": "06f6e9b178453864255aa09f154cc8f93c27835dfc366f83635409deda187ae7",
+      "mediaType": "image/webp"
+    },
+    {
+      "family": "aluminium",
+      "path": "resources/prodigi/source/aluminium/prodigi-silver-aluminium-frame-2.webp",
+      "sourceUrl": "https://www.prodigi.com/img/products/additional/aluminium-frames/prodigi-silver-aluminium-frame-2.webp",
+      "bytes": 109556,
+      "sha256": "302bac00d17d4f7a8d81ca9428bb79edb53aa7c4a53affb3a5ecc168ad195b2d",
+      "mediaType": "image/webp"
+    },
+    {
+      "family": "aluminium",
+      "path": "resources/prodigi/source/aluminium/aluminium-black.png",
+      "sourceUrl": "https://www.prodigi.com/img/products/chevrons/aluminium-black.png",
+      "bytes": 40296,
+      "sha256": "dffd8428af434ed6f387e767c313079c251600b11298e4755db05b8f04aaebc2",
+      "mediaType": "image/png"
+    },
+    {
+      "family": "aluminium",
+      "path": "resources/prodigi/source/aluminium/aluminium-silver.png",
+      "sourceUrl": "https://www.prodigi.com/img/products/chevrons/aluminium-silver.png",
+      "bytes": 54983,
+      "sha256": "846406131f01aed17ebf7fc532dc1253c2202823aac1cdb66deb91a870fb72bf",
+      "mediaType": "image/png"
+    },
+    {
+      "family": "aluminium",
+      "path": "resources/prodigi/source/aluminium/aluminium-gold.png",
+      "sourceUrl": "https://www.prodigi.com/img/products/chevrons/aluminium-gold.png",
+      "bytes": 81885,
+      "sha256": "f1a856314e695f05083b07763d2d4e6feaff572ced0ab59807dcef25eeb02077",
+      "mediaType": "image/png"
+    },
+    {
+      "family": "canvas-float",
+      "path": "resources/prodigi/source/canvas-float/prodigi-framed-canvas-photo-assets.zip",
+      "sourceUrl": "https://www.prodigi.com/download/product-range/framed-canvas/prodigi-framed-canvas-photo-assets.zip",
+      "bytes": 7222162,
+      "sha256": "5aa46cf47a7be22b4bab5bc8f574c5d6e8fce3e2e803c8f6e9f59d7ea4924e80",
+      "mediaType": "application/zip"
+    },
+    {
+      "family": "canvas-float",
+      "path": "resources/prodigi/source/canvas-float/Prodigi Framed canvas.pdf",
+      "sourceUrl": "https://www.prodigi.com/download/product-range/Prodigi%20Framed%20canvas.pdf",
+      "bytes": 628323,
+      "sha256": "40a67f082aa69893d41cefb27eddbf15e928b6f1ad78ba0039f9f2c2f2eed253",
+      "mediaType": "application/pdf"
+    },
+    {
+      "family": "canvas-float",
+      "path": "resources/prodigi/source/canvas-float/canvas-float-black.png",
+      "sourceUrl": "https://www.prodigi.com/img/products/chevrons/canvas-float-black.png",
+      "bytes": 97780,
+      "sha256": "eeee630782251194d9d306d9e8450b96b6ffb8a56cd0e1a6eedef869c4ea9b31",
+      "mediaType": "image/png"
+    },
+    {
+      "family": "canvas-float",
+      "path": "resources/prodigi/source/canvas-float/canvas-float-white.png",
+      "sourceUrl": "https://www.prodigi.com/img/products/chevrons/canvas-float-white.png",
+      "bytes": 46291,
+      "sha256": "da9c8b941d7a46a3effbb42dcbbed80434c958e44c256dd3350683764e045066",
+      "mediaType": "image/png"
+    },
+    {
+      "family": "canvas-float",
+      "path": "resources/prodigi/source/canvas-float/canvas-float-antique-gold.png",
+      "sourceUrl": "https://www.prodigi.com/img/products/chevrons/canvas-float-antique-gold.png",
+      "bytes": 113792,
+      "sha256": "e7589af82d2c47380b91d0a16b41fa3ac6d85debd9d86436cab54c3dbe1472be",
+      "mediaType": "image/png"
+    },
+    {
+      "family": "canvas-float",
+      "path": "resources/prodigi/source/canvas-float/canvas-float-antique-silver.png",
+      "sourceUrl": "https://www.prodigi.com/img/products/chevrons/canvas-float-antique-silver.png",
+      "bytes": 101820,
+      "sha256": "f0775d8edb679a9a367a7bd8008e8cbbaff891240dc613353f95f85f2df979b1",
+      "mediaType": "image/png"
+    },
+    {
+      "family": "canvas-float",
+      "path": "resources/prodigi/source/canvas-float/canvas-float-natural.png",
+      "sourceUrl": "https://www.prodigi.com/img/products/chevrons/canvas-float-natural.png",
+      "bytes": 106835,
+      "sha256": "cd1a098fb65c4089f9d232780081378318e10ced9399c41437c80075f5846190",
+      "mediaType": "image/png"
+    },
+    {
+      "family": "canvas-float",
+      "path": "resources/prodigi/source/canvas-float/canvas-float-brown.png",
+      "sourceUrl": "https://www.prodigi.com/img/products/chevrons/canvas-float-brown.png",
+      "bytes": 108631,
+      "sha256": "b06d6f1e04099ca7320b219e2d4a51bacf5fea8cc5b436c6539e7c56ad0fbe64",
+      "mediaType": "image/png"
+    },
+    {
+      "family": "canvas-classic",
+      "path": "resources/prodigi/source/canvas-classic/Prodigi Classic framed canvas.pdf",
+      "sourceUrl": "https://www.prodigi.com/download/product-range/Prodigi%20Classic%20framed%20canvas.pdf",
+      "bytes": 623918,
+      "sha256": "3cc6114c2ca0ccf08e39eaa87e8a02105cd76659a2dd0fab5d5aac4b3e122618",
+      "mediaType": "application/pdf"
+    },
+    {
+      "family": "canvas-classic",
+      "path": "resources/prodigi/source/canvas-classic/classic-frame-canvas-woman-print-a_.webp",
+      "sourceUrl": "https://www.prodigi.com/img/products/additional/classic-framed-canvas/classic-frame-canvas-woman-print-a_.webp",
+      "bytes": 98554,
+      "sha256": "f4efc862f38743f77b9ce8268d9b912820482f5943b93d5a39172a68a83a6e7a",
+      "mediaType": "image/webp"
+    },
+    {
+      "family": "canvas-classic",
+      "path": "resources/prodigi/source/canvas-classic/prodigi-classic-framed-19mm-canvas-natural.webp",
+      "sourceUrl": "https://www.prodigi.com/img/products/additional/classic-framed-canvas/prodigi-classic-framed-19mm-canvas-natural.webp",
+      "bytes": 1133330,
+      "sha256": "1ed9f8fde3023e9171588b2b90e5f009e87a0bca2165b17890d3acb90f08bcee",
+      "mediaType": "image/webp"
+    },
+    {
+      "family": "canvas-classic",
+      "path": "resources/prodigi/source/canvas-classic/classic-frame-canvas-bikes-print-d_.webp",
+      "sourceUrl": "https://www.prodigi.com/img/products/additional/classic-framed-canvas/classic-frame-canvas-bikes-print-d_.webp",
+      "bytes": 57000,
+      "sha256": "15221e0741c1daee1a4e044febc1f771ec1eb82003e6a2a235a8763fd17df6f7",
+      "mediaType": "image/webp"
+    },
+    {
+      "family": "canvas-classic",
+      "path": "resources/prodigi/source/canvas-classic/framed-canvas-19mm-full.webp",
+      "sourceUrl": "https://www.prodigi.com/img/products/additional/classic-framed-canvas/framed-canvas-19mm-full.webp",
+      "bytes": 106226,
+      "sha256": "209d7a5f88b76744fa0ef7f51858e1da6ba56d28d1d5b5d7075abf3c099ac277",
+      "mediaType": "image/webp"
+    },
+    {
+      "family": "canvas-classic",
+      "path": "resources/prodigi/source/canvas-classic/30x40-classic-framed-canvas-sq.webp",
+      "sourceUrl": "https://www.prodigi.com/img/products/additional/classic-framed-canvas/30x40-classic-framed-canvas-sq.webp",
+      "bytes": 176688,
+      "sha256": "da59e242a5fe7e7dfd5fa111c49779d370a608fd40187feee84049d5c0818a91",
+      "mediaType": "image/webp"
+    },
+    {
+      "family": "canvas-classic",
+      "path": "resources/prodigi/source/canvas-classic/19mm-classic-frame_--group_.webp",
+      "sourceUrl": "https://www.prodigi.com/img/products/additional/classic-framed-canvas/19mm-classic-frame_--group_.webp",
+      "bytes": 72730,
+      "sha256": "a0af8d3ce9641f973a11372b00f64a49e08aad4685c5537e3d6589bbec886e92",
+      "mediaType": "image/webp"
+    },
+    {
+      "family": "canvas-classic",
+      "path": "resources/prodigi/source/canvas-classic/prodigi-classic-framed-canvas-19mm-corner.webp",
+      "sourceUrl": "https://www.prodigi.com/img/products/additional/classic-framed-canvas/prodigi-classic-framed-canvas-19mm-corner.webp",
+      "bytes": 37734,
+      "sha256": "a4ab9e93e812c999ca59e157c179f9041731f94f6281982f8f4ba7f379420ecd",
+      "mediaType": "image/webp"
+    },
+    {
+      "family": "canvas-classic",
+      "path": "resources/prodigi/source/canvas-classic/classic-frame-colour-range-updated-2025.webp",
+      "sourceUrl": "https://www.prodigi.com/img/products/additional/classic-framed-canvas/classic-frame-colour-range-updated-2025.webp",
+      "bytes": 41436,
+      "sha256": "10861a7402a87349ab59a6a1dd2cfdedae417651156b3f09d3f4a05f7d1f7bd0",
+      "mediaType": "image/webp"
+    },
+    {
+      "family": "canvas-eco",
+      "path": "resources/prodigi/source/canvas-eco/Prodigi Eco framed canvas.pdf",
+      "sourceUrl": "https://www.prodigi.com/download/product-range/Prodigi%20Eco%20framed%20canvas.pdf",
+      "bytes": 625584,
+      "sha256": "0bc51a25c157ab5c03d1ff45b67ac35fdef0b257d57aa70477e1dfefeb797d2c",
+      "mediaType": "application/pdf"
+    },
+    {
+      "family": "canvas-eco",
+      "path": "resources/prodigi/source/canvas-eco/eco-framed-canvas_3.webp",
+      "sourceUrl": "https://www.prodigi.com/img/products/additional/eco-framed-canvas/eco-framed-canvas_3.webp",
+      "bytes": 92422,
+      "sha256": "8da053cd37659ece0978328df78f4685e540961085cc24bf8dd520caec910967",
+      "mediaType": "image/webp"
+    },
+    {
+      "family": "canvas-eco",
+      "path": "resources/prodigi/source/canvas-eco/eco-framed-canvas_2.webp",
+      "sourceUrl": "https://www.prodigi.com/img/products/additional/eco-framed-canvas/eco-framed-canvas_2.webp",
+      "bytes": 57548,
+      "sha256": "b6c90f7bcc254e7b14876fd901c5358e22e494f9a8827623e722ff9b2b8ec4de",
+      "mediaType": "image/webp"
+    },
+    {
+      "family": "canvas-eco",
+      "path": "resources/prodigi/source/canvas-eco/eco-framed-canvas_1.webp",
+      "sourceUrl": "https://www.prodigi.com/img/products/additional/eco-framed-canvas/eco-framed-canvas_1.webp",
+      "bytes": 75214,
+      "sha256": "b001d773abeda6827b028be1b1ec10c40e88f2c0da440027ad17762eb6ac657c",
+      "mediaType": "image/webp"
+    },
+    {
+      "family": "canvas-eco",
+      "path": "resources/prodigi/source/canvas-eco/float-frame-chevrons.webp",
+      "sourceUrl": "https://www.prodigi.com/img/products/additional/eco-framed-canvas/float-frame-chevrons.webp",
+      "bytes": 62228,
+      "sha256": "3f8a3ebfcc7873d67e7f70a057d19ad528bb52e25475d7d842626bf1aa24a5b9",
+      "mediaType": "image/webp"
+    },
+    {
+      "family": "canvas-eco",
+      "path": "resources/prodigi/source/canvas-eco/eco-canvas-float-black.png",
+      "sourceUrl": "https://www.prodigi.com/img/products/chevrons/eco-canvas-float-black.png",
+      "bytes": 97780,
+      "sha256": "eeee630782251194d9d306d9e8450b96b6ffb8a56cd0e1a6eedef869c4ea9b31",
+      "mediaType": "image/png"
+    },
+    {
+      "family": "canvas-eco",
+      "path": "resources/prodigi/source/canvas-eco/eco-canvas-float-white.png",
+      "sourceUrl": "https://www.prodigi.com/img/products/chevrons/eco-canvas-float-white.png",
+      "bytes": 46291,
+      "sha256": "da9c8b941d7a46a3effbb42dcbbed80434c958e44c256dd3350683764e045066",
+      "mediaType": "image/png"
+    },
+    {
+      "family": "canvas-eco",
+      "path": "resources/prodigi/source/canvas-eco/eco-canvas-float-antique-gold.png",
+      "sourceUrl": "https://www.prodigi.com/img/products/chevrons/eco-canvas-float-antique-gold.png",
+      "bytes": 113792,
+      "sha256": "e7589af82d2c47380b91d0a16b41fa3ac6d85debd9d86436cab54c3dbe1472be",
+      "mediaType": "image/png"
+    },
+    {
+      "family": "canvas-eco",
+      "path": "resources/prodigi/source/canvas-eco/eco-canvas-float-antique-silver.png",
+      "sourceUrl": "https://www.prodigi.com/img/products/chevrons/eco-canvas-float-antique-silver.png",
+      "bytes": 101820,
+      "sha256": "f0775d8edb679a9a367a7bd8008e8cbbaff891240dc613353f95f85f2df979b1",
+      "mediaType": "image/png"
+    },
+    {
+      "family": "canvas-eco",
+      "path": "resources/prodigi/source/canvas-eco/eco-canvas-float-natural.png",
+      "sourceUrl": "https://www.prodigi.com/img/products/chevrons/eco-canvas-float-natural.png",
+      "bytes": 106835,
+      "sha256": "cd1a098fb65c4089f9d232780081378318e10ced9399c41437c80075f5846190",
+      "mediaType": "image/png"
+    },
+    {
+      "family": "canvas-eco",
+      "path": "resources/prodigi/source/canvas-eco/eco-canvas-float-brown.png",
+      "sourceUrl": "https://www.prodigi.com/img/products/chevrons/eco-canvas-float-brown.png",
+      "bytes": 108631,
+      "sha256": "b06d6f1e04099ca7320b219e2d4a51bacf5fea8cc5b436c6539e7c56ad0fbe64",
+      "mediaType": "image/png"
+    },
+    {
+      "family": "stretched-canvas",
+      "path": "resources/prodigi/source/stretched-canvas/prodigi-stretched-canvas-photo-assets.zip",
+      "sourceUrl": "https://www.prodigi.com/download/product-range/stretched-canvas/prodigi-stretched-canvas-photo-assets.zip",
+      "bytes": 5558988,
+      "sha256": "eba92da08a39b7ec2dfbe69385c0fea09869f0a8af4b27f405920a715437dfea",
+      "mediaType": "application/zip"
+    },
+    {
+      "family": "stretched-canvas",
+      "path": "resources/prodigi/source/stretched-canvas/Prodigi Stretched canvas.pdf",
+      "sourceUrl": "https://www.prodigi.com/download/product-range/Prodigi%20Stretched%20canvas.pdf",
+      "bytes": 83254,
+      "sha256": "019c6c7de6855d5ec357218a863b40b69cfff3bc2e9f96567909b3bedbc363af",
+      "mediaType": "application/pdf"
+    },
+    {
+      "family": "stretched-canvas",
+      "path": "resources/prodigi/source/stretched-canvas/white-edge.webp",
+      "sourceUrl": "https://www.prodigi.com/img/products/custom/stretched-canvas/white-edge.webp",
+      "bytes": 60866,
+      "sha256": "fcd3ba3ffb27b06b0cee63cda9e9c87afab35472a8a9731e4d91a08eb52cfbe4",
+      "mediaType": "image/webp"
+    },
+    {
+      "family": "stretched-canvas",
+      "path": "resources/prodigi/source/stretched-canvas/black-edge.webp",
+      "sourceUrl": "https://www.prodigi.com/img/products/custom/stretched-canvas/black-edge.webp",
+      "bytes": 60902,
+      "sha256": "36bb00584448623a94ddf9ada671f31745deb5d452da89d0f103eead35644f96",
+      "mediaType": "image/webp"
+    },
+    {
+      "family": "stretched-canvas",
+      "path": "resources/prodigi/source/stretched-canvas/image-wrap.webp",
+      "sourceUrl": "https://www.prodigi.com/img/products/custom/stretched-canvas/image-wrap.webp",
+      "bytes": 64416,
+      "sha256": "1a13e3889690787c7ff72fd5a3a9291f1bd9250fbc5580d4316b776e68f82da5",
+      "mediaType": "image/webp"
+    },
+    {
+      "family": "stretched-canvas",
+      "path": "resources/prodigi/source/stretched-canvas/mirror-wrap.webp",
+      "sourceUrl": "https://www.prodigi.com/img/products/custom/stretched-canvas/mirror-wrap.webp",
+      "bytes": 71840,
+      "sha256": "e8d36297db91deb64b5429378cad6f4b51c8fe8c00587d9a87c3c0f364f9fe4c",
+      "mediaType": "image/webp"
+    }
+  ]
+}

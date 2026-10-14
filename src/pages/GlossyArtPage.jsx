@@ -123,7 +123,7 @@ const GlossyArtPage = ({ setProductMode, navigate, isSubPage = false, disableWin
             {!isSubPage && (
                 <PageMeta
                     title="Glossy Art Prints"
-                    description="Browse glossy fine-art prints and order them custom-framed, delivered across Ghana."
+                    description="Browse glossy fine-art prints and preview them in a made-to-order frame."
                 />
             )}
 

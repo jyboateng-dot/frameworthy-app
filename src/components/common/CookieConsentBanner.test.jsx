@@ -15,6 +15,9 @@ const loadBanner = async (measurementId) => {
     return CookieConsentBanner;
 };
 
+// JSX component parameters are consumed by the JSX transform even though the
+// base unused-vars rule cannot see that use.
+// eslint-disable-next-line no-unused-vars
 const renderBanner = (CookieConsentBanner) =>
     render(<MemoryRouter><CookieConsentBanner /></MemoryRouter>);
 

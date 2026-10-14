@@ -22,6 +22,8 @@ const CartPage = () => {
     const selectedItems = cartItems.filter(item => item.isSelected);
     const selectedCount = selectedItems.reduce((acc, item) => acc + (item.quantity || 1), 0);
     const totalSelectedPrice = selectedItems.reduce((acc, item) => acc + (item.totalPrice * (item.quantity || 1)), 0);
+    const selectedCurrency = selectedItems.length > 0 && selectedItems.every(item => item.currency === 'GBP') ? 'GBP' : 'GHS';
+    const hasMixedCurrencies = new Set(selectedItems.map(item => item.currency || 'GHS')).size > 1;
 
 
     const allSelected = cartItems.length > 0 && selectedItems.length === cartItems.length;
@@ -80,7 +82,7 @@ const CartPage = () => {
 
             {/* Global Delivery Notice */}
             <div className="px-4 py-3 bg-white flex items-center gap-3 border-b border-stone-100">
-                <span className="text-stone-900 text-xs">Shipping fee paid upon delivery</span>
+                <span className="text-stone-900 text-xs">{selectedCurrency === 'GBP' ? 'Delivery and tax included in the live quote' : 'Shipping fee paid upon delivery'}</span>
             </div>
 
             {/* Store Group */}
@@ -128,7 +130,7 @@ const CartPage = () => {
                                     <div className="mt-1 flex items-end justify-between">
                                         <div>
                                             <div className="flex items-baseline gap-1.5">
-                                                <Price amount={item.totalPrice || 0} className="font-bold text-stone-900 text-sm" />
+                                                <Price amount={item.totalPrice || 0} currency={item.currency || 'GHS'} className="font-bold text-stone-900 text-sm" />
                                             </div>
 
                                         </div>
@@ -138,16 +140,18 @@ const CartPage = () => {
                                         <div className="flex items-center border border-stone-200 rounded-full bg-white h-10">
                                             <button
                                                 onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                                                disabled={Boolean(item.prodigi)}
                                                 aria-label="Decrease quantity"
-                                                className="w-10 h-full flex items-center justify-center text-stone-500 hover:text-stone-800"
+                                                className="w-10 h-full flex items-center justify-center text-stone-500 hover:text-stone-800 disabled:opacity-30"
                                             >
                                                 <Minus size={12} strokeWidth={3} />
                                             </button>
                                             <span className="text-xs font-bold w-6 text-center text-stone-800">{item.quantity}</span>
                                             <button
                                                 onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                                                disabled={Boolean(item.prodigi)}
                                                 aria-label="Increase quantity"
-                                                className="w-10 h-full flex items-center justify-center text-stone-500 hover:text-stone-800"
+                                                className="w-10 h-full flex items-center justify-center text-stone-500 hover:text-stone-800 disabled:opacity-30"
                                             >
                                                 <Plus size={12} strokeWidth={3} />
                                             </button>
@@ -177,13 +181,13 @@ const CartPage = () => {
 
                 <div className="flex items-center gap-3">
                     <div className="flex flex-col items-end">
-                        <Price amount={totalSelectedPrice} className="text-lg font-bold text-stone-900" />
+                        <Price amount={totalSelectedPrice} currency={selectedCurrency} className="text-lg font-bold text-stone-900" />
 
                     </div>
                     
                     <button 
                         onClick={handleCheckout}
-                        disabled={selectedCount === 0}
+                        disabled={selectedCount === 0 || hasMixedCurrencies}
                         className="bg-[#c9a84c] text-[#0a0a0a] px-5 py-2.5 rounded-full font-bold text-sm flex flex-col items-center disabled:opacity-50 disabled:bg-stone-300 disabled:text-stone-500 transition-colors hover:bg-[#d4b55c]"
                     >
                         <span>Checkout ({selectedCount})</span>
@@ -191,6 +195,7 @@ const CartPage = () => {
                     </button>
                 </div>
             </div>
+            {hasMixedCurrencies && <p className="fixed bottom-20 left-4 right-4 z-50 rounded-lg bg-amber-100 p-2 text-center text-xs text-amber-900">GBP and GHS items must be checked out separately.</p>}
 
             {/* Auth/Guest Checkout Modal */}
             <AuthModal 

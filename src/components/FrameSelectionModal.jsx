@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { framesForCategory, categoryForFrame, displayCategoryName, PRODIGI_FRAME_CATEGORIES } from '../data/frameBrowsing';
+import { framesForCategory, categoryForFrame, displayCategoryName, displayFrameName, PRODIGI_FRAME_CATEGORIES } from '../data/frameBrowsing';
 
 export default function FrameSelectionModal({ isOpen, onClose, selectedFrame, onSelect }) {
     const [activeCategory, setActiveCategory] = useState(() => {
@@ -62,10 +62,14 @@ export default function FrameSelectionModal({ isOpen, onClose, selectedFrame, on
                         >
                             <div className="aspect-square bg-stone-100 overflow-hidden relative rounded-2xl">
                                 <img
-                                    src={f.cornerImage || f.previewImg || `/frames/${f.filename}`}
+                                    src={f.thumbnailImage || f.cornerImage || f.previewImg || `/frames/${f.filename}`}
                                     alt={f.name}
                                     loading="lazy"
                                     decoding="async"
+                                    style={f.thumbnailCrop ? {
+                                        transform: `scale(${f.thumbnailCrop.scale})`,
+                                        transformOrigin: f.thumbnailCrop.origin,
+                                    } : undefined}
                                     className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-300"
                                 />
                                 {selectedFrame?.id === f.id && (
@@ -73,7 +77,7 @@ export default function FrameSelectionModal({ isOpen, onClose, selectedFrame, on
                                 )}
                             </div>
                             <div className="pt-3 text-left">
-                                <h3 className="text-sm font-bold text-stone-900 leading-tight line-clamp-2">{f.name.replace(/^Prodigi (Classic Canvas|Float Canvas|Eco Canvas|Classic|Box|Aluminium) · /, '')}</h3>
+                                <h3 className="text-sm font-bold text-stone-900 leading-tight line-clamp-2">{displayFrameName(f)}</h3>
                                 <p className="mt-1.5 text-xs text-stone-500">{displayCategoryName(f.category)}</p>
                             </div>
                         </button>

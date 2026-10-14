@@ -6,7 +6,7 @@ import { FRAME_STYLES } from '../data/constants';
 
 afterEach(() => { cleanup(); vi.restoreAllMocks(); });
 
-it('limits the curated picker to Prodigi categories and selects a Prodigi finish', () => {
+it('limits the curated picker to fulfilment categories and selects a finish without exposing the supplier', () => {
     const scrollIntoView = vi.fn();
     const original = HTMLElement.prototype.scrollIntoView;
     HTMLElement.prototype.scrollIntoView = scrollIntoView;
@@ -16,7 +16,8 @@ it('limits the curated picker to Prodigi categories and selects a Prodigi finish
         const props = { isOpen: true, onSelect, onClose };
         const { unmount } = render(<FrameSelectionModal {...props} selectedFrame={{ id: 'frame-83735', category: 'Textured & Decorative' }} />);
         expect(screen.getByRole('button', { name: 'Classic Frames' })).toHaveAttribute('aria-pressed', 'true');
-        expect(screen.getAllByRole('button').filter(button => button.hasAttribute('aria-pressed'))).toHaveLength(6);
+        expect(screen.queryByText(/Prodigi/i)).not.toBeInTheDocument();
+        expect(screen.getAllByRole('button').filter(button => button.hasAttribute('aria-pressed'))).toHaveLength(7);
         fireEvent.click(screen.getByRole('button', { name: 'Box Frames' }));
         fireEvent.click(screen.getByRole('button', { name: /Black/ }));
         const selected = FRAME_STYLES.find(frame => frame.id === 'prodigi-box-black');
@@ -30,7 +31,7 @@ it('limits the curated picker to Prodigi categories and selects a Prodigi finish
     }
 });
 
-it('presents Prodigi finishes as selectable cards in the shared curated collection', () => {
+it('presents fulfilment finishes as selectable cards in the shared curated collection', () => {
     HTMLElement.prototype.scrollIntoView = vi.fn();
     const onSelect = vi.fn();
     const onClose = vi.fn();

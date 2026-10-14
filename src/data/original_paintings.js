@@ -1,5 +1,4 @@
 import SOURCE_DIMS from './source_dims.json';
-import { FRAME_STYLES } from './constants';
 import { getThumbnailUrl } from '../services/storage';
 
 export const BASE = 'https://ik.imagekit.io/jybooboo187/inspiration_original_paintings/';
@@ -110,15 +109,12 @@ export const PRODUCTS = RAW_FILES.map((filename) => {
     if (dims.includes('120') || dims.includes('90')) sizeId = 'lg';
     if (dims.includes('100')) sizeId = 'xl';
 
-    const frameObj = FRAME_STYLES.find(f => f.id === info.style);
-    const frameName = frameObj ? frameObj.name : info.label;
-
     return {
         id: filename,
         code: displayCode,
         title: `Original ${code.replace('DIPI-', '')}`,
         dims,
-        finish: frameName,
+        finish: info.label,
         image: getThumbnailUrl(BASE + filename),
         fullRes: BASE + filename,
         frameStyleId: info.style,

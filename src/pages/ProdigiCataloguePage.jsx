@@ -1,14 +1,21 @@
 import React, { useMemo, useState } from 'react';
-import { ArrowLeft, ExternalLink, Info, PackageCheck } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { ArrowLeft, ExternalLink, Info, Loader, PackageCheck } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
 import prodigiCatalog from '../data/prodigiCatalog.json';
 import { PRODIGI_PRESENTATION } from '../data/prodigiProductPresentation';
+import { FRAME_STYLES, parseCustomSize } from '../data/constants';
+import { getProdigiQuote, prodigiAttributesForProduct } from '../services/prodigi';
 
 const FAMILY_OPTIONS = [
+    { id: 'classic', label: 'Classic frame · no mount', group: 'Classic frames', presentation: 'classic', description: 'Satin-laminated wood frame with clear acrylic / Perspex glaze.' },
+    { id: 'classic-mounted', label: 'Classic frame · mounted', group: 'Classic frames', presentation: 'classic', description: 'Classic frame with a 2.4 mm conservation mount and clear acrylic glaze.' },
+    { id: 'classic-motheye', label: 'Classic frame · Motheye glaze', group: 'Classic frames', presentation: 'classic', description: 'No-mount classic frame with Motheye anti-reflective glaze.' },
+    { id: 'classic-mounted-motheye', label: 'Mounted classic · Motheye', group: 'Classic frames', presentation: 'classic', description: 'Mounted classic frame with Motheye anti-reflective glaze.' },
     { id: 'box', label: 'Box frame · no mount', group: 'Box frames', presentation: 'box', description: 'Wood box frame with clear acrylic / Perspex glaze.' },
     { id: 'box-mounted', label: 'Box frame · mounted', group: 'Box frames', presentation: 'box', description: 'Box frame with a 2.4 mm Snow White mount and clear acrylic glaze.' },
-    { id: 'box-motheye', label: 'Box frame · Motheye glaze', group: 'Box frames', presentation: 'box', description: 'No-mount box frame with Prodigi Motheye anti-reflective glaze.' },
-    { id: 'box-mounted-motheye', label: 'Mounted box · Motheye glaze', group: 'Box frames', presentation: 'box', description: 'Mounted box frame with Prodigi Motheye anti-reflective glaze.' },
+    { id: 'box-motheye', label: 'Box frame · Motheye glaze', group: 'Box frames', presentation: 'box', description: 'No-mount box frame with Motheye anti-reflective glaze.' },
+    { id: 'box-mounted-motheye', label: 'Mounted box · Motheye glaze', group: 'Box frames', presentation: 'box', description: 'Mounted box frame with Motheye anti-reflective glaze.' },
+    { id: 'aluminium', label: 'Aluminium frame', group: 'Metal frames', presentation: 'aluminium', description: 'Lightweight aluminium frame with enhanced matte art paper and Perspex glaze.' },
     { id: 'canvas-float', label: 'Float-framed canvas · 38 mm', group: 'Canvas frames', presentation: 'canvas-float', description: '400 gsm cotton canvas with a 38 mm float frame.' },
     { id: 'canvas-classic', label: 'Classic framed canvas · 19 mm', group: 'Canvas frames', presentation: 'canvas-classic', description: '400 gsm canvas on 19 mm bars with a classic frame.' },
     { id: 'canvas-eco', label: 'Eco framed canvas · 38 mm', group: 'Canvas frames', presentation: 'canvas-eco', description: 'Recycled 330 gsm canvas with a 38 mm float frame.' },
@@ -54,12 +61,16 @@ const defaultPreviewForFamily = (familyId) => {
 };
 
 export default function ProdigiCataloguePage() {
+    const navigate = useNavigate();
     const [destination, setDestination] = useState('JE');
     const [family, setFamily] = useState('box');
     const [sku, setSku] = useState('');
     const [color, setColor] = useState('');
     const [wrap, setWrap] = useState('');
     const [activePreview, setActivePreview] = useState(() => defaultPreviewForFamily('box'));
+    const [liveQuote, setLiveQuote] = useState(null);
+    const [quoteError, setQuoteError] = useState('');
+    const [isQuoting, setIsQuoting] = useState(false);
 
     const familyProducts = useMemo(() => prodigiCatalog.products.filter((item) =>
         item.family === family && item.markets[destination]), [family, destination]);
@@ -78,6 +89,10 @@ export default function ProdigiCataloguePage() {
     const activeView = presentation.views.find((view) => view.id === activePreview);
     const visualizerImage = activePreview === 'finish' ? selectedColorAsset : (activeView?.src || presentation.thumbnail);
     const selectedMarket = selected?.markets[destination];
+    const resetQuote = () => {
+        setLiveQuote(null);
+        setQuoteError('');
+    };
     const sourceUrl = family === 'stretched-canvas'
         ? (destination === 'JE' ? prodigiCatalog.source.urls.stretchedCanvasJE : prodigiCatalog.source.urls.stretchedCanvasGB)
         : family.startsWith('canvas')
@@ -85,6 +100,7 @@ export default function ProdigiCataloguePage() {
         : (destination === 'JE' ? prodigiCatalog.source.urls.framedPrintsJE : prodigiCatalog.source.urls.framedPrintsGB);
 
     const selectFamily = (nextFamily) => {
+        resetQuote();
         setFamily(nextFamily);
         const products = prodigiCatalog.products.filter((item) => item.family === nextFamily && item.markets[destination]);
         setSku(preferredSku([...new Map(products.map((item) => [item.sku, item])).values()]));
@@ -94,6 +110,7 @@ export default function ProdigiCataloguePage() {
     };
 
     const selectDestination = (nextDestination) => {
+        resetQuote();
         setDestination(nextDestination);
         const products = prodigiCatalog.products.filter((item) => item.family === family && item.markets[nextDestination]);
         setSku(preferredSku([...new Map(products.map((item) => [item.sku, item])).values()]));
@@ -106,6 +123,46 @@ export default function ProdigiCataloguePage() {
         ? (selectedMarket.productPrice || 0) + (selectedMarket.shippingPrice || 0)
         : 0;
 
+    const requestLiveQuote = async () => {
+        if (!selected) return;
+        setIsQuoting(true);
+        setQuoteError('');
+        try {
+            const result = await getProdigiQuote({ product: selected, destinationCountryCode: destination });
+            const quote = result.quotes?.find((item) => item.shippingMethod?.toLowerCase() === 'standard') || result.quotes?.[0];
+            if (!quote) throw new Error('No delivery option is currently available.');
+            setLiveQuote({ ...quote, environment: result.environment });
+        } catch (error) {
+            setQuoteError(error?.message?.replace(/^Firebase:\s*/i, '').replace(/Prodigi/gi, 'the fulfilment service') || 'Live pricing is unavailable right now.');
+        } finally {
+            setIsQuoting(false);
+        }
+    };
+
+    const configureProduct = () => {
+        if (!selected) return;
+        const productKey = family.startsWith('box') ? 'box' : family.startsWith('classic') ? 'classic' : family;
+        const initialFrame = FRAME_STYLES.find((frame) => frame.prodigiProduct === productKey
+            && (!activeColor || frame.prodigiColor === activeColor))
+            || FRAME_STYLES.find((frame) => frame.id === 'frame-canvas');
+        const initialSize = parseCustomSize(selected.sizeCm);
+        navigate('/frame/customize', {
+            state: {
+                initialFrame,
+                initialSize,
+                orientation: initialSize?.orientation,
+                prodigiSelection: {
+                    sku: selected.sku,
+                    attributes: prodigiAttributesForProduct(selected),
+                    destinationCountryCode: destination,
+                    shippingMethod: liveQuote?.shippingMethod || 'Standard',
+                    quoteTotalGbp: liveQuote?.total?.currency === 'GBP' ? Number(liveQuote.total.amount) : null,
+                    quoteCurrency: liveQuote?.total?.currency || null,
+                },
+            },
+        });
+    };
+
     return (
         <main className="min-h-[calc(100vh-56px)] bg-[#faf9f8] px-4 py-8 sm:px-8">
             <div className="mx-auto max-w-6xl">
@@ -115,10 +172,10 @@ export default function ProdigiCataloguePage() {
 
                 <div className="mb-7 flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
                     <div>
-                        <p className="mb-2 text-xs font-bold uppercase tracking-[0.2em] text-[#947735]">Fulfilment catalogue · Prodigi</p>
+                        <p className="mb-2 text-xs font-bold uppercase tracking-[0.2em] text-[#947735]">Made-to-order collection</p>
                         <h1 className="font-serif text-3xl font-bold text-stone-950 sm:text-4xl">Frame & canvas catalogue</h1>
                         <p className="mt-2 max-w-2xl text-sm leading-6 text-stone-600">
-                            Explore Prodigi’s box frames and canvas styles by destination, available size and finish. Supplier prices are shown separately from any future FrameWorthy retail price.
+                            Explore our frame and canvas styles by destination, available size and finish. Live pricing reflects the selected product and delivery location.
                         </p>
                     </div>
                     <label className="flex shrink-0 flex-col gap-1.5 text-xs font-semibold uppercase tracking-wide text-stone-600">
@@ -151,7 +208,7 @@ export default function ProdigiCataloguePage() {
 
                 {!selected ? (
                     <div role="alert" className="rounded-2xl border border-amber-200 bg-amber-50 p-5 text-sm text-amber-900">
-                        This Prodigi family currently has no listed price for {destination === 'JE' ? 'Jersey' : 'the United Kingdom'}.
+                        This product family currently has no listed price for {destination === 'JE' ? 'Jersey' : 'the United Kingdom'}.
                     </div>
                 ) : (
                     <div className="grid gap-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(320px,0.8fr)]">
@@ -161,12 +218,12 @@ export default function ProdigiCataloguePage() {
                                     <h2 className="text-lg font-bold text-stone-950">{familyDetail.label}</h2>
                                     <p className="mt-1 text-sm text-stone-500">{familyDetail.description}</p>
                                 </div>
-                                <span className="rounded-full bg-stone-100 px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-stone-600">{sizeVariants[0]?.frame || 'Prodigi'}</span>
+                                <span className="rounded-full bg-stone-100 px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-stone-600">{sizeVariants[0]?.frame || 'FrameWorthy'}</span>
                             </div>
 
                             <label className="mb-5 block text-xs font-bold uppercase tracking-wide text-stone-600">
                                 Available size
-                                <select value={activeSku} onChange={(event) => { setSku(event.target.value); setColor(''); setWrap(''); }} className="mt-2 w-full rounded-xl border border-stone-300 bg-white px-3 py-3 text-sm font-semibold normal-case tracking-normal text-stone-900 outline-none focus:border-[#b8964a]">
+                                <select value={activeSku} onChange={(event) => { resetQuote(); setSku(event.target.value); setColor(''); setWrap(''); }} className="mt-2 w-full rounded-xl border border-stone-300 bg-white px-3 py-3 text-sm font-semibold normal-case tracking-normal text-stone-900 outline-none focus:border-[#b8964a]">
                                     {availableSkus.map((item) => <option key={item.sku} value={item.sku}>{item.sizeInches} · {item.sizeCm} {item.sku.match(/-(A\d)$/)?.[1] ? `· ${item.sku.match(/-(A\d)$/)?.[1]}` : ''}</option>)}
                                 </select>
                             </label>
@@ -177,7 +234,7 @@ export default function ProdigiCataloguePage() {
                                     <div className="flex flex-wrap gap-2">
                                         {colors.map((option) => {
                                             const finishImage = presentation.colors[option.toLowerCase()];
-                                            return <button key={option} type="button" onClick={() => { setColor(option); setWrap(''); setActivePreview('finish'); }} aria-label={option} aria-pressed={activeColor === option} title={option}
+                                            return <button key={option} type="button" onClick={() => { resetQuote(); setColor(option); setWrap(''); setActivePreview('finish'); }} aria-label={option} aria-pressed={activeColor === option} title={option}
                                                 className={`group w-[76px] overflow-hidden rounded-xl border bg-white text-center transition ${activeColor === option ? 'border-[#b8964a] ring-2 ring-[#b8964a]/30 ring-offset-1' : 'border-stone-200 hover:border-stone-400'}`}>
                                                 <span className="block h-12 overflow-hidden bg-stone-100">
                                                     {finishImage ? <img src={finishImage} alt="" loading="lazy" className="h-full w-full object-cover" /> : <span className="block h-full w-full" style={{ backgroundColor: FRAME_COLORS[option.toLowerCase()] || '#c5b9a8' }} />}
@@ -194,7 +251,7 @@ export default function ProdigiCataloguePage() {
                                     <legend className="mb-2 text-xs font-bold uppercase tracking-wide text-stone-600">Canvas edge finish</legend>
                                     <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
                                         {wraps.map((option) => (
-                                            <button key={option} type="button" onClick={() => setWrap(option)} aria-pressed={activeWrap === option}
+                                            <button key={option} type="button" onClick={() => { resetQuote(); setWrap(option); }} aria-pressed={activeWrap === option}
                                                 className={`rounded-xl border px-3 py-2.5 text-xs font-semibold transition ${activeWrap === option ? 'border-stone-900 bg-stone-900 text-white' : 'border-stone-200 bg-white text-stone-700 hover:border-stone-400'}`}>
                                                 {prettifyWrap(option)}
                                             </button>
@@ -211,9 +268,9 @@ export default function ProdigiCataloguePage() {
                             </div>
                         </section>
 
-                        <aside className="rounded-3xl border border-stone-200 bg-white p-5 shadow-sm sm:p-7" aria-label="Selected Prodigi frame and supplier price summary">
+                        <aside className="rounded-3xl border border-stone-200 bg-white p-5 shadow-sm sm:p-7" aria-label="Selected frame and price summary">
                             <div className="mb-5">
-                                <p className="mb-2 text-xs font-bold uppercase tracking-[0.18em] text-stone-400">Selected {family === 'stretched-canvas' ? 'canvas' : 'frame'} · Prodigi product photography</p>
+                                <p className="mb-2 text-xs font-bold uppercase tracking-[0.18em] text-stone-400">Selected {family === 'stretched-canvas' ? 'canvas' : 'frame'} · product photography</p>
                                 <figure className="overflow-hidden rounded-2xl bg-stone-100">
                                     <img key={visualizerImage} src={visualizerImage} alt={`${familyDetail.label}${activeColor ? `, ${activeColor} finish` : ''} — ${activeView?.label || 'frame finish detail'}`} className="aspect-[4/3] w-full object-contain" />
                                     <figcaption className="border-t border-stone-200/70 bg-white px-3 py-2 text-[11px] text-stone-500">{activePreview === 'finish' ? `${activeColor} frame finish sample` : activeView?.label}</figcaption>
@@ -257,21 +314,44 @@ export default function ProdigiCataloguePage() {
                             </div>
 
                             <div className="space-y-3 border-y border-stone-100 py-4 text-sm">
-                                <div className="flex justify-between gap-3 text-stone-600"><span>Prodigi item price</span><span className="font-semibold text-stone-900">{money(selectedMarket.productPrice, selectedMarket.productCurrency)}</span></div>
+                                <div className="flex justify-between gap-3 text-stone-600"><span>Item price</span><span className="font-semibold text-stone-900">{money(selectedMarket.productPrice, selectedMarket.productCurrency)}</span></div>
                                 <div className="flex justify-between gap-3 text-stone-600"><span>Standard delivery · {destination === 'JE' ? 'Jersey' : 'UK'}</span><span className="font-semibold text-stone-900">{money(selectedMarket.shippingPrice, selectedMarket.shippingCurrency)}</span></div>
                                 {selectedMarket.additionalItemShipping > 0 && <div className="flex justify-between gap-3 text-stone-500"><span>Each additional item · delivery</span><span>{money(selectedMarket.additionalItemShipping, selectedMarket.shippingCurrency)}</span></div>}
                                 <div className="flex justify-between gap-3 border-t border-stone-100 pt-3 font-bold text-stone-950"><span>Supplier subtotal*</span><span>{money(lineTotal, selectedMarket.productCurrency)}</span></div>
                             </div>
+                            {liveQuote && (
+                                <div className="mt-4 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm" aria-live="polite">
+                                    <div className="flex items-center justify-between gap-3 font-bold text-emerald-950">
+                                        <span>Live {liveQuote.shippingMethod} quote</span>
+                                        <span>{money(liveQuote.total?.amount, liveQuote.total?.currency)}</span>
+                                    </div>
+                                    <div className="mt-2 flex justify-between text-xs text-emerald-800"><span>Delivery</span><span>{money(liveQuote.shipping?.amount, liveQuote.shipping?.currency)}</span></div>
+                                    <div className="mt-1 flex justify-between text-xs text-emerald-800"><span>Tax</span><span>{money(liveQuote.tax?.amount, liveQuote.tax?.currency)}</span></div>
+                                    <p className="mt-3 border-t border-emerald-200 pt-3 text-xs text-emerald-800">Delivery and tax are included in this live quote.</p>
+                                    <p className="mt-2 text-[10px] uppercase tracking-wide text-emerald-700">{liveQuote.environment} environment</p>
+                                </div>
+                            )}
+                            {quoteError && <p role="alert" className="mt-3 rounded-xl bg-amber-50 p-3 text-xs text-amber-900">{quoteError} The catalogue snapshot remains available above.</p>}
+                            <div className="mt-4 grid gap-2 sm:grid-cols-2">
+                                <button type="button" onClick={requestLiveQuote} disabled={isQuoting}
+                                    className="inline-flex items-center justify-center gap-2 rounded-full border border-stone-300 bg-white px-4 py-3 text-xs font-bold uppercase tracking-wide text-stone-800 transition hover:border-stone-500 disabled:opacity-50">
+                                    {isQuoting && <Loader size={14} className="animate-spin" />}{isQuoting ? 'Checking…' : liveQuote ? 'Refresh live quote' : 'Check live price'}
+                                </button>
+                                <button type="button" onClick={configureProduct}
+                                    className="rounded-full bg-[#c9a84c] px-4 py-3 text-xs font-bold uppercase tracking-wide text-stone-950 transition hover:bg-[#d4b55c]">
+                                    Customize this product
+                                </button>
+                            </div>
                             <p className="mt-4 flex items-center gap-2 text-xs text-stone-600"><PackageCheck size={15} className="text-[#947735]" /> Standard shipping: {selectedMarket.deliveryDays.min === selectedMarket.deliveryDays.max ? `${selectedMarket.deliveryDays.min} days` : `${selectedMarket.deliveryDays.min}–${selectedMarket.deliveryDays.max} days`}{selectedMarket.tracked ? ', tracked' : ''}</p>
-                            <p className="mt-4 text-[11px] leading-5 text-stone-500">*Wholesale snapshot only: excludes customer-facing markup, applicable taxes/import charges, payment fees, and any shipping upgrade. Confirm current availability and the final destination-specific quote with Prodigi before taking payment.</p>
+                            <p className="mt-4 text-[11px] leading-5 text-stone-500">*Catalogue estimate only: applicable taxes, import charges, payment fees, and shipping upgrades may affect the final total. Confirm the live destination-specific price before payment.</p>
                         </aside>
                     </div>
                 )}
 
                 <footer className="mt-6 flex flex-col gap-3 border-t border-stone-200 pt-4 text-xs text-stone-500 sm:flex-row sm:items-center sm:justify-between">
-                    <span>Price sheet dated {prodigiCatalog.source.updatedAt} · Prodigi’s listed currency is shown (some UK sizes route from the EU in EUR); live pricing may change.</span>
+                    <span>Catalogue updated {prodigiCatalog.source.updatedAt} · Listed currency is shown (some UK sizes route from the EU in EUR); live pricing may change.</span>
                     <div className="flex flex-wrap gap-x-4 gap-y-2">
-                        <a href={sourceUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 font-semibold text-stone-700 hover:text-black">Prodigi price sheet <ExternalLink size={13} /></a>
+                        <a href={sourceUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 font-semibold text-stone-700 hover:text-black">Current price sheet <ExternalLink size={13} /></a>
                         <a href={presentation.page} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 font-semibold text-stone-700 hover:text-black">Product details &amp; assets <ExternalLink size={13} /></a>
                     </div>
                 </footer>

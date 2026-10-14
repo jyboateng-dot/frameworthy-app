@@ -95,6 +95,18 @@ const FACE_PROFILES = {
         { s: 0.29, z: 0.44 },
         { s: 1.00, z: 0.36 },
     ],
+
+    // Prodigi's float-frame section is an L: a narrow front face and a
+    // long inner wall that drops toward the 32 mm base behind the canvas.
+    // The 5 mm shadow gap is handled as opening geometry by frameMesh;
+    // it is deliberately not baked into this reusable rail profile.
+    floater: () => [
+        { s: 0.00, z: 0.92 },
+        { s: 0.10, z: 1.00 },
+        { s: 0.90, z: 1.00 },
+        { s: 1.00, z: 0.92 },
+        { s: 1.00, z: 0.24 },
+    ],
 };
 
 export const SUPPORTED_PROFILES = Object.keys(FACE_PROFILES);

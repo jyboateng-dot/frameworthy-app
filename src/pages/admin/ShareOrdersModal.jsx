@@ -395,9 +395,9 @@ const ShareOrdersModal = ({ orders, onClose }) => {
                                         </div>
                                         {item.selectedFrame && (
                                             <div style={{ width: '120px', height: '120px', border: '1px solid #eee', position: 'relative' }}>
-                                                {(item.selectedFrame.previewImg || item.selectedFrame.image) && (
+                                                {(item.selectedFrame.thumbnailImage || item.selectedFrame.previewImg || item.selectedFrame.image) && (
                                                     <img
-                                                        src={toAbsoluteUrl(item.selectedFrame.previewImg || item.selectedFrame.image)}
+                                                        src={toAbsoluteUrl(item.selectedFrame.thumbnailImage || item.selectedFrame.previewImg || item.selectedFrame.image)}
                                                         alt={item.selectedFrame.name || 'Selected frame'}
                                                         style={{ width: '100%', height: '100%', objectFit: 'contain' }}
                                                     />

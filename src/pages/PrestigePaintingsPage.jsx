@@ -124,7 +124,7 @@ const PrestigePaintingsPage = ({ setProductMode, setSelectedSize, navigate, isSu
             {!isSubPage && (
                 <PageMeta
                     title="Prestige Paintings"
-                    description="Browse our prestige painting collection and order them custom-framed, delivered across Ghana."
+                    description="Browse our prestige painting collection and preview it in a made-to-order frame."
                 />
             )}
 

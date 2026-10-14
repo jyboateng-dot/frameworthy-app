@@ -1,5 +1,4 @@
 import SOURCE_DIMS from './source_dims.json';
-import { FRAME_STYLES } from './constants';
 import { getThumbnailUrl } from '../services/storage';
 
 export const BASE = 'https://ik.imagekit.io/jybooboo187/framed_prints/';
@@ -74,15 +73,12 @@ export const PRODUCTS = RAW_FILES.map((file, i) => {
     const fullResUrl = BASE + file;
     const thumbUrl = getThumbnailUrl(fullResUrl);
 
-    const frameObj = FRAME_STYLES.find(f => f.id === info.style);
-    const frameName = frameObj ? frameObj.name : info.label;
-
     return {
         id: file,
         code: displayCode,
         title: isSet ? `Gallery Set ${code.replace('SET-', '')}` : `Framed Print ${series}`,
         dims: isSet ? 'Gallery set' : dimsFromFile(file),
-        finish: frameName,
+        finish: info.label,
         image: thumbUrl,
         fullRes: fullResUrl,
         artImage: artImages[i % artImages.length],

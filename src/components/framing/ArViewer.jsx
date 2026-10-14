@@ -90,8 +90,10 @@ export default function ArViewer({
     heightIn,
     matReveal,
     matColorHex,
+    glassType,
     artworkUrl,
     hardwareType,
+    canvasWrap,
 }) {
     const canvasRef = useRef(null);
     const overlayRef = useRef(null);
@@ -143,8 +145,10 @@ export default function ArViewer({
                     heightIn,
                     matReveal: matReveal || { topIn: 0, sideIn: 0, bottomIn: 0 },
                     matColorHex,
+                    glassType,
                     artworkUrl,
                     hardwareType,
+                    canvasWrap,
                 });
                 if (cancelled) return;
                 setModel(built);
@@ -224,7 +228,7 @@ export default function ArViewer({
     // recomputes a fresh matReveal object every render, so depending on
     // its reference would rebuild the AR model (an image decode + canvas
     // work) on every unrelated re-render while this stays open.
-    }, [isOpen, attempt, frame, widthIn, heightIn, matReveal?.topIn, matReveal?.sideIn, matReveal?.bottomIn, matColorHex, artworkUrl, hardwareType]);
+    }, [isOpen, attempt, frame, widthIn, heightIn, matReveal?.topIn, matReveal?.sideIn, matReveal?.bottomIn, matColorHex, glassType, artworkUrl, hardwareType, canvasWrap]);
 
     useEffect(() => {
         if (!isOpen) return undefined;

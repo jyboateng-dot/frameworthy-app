@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Frame rendering review</title>
+<style>body{font:16px system-ui;background:#f6f4f0;color:#24211e;max-width:1200px;margin:24px auto;padding:0 20px}button,select{padding:10px;margin:5px}main{display:grid;grid-template-columns:1fr 1fr;gap:24px}canvas{width:100%;height:520px;background:#dedbd5}img{width:100%;max-height:520px;object-fit:contain}pre{white-space:pre-wrap}table{border-collapse:collapse;width:100%}td,th{text-align:left;padding:8px;border-bottom:1px solid #ccc}@media(max-width:700px){main{grid-template-columns:1fr}}</style>
+<h1>Frame rendering review</h1>
+<p>Local development review of frame materials, true dimensions, canvas construction and model exports.</p>
+<label>Frame <select id="frame"></select></label>
+<label>Canvas edge <select id="wrap"><option>ImageWrap</option><option>MirrorWrap</option><option>Black</option><option>White</option></select></label>
+<label>Size <select id="size"><option value="16,20">16 × 20 inches</option><option value="5,7">5 × 7 inches</option><option value="48,48">48 × 48 inches</option></select></label>
+<button id="review">Render selected frame</button><button id="all">Validate all 35 products and edge finishes</button>
+<p id="status" role="status">Ready</p>
+<main><section><h2>Order thumbnail</h2><img id="order" alt="Measured order thumbnail"></section><section><h2>Interactive 3D</h2><canvas id="model"></canvas></section></main>
+<p><a id="glb" download="frame.glb">Download GLB</a> · <a id="usdz" download="frame.usdz">Download USDZ</a></p>
+<pre id="details"></pre><table><thead><tr><th>Product</th><th>GLB</th><th>USDZ</th><th>Result</th></tr></thead><tbody id="results"></tbody></table>
+<script type="module">
+import { FRAME_STYLES } from '/src/data/constants.jsx';
+import { buildArModel, clearArModelCache } from '/src/utils/ar/buildArModel.js';
+import { ArScene } from '/src/utils/ar/arScene.js';
+import { renderFrameOrderPreview } from '/src/utils/frameOrderPreview.js';
+const frames=FRAME_STYLES.filter(f=>f.prodigiProduct);
+const select=document.querySelector('#frame');
+for(const frame of frames){const option=document.createElement('option');option.value=frame.id;option.textContent=frame.name;select.append(option)}
+const art=document.createElement('canvas');art.width=800;art.height=1000;
+const ctx=art.getContext('2d');ctx.fillStyle='#d6ddcf';ctx.fillRect(0,0,800,1000);
+ctx.fillStyle='#9b4939';ctx.fillRect(0,0,800,100);ctx.fillStyle='#637f9d';ctx.fillRect(0,900,800,100);
+ctx.fillStyle='#dfb35d';ctx.fillRect(0,100,100,800);ctx.fillStyle='#446456';ctx.fillRect(700,100,100,800);
+ctx.fillStyle='#f8f5ed';ctx.fillRect(0,48,800,8);ctx.fillRect(0,944,800,8);ctx.fillRect(48,100,8,800);ctx.fillRect(744,100,8,800);
+ctx.fillStyle='#273d32';ctx.font='bold 54px system-ui';ctx.fillText('FrameWorthy',190,485);ctx.font='28px system-ui';ctx.fillText('Material and edge review',220,545);
+const artworkUrl=art.toDataURL();const image=new Image();image.src=artworkUrl;await image.decode();
+let scene=null, orderUrl=null;
+const status=document.querySelector('#status');
+async function build(frame,wrap='ImageWrap',size=[16,20]){return buildArModel({frame,widthIn:size[0],heightIn:size[1],matReveal:{topIn:0,sideIn:0,bottomIn:0},matColorHex:'#fff',artworkUrl,hardwareType:'none',canvasWrap:wrap})}
+async function review(){
+ status.textContent='Building selected frame…';
+ try{
+ const frame=frames.find(f=>f.id===select.value),size=document.querySelector('#size').value.split(',').map(Number),wrap=document.querySelector('#wrap').value;
+ const model=await build(frame,wrap,size);
+ scene?.dispose();scene=new ArScene(document.querySelector('#model'));await scene.loadModel(model.glbUrl);scene.startPreview();
+ document.querySelector('#glb').href=model.glbUrl;document.querySelector('#usdz').href=model.usdzUrl;
+ if(orderUrl)URL.revokeObjectURL(orderUrl);
+ const blob=await renderFrameOrderPreview({frame,image,widthIn:size[0],heightIn:size[1],matReveal:{topIn:0,sideIn:0,bottomIn:0},matColorHex:'#fff'});
+ orderUrl=URL.createObjectURL(blob);document.querySelector('#order').src=orderUrl;
+ document.querySelector('#details').textContent=JSON.stringify({product:frame.id,wrap,outerWidthCm:model.outerWidthM*100,outerHeightCm:model.outerHeightM*100,wallDepthMm:frame.totalDepthIn*25.4},null,2);
+ status.textContent='Selected frame ready: 2D thumbnail, 3D preview, GLB and USDZ.';
+ }catch(error){status.textContent='FAILED: '+error.stack}
+}
+document.querySelector('#review').onclick=review;
+document.querySelector('#all').onclick=async()=>{
+ status.textContent='Validating all model exports…';const results=document.querySelector('#results');results.replaceChildren();let passed=0;
+ try{
+ const cases=frames.map(frame=>({frame,wrap:'ImageWrap'}));
+ for(const wrap of ['MirrorWrap','Black','White'])cases.push({frame:frames.find(f=>f.canvasOnly),wrap});
+ for(const {frame,wrap} of cases){
+ const model=await build(frame,wrap);
+ const glb=await(await fetch(model.glbUrl)).arrayBuffer(),usdz=await(await fetch(model.usdzUrl)).arrayBuffer();
+ const view=new DataView(glb);if(view.getUint32(0,true)!==0x46546c67)throw Error(frame.id+': invalid GLB');
+ const jsonLength=view.getUint32(12,true);const json=JSON.parse(new TextDecoder().decode(new Uint8Array(glb,20,jsonLength)));
+ if(!json.images?.length||(!frame.canvasOnly&&json.images.length<2))throw Error(frame.id+': missing embedded material');
+ if(new DataView(usdz).getUint32(0,true)!==0x04034b50)throw Error(frame.id+': invalid USDZ');
+ if(Math.abs(model.outerWidthM-(16+2*(frame.mouldingWidthIn+(frame.canvasGapMm||0)/25.4))*.0254)>.000001)throw Error(frame.id+': incorrect dimensions');
+ const row=document.createElement('tr');for(const value of [frame.name+' / '+wrap,glb.byteLength+' bytes',usdz.byteLength+' bytes','PASS']){const cell=document.createElement('td');cell.textContent=value;row.append(cell)}results.append(row);passed++;
+ }
+ status.textContent=passed+' model configurations passed, including all 35 products and four canvas edge finishes.';
+ }catch(error){status.textContent='FAILED after '+passed+': '+error.stack}
+};
+addEventListener('pagehide',()=>{scene?.dispose();clearArModelCache();if(orderUrl)URL.revokeObjectURL(orderUrl)});
+await review();
+</script></html>

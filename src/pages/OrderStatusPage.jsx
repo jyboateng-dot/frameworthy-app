@@ -109,7 +109,7 @@ const OrderStatusPage = () => {
                                 <p className="font-mono text-sm">{result.orderId}</p>
                             </div>
                             {typeof result.totalPrice === 'number' && (
-                                <Price amount={result.totalPrice} className="font-bold" />
+                                <Price amount={result.totalPrice} currency={result.currency || 'GHS'} className="font-bold" />
                             )}
                         </div>
                         {result.createdAt && (

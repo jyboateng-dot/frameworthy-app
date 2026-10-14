@@ -5,7 +5,14 @@ import { formatDimensions } from '../data/constants';
 // string and the admin fulfillment view (OrderDetailModal) never drift out
 // of sync with each other.
 export const GLASS_LABELS = { standard: 'Standard Acrylic', 'non-glare': 'Non-Glare Acrylic', museum: 'Museum Glass', 'canvas-traditional': 'Traditional Canvas', 'canvas-floater': 'Floater Canvas' };
-export const HARDWARE_LABELS = { wire: 'Wire Hanging', sawtooth: 'Sawtooth Hanger', 'french-cleat': 'French Cleat', easel: 'Tabletop Easel' };
+export const HARDWARE_LABELS = {
+    wire: 'Wire Hanging',
+    sawtooth: 'Sawtooth Hanger',
+    'cobra-hook': 'Cobra Hook',
+    'built-in-rear-hanger': 'Built-in Rear Hanger',
+    'french-cleat': 'French Cleat',
+    easel: 'Tabletop Easel',
+};
 export const MAT_WIDTH_LABELS = { none: 'No Mat', narrow: 'Narrow Mat', standard: 'Standard Mat', wide: 'Wide Mat' };
 
 // matWidth used to be one of the three fixed presets above; orders placed
@@ -159,6 +166,7 @@ export const formatOrderForClient = (order) => {
     }) : 'recently';
     const name = order.customerName || 'there';
     const statusLabel = order.status ? order.status.charAt(0).toUpperCase() + order.status.slice(1) : 'Processing';
+    const currencyLabel = order.currency === 'GBP' ? '£' : (order.currency || 'GHS');
 
     let text = `Hi ${name}, this is FrameWorthy with an update on your order #${order.id.slice(0, 8).toUpperCase()} placed on ${orderDate}.\n\n`;
     text += `Status: ${statusLabel}\n\n`;
@@ -167,10 +175,10 @@ export const formatOrderForClient = (order) => {
     (order.items || []).forEach((item) => {
         const sizeLabel = item.selectedSize?.label || item.size || 'Custom Size';
         const itemPrice = item.price ?? item.totalPrice ?? 0;
-        text += `- ${item.quantity || 1}x ${generateItemDescription(item)} (${sizeLabel}) — GHS ${itemPrice.toFixed(2)}\n`;
+        text += `- ${item.quantity || 1}x ${generateItemDescription(item)} (${sizeLabel}) — ${currencyLabel} ${itemPrice.toFixed(2)}\n`;
     });
 
-    text += `\nTotal: GHS ${(order.totalPrice ?? 0).toFixed(2)}\n\n`;
+    text += `\nTotal: ${currencyLabel} ${(order.totalPrice ?? 0).toFixed(2)}\n\n`;
     text += `Thank you for choosing FrameWorthy!`;
 
     return text;

@@ -1,5 +1,5 @@
-import FRAME_RAILS from '../../data/frameRails.json';
-import FRAME_RENDER_PROFILES from '../../data/frameRenderProfiles.json';
+import PRODIGI_RENDER_ASSETS from '../../data/prodigiRenderAssets.json';
+import { getFrameRail } from '../frameRail';
 
 /**
  * Image sources and texture compositing for the AR model.
@@ -85,15 +85,12 @@ export function canvasToPngBytes(canvas) {
  * seamless repetition. The curated front strip remains the fallback
  * for catalogues that have not yet been through that pipeline.
  */
-function railCandidates(frame) {
-    const id = frame?.id;
-    const profile = FRAME_RENDER_PROFILES.profiles?.[id];
-    const rail = FRAME_RAILS.rails?.[id];
-    const version = encodeURIComponent(FRAME_RAILS.generatedAt || 'current');
+export function railCandidates(frame) {
+    const rail = getFrameRail(frame);
+    const version = encodeURIComponent(rail?.version || PRODIGI_RENDER_ASSETS.version || 'current');
 
     return [
         rail?.h ? `${rail.h}?v=${version}` : null,
-        profile?.frontTexture?.horizontalPath,
     ].filter(Boolean);
 }
 
@@ -193,6 +190,49 @@ export async function loadRailTexture(frame, { includeNormal = true } = {}) {
     return null;
 }
 
+/** Four edge textures sampled at physical canvas-depth scale. Supplier
+ * print bleed is not present in the preview image, so ImageWrap conservatively
+ * extends its outermost pixels; MirrorWrap reflects the adjacent image strip.
+ * This preserves the approved front image rather than guessing a new crop. */
+export async function renderCanvasEdgeTextures(artBytes, widthIn, heightIn, depthIn, wrap = 'ImageWrap') {
+    const url = URL.createObjectURL(new Blob([artBytes], { type: 'image/png' }));
+    try {
+        const image = await loadImage(url);
+        const w = image.naturalWidth, h = image.naturalHeight;
+        const dx = Math.max(1, Math.round(w * Math.min(0.25, depthIn / widthIn)));
+        const dy = Math.max(1, Math.round(h * Math.min(0.25, depthIn / heightIn)));
+        const mirror = wrap === 'MirrorWrap';
+        const regions = {
+            Top: [0, 0, w, mirror ? dy : 1],
+            Bottom: [0, h - (mirror ? dy : 1), w, mirror ? dy : 1],
+            Left: [0, 0, mirror ? dx : 1, h],
+            Right: [w - (mirror ? dx : 1), 0, mirror ? dx : 1, h],
+        };
+        const entries = await Promise.all(Object.entries(regions).map(async ([side, rect]) => {
+            const canvas = document.createElement('canvas');
+            canvas.width = side === 'Top' || side === 'Bottom' ? w : h;
+            canvas.height = 64;
+            const ctx = canvas.getContext('2d');
+            if (wrap === 'Black' || wrap === 'White') {
+                ctx.fillStyle = wrap === 'Black' ? '#181818' : '#f4f1e9';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+            } else {
+                // Normalize to length across X, depth across Y; UV v=0 is
+                // always at the front edge where it meets the artwork.
+                ctx.save();
+                if (side === 'Bottom') { ctx.translate(canvas.width, canvas.height); ctx.rotate(Math.PI); }
+                if (side === 'Left') { ctx.translate(canvas.width, 0); ctx.rotate(Math.PI / 2); }
+                if (side === 'Right') { ctx.translate(0, canvas.height); ctx.rotate(-Math.PI / 2); }
+                const vertical = side === 'Left' || side === 'Right';
+                ctx.drawImage(image, ...rect, 0, 0, vertical ? canvas.height : canvas.width, vertical ? canvas.width : canvas.height);
+                ctx.restore();
+            }
+            return [`canvas${side}`, await canvasToPngBytes(canvas)];
+        }));
+        return Object.fromEntries(entries);
+    } finally { URL.revokeObjectURL(url); }
+}
+
 /**
  * A frame's real photographed mitre corner, pre-cropped to a square tile
  * by scripts/build-corner-textures.mjs. Draped over the small wedge of
@@ -205,9 +245,8 @@ export async function loadRailTexture(frame, { includeNormal = true } = {}) {
  * full-length rail sweep it already had before this existed.
  */
 function cornerCandidates(frame) {
-    const id = frame?.id;
-    const rail = FRAME_RAILS.rails?.[id];
-    const version = encodeURIComponent(FRAME_RAILS.generatedAt || 'current');
+    const rail = getFrameRail(frame);
+    const version = encodeURIComponent(rail?.version || PRODIGI_RENDER_ASSETS.version || 'current');
     return rail?.corner ? [`${rail.corner}?v=${version}`] : [];
 }
 
@@ -243,7 +282,7 @@ export async function loadCornerTexture(frame) {
  * doesn't fill it would show as a coloured band inside the mat window,
  * which is not a thing a real framed piece can do.
  */
-export async function renderArtworkTexture(artworkUrl, widthIn, heightIn) {
+export async function renderArtworkTexture(artworkUrl, widthIn, heightIn, glassType = 'standard') {
     const ratio = Math.max(0.05, widthIn / Math.max(heightIn, 0.01));
     const w = ratio >= 1 ? MAX_ART_PX : Math.round(MAX_ART_PX * ratio);
     const h = ratio >= 1 ? Math.round(MAX_ART_PX / ratio) : MAX_ART_PX;
@@ -279,6 +318,20 @@ export async function renderArtworkTexture(artworkUrl, widthIn, heightIn) {
         } catch {
             // Keeps the neutral ground.
         }
+    }
+
+    // The portable AR formats do not render transparent glazing consistently,
+    // so bake only the highlight into the artwork texture. Perspex stays
+    // subtle, float glass reads more reflective, and Moth-eye stays clear.
+    if (glassType !== 'non-glare') {
+        const reflection = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+        const peak = glassType === 'float-glass' ? 0.18 : 0.08;
+        reflection.addColorStop(0, 'rgba(255,255,255,0)');
+        reflection.addColorStop(0.46, 'rgba(255,255,255,0)');
+        reflection.addColorStop(0.58, `rgba(255,255,255,${peak})`);
+        reflection.addColorStop(0.72, 'rgba(255,255,255,0)');
+        ctx.fillStyle = reflection;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
     }
 
     return canvasToPngBytes(canvas);

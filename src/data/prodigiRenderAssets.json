@@ -1,0 +1,1033 @@
+{
+  "version": "prodigi-rails-v1",
+  "materials": {
+    "classic-black": {
+      "h": "/prodigi/rails/classic-black-h.webp",
+      "v": "/prodigi/rails/classic-black-v.webp",
+      "quality": "derived-from-chevron",
+      "sourceRole": "rectified-face",
+      "source": "public/prodigi/finishes/classic-black.png",
+      "sourceSha256": "5958a9da9047cced25b05798b173c464a7a3d7b3756bd19fc541f6e3c12f6891",
+      "width": 252,
+      "thickness": 64,
+      "columns": [
+        165,
+        234
+      ],
+      "faceFractions": [
+        0.04,
+        0.81
+      ],
+      "aspect": 3.9375
+    },
+    "classic-white": {
+      "h": "/prodigi/rails/classic-white-h.webp",
+      "v": "/prodigi/rails/classic-white-v.webp",
+      "quality": "derived-from-chevron",
+      "sourceRole": "rectified-face",
+      "source": "public/prodigi/finishes/classic-white.png",
+      "sourceSha256": "481d34212ea54844b5dfaa61ef31d1b72c7448ba4320526d53ed99773b2e185e",
+      "width": 280,
+      "thickness": 64,
+      "columns": [
+        165,
+        234
+      ],
+      "faceFractions": [
+        0.04,
+        0.81
+      ],
+      "aspect": 4.375
+    },
+    "classic-natural": {
+      "h": "/prodigi/rails/classic-natural-h.webp",
+      "v": "/prodigi/rails/classic-natural-v.webp",
+      "quality": "derived-from-chevron",
+      "sourceRole": "rectified-face",
+      "source": "public/prodigi/finishes/classic-natural.png",
+      "sourceSha256": "e9afedf71507645bbfcb343ec95eb653688baaf07a51ee2779449e39ab1382d0",
+      "width": 236,
+      "thickness": 64,
+      "columns": [
+        165,
+        234
+      ],
+      "faceFractions": [
+        0.04,
+        0.81
+      ],
+      "aspect": 3.6875
+    },
+    "classic-antique-silver": {
+      "h": "/prodigi/rails/classic-antique-silver-h.webp",
+      "v": "/prodigi/rails/classic-antique-silver-v.webp",
+      "quality": "derived-from-chevron",
+      "sourceRole": "rectified-face",
+      "source": "public/prodigi/finishes/classic-antique-silver.png",
+      "sourceSha256": "333c09ca5cb7c7f29d50ff06573418073c194eac6cace3995cc5290cddfdc619",
+      "width": 284,
+      "thickness": 64,
+      "columns": [
+        165,
+        234
+      ],
+      "faceFractions": [
+        0.04,
+        0.81
+      ],
+      "aspect": 4.4375
+    },
+    "classic-brown": {
+      "h": "/prodigi/rails/classic-brown-h.webp",
+      "v": "/prodigi/rails/classic-brown-v.webp",
+      "quality": "derived-from-chevron",
+      "sourceRole": "rectified-face",
+      "source": "public/prodigi/finishes/classic-brown.png",
+      "sourceSha256": "340adcae9a8fb3ab4c7830f927e3eb56e33387f4f5875f21bc7904a391654755",
+      "width": 342,
+      "thickness": 64,
+      "columns": [
+        165,
+        234
+      ],
+      "faceFractions": [
+        0.04,
+        0.81
+      ],
+      "aspect": 5.34375
+    },
+    "classic-antique-gold": {
+      "h": "/prodigi/rails/classic-antique-gold-h.webp",
+      "v": "/prodigi/rails/classic-antique-gold-v.webp",
+      "quality": "derived-from-chevron",
+      "sourceRole": "rectified-face",
+      "source": "public/prodigi/finishes/classic-antique-gold.png",
+      "sourceSha256": "6ca636d8266e5d8f3e95fa38fde7fb2f233904210888b66af44d482eee829515",
+      "width": 292,
+      "thickness": 64,
+      "columns": [
+        165,
+        234
+      ],
+      "faceFractions": [
+        0.04,
+        0.81
+      ],
+      "aspect": 4.5625
+    },
+    "classic-dark-grey": {
+      "h": "/prodigi/rails/classic-dark-grey-h.webp",
+      "v": "/prodigi/rails/classic-dark-grey-v.webp",
+      "quality": "derived-from-chevron",
+      "sourceRole": "rectified-face",
+      "source": "public/prodigi/finishes/classic-dark-grey.png",
+      "sourceSha256": "f1829ea0350828d3189803565a5166223a8762e8882485f870dbe18e05e21a62",
+      "width": 312,
+      "thickness": 64,
+      "columns": [
+        165,
+        234
+      ],
+      "faceFractions": [
+        0.04,
+        0.81
+      ],
+      "aspect": 4.875
+    },
+    "classic-light-grey": {
+      "h": "/prodigi/rails/classic-light-grey-h.webp",
+      "v": "/prodigi/rails/classic-light-grey-v.webp",
+      "quality": "derived-from-chevron",
+      "sourceRole": "rectified-face",
+      "source": "public/prodigi/finishes/classic-light-grey.png",
+      "sourceSha256": "57a58f9f01b4fe8300a010cbc5cee4f24f114448cd649d776739df383775cdcf",
+      "width": 310,
+      "thickness": 64,
+      "columns": [
+        165,
+        234
+      ],
+      "faceFractions": [
+        0.04,
+        0.81
+      ],
+      "aspect": 4.84375
+    },
+    "box-black": {
+      "h": "/prodigi/rails/box-black-h.webp",
+      "v": "/prodigi/rails/box-black-v.webp",
+      "quality": "derived-from-chevron",
+      "sourceRole": "rectified-face",
+      "source": "public/prodigi/finishes/box-black.png",
+      "sourceSha256": "8defd932c1c4f2fc3043ecf55edf154df8f5daef8692fa90d481814964b6b2c9",
+      "width": 222,
+      "thickness": 64,
+      "columns": [
+        165,
+        234
+      ],
+      "faceFractions": [
+        0.04,
+        0.81
+      ],
+      "aspect": 3.46875
+    },
+    "box-white": {
+      "h": "/prodigi/rails/box-white-h.webp",
+      "v": "/prodigi/rails/box-white-v.webp",
+      "quality": "derived-from-chevron",
+      "sourceRole": "rectified-face",
+      "source": "public/prodigi/finishes/box-white.png",
+      "sourceSha256": "7d6816c42ecccf65ea027f5dfc13ed48c5ed1aab7f1322b812068d448c20bd35",
+      "width": 228,
+      "thickness": 64,
+      "columns": [
+        165,
+        234
+      ],
+      "faceFractions": [
+        0.04,
+        0.81
+      ],
+      "aspect": 3.5625
+    },
+    "box-natural": {
+      "h": "/prodigi/rails/box-natural-h.webp",
+      "v": "/prodigi/rails/box-natural-v.webp",
+      "quality": "derived-from-chevron",
+      "sourceRole": "rectified-face",
+      "source": "public/prodigi/finishes/box-natural.png",
+      "sourceSha256": "59abbbce795f655082399a54af52bfa52961230934a9590c0c5e1cc8d0e9f45f",
+      "width": 234,
+      "thickness": 64,
+      "columns": [
+        165,
+        234
+      ],
+      "faceFractions": [
+        0.04,
+        0.81
+      ],
+      "aspect": 3.65625
+    },
+    "aluminium-black": {
+      "h": "/prodigi/rails/aluminium-black-h.webp",
+      "v": "/prodigi/rails/aluminium-black-v.webp",
+      "quality": "derived-from-chevron",
+      "sourceRole": "rectified-face",
+      "source": "public/prodigi/finishes/aluminium-black.png",
+      "sourceSha256": "dffd8428af434ed6f387e767c313079c251600b11298e4755db05b8f04aaebc2",
+      "width": 358,
+      "thickness": 64,
+      "columns": [
+        165,
+        234
+      ],
+      "faceFractions": [
+        0.04,
+        0.81
+      ],
+      "aspect": 5.59375
+    },
+    "aluminium-silver": {
+      "h": "/prodigi/rails/aluminium-silver-h.webp",
+      "v": "/prodigi/rails/aluminium-silver-v.webp",
+      "quality": "derived-from-chevron",
+      "sourceRole": "rectified-face",
+      "source": "public/prodigi/finishes/aluminium-silver.png",
+      "sourceSha256": "846406131f01aed17ebf7fc532dc1253c2202823aac1cdb66deb91a870fb72bf",
+      "width": 328,
+      "thickness": 64,
+      "columns": [
+        165,
+        234
+      ],
+      "faceFractions": [
+        0.04,
+        0.81
+      ],
+      "aspect": 5.125
+    },
+    "aluminium-gold": {
+      "h": "/prodigi/rails/aluminium-gold-h.webp",
+      "v": "/prodigi/rails/aluminium-gold-v.webp",
+      "quality": "derived-from-chevron",
+      "sourceRole": "rectified-face",
+      "source": "public/prodigi/finishes/aluminium-gold.png",
+      "sourceSha256": "f1a856314e695f05083b07763d2d4e6feaff572ced0ab59807dcef25eeb02077",
+      "width": 300,
+      "thickness": 64,
+      "columns": [
+        165,
+        234
+      ],
+      "faceFractions": [
+        0.04,
+        0.81
+      ],
+      "aspect": 4.6875
+    },
+    "canvas-float-black": {
+      "h": "/prodigi/rails/canvas-float-black-h.webp",
+      "v": "/prodigi/rails/canvas-float-black-v.webp",
+      "quality": "derived-from-chevron",
+      "sourceRole": "rectified-face",
+      "source": "public/prodigi/finishes/canvas-float-black.png",
+      "sourceSha256": "eeee630782251194d9d306d9e8450b96b6ffb8a56cd0e1a6eedef869c4ea9b31",
+      "width": 726,
+      "thickness": 64,
+      "columns": [
+        165,
+        234
+      ],
+      "faceFractions": [
+        0.035,
+        0.19
+      ],
+      "aspect": 11.34375
+    },
+    "canvas-float-white": {
+      "h": "/prodigi/rails/canvas-float-white-h.webp",
+      "v": "/prodigi/rails/canvas-float-white-v.webp",
+      "quality": "derived-from-chevron",
+      "sourceRole": "rectified-face",
+      "source": "public/prodigi/finishes/canvas-float-white.png",
+      "sourceSha256": "da9c8b941d7a46a3effbb42dcbbed80434c958e44c256dd3350683764e045066",
+      "width": 746,
+      "thickness": 64,
+      "columns": [
+        165,
+        234
+      ],
+      "faceFractions": [
+        0.035,
+        0.19
+      ],
+      "aspect": 11.65625
+    },
+    "canvas-float-antique-gold": {
+      "h": "/prodigi/rails/canvas-float-antique-gold-h.webp",
+      "v": "/prodigi/rails/canvas-float-antique-gold-v.webp",
+      "quality": "derived-from-chevron",
+      "sourceRole": "rectified-face",
+      "source": "public/prodigi/finishes/canvas-float-antique-gold.png",
+      "sourceSha256": "e7589af82d2c47380b91d0a16b41fa3ac6d85debd9d86436cab54c3dbe1472be",
+      "width": 644,
+      "thickness": 64,
+      "columns": [
+        165,
+        234
+      ],
+      "faceFractions": [
+        0.035,
+        0.19
+      ],
+      "aspect": 10.0625
+    },
+    "canvas-float-antique-silver": {
+      "h": "/prodigi/rails/canvas-float-antique-silver-h.webp",
+      "v": "/prodigi/rails/canvas-float-antique-silver-v.webp",
+      "quality": "derived-from-chevron",
+      "sourceRole": "rectified-face",
+      "source": "public/prodigi/finishes/canvas-float-antique-silver.png",
+      "sourceSha256": "f0775d8edb679a9a367a7bd8008e8cbbaff891240dc613353f95f85f2df979b1",
+      "width": 686,
+      "thickness": 64,
+      "columns": [
+        165,
+        234
+      ],
+      "faceFractions": [
+        0.035,
+        0.19
+      ],
+      "aspect": 10.71875
+    },
+    "canvas-float-natural": {
+      "h": "/prodigi/rails/canvas-float-natural-h.webp",
+      "v": "/prodigi/rails/canvas-float-natural-v.webp",
+      "quality": "derived-from-chevron",
+      "sourceRole": "rectified-face",
+      "source": "public/prodigi/finishes/canvas-float-natural.png",
+      "sourceSha256": "cd1a098fb65c4089f9d232780081378318e10ced9399c41437c80075f5846190",
+      "width": 580,
+      "thickness": 64,
+      "columns": [
+        165,
+        234
+      ],
+      "faceFractions": [
+        0.035,
+        0.19
+      ],
+      "aspect": 9.0625
+    },
+    "canvas-float-brown": {
+      "h": "/prodigi/rails/canvas-float-brown-h.webp",
+      "v": "/prodigi/rails/canvas-float-brown-v.webp",
+      "quality": "derived-from-chevron",
+      "sourceRole": "rectified-face",
+      "source": "public/prodigi/finishes/canvas-float-brown.png",
+      "sourceSha256": "b06d6f1e04099ca7320b219e2d4a51bacf5fea8cc5b436c6539e7c56ad0fbe64",
+      "width": 594,
+      "thickness": 64,
+      "columns": [
+        165,
+        234
+      ],
+      "faceFractions": [
+        0.035,
+        0.19
+      ],
+      "aspect": 9.28125
+    }
+  },
+  "rails": {
+    "prodigi-classic-black": {
+      "h": "/prodigi/rails/classic-black-h.webp",
+      "v": "/prodigi/rails/classic-black-v.webp",
+      "quality": "derived-from-chevron",
+      "sourceRole": "rectified-face",
+      "source": "public/prodigi/finishes/classic-black.png",
+      "sourceSha256": "5958a9da9047cced25b05798b173c464a7a3d7b3756bd19fc541f6e3c12f6891",
+      "width": 252,
+      "thickness": 64,
+      "columns": [
+        165,
+        234
+      ],
+      "faceFractions": [
+        0.04,
+        0.81
+      ],
+      "aspect": 3.9375
+    },
+    "prodigi-classic-canvas-black": {
+      "h": "/prodigi/rails/classic-black-h.webp",
+      "v": "/prodigi/rails/classic-black-v.webp",
+      "quality": "derived-from-chevron",
+      "sourceRole": "rectified-face",
+      "source": "public/prodigi/finishes/classic-black.png",
+      "sourceSha256": "5958a9da9047cced25b05798b173c464a7a3d7b3756bd19fc541f6e3c12f6891",
+      "width": 252,
+      "thickness": 64,
+      "columns": [
+        165,
+        234
+      ],
+      "faceFractions": [
+        0.04,
+        0.81
+      ],
+      "aspect": 3.9375
+    },
+    "prodigi-classic-white": {
+      "h": "/prodigi/rails/classic-white-h.webp",
+      "v": "/prodigi/rails/classic-white-v.webp",
+      "quality": "derived-from-chevron",
+      "sourceRole": "rectified-face",
+      "source": "public/prodigi/finishes/classic-white.png",
+      "sourceSha256": "481d34212ea54844b5dfaa61ef31d1b72c7448ba4320526d53ed99773b2e185e",
+      "width": 280,
+      "thickness": 64,
+      "columns": [
+        165,
+        234
+      ],
+      "faceFractions": [
+        0.04,
+        0.81
+      ],
+      "aspect": 4.375
+    },
+    "prodigi-classic-canvas-white": {
+      "h": "/prodigi/rails/classic-white-h.webp",
+      "v": "/prodigi/rails/classic-white-v.webp",
+      "quality": "derived-from-chevron",
+      "sourceRole": "rectified-face",
+      "source": "public/prodigi/finishes/classic-white.png",
+      "sourceSha256": "481d34212ea54844b5dfaa61ef31d1b72c7448ba4320526d53ed99773b2e185e",
+      "width": 280,
+      "thickness": 64,
+      "columns": [
+        165,
+        234
+      ],
+      "faceFractions": [
+        0.04,
+        0.81
+      ],
+      "aspect": 4.375
+    },
+    "prodigi-classic-natural": {
+      "h": "/prodigi/rails/classic-natural-h.webp",
+      "v": "/prodigi/rails/classic-natural-v.webp",
+      "quality": "derived-from-chevron",
+      "sourceRole": "rectified-face",
+      "source": "public/prodigi/finishes/classic-natural.png",
+      "sourceSha256": "e9afedf71507645bbfcb343ec95eb653688baaf07a51ee2779449e39ab1382d0",
+      "width": 236,
+      "thickness": 64,
+      "columns": [
+        165,
+        234
+      ],
+      "faceFractions": [
+        0.04,
+        0.81
+      ],
+      "aspect": 3.6875
+    },
+    "prodigi-classic-canvas-natural": {
+      "h": "/prodigi/rails/classic-natural-h.webp",
+      "v": "/prodigi/rails/classic-natural-v.webp",
+      "quality": "derived-from-chevron",
+      "sourceRole": "rectified-face",
+      "source": "public/prodigi/finishes/classic-natural.png",
+      "sourceSha256": "e9afedf71507645bbfcb343ec95eb653688baaf07a51ee2779449e39ab1382d0",
+      "width": 236,
+      "thickness": 64,
+      "columns": [
+        165,
+        234
+      ],
+      "faceFractions": [
+        0.04,
+        0.81
+      ],
+      "aspect": 3.6875
+    },
+    "prodigi-classic-antique-silver": {
+      "h": "/prodigi/rails/classic-antique-silver-h.webp",
+      "v": "/prodigi/rails/classic-antique-silver-v.webp",
+      "quality": "derived-from-chevron",
+      "sourceRole": "rectified-face",
+      "source": "public/prodigi/finishes/classic-antique-silver.png",
+      "sourceSha256": "333c09ca5cb7c7f29d50ff06573418073c194eac6cace3995cc5290cddfdc619",
+      "width": 284,
+      "thickness": 64,
+      "columns": [
+        165,
+        234
+      ],
+      "faceFractions": [
+        0.04,
+        0.81
+      ],
+      "aspect": 4.4375
+    },
+    "prodigi-classic-canvas-antique-silver": {
+      "h": "/prodigi/rails/classic-antique-silver-h.webp",
+      "v": "/prodigi/rails/classic-antique-silver-v.webp",
+      "quality": "derived-from-chevron",
+      "sourceRole": "rectified-face",
+      "source": "public/prodigi/finishes/classic-antique-silver.png",
+      "sourceSha256": "333c09ca5cb7c7f29d50ff06573418073c194eac6cace3995cc5290cddfdc619",
+      "width": 284,
+      "thickness": 64,
+      "columns": [
+        165,
+        234
+      ],
+      "faceFractions": [
+        0.04,
+        0.81
+      ],
+      "aspect": 4.4375
+    },
+    "prodigi-classic-brown": {
+      "h": "/prodigi/rails/classic-brown-h.webp",
+      "v": "/prodigi/rails/classic-brown-v.webp",
+      "quality": "derived-from-chevron",
+      "sourceRole": "rectified-face",
+      "source": "public/prodigi/finishes/classic-brown.png",
+      "sourceSha256": "340adcae9a8fb3ab4c7830f927e3eb56e33387f4f5875f21bc7904a391654755",
+      "width": 342,
+      "thickness": 64,
+      "columns": [
+        165,
+        234
+      ],
+      "faceFractions": [
+        0.04,
+        0.81
+      ],
+      "aspect": 5.34375
+    },
+    "prodigi-classic-canvas-brown": {
+      "h": "/prodigi/rails/classic-brown-h.webp",
+      "v": "/prodigi/rails/classic-brown-v.webp",
+      "quality": "derived-from-chevron",
+      "sourceRole": "rectified-face",
+      "source": "public/prodigi/finishes/classic-brown.png",
+      "sourceSha256": "340adcae9a8fb3ab4c7830f927e3eb56e33387f4f5875f21bc7904a391654755",
+      "width": 342,
+      "thickness": 64,
+      "columns": [
+        165,
+        234
+      ],
+      "faceFractions": [
+        0.04,
+        0.81
+      ],
+      "aspect": 5.34375
+    },
+    "prodigi-classic-antique-gold": {
+      "h": "/prodigi/rails/classic-antique-gold-h.webp",
+      "v": "/prodigi/rails/classic-antique-gold-v.webp",
+      "quality": "derived-from-chevron",
+      "sourceRole": "rectified-face",
+      "source": "public/prodigi/finishes/classic-antique-gold.png",
+      "sourceSha256": "6ca636d8266e5d8f3e95fa38fde7fb2f233904210888b66af44d482eee829515",
+      "width": 292,
+      "thickness": 64,
+      "columns": [
+        165,
+        234
+      ],
+      "faceFractions": [
+        0.04,
+        0.81
+      ],
+      "aspect": 4.5625
+    },
+    "prodigi-classic-canvas-antique-gold": {
+      "h": "/prodigi/rails/classic-antique-gold-h.webp",
+      "v": "/prodigi/rails/classic-antique-gold-v.webp",
+      "quality": "derived-from-chevron",
+      "sourceRole": "rectified-face",
+      "source": "public/prodigi/finishes/classic-antique-gold.png",
+      "sourceSha256": "6ca636d8266e5d8f3e95fa38fde7fb2f233904210888b66af44d482eee829515",
+      "width": 292,
+      "thickness": 64,
+      "columns": [
+        165,
+        234
+      ],
+      "faceFractions": [
+        0.04,
+        0.81
+      ],
+      "aspect": 4.5625
+    },
+    "prodigi-classic-dark-grey": {
+      "h": "/prodigi/rails/classic-dark-grey-h.webp",
+      "v": "/prodigi/rails/classic-dark-grey-v.webp",
+      "quality": "derived-from-chevron",
+      "sourceRole": "rectified-face",
+      "source": "public/prodigi/finishes/classic-dark-grey.png",
+      "sourceSha256": "f1829ea0350828d3189803565a5166223a8762e8882485f870dbe18e05e21a62",
+      "width": 312,
+      "thickness": 64,
+      "columns": [
+        165,
+        234
+      ],
+      "faceFractions": [
+        0.04,
+        0.81
+      ],
+      "aspect": 4.875
+    },
+    "prodigi-classic-canvas-dark-grey": {
+      "h": "/prodigi/rails/classic-dark-grey-h.webp",
+      "v": "/prodigi/rails/classic-dark-grey-v.webp",
+      "quality": "derived-from-chevron",
+      "sourceRole": "rectified-face",
+      "source": "public/prodigi/finishes/classic-dark-grey.png",
+      "sourceSha256": "f1829ea0350828d3189803565a5166223a8762e8882485f870dbe18e05e21a62",
+      "width": 312,
+      "thickness": 64,
+      "columns": [
+        165,
+        234
+      ],
+      "faceFractions": [
+        0.04,
+        0.81
+      ],
+      "aspect": 4.875
+    },
+    "prodigi-classic-light-grey": {
+      "h": "/prodigi/rails/classic-light-grey-h.webp",
+      "v": "/prodigi/rails/classic-light-grey-v.webp",
+      "quality": "derived-from-chevron",
+      "sourceRole": "rectified-face",
+      "source": "public/prodigi/finishes/classic-light-grey.png",
+      "sourceSha256": "57a58f9f01b4fe8300a010cbc5cee4f24f114448cd649d776739df383775cdcf",
+      "width": 310,
+      "thickness": 64,
+      "columns": [
+        165,
+        234
+      ],
+      "faceFractions": [
+        0.04,
+        0.81
+      ],
+      "aspect": 4.84375
+    },
+    "prodigi-classic-canvas-light-grey": {
+      "h": "/prodigi/rails/classic-light-grey-h.webp",
+      "v": "/prodigi/rails/classic-light-grey-v.webp",
+      "quality": "derived-from-chevron",
+      "sourceRole": "rectified-face",
+      "source": "public/prodigi/finishes/classic-light-grey.png",
+      "sourceSha256": "57a58f9f01b4fe8300a010cbc5cee4f24f114448cd649d776739df383775cdcf",
+      "width": 310,
+      "thickness": 64,
+      "columns": [
+        165,
+        234
+      ],
+      "faceFractions": [
+        0.04,
+        0.81
+      ],
+      "aspect": 4.84375
+    },
+    "prodigi-box-black": {
+      "h": "/prodigi/rails/box-black-h.webp",
+      "v": "/prodigi/rails/box-black-v.webp",
+      "quality": "derived-from-chevron",
+      "sourceRole": "rectified-face",
+      "source": "public/prodigi/finishes/box-black.png",
+      "sourceSha256": "8defd932c1c4f2fc3043ecf55edf154df8f5daef8692fa90d481814964b6b2c9",
+      "width": 222,
+      "thickness": 64,
+      "columns": [
+        165,
+        234
+      ],
+      "faceFractions": [
+        0.04,
+        0.81
+      ],
+      "aspect": 3.46875
+    },
+    "prodigi-box-white": {
+      "h": "/prodigi/rails/box-white-h.webp",
+      "v": "/prodigi/rails/box-white-v.webp",
+      "quality": "derived-from-chevron",
+      "sourceRole": "rectified-face",
+      "source": "public/prodigi/finishes/box-white.png",
+      "sourceSha256": "7d6816c42ecccf65ea027f5dfc13ed48c5ed1aab7f1322b812068d448c20bd35",
+      "width": 228,
+      "thickness": 64,
+      "columns": [
+        165,
+        234
+      ],
+      "faceFractions": [
+        0.04,
+        0.81
+      ],
+      "aspect": 3.5625
+    },
+    "prodigi-box-natural": {
+      "h": "/prodigi/rails/box-natural-h.webp",
+      "v": "/prodigi/rails/box-natural-v.webp",
+      "quality": "derived-from-chevron",
+      "sourceRole": "rectified-face",
+      "source": "public/prodigi/finishes/box-natural.png",
+      "sourceSha256": "59abbbce795f655082399a54af52bfa52961230934a9590c0c5e1cc8d0e9f45f",
+      "width": 234,
+      "thickness": 64,
+      "columns": [
+        165,
+        234
+      ],
+      "faceFractions": [
+        0.04,
+        0.81
+      ],
+      "aspect": 3.65625
+    },
+    "prodigi-aluminium-black": {
+      "h": "/prodigi/rails/aluminium-black-h.webp",
+      "v": "/prodigi/rails/aluminium-black-v.webp",
+      "quality": "derived-from-chevron",
+      "sourceRole": "rectified-face",
+      "source": "public/prodigi/finishes/aluminium-black.png",
+      "sourceSha256": "dffd8428af434ed6f387e767c313079c251600b11298e4755db05b8f04aaebc2",
+      "width": 358,
+      "thickness": 64,
+      "columns": [
+        165,
+        234
+      ],
+      "faceFractions": [
+        0.04,
+        0.81
+      ],
+      "aspect": 5.59375
+    },
+    "prodigi-aluminium-silver": {
+      "h": "/prodigi/rails/aluminium-silver-h.webp",
+      "v": "/prodigi/rails/aluminium-silver-v.webp",
+      "quality": "derived-from-chevron",
+      "sourceRole": "rectified-face",
+      "source": "public/prodigi/finishes/aluminium-silver.png",
+      "sourceSha256": "846406131f01aed17ebf7fc532dc1253c2202823aac1cdb66deb91a870fb72bf",
+      "width": 328,
+      "thickness": 64,
+      "columns": [
+        165,
+        234
+      ],
+      "faceFractions": [
+        0.04,
+        0.81
+      ],
+      "aspect": 5.125
+    },
+    "prodigi-aluminium-gold": {
+      "h": "/prodigi/rails/aluminium-gold-h.webp",
+      "v": "/prodigi/rails/aluminium-gold-v.webp",
+      "quality": "derived-from-chevron",
+      "sourceRole": "rectified-face",
+      "source": "public/prodigi/finishes/aluminium-gold.png",
+      "sourceSha256": "f1a856314e695f05083b07763d2d4e6feaff572ced0ab59807dcef25eeb02077",
+      "width": 300,
+      "thickness": 64,
+      "columns": [
+        165,
+        234
+      ],
+      "faceFractions": [
+        0.04,
+        0.81
+      ],
+      "aspect": 4.6875
+    },
+    "prodigi-float-canvas-black": {
+      "h": "/prodigi/rails/canvas-float-black-h.webp",
+      "v": "/prodigi/rails/canvas-float-black-v.webp",
+      "quality": "derived-from-chevron",
+      "sourceRole": "rectified-face",
+      "source": "public/prodigi/finishes/canvas-float-black.png",
+      "sourceSha256": "eeee630782251194d9d306d9e8450b96b6ffb8a56cd0e1a6eedef869c4ea9b31",
+      "width": 726,
+      "thickness": 64,
+      "columns": [
+        165,
+        234
+      ],
+      "faceFractions": [
+        0.035,
+        0.19
+      ],
+      "aspect": 11.34375
+    },
+    "prodigi-eco-canvas-black": {
+      "h": "/prodigi/rails/canvas-float-black-h.webp",
+      "v": "/prodigi/rails/canvas-float-black-v.webp",
+      "quality": "derived-from-chevron",
+      "sourceRole": "rectified-face",
+      "source": "public/prodigi/finishes/canvas-float-black.png",
+      "sourceSha256": "eeee630782251194d9d306d9e8450b96b6ffb8a56cd0e1a6eedef869c4ea9b31",
+      "width": 726,
+      "thickness": 64,
+      "columns": [
+        165,
+        234
+      ],
+      "faceFractions": [
+        0.035,
+        0.19
+      ],
+      "aspect": 11.34375
+    },
+    "prodigi-float-canvas-white": {
+      "h": "/prodigi/rails/canvas-float-white-h.webp",
+      "v": "/prodigi/rails/canvas-float-white-v.webp",
+      "quality": "derived-from-chevron",
+      "sourceRole": "rectified-face",
+      "source": "public/prodigi/finishes/canvas-float-white.png",
+      "sourceSha256": "da9c8b941d7a46a3effbb42dcbbed80434c958e44c256dd3350683764e045066",
+      "width": 746,
+      "thickness": 64,
+      "columns": [
+        165,
+        234
+      ],
+      "faceFractions": [
+        0.035,
+        0.19
+      ],
+      "aspect": 11.65625
+    },
+    "prodigi-eco-canvas-white": {
+      "h": "/prodigi/rails/canvas-float-white-h.webp",
+      "v": "/prodigi/rails/canvas-float-white-v.webp",
+      "quality": "derived-from-chevron",
+      "sourceRole": "rectified-face",
+      "source": "public/prodigi/finishes/canvas-float-white.png",
+      "sourceSha256": "da9c8b941d7a46a3effbb42dcbbed80434c958e44c256dd3350683764e045066",
+      "width": 746,
+      "thickness": 64,
+      "columns": [
+        165,
+        234
+      ],
+      "faceFractions": [
+        0.035,
+        0.19
+      ],
+      "aspect": 11.65625
+    },
+    "prodigi-float-canvas-antique-gold": {
+      "h": "/prodigi/rails/canvas-float-antique-gold-h.webp",
+      "v": "/prodigi/rails/canvas-float-antique-gold-v.webp",
+      "quality": "derived-from-chevron",
+      "sourceRole": "rectified-face",
+      "source": "public/prodigi/finishes/canvas-float-antique-gold.png",
+      "sourceSha256": "e7589af82d2c47380b91d0a16b41fa3ac6d85debd9d86436cab54c3dbe1472be",
+      "width": 644,
+      "thickness": 64,
+      "columns": [
+        165,
+        234
+      ],
+      "faceFractions": [
+        0.035,
+        0.19
+      ],
+      "aspect": 10.0625
+    },
+    "prodigi-eco-canvas-antique-gold": {
+      "h": "/prodigi/rails/canvas-float-antique-gold-h.webp",
+      "v": "/prodigi/rails/canvas-float-antique-gold-v.webp",
+      "quality": "derived-from-chevron",
+      "sourceRole": "rectified-face",
+      "source": "public/prodigi/finishes/canvas-float-antique-gold.png",
+      "sourceSha256": "e7589af82d2c47380b91d0a16b41fa3ac6d85debd9d86436cab54c3dbe1472be",
+      "width": 644,
+      "thickness": 64,
+      "columns": [
+        165,
+        234
+      ],
+      "faceFractions": [
+        0.035,
+        0.19
+      ],
+      "aspect": 10.0625
+    },
+    "prodigi-float-canvas-antique-silver": {
+      "h": "/prodigi/rails/canvas-float-antique-silver-h.webp",
+      "v": "/prodigi/rails/canvas-float-antique-silver-v.webp",
+      "quality": "derived-from-chevron",
+      "sourceRole": "rectified-face",
+      "source": "public/prodigi/finishes/canvas-float-antique-silver.png",
+      "sourceSha256": "f0775d8edb679a9a367a7bd8008e8cbbaff891240dc613353f95f85f2df979b1",
+      "width": 686,
+      "thickness": 64,
+      "columns": [
+        165,
+        234
+      ],
+      "faceFractions": [
+        0.035,
+        0.19
+      ],
+      "aspect": 10.71875
+    },
+    "prodigi-eco-canvas-antique-silver": {
+      "h": "/prodigi/rails/canvas-float-antique-silver-h.webp",
+      "v": "/prodigi/rails/canvas-float-antique-silver-v.webp",
+      "quality": "derived-from-chevron",
+      "sourceRole": "rectified-face",
+      "source": "public/prodigi/finishes/canvas-float-antique-silver.png",
+      "sourceSha256": "f0775d8edb679a9a367a7bd8008e8cbbaff891240dc613353f95f85f2df979b1",
+      "width": 686,
+      "thickness": 64,
+      "columns": [
+        165,
+        234
+      ],
+      "faceFractions": [
+        0.035,
+        0.19
+      ],
+      "aspect": 10.71875
+    },
+    "prodigi-float-canvas-natural": {
+      "h": "/prodigi/rails/canvas-float-natural-h.webp",
+      "v": "/prodigi/rails/canvas-float-natural-v.webp",
+      "quality": "derived-from-chevron",
+      "sourceRole": "rectified-face",
+      "source": "public/prodigi/finishes/canvas-float-natural.png",
+      "sourceSha256": "cd1a098fb65c4089f9d232780081378318e10ced9399c41437c80075f5846190",
+      "width": 580,
+      "thickness": 64,
+      "columns": [
+        165,
+        234
+      ],
+      "faceFractions": [
+        0.035,
+        0.19
+      ],
+      "aspect": 9.0625
+    },
+    "prodigi-eco-canvas-natural": {
+      "h": "/prodigi/rails/canvas-float-natural-h.webp",
+      "v": "/prodigi/rails/canvas-float-natural-v.webp",
+      "quality": "derived-from-chevron",
+      "sourceRole": "rectified-face",
+      "source": "public/prodigi/finishes/canvas-float-natural.png",
+      "sourceSha256": "cd1a098fb65c4089f9d232780081378318e10ced9399c41437c80075f5846190",
+      "width": 580,
+      "thickness": 64,
+      "columns": [
+        165,
+        234
+      ],
+      "faceFractions": [
+        0.035,
+        0.19
+      ],
+      "aspect": 9.0625
+    },
+    "prodigi-float-canvas-brown": {
+      "h": "/prodigi/rails/canvas-float-brown-h.webp",
+      "v": "/prodigi/rails/canvas-float-brown-v.webp",
+      "quality": "derived-from-chevron",
+      "sourceRole": "rectified-face",
+      "source": "public/prodigi/finishes/canvas-float-brown.png",
+      "sourceSha256": "b06d6f1e04099ca7320b219e2d4a51bacf5fea8cc5b436c6539e7c56ad0fbe64",
+      "width": 594,
+      "thickness": 64,
+      "columns": [
+        165,
+        234
+      ],
+      "faceFractions": [
+        0.035,
+        0.19
+      ],
+      "aspect": 9.28125
+    },
+    "prodigi-eco-canvas-brown": {
+      "h": "/prodigi/rails/canvas-float-brown-h.webp",
+      "v": "/prodigi/rails/canvas-float-brown-v.webp",
+      "quality": "derived-from-chevron",
+      "sourceRole": "rectified-face",
+      "source": "public/prodigi/finishes/canvas-float-brown.png",
+      "sourceSha256": "b06d6f1e04099ca7320b219e2d4a51bacf5fea8cc5b436c6539e7c56ad0fbe64",
+      "width": 594,
+      "thickness": 64,
+      "columns": [
+        165,
+        234
+      ],
+      "faceFractions": [
+        0.035,
+        0.19
+      ],
+      "aspect": 9.28125
+    }
+  }
+}

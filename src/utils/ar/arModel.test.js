@@ -67,6 +67,40 @@ describe('frame mesh', () => {
         expect(mesh.depthM).toBeCloseTo((0.5625 + 0.1875) * IN_TO_M, 6);
     });
 
+    it('uses supplier total depth and shadow gap for a float frame', () => {
+        const mesh = sampleMesh({
+            artworkWidthIn: 16,
+            artworkHeightIn: 20,
+            mouldingWidthIn: 12 / 25.4,
+            rabbetDepthIn: 40 / 25.4,
+            totalDepthIn: 53 / 25.4,
+            openingGapIn: 5 / 25.4,
+            profile: 'floater',
+            matReveal: NO_MAT,
+        });
+        expect(mesh.outerWidthM).toBeCloseTo((16 + (12 + 5) * 2 / 25.4) * IN_TO_M, 6);
+        expect(mesh.outerHeightM).toBeCloseTo((20 + (12 + 5) * 2 / 25.4) * IN_TO_M, 6);
+        expect(mesh.depthM).toBeCloseTo((53 / 25.4) * IN_TO_M, 6);
+    });
+
+    it('builds a measured 38 mm canvas body without frame rails', () => {
+        const mesh = sampleMesh({
+            artworkWidthIn: 16,
+            artworkHeightIn: 20,
+            mouldingWidthIn: 0,
+            rabbetDepthIn: 38 / 25.4,
+            totalDepthIn: 38 / 25.4,
+            canvasThicknessIn: 38 / 25.4,
+            canvasOnly: true,
+            matReveal: NO_MAT,
+        });
+        expect(mesh.parts.map((part) => part.material)).toEqual(['art', 'canvasTop', 'canvasBottom', 'canvasLeft', 'canvasRight', 'backing']);
+        expect(mesh.parts.map((part) => part.material)).not.toContain('rail');
+        expect(mesh.outerWidthM).toBeCloseTo(16 * IN_TO_M, 6);
+        expect(mesh.outerHeightM).toBeCloseTo(20 * IN_TO_M, 6);
+        expect(mesh.depthM).toBeCloseTo((38 / 25.4) * IN_TO_M, 6);
+    });
+
     it('emits mat geometry only when a mat is configured', () => {
         const withMat = sampleMesh({ matReveal: { topIn: 2, sideIn: 2, bottomIn: 2 } }).parts.map((p) => p.material);
         const without = sampleMesh({ matReveal: NO_MAT }).parts.map((p) => p.material);

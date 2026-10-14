@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Search as SearchIcon, Loader2, Globe } from 'lucide-react';
-import { FRAME_STYLES, FRAME_SIZES, findSizeByDimension, parseCustomSize } from '../data/constants';
+import { FRAME_SIZES, findSizeByDimension, parseCustomSize } from '../data/constants';
+import { DEFAULT_PRODIGI_FRAME } from '../data/frameBrowsing';
 import SOURCE_DIMS from '../data/source_dims.json';
 import WEB_MET_DIMS from '../data/web_met_dims.json';
 
@@ -275,7 +276,7 @@ const SearchPage = ({ setProductMode, setSelectedSize, navigate, isSubPage = fal
         // same as InspirationPage's own Framed Prints flow) still needs this
         // — everywhere else the customer's current frame selection should
         // stand, not get silently swapped for a category default.
-        const frameObj = FRAME_STYLES.find(f => f.id === 'frame-8446') || FRAME_STYLES[0];
+        const frameObj = DEFAULT_PRODIGI_FRAME;
         setProductMode('frame');
 
         switch (result.category) {

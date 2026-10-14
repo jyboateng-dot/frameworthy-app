@@ -1,0 +1,1440 @@
+{
+  "assetCount": 152,
+  "sourceAssetCount": 80,
+  "extractedAssetCount": 72,
+  "totalBytes": 76999012,
+  "assets": [
+    {
+      "origin": "source",
+      "path": "resources/prodigi/source/aluminium/Prodigi Aluminium frames.pdf",
+      "bytes": 250340,
+      "sha256": "633003cddc2b9d07801dac9d72a3f3d52962ee148a01737541d0ab1d536a5ccc"
+    },
+    {
+      "origin": "source",
+      "path": "resources/prodigi/source/aluminium/aluminium-black.png",
+      "bytes": 40296,
+      "sha256": "dffd8428af434ed6f387e767c313079c251600b11298e4755db05b8f04aaebc2",
+      "width": 300,
+      "height": 500,
+      "mode": "RGBA",
+      "hasAlpha": true
+    },
+    {
+      "origin": "source",
+      "path": "resources/prodigi/source/aluminium/aluminium-gold.png",
+      "bytes": 81885,
+      "sha256": "f1a856314e695f05083b07763d2d4e6feaff572ced0ab59807dcef25eeb02077",
+      "width": 300,
+      "height": 500,
+      "mode": "RGBA",
+      "hasAlpha": true
+    },
+    {
+      "origin": "source",
+      "path": "resources/prodigi/source/aluminium/aluminium-silver.png",
+      "bytes": 54983,
+      "sha256": "846406131f01aed17ebf7fc532dc1253c2202823aac1cdb66deb91a870fb72bf",
+      "width": 300,
+      "height": 500,
+      "mode": "RGBA",
+      "hasAlpha": true
+    },
+    {
+      "origin": "source",
+      "path": "resources/prodigi/source/aluminium/black-aluminium-frame-3-2.webp",
+      "bytes": 121502,
+      "sha256": "68086cde612752c1936e455e85a37f579eeb06d0c255488a368ddfd6abf719c7",
+      "width": 2000,
+      "height": 2000,
+      "mode": "RGB",
+      "hasAlpha": false
+    },
+    {
+      "origin": "source",
+      "path": "resources/prodigi/source/aluminium/gold-aluminium-frame-3-2.webp",
+      "bytes": 144934,
+      "sha256": "7f14e5a2445634c27e8190010568c048cb9ffe0dc41e6af2e9b0c24c085cfc73",
+      "width": 2000,
+      "height": 2000,
+      "mode": "RGB",
+      "hasAlpha": false
+    },
+    {
+      "origin": "source",
+      "path": "resources/prodigi/source/aluminium/prodigi-aluminium-frames-blank-assets.zip",
+      "bytes": 469614,
+      "sha256": "fe1538b4b60d50584eb7a2f9e643038cf0a468a8cb1ab46e3a029267f25f5ced"
+    },
+    {
+      "origin": "source",
+      "path": "resources/prodigi/source/aluminium/prodigi-aluminium-metal-frames-detail.webp",
+      "bytes": 47232,
+      "sha256": "c215fec4e00e62e470aa17ccc92b2579c956281e47e96ed7e55de7a1e37a7a8c",
+      "width": 1000,
+      "height": 1000,
+      "mode": "RGB",
+      "hasAlpha": false
+    },
+    {
+      "origin": "source",
+      "path": "resources/prodigi/source/aluminium/prodigi-aluminium-metal-frames.webp",
+      "bytes": 74366,
+      "sha256": "6658b6bac3690f2074ac0d4adb140a3b4a56ddac0e5709dc24788e604fa8426b",
+      "width": 1000,
+      "height": 1000,
+      "mode": "RGB",
+      "hasAlpha": false
+    },
+    {
+      "origin": "source",
+      "path": "resources/prodigi/source/aluminium/prodigi-black-aluminium-frame.webp",
+      "bytes": 70596,
+      "sha256": "4406bbcbd3123f70d3253c0ecc1718229c8974bb4a0e490109189424d5524d65",
+      "width": 1000,
+      "height": 1000,
+      "mode": "RGB",
+      "hasAlpha": false
+    },
+    {
+      "origin": "source",
+      "path": "resources/prodigi/source/aluminium/prodigi-gold-aluminium-frame.webp",
+      "bytes": 39114,
+      "sha256": "06f6e9b178453864255aa09f154cc8f93c27835dfc366f83635409deda187ae7",
+      "width": 1000,
+      "height": 1000,
+      "mode": "RGB",
+      "hasAlpha": false
+    },
+    {
+      "origin": "source",
+      "path": "resources/prodigi/source/aluminium/prodigi-silver-aluminium-frame-2.webp",
+      "bytes": 109556,
+      "sha256": "302bac00d17d4f7a8d81ca9428bb79edb53aa7c4a53affb3a5ecc168ad195b2d",
+      "width": 1000,
+      "height": 1000,
+      "mode": "RGB",
+      "hasAlpha": false
+    },
+    {
+      "origin": "source",
+      "path": "resources/prodigi/source/aluminium/prodigi-silver-aluminium-frame-detail.webp",
+      "bytes": 38590,
+      "sha256": "d463cfdab48b9131e1f04bcb2aaaec1511b3f8ca32a9cf6d03706646f5721d80",
+      "width": 1000,
+      "height": 1000,
+      "mode": "RGB",
+      "hasAlpha": false
+    },
+    {
+      "origin": "source",
+      "path": "resources/prodigi/source/box/Prodigi Box frames.pdf",
+      "bytes": 333238,
+      "sha256": "bf68ce78c329629732ec137af1620dcabdc266c8c6d02e9c0421b3d8253a6272"
+    },
+    {
+      "origin": "source",
+      "path": "resources/prodigi/source/box/box-black.png",
+      "bytes": 88367,
+      "sha256": "8defd932c1c4f2fc3043ecf55edf154df8f5daef8692fa90d481814964b6b2c9",
+      "width": 300,
+      "height": 500,
+      "mode": "RGBA",
+      "hasAlpha": true
+    },
+    {
+      "origin": "source",
+      "path": "resources/prodigi/source/box/box-natural.png",
+      "bytes": 116223,
+      "sha256": "59abbbce795f655082399a54af52bfa52961230934a9590c0c5e1cc8d0e9f45f",
+      "width": 300,
+      "height": 500,
+      "mode": "RGBA",
+      "hasAlpha": true
+    },
+    {
+      "origin": "source",
+      "path": "resources/prodigi/source/box/box-white.png",
+      "bytes": 66942,
+      "sha256": "7d6816c42ecccf65ea027f5dfc13ed48c5ed1aab7f1322b812068d448c20bd35",
+      "width": 300,
+      "height": 500,
+      "mode": "RGBA",
+      "hasAlpha": true
+    },
+    {
+      "origin": "source",
+      "path": "resources/prodigi/source/box/prodigi-box-frames-photo-assets.zip",
+      "bytes": 3426372,
+      "sha256": "796f4933e8ff68306bee774f0422fc1e9d6daa63efd8cd133fe8ce6e0be45729"
+    },
+    {
+      "origin": "source",
+      "path": "resources/prodigi/source/canvas-classic/19mm-classic-frame_--group_.webp",
+      "bytes": 72730,
+      "sha256": "a0af8d3ce9641f973a11372b00f64a49e08aad4685c5537e3d6589bbec886e92",
+      "width": 1000,
+      "height": 1000,
+      "mode": "RGB",
+      "hasAlpha": false
+    },
+    {
+      "origin": "source",
+      "path": "resources/prodigi/source/canvas-classic/30x40-classic-framed-canvas-sq.webp",
+      "bytes": 176688,
+      "sha256": "da59e242a5fe7e7dfd5fa111c49779d370a608fd40187feee84049d5c0818a91",
+      "width": 1047,
+      "height": 1047,
+      "mode": "RGB",
+      "hasAlpha": false
+    },
+    {
+      "origin": "source",
+      "path": "resources/prodigi/source/canvas-classic/Prodigi Classic framed canvas.pdf",
+      "bytes": 623918,
+      "sha256": "3cc6114c2ca0ccf08e39eaa87e8a02105cd76659a2dd0fab5d5aac4b3e122618"
+    },
+    {
+      "origin": "source",
+      "path": "resources/prodigi/source/canvas-classic/classic-frame-canvas-bikes-print-d_.webp",
+      "bytes": 57000,
+      "sha256": "15221e0741c1daee1a4e044febc1f771ec1eb82003e6a2a235a8763fd17df6f7",
+      "width": 1000,
+      "height": 1000,
+      "mode": "RGB",
+      "hasAlpha": false
+    },
+    {
+      "origin": "source",
+      "path": "resources/prodigi/source/canvas-classic/classic-frame-canvas-woman-print-a_.webp",
+      "bytes": 98554,
+      "sha256": "f4efc862f38743f77b9ce8268d9b912820482f5943b93d5a39172a68a83a6e7a",
+      "width": 1000,
+      "height": 1000,
+      "mode": "RGB",
+      "hasAlpha": false
+    },
+    {
+      "origin": "source",
+      "path": "resources/prodigi/source/canvas-classic/classic-frame-colour-range-updated-2025.webp",
+      "bytes": 41436,
+      "sha256": "10861a7402a87349ab59a6a1dd2cfdedae417651156b3f09d3f4a05f7d1f7bd0",
+      "width": 1000,
+      "height": 1000,
+      "mode": "RGB",
+      "hasAlpha": false
+    },
+    {
+      "origin": "source",
+      "path": "resources/prodigi/source/canvas-classic/framed-canvas-19mm-full.webp",
+      "bytes": 106226,
+      "sha256": "209d7a5f88b76744fa0ef7f51858e1da6ba56d28d1d5b5d7075abf3c099ac277",
+      "width": 1000,
+      "height": 1000,
+      "mode": "RGB",
+      "hasAlpha": false
+    },
+    {
+      "origin": "source",
+      "path": "resources/prodigi/source/canvas-classic/prodigi-classic-framed-19mm-canvas-natural.webp",
+      "bytes": 1133330,
+      "sha256": "1ed9f8fde3023e9171588b2b90e5f009e87a0bca2165b17890d3acb90f08bcee",
+      "width": 3793,
+      "height": 3793,
+      "mode": "RGB",
+      "hasAlpha": false
+    },
+    {
+      "origin": "source",
+      "path": "resources/prodigi/source/canvas-classic/prodigi-classic-framed-canvas-19mm-corner.webp",
+      "bytes": 37734,
+      "sha256": "a4ab9e93e812c999ca59e157c179f9041731f94f6281982f8f4ba7f379420ecd",
+      "width": 1000,
+      "height": 1000,
+      "mode": "RGB",
+      "hasAlpha": false
+    },
+    {
+      "origin": "source",
+      "path": "resources/prodigi/source/canvas-eco/Prodigi Eco framed canvas.pdf",
+      "bytes": 625584,
+      "sha256": "0bc51a25c157ab5c03d1ff45b67ac35fdef0b257d57aa70477e1dfefeb797d2c"
+    },
+    {
+      "origin": "source",
+      "path": "resources/prodigi/source/canvas-eco/eco-canvas-float-antique-gold.png",
+      "bytes": 113792,
+      "sha256": "e7589af82d2c47380b91d0a16b41fa3ac6d85debd9d86436cab54c3dbe1472be",
+      "width": 300,
+      "height": 500,
+      "mode": "RGBA",
+      "hasAlpha": true
+    },
+    {
+      "origin": "source",
+      "path": "resources/prodigi/source/canvas-eco/eco-canvas-float-antique-silver.png",
+      "bytes": 101820,
+      "sha256": "f0775d8edb679a9a367a7bd8008e8cbbaff891240dc613353f95f85f2df979b1",
+      "width": 300,
+      "height": 500,
+      "mode": "RGBA",
+      "hasAlpha": true
+    },
+    {
+      "origin": "source",
+      "path": "resources/prodigi/source/canvas-eco/eco-canvas-float-black.png",
+      "bytes": 97780,
+      "sha256": "eeee630782251194d9d306d9e8450b96b6ffb8a56cd0e1a6eedef869c4ea9b31",
+      "width": 300,
+      "height": 500,
+      "mode": "RGBA",
+      "hasAlpha": true
+    },
+    {
+      "origin": "source",
+      "path": "resources/prodigi/source/canvas-eco/eco-canvas-float-brown.png",
+      "bytes": 108631,
+      "sha256": "b06d6f1e04099ca7320b219e2d4a51bacf5fea8cc5b436c6539e7c56ad0fbe64",
+      "width": 300,
+      "height": 500,
+      "mode": "RGBA",
+      "hasAlpha": true
+    },
+    {
+      "origin": "source",
+      "path": "resources/prodigi/source/canvas-eco/eco-canvas-float-natural.png",
+      "bytes": 106835,
+      "sha256": "cd1a098fb65c4089f9d232780081378318e10ced9399c41437c80075f5846190",
+      "width": 300,
+      "height": 500,
+      "mode": "RGBA",
+      "hasAlpha": true
+    },
+    {
+      "origin": "source",
+      "path": "resources/prodigi/source/canvas-eco/eco-canvas-float-white.png",
+      "bytes": 46291,
+      "sha256": "da9c8b941d7a46a3effbb42dcbbed80434c958e44c256dd3350683764e045066",
+      "width": 300,
+      "height": 500,
+      "mode": "RGBA",
+      "hasAlpha": true
+    },
+    {
+      "origin": "source",
+      "path": "resources/prodigi/source/canvas-eco/eco-framed-canvas_1.webp",
+      "bytes": 75214,
+      "sha256": "b001d773abeda6827b028be1b1ec10c40e88f2c0da440027ad17762eb6ac657c",
+      "width": 1000,
+      "height": 1000,
+      "mode": "RGB",
+      "hasAlpha": false
+    },
+    {
+      "origin": "source",
+      "path": "resources/prodigi/source/canvas-eco/eco-framed-canvas_2.webp",
+      "bytes": 57548,
+      "sha256": "b6c90f7bcc254e7b14876fd901c5358e22e494f9a8827623e722ff9b2b8ec4de",
+      "width": 1000,
+      "height": 1000,
+      "mode": "RGB",
+      "hasAlpha": false
+    },
+    {
+      "origin": "source",
+      "path": "resources/prodigi/source/canvas-eco/eco-framed-canvas_3.webp",
+      "bytes": 92422,
+      "sha256": "8da053cd37659ece0978328df78f4685e540961085cc24bf8dd520caec910967",
+      "width": 1000,
+      "height": 1000,
+      "mode": "RGB",
+      "hasAlpha": false
+    },
+    {
+      "origin": "source",
+      "path": "resources/prodigi/source/canvas-eco/float-frame-chevrons.webp",
+      "bytes": 62228,
+      "sha256": "3f8a3ebfcc7873d67e7f70a057d19ad528bb52e25475d7d842626bf1aa24a5b9",
+      "width": 1000,
+      "height": 1000,
+      "mode": "RGB",
+      "hasAlpha": false
+    },
+    {
+      "origin": "source",
+      "path": "resources/prodigi/source/canvas-float/Prodigi Framed canvas.pdf",
+      "bytes": 628323,
+      "sha256": "40a67f082aa69893d41cefb27eddbf15e928b6f1ad78ba0039f9f2c2f2eed253"
+    },
+    {
+      "origin": "source",
+      "path": "resources/prodigi/source/canvas-float/canvas-float-antique-gold.png",
+      "bytes": 113792,
+      "sha256": "e7589af82d2c47380b91d0a16b41fa3ac6d85debd9d86436cab54c3dbe1472be",
+      "width": 300,
+      "height": 500,
+      "mode": "RGBA",
+      "hasAlpha": true
+    },
+    {
+      "origin": "source",
+      "path": "resources/prodigi/source/canvas-float/canvas-float-antique-silver.png",
+      "bytes": 101820,
+      "sha256": "f0775d8edb679a9a367a7bd8008e8cbbaff891240dc613353f95f85f2df979b1",
+      "width": 300,
+      "height": 500,
+      "mode": "RGBA",
+      "hasAlpha": true
+    },
+    {
+      "origin": "source",
+      "path": "resources/prodigi/source/canvas-float/canvas-float-black.png",
+      "bytes": 97780,
+      "sha256": "eeee630782251194d9d306d9e8450b96b6ffb8a56cd0e1a6eedef869c4ea9b31",
+      "width": 300,
+      "height": 500,
+      "mode": "RGBA",
+      "hasAlpha": true
+    },
+    {
+      "origin": "source",
+      "path": "resources/prodigi/source/canvas-float/canvas-float-brown.png",
+      "bytes": 108631,
+      "sha256": "b06d6f1e04099ca7320b219e2d4a51bacf5fea8cc5b436c6539e7c56ad0fbe64",
+      "width": 300,
+      "height": 500,
+      "mode": "RGBA",
+      "hasAlpha": true
+    },
+    {
+      "origin": "source",
+      "path": "resources/prodigi/source/canvas-float/canvas-float-natural.png",
+      "bytes": 106835,
+      "sha256": "cd1a098fb65c4089f9d232780081378318e10ced9399c41437c80075f5846190",
+      "width": 300,
+      "height": 500,
+      "mode": "RGBA",
+      "hasAlpha": true
+    },
+    {
+      "origin": "source",
+      "path": "resources/prodigi/source/canvas-float/canvas-float-white.png",
+      "bytes": 46291,
+      "sha256": "da9c8b941d7a46a3effbb42dcbbed80434c958e44c256dd3350683764e045066",
+      "width": 300,
+      "height": 500,
+      "mode": "RGBA",
+      "hasAlpha": true
+    },
+    {
+      "origin": "source",
+      "path": "resources/prodigi/source/canvas-float/prodigi-framed-canvas-photo-assets.zip",
+      "bytes": 7222162,
+      "sha256": "5aa46cf47a7be22b4bab5bc8f574c5d6e8fce3e2e803c8f6e9f59d7ea4924e80"
+    },
+    {
+      "origin": "source",
+      "path": "resources/prodigi/source/classic/Prodigi Classic frames.pdf",
+      "bytes": 635915,
+      "sha256": "6b8ab7efb48816e74943d1d1d24ad28ddcb84aff913f80cff47b05ceb3e95f27"
+    },
+    {
+      "origin": "source",
+      "path": "resources/prodigi/source/classic/classic-antique-gold.png",
+      "bytes": 87066,
+      "sha256": "6ca636d8266e5d8f3e95fa38fde7fb2f233904210888b66af44d482eee829515",
+      "width": 300,
+      "height": 500,
+      "mode": "RGBA",
+      "hasAlpha": true
+    },
+    {
+      "origin": "source",
+      "path": "resources/prodigi/source/classic/classic-antique-silver.png",
+      "bytes": 59675,
+      "sha256": "333c09ca5cb7c7f29d50ff06573418073c194eac6cace3995cc5290cddfdc619",
+      "width": 300,
+      "height": 500,
+      "mode": "RGBA",
+      "hasAlpha": true
+    },
+    {
+      "origin": "source",
+      "path": "resources/prodigi/source/classic/classic-black.png",
+      "bytes": 50845,
+      "sha256": "5958a9da9047cced25b05798b173c464a7a3d7b3756bd19fc541f6e3c12f6891",
+      "width": 300,
+      "height": 500,
+      "mode": "RGBA",
+      "hasAlpha": true
+    },
+    {
+      "origin": "source",
+      "path": "resources/prodigi/source/classic/classic-brown.png",
+      "bytes": 110773,
+      "sha256": "340adcae9a8fb3ab4c7830f927e3eb56e33387f4f5875f21bc7904a391654755",
+      "width": 300,
+      "height": 500,
+      "mode": "RGBA",
+      "hasAlpha": true
+    },
+    {
+      "origin": "source",
+      "path": "resources/prodigi/source/classic/classic-dark-grey.png",
+      "bytes": 49771,
+      "sha256": "f1829ea0350828d3189803565a5166223a8762e8882485f870dbe18e05e21a62",
+      "width": 300,
+      "height": 500,
+      "mode": "RGBA",
+      "hasAlpha": true
+    },
+    {
+      "origin": "source",
+      "path": "resources/prodigi/source/classic/classic-light-grey.png",
+      "bytes": 38567,
+      "sha256": "57a58f9f01b4fe8300a010cbc5cee4f24f114448cd649d776739df383775cdcf",
+      "width": 300,
+      "height": 500,
+      "mode": "RGBA",
+      "hasAlpha": true
+    },
+    {
+      "origin": "source",
+      "path": "resources/prodigi/source/classic/classic-natural.png",
+      "bytes": 131405,
+      "sha256": "e9afedf71507645bbfcb343ec95eb653688baaf07a51ee2779449e39ab1382d0",
+      "width": 300,
+      "height": 500,
+      "mode": "RGBA",
+      "hasAlpha": true
+    },
+    {
+      "origin": "source",
+      "path": "resources/prodigi/source/classic/classic-white.png",
+      "bytes": 37461,
+      "sha256": "481d34212ea54844b5dfaa61ef31d1b72c7448ba4320526d53ed99773b2e185e",
+      "width": 300,
+      "height": 500,
+      "mode": "RGBA",
+      "hasAlpha": true
+    },
+    {
+      "origin": "source",
+      "path": "resources/prodigi/source/classic/frame-classic-antique-gold.jpg",
+      "bytes": 2740,
+      "sha256": "eaf46eb88d38e9c7c2d9537472773971a4d121b7733ab28036733f390dad29f1",
+      "width": 100,
+      "height": 100,
+      "mode": "RGB",
+      "hasAlpha": false
+    },
+    {
+      "origin": "source",
+      "path": "resources/prodigi/source/classic/frame-classic-antique-silver.jpg",
+      "bytes": 2357,
+      "sha256": "5662d7fc8c9ff015c22ad835a4dce36a93e86d70706ef7e29d969c521533c600",
+      "width": 100,
+      "height": 100,
+      "mode": "RGB",
+      "hasAlpha": false
+    },
+    {
+      "origin": "source",
+      "path": "resources/prodigi/source/classic/frame-classic-black.png",
+      "bytes": 1047,
+      "sha256": "f94f05746a08bb8827e2c34102abae65b9fe07ebc26212c3e0205a756a79237e",
+      "width": 100,
+      "height": 100,
+      "mode": "P",
+      "hasAlpha": false
+    },
+    {
+      "origin": "source",
+      "path": "resources/prodigi/source/classic/frame-classic-brown.png",
+      "bytes": 1811,
+      "sha256": "d51c3a8cd6acf572baff422f0eb609c7c2e926f3ebd8e5dec1e388a7a99c9be2",
+      "width": 100,
+      "height": 100,
+      "mode": "RGB",
+      "hasAlpha": false
+    },
+    {
+      "origin": "source",
+      "path": "resources/prodigi/source/classic/frame-classic-dark-grey.png",
+      "bytes": 1047,
+      "sha256": "05fcf769e9a18d3def56e0a882381a7cfe59265de13af63a108933bd041e2702",
+      "width": 100,
+      "height": 100,
+      "mode": "P",
+      "hasAlpha": false
+    },
+    {
+      "origin": "source",
+      "path": "resources/prodigi/source/classic/frame-classic-light-grey.png",
+      "bytes": 1047,
+      "sha256": "6dd2dd460cde999a063e4b267a5cc83d71982478c3235232d7faea8521b007f7",
+      "width": 100,
+      "height": 100,
+      "mode": "P",
+      "hasAlpha": false
+    },
+    {
+      "origin": "source",
+      "path": "resources/prodigi/source/classic/frame-classic-natural.jpg",
+      "bytes": 2812,
+      "sha256": "b0ea338c6c89a84674b5ba461c7c4ce01430b353ec07d7b7abedd4f7a8a0b376",
+      "width": 100,
+      "height": 100,
+      "mode": "RGB",
+      "hasAlpha": false
+    },
+    {
+      "origin": "source",
+      "path": "resources/prodigi/source/classic/frame-classic-white.png",
+      "bytes": 1047,
+      "sha256": "6ba879bbeb37588315a06f337e31f4069896af83df4132bbb7af5efa2e4728e2",
+      "width": 100,
+      "height": 100,
+      "mode": "P",
+      "hasAlpha": false
+    },
+    {
+      "origin": "source",
+      "path": "resources/prodigi/source/classic/prodigi-classic-frame-blanks.zip",
+      "bytes": 4028642,
+      "sha256": "fc8f379ec6723399c8924c598c1020a0124681b0a48474899a6014a9ebfea63f"
+    },
+    {
+      "origin": "source",
+      "path": "resources/prodigi/source/classic/prodigi-classic-frames-photo-assets.zip",
+      "bytes": 7088380,
+      "sha256": "be06035f9056a5cc1b9facd5a4cb8cbb0785957ea782d99a4e380f26d2d29a1d"
+    },
+    {
+      "origin": "source",
+      "path": "resources/prodigi/source/colour-profiles/prodigi-budget-art-paper-180gsm-bap.icc",
+      "bytes": 824788,
+      "sha256": "27990010976023c3731533879ba029358b3d3e403c9b6c403946592bd41e63b0"
+    },
+    {
+      "origin": "source",
+      "path": "resources/prodigi/source/colour-profiles/prodigi-cold-press-watercolour-paper-315gsm-cpwp.icc",
+      "bytes": 884832,
+      "sha256": "58d2ab02368505dce0197bb5021c44ab0826c8492e53b664fc44c79ec2a42ec0"
+    },
+    {
+      "origin": "source",
+      "path": "resources/prodigi/source/colour-profiles/prodigi-enhanced-matt-art-paper-200gsm-ema.icc",
+      "bytes": 824816,
+      "sha256": "997a83cc0706986e74b6caf873b3039376cb86845a4657c2fb502fd586ca5036"
+    },
+    {
+      "origin": "source",
+      "path": "resources/prodigi/source/colour-profiles/prodigi-hahnemuhle-german-etching-310gsm-hge.icc",
+      "bytes": 824796,
+      "sha256": "5948bdf5050b652f429bdd6edc1583091203a310ec392f93eb79345c2cc760ef"
+    },
+    {
+      "origin": "source",
+      "path": "resources/prodigi/source/colour-profiles/prodigi-hahnemuhle-photo-rag-308gsm-hpr.icc",
+      "bytes": 824776,
+      "sha256": "b7f762c6751f78ed94e0334564db8a54d07fd8ad3612e7aede664aa327dc34cd"
+    },
+    {
+      "origin": "source",
+      "path": "resources/prodigi/source/colour-profiles/prodigi-lustre-photo-paper-240gsm-lpp.icc",
+      "bytes": 821792,
+      "sha256": "8de2378404728f576058567036b50b5bdfd14361e0b405ac375b2572ff852d8a"
+    },
+    {
+      "origin": "source",
+      "path": "resources/prodigi/source/colour-profiles/prodigi-metallic-canvas-440gsm-mc.icc",
+      "bytes": 824768,
+      "sha256": "ca2fb372fddb1641c6bab8e0dee5b71afb7215c226aea4598cc8e699c4b211f3"
+    },
+    {
+      "origin": "source",
+      "path": "resources/prodigi/source/colour-profiles/prodigi-smooth-art-paper-240gsm-sap.icc",
+      "bytes": 885000,
+      "sha256": "1b86ec667145e31a0aeb740c8623d21491eca28502efa588afab043cf6d3a11f"
+    },
+    {
+      "origin": "source",
+      "path": "resources/prodigi/source/colour-profiles/prodigi-standard-canvas-400gsm-sc.icc",
+      "bytes": 2435156,
+      "sha256": "733e2f3091f7f0a608e7abfc88fe14dada8837719400d1dc3ad4cce34c7a7dad"
+    },
+    {
+      "origin": "source",
+      "path": "resources/prodigi/source/stretched-canvas/Prodigi Stretched canvas.pdf",
+      "bytes": 83254,
+      "sha256": "019c6c7de6855d5ec357218a863b40b69cfff3bc2e9f96567909b3bedbc363af"
+    },
+    {
+      "origin": "source",
+      "path": "resources/prodigi/source/stretched-canvas/black-edge.webp",
+      "bytes": 60902,
+      "sha256": "36bb00584448623a94ddf9ada671f31745deb5d452da89d0f103eead35644f96",
+      "width": 600,
+      "height": 595,
+      "mode": "RGBA",
+      "hasAlpha": true
+    },
+    {
+      "origin": "source",
+      "path": "resources/prodigi/source/stretched-canvas/image-wrap.webp",
+      "bytes": 64416,
+      "sha256": "1a13e3889690787c7ff72fd5a3a9291f1bd9250fbc5580d4316b776e68f82da5",
+      "width": 600,
+      "height": 595,
+      "mode": "RGBA",
+      "hasAlpha": true
+    },
+    {
+      "origin": "source",
+      "path": "resources/prodigi/source/stretched-canvas/mirror-wrap.webp",
+      "bytes": 71840,
+      "sha256": "e8d36297db91deb64b5429378cad6f4b51c8fe8c00587d9a87c3c0f364f9fe4c",
+      "width": 600,
+      "height": 595,
+      "mode": "RGBA",
+      "hasAlpha": true
+    },
+    {
+      "origin": "source",
+      "path": "resources/prodigi/source/stretched-canvas/prodigi-stretched-canvas-photo-assets.zip",
+      "bytes": 5558988,
+      "sha256": "eba92da08a39b7ec2dfbe69385c0fea09869f0a8af4b27f405920a715437dfea"
+    },
+    {
+      "origin": "source",
+      "path": "resources/prodigi/source/stretched-canvas/white-edge.webp",
+      "bytes": 60866,
+      "sha256": "fcd3ba3ffb27b06b0cee63cda9e9c87afab35472a8a9731e4d91a08eb52cfbe4",
+      "width": 600,
+      "height": 595,
+      "mode": "RGBA",
+      "hasAlpha": true
+    },
+    {
+      "origin": "extracted",
+      "path": "resources/prodigi/extracted/aluminium/prodigi-aluminium-frames-blank-assets/Aluminium frames/Prodigi-black-aluminium-blank.jpg",
+      "bytes": 141349,
+      "sha256": "bebcf5119a9ee91512c3e1e2c4395f2d41e94b47b5f5667ff115a2b354901068",
+      "width": 1000,
+      "height": 1000,
+      "mode": "RGB",
+      "hasAlpha": false
+    },
+    {
+      "origin": "extracted",
+      "path": "resources/prodigi/extracted/aluminium/prodigi-aluminium-frames-blank-assets/Aluminium frames/Prodigi-gold-aluminium-frame-blank.jpg",
+      "bytes": 528402,
+      "sha256": "42fb8bee26a8356f878e0e5d0dd8bde13e67cdea6160b02609739dec3946f3df",
+      "width": 2000,
+      "height": 2000,
+      "mode": "RGB",
+      "hasAlpha": false
+    },
+    {
+      "origin": "extracted",
+      "path": "resources/prodigi/extracted/aluminium/prodigi-aluminium-frames-blank-assets/Aluminium frames/Prodigi-silver-aluminium-frame-blank.jpg",
+      "bytes": 195639,
+      "sha256": "745478f267c63fc462d60f04b99a59fe97d9cf7fdb7848ead7520ae746b55b76",
+      "width": 1000,
+      "height": 1000,
+      "mode": "RGB",
+      "hasAlpha": false
+    },
+    {
+      "origin": "extracted",
+      "path": "resources/prodigi/extracted/box/prodigi-box-frames-photo-assets/Black mount.jpg",
+      "bytes": 340496,
+      "sha256": "50d11e7d21a3a7bb15668401dd3f1e2f2d1de7e1bbf2c49d1680a07e0e9b5af5",
+      "width": 1500,
+      "height": 1500,
+      "mode": "RGB",
+      "hasAlpha": false
+    },
+    {
+      "origin": "extracted",
+      "path": "resources/prodigi/extracted/box/prodigi-box-frames-photo-assets/Box black framed print chevron.jpg",
+      "bytes": 179313,
+      "sha256": "7857b526ec94f5d88dbcab6327e085a96d345edd2195c3d79fd55f405ff212ff",
+      "width": 2000,
+      "height": 2000,
+      "mode": "RGB",
+      "hasAlpha": false
+    },
+    {
+      "origin": "extracted",
+      "path": "resources/prodigi/extracted/box/prodigi-box-frames-photo-assets/Box black framed print end on.jpg",
+      "bytes": 206322,
+      "sha256": "cbacc7374c50b510eb3082236ec4a66e3f1f91d049314eb37c1d8c85e1fcad95",
+      "width": 2000,
+      "height": 1333,
+      "mode": "RGB",
+      "hasAlpha": false
+    },
+    {
+      "origin": "extracted",
+      "path": "resources/prodigi/extracted/box/prodigi-box-frames-photo-assets/Box black framed print face on.jpg",
+      "bytes": 601321,
+      "sha256": "b72ea8dea75f0b8db37dc70718851250dea53b4bbe40a4e341339864c1829ecc",
+      "width": 2000,
+      "height": 2000,
+      "mode": "RGB",
+      "hasAlpha": false
+    },
+    {
+      "origin": "extracted",
+      "path": "resources/prodigi/extracted/box/prodigi-box-frames-photo-assets/Box black framed print near corner.jpg",
+      "bytes": 462249,
+      "sha256": "ab391a14a5e49c5b0ddac68b312006bd1f3a29969a4a2ffdc0ad356f82378dc9",
+      "width": 2000,
+      "height": 1500,
+      "mode": "RGB",
+      "hasAlpha": false
+    },
+    {
+      "origin": "extracted",
+      "path": "resources/prodigi/extracted/box/prodigi-box-frames-photo-assets/Box brown framed print chevron.jpg",
+      "bytes": 217014,
+      "sha256": "dfbdf212f3a5086ed64bdb95490600304c9cf2450a42e54418d92e6ad964ae18",
+      "width": 2000,
+      "height": 2000,
+      "mode": "RGB",
+      "hasAlpha": false
+    },
+    {
+      "origin": "extracted",
+      "path": "resources/prodigi/extracted/box/prodigi-box-frames-photo-assets/Box brown framed print near corner no mount.jpg",
+      "bytes": 387975,
+      "sha256": "cf7366e319b009922d5c6ea54738337bd935506a0e112c420958b58222436449",
+      "width": 2000,
+      "height": 1400,
+      "mode": "RGB",
+      "hasAlpha": false
+    },
+    {
+      "origin": "extracted",
+      "path": "resources/prodigi/extracted/box/prodigi-box-frames-photo-assets/Box frame cross-section.png",
+      "bytes": 20791,
+      "sha256": "06137b075b11194c9af22a8f0381669bf9f0b37d247b32b61893bff35428440b",
+      "width": 604,
+      "height": 919,
+      "mode": "RGBA",
+      "hasAlpha": true
+    },
+    {
+      "origin": "extracted",
+      "path": "resources/prodigi/extracted/box/prodigi-box-frames-photo-assets/Box framed print chevrons.jpg",
+      "bytes": 379496,
+      "sha256": "a935c37759ef9ea68ae3161099de97adb90747d20406cea9f46efb116165ce0f",
+      "width": 2000,
+      "height": 1289,
+      "mode": "RGB",
+      "hasAlpha": false
+    },
+    {
+      "origin": "extracted",
+      "path": "resources/prodigi/extracted/box/prodigi-box-frames-photo-assets/Box natural framed print chevron.jpg",
+      "bytes": 228139,
+      "sha256": "c4c91439249b487d696a76fbb81680c1a5db266e08c5446472663aadb9c5fa70",
+      "width": 2000,
+      "height": 2000,
+      "mode": "RGB",
+      "hasAlpha": false
+    },
+    {
+      "origin": "extracted",
+      "path": "resources/prodigi/extracted/box/prodigi-box-frames-photo-assets/Box white framed print chevron.jpg",
+      "bytes": 142545,
+      "sha256": "84c61adea62ceed2de0a5cb7f52559c66453940080936d6308f1b979ad247922",
+      "width": 2000,
+      "height": 2000,
+      "mode": "RGB",
+      "hasAlpha": false
+    },
+    {
+      "origin": "extracted",
+      "path": "resources/prodigi/extracted/box/prodigi-box-frames-photo-assets/Off-white mount.jpg",
+      "bytes": 303646,
+      "sha256": "b36c7ae6589fd75f1d21dd97b187ac55312c72fe84f429106e6d75f03eb865e5",
+      "width": 1500,
+      "height": 1500,
+      "mode": "RGB",
+      "hasAlpha": false
+    },
+    {
+      "origin": "extracted",
+      "path": "resources/prodigi/extracted/box/prodigi-box-frames-photo-assets/Snow white mount.jpg",
+      "bytes": 181925,
+      "sha256": "fdf94d879d59f8df430ef6f067f9c4b082177cc4ba4e305ef560c7129d347573",
+      "width": 1500,
+      "height": 1500,
+      "mode": "RGB",
+      "hasAlpha": false
+    },
+    {
+      "origin": "extracted",
+      "path": "resources/prodigi/extracted/canvas-float/prodigi-framed-canvas-photo-assets/Black framed canvas near corner.jpg",
+      "bytes": 1033182,
+      "sha256": "5f943fa4888501dfd03905add92cfe69b15e9858ac91f0daa75dfb5a8c66a77d",
+      "width": 2000,
+      "height": 1500,
+      "mode": "RGB",
+      "hasAlpha": false
+    },
+    {
+      "origin": "extracted",
+      "path": "resources/prodigi/extracted/canvas-float/prodigi-framed-canvas-photo-assets/Brown framed canvas far corner.jpg",
+      "bytes": 720437,
+      "sha256": "fb80daba7874d3835544b901a98fecd51391f877b7d1418c85e9eeef2189a75f",
+      "width": 2000,
+      "height": 1500,
+      "mode": "RGB",
+      "hasAlpha": false
+    },
+    {
+      "origin": "extracted",
+      "path": "resources/prodigi/extracted/canvas-float/prodigi-framed-canvas-photo-assets/Brown framed canvas near corner.jpg",
+      "bytes": 465452,
+      "sha256": "c488be1ca48c565aec0d46ec375ff9e7dfc8902a317a9eb3fee2ab95fd568ee1",
+      "width": 2000,
+      "height": 1500,
+      "mode": "RGB",
+      "hasAlpha": false
+    },
+    {
+      "origin": "extracted",
+      "path": "resources/prodigi/extracted/canvas-float/prodigi-framed-canvas-photo-assets/Canvas framed black angled.jpg",
+      "bytes": 288837,
+      "sha256": "731cc5541f3661285cde3059366232043331bfc6bb92c0c7b07b4e20138373f0",
+      "width": 2000,
+      "height": 2000,
+      "mode": "RGB",
+      "hasAlpha": false
+    },
+    {
+      "origin": "extracted",
+      "path": "resources/prodigi/extracted/canvas-float/prodigi-framed-canvas-photo-assets/Canvas framed black end-on.jpg",
+      "bytes": 223649,
+      "sha256": "f4bf8ab16464aea2ffed5bbe2142ca4316b10dc12e98f5fe770fab5b2e5c58f4",
+      "width": 2000,
+      "height": 2000,
+      "mode": "RGB",
+      "hasAlpha": false
+    },
+    {
+      "origin": "extracted",
+      "path": "resources/prodigi/extracted/canvas-float/prodigi-framed-canvas-photo-assets/Canvas framed black rear.jpg",
+      "bytes": 471684,
+      "sha256": "5f78cf6bb0ac4d364d5504bd28207d38f7e154d357fb6a9d630fcee0ff090288",
+      "width": 2000,
+      "height": 2000,
+      "mode": "RGB",
+      "hasAlpha": false
+    },
+    {
+      "origin": "extracted",
+      "path": "resources/prodigi/extracted/canvas-float/prodigi-framed-canvas-photo-assets/Canvas framed black wall.jpg",
+      "bytes": 436096,
+      "sha256": "1aca6336a9524cf340fcf6fc2d5e225619676f7e10c8e5ddb858497bd5ffbee0",
+      "width": 2000,
+      "height": 2000,
+      "mode": "RGB",
+      "hasAlpha": false
+    },
+    {
+      "origin": "extracted",
+      "path": "resources/prodigi/extracted/canvas-float/prodigi-framed-canvas-photo-assets/Canvas framed white angled.jpg",
+      "bytes": 256693,
+      "sha256": "7b7f6ac024ced90bb548994b8065c7335fc914c1985c1f67f11aa25780061db8",
+      "width": 2000,
+      "height": 2000,
+      "mode": "RGB",
+      "hasAlpha": false
+    },
+    {
+      "origin": "extracted",
+      "path": "resources/prodigi/extracted/canvas-float/prodigi-framed-canvas-photo-assets/Canvas framed white end-on.jpg",
+      "bytes": 194086,
+      "sha256": "ac7a3b82937499318a2bb347d2c11133d084d33bb47dc1cbdc77bcc364ad563b",
+      "width": 2000,
+      "height": 2000,
+      "mode": "RGB",
+      "hasAlpha": false
+    },
+    {
+      "origin": "extracted",
+      "path": "resources/prodigi/extracted/canvas-float/prodigi-framed-canvas-photo-assets/Canvas framed white rear.jpg",
+      "bytes": 497279,
+      "sha256": "780b22e2ef56d2e101f2b22f78bcc4ed86cf9711e99b76b867cbf76cb390501c",
+      "width": 2000,
+      "height": 2000,
+      "mode": "RGB",
+      "hasAlpha": false
+    },
+    {
+      "origin": "extracted",
+      "path": "resources/prodigi/extracted/canvas-float/prodigi-framed-canvas-photo-assets/Canvas framed white wall.jpg",
+      "bytes": 389996,
+      "sha256": "70060ced8157255cbc5d6d5fa06af3ece477652a47ab4733c3d0a363b8314f0f",
+      "width": 2000,
+      "height": 2000,
+      "mode": "RGB",
+      "hasAlpha": false
+    },
+    {
+      "origin": "extracted",
+      "path": "resources/prodigi/extracted/canvas-float/prodigi-framed-canvas-photo-assets/Float frame black chevron.jpg",
+      "bytes": 282965,
+      "sha256": "1ebb80a87673927cc5c219b9a4a5a1127d9e78b85f4360ec1b138ee20fdef476",
+      "width": 2000,
+      "height": 1500,
+      "mode": "RGB",
+      "hasAlpha": false
+    },
+    {
+      "origin": "extracted",
+      "path": "resources/prodigi/extracted/canvas-float/prodigi-framed-canvas-photo-assets/Float frame brown chevron.jpg",
+      "bytes": 253340,
+      "sha256": "5b2e7e2e6d4e99be9e59586e5317e2257a23a5227d9c0e73ed75138a6b02dce0",
+      "width": 2000,
+      "height": 2000,
+      "mode": "RGB",
+      "hasAlpha": false
+    },
+    {
+      "origin": "extracted",
+      "path": "resources/prodigi/extracted/canvas-float/prodigi-framed-canvas-photo-assets/Float frame white chevron.jpg",
+      "bytes": 222476,
+      "sha256": "f1a5fbdb141b1413943da9b8418759668a1b913baf33e78970c1241d0164c732",
+      "width": 2000,
+      "height": 1500,
+      "mode": "RGB",
+      "hasAlpha": false
+    },
+    {
+      "origin": "extracted",
+      "path": "resources/prodigi/extracted/canvas-float/prodigi-framed-canvas-photo-assets/Framed canvas cross-section.png",
+      "bytes": 16639,
+      "sha256": "2537b8243a291896e92b981fc888a69bce1491164de5289fe73ca40d78d2829c",
+      "width": 400,
+      "height": 482,
+      "mode": "RGBA",
+      "hasAlpha": true
+    },
+    {
+      "origin": "extracted",
+      "path": "resources/prodigi/extracted/canvas-float/prodigi-framed-canvas-photo-assets/White framed canvas far corner.jpg",
+      "bytes": 574917,
+      "sha256": "dcee904dad4037b90c2ff9273c79b2eb1ffe525e9fc02e1ddaa0b33665bcaeb7",
+      "width": 2000,
+      "height": 1400,
+      "mode": "RGB",
+      "hasAlpha": false
+    },
+    {
+      "origin": "extracted",
+      "path": "resources/prodigi/extracted/canvas-float/prodigi-framed-canvas-photo-assets/White framed canvas.jpg",
+      "bytes": 2041853,
+      "sha256": "d28836cf7ee736a6acc9eb69fa98f1595b3c6c2efdf7ed8c74f68291991d7392",
+      "width": 1884,
+      "height": 2000,
+      "mode": "RGB",
+      "hasAlpha": false
+    },
+    {
+      "origin": "extracted",
+      "path": "resources/prodigi/extracted/classic/prodigi-classic-frame-blanks/Black classic frame_blank.png",
+      "bytes": 194505,
+      "sha256": "ac6783c6aa1312af21716b9f2a982aa0a9996062dede307ad70398eb95017e43",
+      "width": 2500,
+      "height": 2500,
+      "mode": "RGBA",
+      "hasAlpha": true
+    },
+    {
+      "origin": "extracted",
+      "path": "resources/prodigi/extracted/classic/prodigi-classic-frame-blanks/Brown classic frame_blank.jpg",
+      "bytes": 906619,
+      "sha256": "fc01d96ea8ec0b6026eecb783064938877d8bf1f2e2ce7defe88421681ab42fa",
+      "width": 2000,
+      "height": 2000,
+      "mode": "RGB",
+      "hasAlpha": false
+    },
+    {
+      "origin": "extracted",
+      "path": "resources/prodigi/extracted/classic/prodigi-classic-frame-blanks/Dark grey classic frame_blank.jpg",
+      "bytes": 795074,
+      "sha256": "53ef0c38be49faf518f485d76e7986e8e62bfe33664843212cc844436bbf56b6",
+      "width": 2000,
+      "height": 2000,
+      "mode": "RGB",
+      "hasAlpha": false
+    },
+    {
+      "origin": "extracted",
+      "path": "resources/prodigi/extracted/classic/prodigi-classic-frame-blanks/Gold Classic Frame_blank.png",
+      "bytes": 455235,
+      "sha256": "0735c57bb701d0a22bc8316197cba4f156e076cf867bd28268f3e66a48c53661",
+      "width": 2000,
+      "height": 2000,
+      "mode": "RGBA",
+      "hasAlpha": true
+    },
+    {
+      "origin": "extracted",
+      "path": "resources/prodigi/extracted/classic/prodigi-classic-frame-blanks/Light grey classic frame_blank.jpg",
+      "bytes": 730845,
+      "sha256": "0377404cbf4dc7ec636216c1d5508eef0488f28becd63d2852e4992e771e4f64",
+      "width": 2000,
+      "height": 2000,
+      "mode": "RGB",
+      "hasAlpha": false
+    },
+    {
+      "origin": "extracted",
+      "path": "resources/prodigi/extracted/classic/prodigi-classic-frame-blanks/Natural classic frame_blank.png",
+      "bytes": 890799,
+      "sha256": "adf728a3eb722d97073907eed3e0c678d2758354c470aa4ead04510bc764bd07",
+      "width": 2500,
+      "height": 2500,
+      "mode": "RGBA",
+      "hasAlpha": true
+    },
+    {
+      "origin": "extracted",
+      "path": "resources/prodigi/extracted/classic/prodigi-classic-frame-blanks/Silver Classic Frame_blank.png",
+      "bytes": 549265,
+      "sha256": "44b877a26497a5b5407fe6de527b2e725ab6bb3e2377d4bf5f60136c03e6fa4f",
+      "width": 2000,
+      "height": 2000,
+      "mode": "RGBA",
+      "hasAlpha": true
+    },
+    {
+      "origin": "extracted",
+      "path": "resources/prodigi/extracted/classic/prodigi-classic-frame-blanks/White classic frame_blank.png",
+      "bytes": 199308,
+      "sha256": "398607c2b6a41df1fbe404d8c3d72265f02476080dab43d629ea2ba0f11e4ce5",
+      "width": 2500,
+      "height": 2500,
+      "mode": "RGBA",
+      "hasAlpha": true
+    },
+    {
+      "origin": "extracted",
+      "path": "resources/prodigi/extracted/classic/prodigi-classic-frames-photo-assets/Black mount.jpg",
+      "bytes": 340496,
+      "sha256": "50d11e7d21a3a7bb15668401dd3f1e2f2d1de7e1bbf2c49d1680a07e0e9b5af5",
+      "width": 1500,
+      "height": 1500,
+      "mode": "RGB",
+      "hasAlpha": false
+    },
+    {
+      "origin": "extracted",
+      "path": "resources/prodigi/extracted/classic/prodigi-classic-frames-photo-assets/Brown classic frame_blank.jpg",
+      "bytes": 906619,
+      "sha256": "fc01d96ea8ec0b6026eecb783064938877d8bf1f2e2ce7defe88421681ab42fa",
+      "width": 2000,
+      "height": 2000,
+      "mode": "RGB",
+      "hasAlpha": false
+    },
+    {
+      "origin": "extracted",
+      "path": "resources/prodigi/extracted/classic/prodigi-classic-frames-photo-assets/Classic Antique Gold Frame_blank.png",
+      "bytes": 455235,
+      "sha256": "0735c57bb701d0a22bc8316197cba4f156e076cf867bd28268f3e66a48c53661",
+      "width": 2000,
+      "height": 2000,
+      "mode": "RGBA",
+      "hasAlpha": true
+    },
+    {
+      "origin": "extracted",
+      "path": "resources/prodigi/extracted/classic/prodigi-classic-frames-photo-assets/Classic Antique Silver Frame_blank.png",
+      "bytes": 549265,
+      "sha256": "44b877a26497a5b5407fe6de527b2e725ab6bb3e2377d4bf5f60136c03e6fa4f",
+      "width": 2000,
+      "height": 2000,
+      "mode": "RGBA",
+      "hasAlpha": true
+    },
+    {
+      "origin": "extracted",
+      "path": "resources/prodigi/extracted/classic/prodigi-classic-frames-photo-assets/Classic antique gold frame chevron.jpg",
+      "bytes": 812597,
+      "sha256": "b6e35606616bfa95c10c243cc15db6becbfc70645865a389b4e5b64742de85ea",
+      "width": 2000,
+      "height": 2000,
+      "mode": "RGB",
+      "hasAlpha": false
+    },
+    {
+      "origin": "extracted",
+      "path": "resources/prodigi/extracted/classic/prodigi-classic-frames-photo-assets/Classic antique silver frame chevron.jpg",
+      "bytes": 112601,
+      "sha256": "15ae5d23accf76f0ffb8814ba677f73d37f7cdf7f4bc3cb3ddac6c0fddc3ef65",
+      "width": 2000,
+      "height": 2000,
+      "mode": "RGB",
+      "hasAlpha": false
+    },
+    {
+      "origin": "extracted",
+      "path": "resources/prodigi/extracted/classic/prodigi-classic-frames-photo-assets/Classic black frame chevron.jpg",
+      "bytes": 120592,
+      "sha256": "da99f3a7f1298bd2b27f42f6fc33828665f13e1d5eef9b893297912d80ec9f18",
+      "width": 2000,
+      "height": 2000,
+      "mode": "RGB",
+      "hasAlpha": false
+    },
+    {
+      "origin": "extracted",
+      "path": "resources/prodigi/extracted/classic/prodigi-classic-frames-photo-assets/Classic black framed print corner no mount.jpg",
+      "bytes": 153352,
+      "sha256": "d111dfdf44fd952ba397451844eb46fbdd24a5a52c2e743067d5e7516f87c5b8",
+      "width": 2000,
+      "height": 1333,
+      "mode": "RGB",
+      "hasAlpha": false
+    },
+    {
+      "origin": "extracted",
+      "path": "resources/prodigi/extracted/classic/prodigi-classic-frames-photo-assets/Classic black framed print flat.jpg",
+      "bytes": 271102,
+      "sha256": "7f5cac212e4a0d7ebe50398d18a76f7cad01fe3318df1c638711098daef481eb",
+      "width": 2000,
+      "height": 2000,
+      "mode": "RGB",
+      "hasAlpha": false
+    },
+    {
+      "origin": "extracted",
+      "path": "resources/prodigi/extracted/classic/prodigi-classic-frames-photo-assets/Classic black framed print near corner.jpg",
+      "bytes": 376907,
+      "sha256": "6c20c8f33a8d9eb9e0fb4d12ecdb8a09dbf41054943932908fc2c212976bc546",
+      "width": 2000,
+      "height": 1500,
+      "mode": "RGB",
+      "hasAlpha": false
+    },
+    {
+      "origin": "extracted",
+      "path": "resources/prodigi/extracted/classic/prodigi-classic-frames-photo-assets/Classic framed print far corner.jpg",
+      "bytes": 250259,
+      "sha256": "8c143eba22c477d613c7b70b86a259d42633bfd0e0d3789650bd3f448e81c34d",
+      "width": 2000,
+      "height": 1400,
+      "mode": "RGB",
+      "hasAlpha": false
+    },
+    {
+      "origin": "extracted",
+      "path": "resources/prodigi/extracted/classic/prodigi-classic-frames-photo-assets/Classic natural frame chevron.jpg",
+      "bytes": 213034,
+      "sha256": "1263fd2e6640ade614a453524f3cfae8be7e9cf88a8c7f9d0ca8ccfdd58d9c9d",
+      "width": 2000,
+      "height": 2000,
+      "mode": "RGB",
+      "hasAlpha": false
+    },
+    {
+      "origin": "extracted",
+      "path": "resources/prodigi/extracted/classic/prodigi-classic-frames-photo-assets/Classic white frame chevron.jpg",
+      "bytes": 68658,
+      "sha256": "9e62b0df2ce5fe097cafc3d6ebaa6d69416a68805202ca9e2d3cbc69e57f0b01",
+      "width": 2000,
+      "height": 2000,
+      "mode": "RGB",
+      "hasAlpha": false
+    },
+    {
+      "origin": "extracted",
+      "path": "resources/prodigi/extracted/classic/prodigi-classic-frames-photo-assets/Classic white framed print flat no mount.jpg",
+      "bytes": 211599,
+      "sha256": "bda7be179271985dc6ddf5db929c5e71f1c67ae16668b0f571f731c7afaa542c",
+      "width": 2000,
+      "height": 1541,
+      "mode": "RGB",
+      "hasAlpha": false
+    },
+    {
+      "origin": "extracted",
+      "path": "resources/prodigi/extracted/classic/prodigi-classic-frames-photo-assets/Dark grey classic frame_blank.jpg",
+      "bytes": 795074,
+      "sha256": "53ef0c38be49faf518f485d76e7986e8e62bfe33664843212cc844436bbf56b6",
+      "width": 2000,
+      "height": 2000,
+      "mode": "RGB",
+      "hasAlpha": false
+    },
+    {
+      "origin": "extracted",
+      "path": "resources/prodigi/extracted/classic/prodigi-classic-frames-photo-assets/Light grey classic frame_blank.jpg",
+      "bytes": 730845,
+      "sha256": "0377404cbf4dc7ec636216c1d5508eef0488f28becd63d2852e4992e771e4f64",
+      "width": 2000,
+      "height": 2000,
+      "mode": "RGB",
+      "hasAlpha": false
+    },
+    {
+      "origin": "extracted",
+      "path": "resources/prodigi/extracted/classic/prodigi-classic-frames-photo-assets/Off-white mount.jpg",
+      "bytes": 303646,
+      "sha256": "b36c7ae6589fd75f1d21dd97b187ac55312c72fe84f429106e6d75f03eb865e5",
+      "width": 1500,
+      "height": 1500,
+      "mode": "RGB",
+      "hasAlpha": false
+    },
+    {
+      "origin": "extracted",
+      "path": "resources/prodigi/extracted/classic/prodigi-classic-frames-photo-assets/Prodigi-classic-frame-back.jpg",
+      "bytes": 1361970,
+      "sha256": "66b80d5f60a7a62d190b30edebbacf6b69aefcdaa7548ddbca6547cceef351cc",
+      "width": 2000,
+      "height": 2000,
+      "mode": "RGB",
+      "hasAlpha": false
+    },
+    {
+      "origin": "extracted",
+      "path": "resources/prodigi/extracted/classic/prodigi-classic-frames-photo-assets/Snow white mount.jpg",
+      "bytes": 181925,
+      "sha256": "fdf94d879d59f8df430ef6f067f9c4b082177cc4ba4e305ef560c7129d347573",
+      "width": 1500,
+      "height": 1500,
+      "mode": "RGB",
+      "hasAlpha": false
+    },
+    {
+      "origin": "extracted",
+      "path": "resources/prodigi/extracted/classic/prodigi-classic-frames-photo-assets/classic-brown-chevron.jpg",
+      "bytes": 77814,
+      "sha256": "81110b02074a9c0a47082da3aab949a5e940bfb9c84bc48951c929b4baa14ea3",
+      "width": 300,
+      "height": 500,
+      "mode": "RGB",
+      "hasAlpha": false
+    },
+    {
+      "origin": "extracted",
+      "path": "resources/prodigi/extracted/classic/prodigi-classic-frames-photo-assets/classic-dark-grey-chevron.jpg",
+      "bytes": 53284,
+      "sha256": "3b3993c6d5b51274e7e475f20b2022557c6cac3e8fa0cca5593a8cf9962b0aa5",
+      "width": 300,
+      "height": 500,
+      "mode": "RGB",
+      "hasAlpha": false
+    },
+    {
+      "origin": "extracted",
+      "path": "resources/prodigi/extracted/classic/prodigi-classic-frames-photo-assets/classic-light-grey-chevron.jpg",
+      "bytes": 43471,
+      "sha256": "1d8602c94d568e4b72bacd3bba4710b0d7dbf55fd1bc7c5b5c37e44dd78729f4",
+      "width": 300,
+      "height": 500,
+      "mode": "RGB",
+      "hasAlpha": false
+    },
+    {
+      "origin": "extracted",
+      "path": "resources/prodigi/extracted/stretched-canvas/prodigi-stretched-canvas-photo-assets/Black wrap on a 38mm stretched canvas.jpg",
+      "bytes": 516444,
+      "sha256": "87b489986723313b66b345e4f67c45ebb109a23cf1e3802bc7d7898c0fcbb0cc",
+      "width": 2000,
+      "height": 1333,
+      "mode": "RGB",
+      "hasAlpha": false
+    },
+    {
+      "origin": "extracted",
+      "path": "resources/prodigi/extracted/stretched-canvas/prodigi-stretched-canvas-photo-assets/Canvas-substrate-texture.jpg",
+      "bytes": 491698,
+      "sha256": "a82b0af8bbb6a07b866ca30bfc49df39629c0a9f0cc6fa87aa4f045adbb79b16",
+      "width": 2000,
+      "height": 1501,
+      "mode": "RGB",
+      "hasAlpha": false
+    },
+    {
+      "origin": "extracted",
+      "path": "resources/prodigi/extracted/stretched-canvas/prodigi-stretched-canvas-photo-assets/Image wrap on a 38mm stretched canvas.jpg",
+      "bytes": 563180,
+      "sha256": "c55e138cc5b89284a3bc0c22b06fe6035b60f25ac270a6e92651ae48278631e8",
+      "width": 2000,
+      "height": 1333,
+      "mode": "RGB",
+      "hasAlpha": false
+    },
+    {
+      "origin": "extracted",
+      "path": "resources/prodigi/extracted/stretched-canvas/prodigi-stretched-canvas-photo-assets/Mirror wrap on a 38mm stretched canvas.jpg",
+      "bytes": 583611,
+      "sha256": "96e35c6c37073458267418f34d1a2d22afb5670c4190d3b87c976d056d68c687",
+      "width": 2000,
+      "height": 1333,
+      "mode": "RGB",
+      "hasAlpha": false
+    },
+    {
+      "origin": "extracted",
+      "path": "resources/prodigi/extracted/stretched-canvas/prodigi-stretched-canvas-photo-assets/Prodigi-global-canvas-8x10-blank.jpg",
+      "bytes": 1159730,
+      "sha256": "5d47f20435191e215105680373927b024e1cb44eff2ab497f88b5b6487fa09c9",
+      "width": 2000,
+      "height": 2000,
+      "mode": "RGB",
+      "hasAlpha": false
+    },
+    {
+      "origin": "extracted",
+      "path": "resources/prodigi/extracted/stretched-canvas/prodigi-stretched-canvas-photo-assets/Stretched 38mm canvas corner.jpg",
+      "bytes": 589303,
+      "sha256": "1dad2da5aa6a5a5347111c76529821f97671421bcbfffddefe0bda0bf1926cbe",
+      "width": 2000,
+      "height": 1370,
+      "mode": "RGB",
+      "hasAlpha": false
+    },
+    {
+      "origin": "extracted",
+      "path": "resources/prodigi/extracted/stretched-canvas/prodigi-stretched-canvas-photo-assets/Stretched 38mm canvas.jpg",
+      "bytes": 850373,
+      "sha256": "730787e458ac5159fb189d96c8b6970664a1bd603993b8fc6d0ba7cafa467895",
+      "width": 2000,
+      "height": 1758,
+      "mode": "RGB",
+      "hasAlpha": false
+    },
+    {
+      "origin": "extracted",
+      "path": "resources/prodigi/extracted/stretched-canvas/prodigi-stretched-canvas-photo-assets/White edge 38mm canvas.jpg",
+      "bytes": 553948,
+      "sha256": "d983994cb1f6c6de74a0c19991be99b077e09c86a31cb2382be9407dc394a500",
+      "width": 2000,
+      "height": 2000,
+      "mode": "RGB",
+      "hasAlpha": false
+    },
+    {
+      "origin": "extracted",
+      "path": "resources/prodigi/extracted/stretched-canvas/prodigi-stretched-canvas-photo-assets/White wrap on a 38mm stretched canvas.jpg",
+      "bytes": 473584,
+      "sha256": "0f619a5564adfc28b19a592968f1ec516b0f6c8fcbbe7bcd2fa101f911e3efe9",
+      "width": 2000,
+      "height": 1333,
+      "mode": "RGB",
+      "hasAlpha": false
+    }
+  ]
+}

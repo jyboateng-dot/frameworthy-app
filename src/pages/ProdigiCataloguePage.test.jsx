@@ -21,7 +21,8 @@ describe('ProdigiCataloguePage', () => {
 
         await user.selectOptions(screen.getByLabelText('Shipping to'), 'GB');
         expect(screen.getByLabelText('Shipping to')).toHaveValue('GB');
-        expect(screen.getByText(/Prodigi’s listed currency is shown/)).toBeInTheDocument();
+        expect(screen.getByText(/Listed currency is shown/)).toBeInTheDocument();
+        expect(screen.queryByText(/Prodigi/i)).not.toBeInTheDocument();
     });
 
     it('exposes the sourced mounted box and canvas wrap choices', async () => {
@@ -37,7 +38,7 @@ describe('ProdigiCataloguePage', () => {
         expect(screen.getByRole('button', { name: 'Image wrap' })).toHaveAttribute('aria-pressed', 'true');
     });
 
-    it('shows Prodigi product photos, colour-specific finish thumbnails and sourced dimensions', async () => {
+    it('shows product photos, colour-specific finish thumbnails and sourced dimensions', async () => {
         const user = userEvent.setup();
         renderCatalogue();
 
@@ -45,11 +46,11 @@ describe('ProdigiCataloguePage', () => {
         expect(screen.getByText('Depth from wall')).toBeInTheDocument();
         expect(screen.getByText('33 mm')).toBeInTheDocument();
         expect(screen.getByRole('img', { name: /natural finish — frame finish detail/i }))
-            .toHaveAttribute('src', expect.stringContaining('Box%20natural%20framed%20print%20chevron.jpg'));
+            .toHaveAttribute('src', '/prodigi/finishes/box-natural.png');
 
         await user.click(screen.getByRole('button', { name: 'Show side profile' }));
         expect(screen.getByRole('img', { name: /side profile/i }))
-            .toHaveAttribute('src', expect.stringContaining('Box%20black%20framed%20print%20end%20on.jpg'));
+            .toHaveAttribute('src', '/prodigi/views/box-profile.jpg');
     });
 
     it('shows the 38 mm stretched-canvas variants, four edge finishes, photography and product assets', async () => {
@@ -64,7 +65,7 @@ describe('ProdigiCataloguePage', () => {
         expect(screen.getByRole('button', { name: 'Black edge' })).toBeInTheDocument();
         expect(screen.getByRole('button', { name: 'White edge' })).toBeInTheDocument();
         expect(screen.getByRole('img', { name: /Stretched canvas · 38 mm — Product view/i }))
-            .toHaveAttribute('src', expect.stringContaining('Stretched%2038mm%20canvas.jpg'));
+            .toHaveAttribute('src', '/prodigi/views/stretched-canvas-product.jpg');
         expect(screen.getByRole('button', { name: 'Show canvas texture' })).toBeInTheDocument();
         expect(screen.getByRole('button', { name: 'Show blank canvas mockup' })).toBeInTheDocument();
         expect(within(screen.getByRole('group', { name: 'Frame visualizer views' })).getAllByRole('button')).toHaveLength(9);

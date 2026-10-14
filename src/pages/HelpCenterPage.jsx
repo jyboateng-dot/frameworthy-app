@@ -72,28 +72,28 @@ const FAQ_DATA = [
         questions: [
             {
                 q: 'How long does production and delivery take?',
-                a: 'Every frame is handcrafted locally, so please allow 5 to 7 business days from order to delivery: 3 to 5 business days for production, plus 1 to 3 business days for delivery within Ghana depending on your location.'
+                a: 'Each product is made to order. The live quote and checkout show the current delivery estimate for the selected product and destination.'
             },
             {
                 q: 'How are delivery fees calculated and paid?',
-                a: 'Delivery fees are calculated based on your location and the size of your framed artwork. To ensure transparency, delivery is billed separately and paid directly to our courier partner upon arrival.'
+                a: 'Standard delivery and applicable tax are included in the live GBP quote shown in the customizer.'
             },
             {
                 q: 'Where do you deliver?',
-                a: 'We currently deliver across all major regions and cities in Ghana.'
+                a: 'The current collection is available for delivery in the United Kingdom and Jersey.'
             }
         ]
     },
     {
-        category: 'Payments & Paystack',
+        category: 'Payments',
         questions: [
             {
                 q: 'What payment methods do you accept?',
-                a: 'We accept payments in Ghanaian Cedis (GHS) via Paystack. You can pay securely using MTN Mobile Money, Telecel Cash, AT Money, or any Visa/Mastercard.'
+                a: 'Prices are currently quoted in Pounds Sterling (GBP). Online payment is being connected, so checkout clearly shows when payment is not yet available.'
             },
             {
                 q: 'Is my payment information secure?',
-                a: 'Yes, 100%. All transactions are processed through Paystack using bank-level encryption. FrameWorthy never sees or stores your card details, CVV, or Mobile Money PIN.'
+                a: 'FrameWorthy will use a secure payment provider and will never store your full card details or security code.'
             }
         ]
     },
@@ -110,7 +110,7 @@ const FAQ_DATA = [
             },
             {
                 q: 'What if my frame arrives damaged or defective?',
-                a: 'If your item arrives damaged or incorrect, please notify us within 72 hours with photos of the issue. We will arrange a free replacement or a full refund back to your original payment method via Paystack.'
+                a: 'If your item arrives damaged or incorrect, please notify us within 72 hours with photos of the issue. We will arrange a free replacement or a full refund back to your original payment method.'
             }
         ]
     }

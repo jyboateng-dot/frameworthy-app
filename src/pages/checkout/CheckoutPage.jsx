@@ -52,6 +52,13 @@ const CheckoutPage = () => {
     
     // Only checkout items that were selected in the cart
     const checkoutItems = cartItems.filter(item => item.isSelected);
+    const prodigiDestinations = [...new Set(checkoutItems.map(item => item.prodigi?.destinationCountryCode).filter(Boolean))];
+    const hasProdigiItems = prodigiDestinations.length > 0;
+    const prodigiDestination = prodigiDestinations[0] || 'GH';
+    const checkoutCurrencies = [...new Set(checkoutItems.map(item => item.currency || 'GHS'))];
+    const checkoutCurrency = checkoutCurrencies[0] || 'GHS';
+    const hasMixedCurrencies = checkoutCurrencies.length > 1;
+    const isGbpProdigiCheckout = hasProdigiItems && checkoutCurrency === 'GBP';
     
     // Redirect if nothing selected
     useEffect(() => {
@@ -66,7 +73,7 @@ const CheckoutPage = () => {
     const [appliedPromo, setAppliedPromo] = useState(null);
     const [promoError, setPromoError] = useState('');
 
-    const promoDiscount = calculatePromoDiscount(subtotal, appliedPromo);
+    const promoDiscount = checkoutCurrency === 'GHS' ? calculatePromoDiscount(subtotal, appliedPromo) : 0;
     const finalTotal = calculateFinalTotal(subtotal, promoDiscount);
 
     const handleApplyPromo = () => {
@@ -95,6 +102,7 @@ const CheckoutPage = () => {
     const [phoneNumber, setPhoneNumber] = useState('');
     const [city, setCity] = useState('');
     const [deliveryAddress, setDeliveryAddress] = useState('');
+    const [postalOrZipCode, setPostalOrZipCode] = useState('');
 
     const [savedAddresses, setSavedAddresses] = useState([]);
     const [selectedAddressId, setSelectedAddressId] = useState('new');
@@ -121,6 +129,7 @@ const CheckoutPage = () => {
                 setPhoneNumber(latest.phoneNumber);
                 setCity(latest.city);
                 setDeliveryAddress(latest.deliveryAddress);
+                setPostalOrZipCode(latest.postalOrZipCode || latest.zip || '');
             }
             setIsFetchingAddresses(false);
         }).catch(e => {
@@ -146,6 +155,7 @@ const CheckoutPage = () => {
                 setPhoneNumber(addr.phoneNumber);
                 setCity(addr.city);
                 setDeliveryAddress(addr.deliveryAddress);
+                setPostalOrZipCode(addr.postalOrZipCode || addr.zip || '');
             }
         }
     };
@@ -196,6 +206,15 @@ const CheckoutPage = () => {
     const handleCheckoutSubmit = (e) => {
         e.preventDefault();
 
+        if (isGbpProdigiCheckout) {
+            setError('GBP payment is not available yet. Your configured items remain saved in the cart.');
+            return;
+        }
+        if (hasMixedCurrencies) {
+            setError('GBP and GHS items must be checked out separately.');
+            return;
+        }
+
         if (!fullName) {
             setError('Please enter your full name.');
             return;
@@ -218,6 +237,14 @@ const CheckoutPage = () => {
             setError('Please complete delivery address details.');
             return;
         }
+        if (prodigiDestinations.length > 1) {
+            setError('Items shipping to different countries must be checked out separately.');
+            return;
+        }
+        if (hasProdigiItems && !postalOrZipCode.trim()) {
+            setError('Please enter the postal code required for delivery.');
+            return;
+        }
 
         setIsProcessing(true);
         setError('');
@@ -232,7 +259,9 @@ const CheckoutPage = () => {
                 address: deliveryAddress,
                 phone: phoneNumber,
                 city: city,
-                zip: '00233'
+                zip: postalOrZipCode || '00233',
+                postalOrZipCode: postalOrZipCode || '00233',
+                countryCode: prodigiDestination,
             },
             items: checkoutItems.map(item => ({
                 productMode: item.productMode,
@@ -273,10 +302,11 @@ const CheckoutPage = () => {
                 isAlbumPoster: !!item.isAlbumPoster,
                 isMoviePoster: !!item.isMoviePoster,
                 isMoviePosterPrint: !!item.isMoviePosterPrint,
-                posterMeta: item.posterMeta || null
+                posterMeta: item.posterMeta || null,
+                prodigi: item.prodigi || null
             })),
             totalPrice: finalTotal,
-            currency: 'GHS',
+            currency: checkoutCurrency,
             promoCode: appliedPromo?.code || null,
             promoDiscount: appliedPromo ? promoDiscount : 0,
             paymentMethodDetails: { type: paymentMethod },
@@ -298,7 +328,7 @@ const CheckoutPage = () => {
         const attemptKey = [
             checkoutItems.map(i => i.id).sort().join(','),
             appliedPromo?.code || '',
-            email, phoneNumber, city, deliveryAddress, fullName
+            email, phoneNumber, city, deliveryAddress, postalOrZipCode, prodigiDestination, fullName
         ].join('|');
 
         (async () => {
@@ -508,6 +538,18 @@ const CheckoutPage = () => {
                                         onChange={handleFieldChange(setDeliveryAddress)}
                                     />
                                 </div>
+                                {hasProdigiItems && (
+                                    <div className="grid grid-cols-[1fr_1.4fr] gap-3">
+                                        <div>
+                                            <label htmlFor="checkout-country" className="text-[10px] font-bold uppercase tracking-wide text-stone-500">Country</label>
+                                            <input id="checkout-country" value={prodigiDestination === 'GB' ? 'United Kingdom' : prodigiDestination === 'JE' ? 'Jersey' : prodigiDestination} readOnly className="w-full border-b border-stone-200 bg-stone-50 py-1.5 text-base text-stone-700" />
+                                        </div>
+                                        <div>
+                                            <label htmlFor="checkout-postal" className="text-[10px] font-bold uppercase tracking-wide text-stone-500">Postal code</label>
+                                            <input id="checkout-postal" required value={postalOrZipCode} onChange={handleFieldChange(setPostalOrZipCode)} placeholder="Postal code" className="w-full border-b border-stone-200 py-1.5 text-base focus:outline-none focus:border-stone-500 bg-transparent" />
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </div>
@@ -516,7 +558,12 @@ const CheckoutPage = () => {
                 </div>
 
                 {/* Payment Method */}
-                <div className="bg-white rounded-xl shadow-sm overflow-hidden p-4">
+                {isGbpProdigiCheckout ? (
+                    <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
+                        <h3 className="font-bold text-sm text-amber-950">Payment coming soon</h3>
+                        <p className="mt-1 text-xs leading-5 text-amber-900">Review your GBP quote and delivery details. Payment is temporarily unavailable while the GBP gateway is being connected.</p>
+                    </div>
+                ) : <div className="bg-white rounded-xl shadow-sm overflow-hidden p-4">
                     <h3 className="font-bold text-sm text-stone-900 mb-3">Payment Method</h3>
                     
                     <div className="grid grid-cols-2 gap-3">
@@ -530,7 +577,7 @@ const CheckoutPage = () => {
                     <p className="text-xs text-stone-600 mt-3">
                         You'll enter your {paymentMethod === 'momo' ? 'Mobile Money' : 'card'} details securely on the next step — you can still switch there if you change your mind.
                     </p>
-                </div>
+                </div>}
 
                 {/* Items Container */}
                 <div className="bg-white rounded-xl shadow-sm overflow-hidden">
@@ -556,7 +603,7 @@ const CheckoutPage = () => {
                                             </span>
                                         </h3>
                                         <div className="mt-2 flex items-center justify-between">
-                                            <Price amount={item.totalPrice} className="font-bold text-sm text-stone-900" />
+                                            <Price amount={item.totalPrice} currency={item.currency || 'GHS'} className="font-bold text-sm text-stone-900" />
                                             <span className="text-sm text-stone-500">x{item.quantity || 1}</span>
                                         </div>
                                     </div>
@@ -567,7 +614,7 @@ const CheckoutPage = () => {
                 </div>
 
                 {/* Promo Code */}
-                <div className="bg-white rounded-xl shadow-sm p-4">
+                {checkoutCurrency === 'GHS' && <div className="bg-white rounded-xl shadow-sm p-4">
                     <div className="flex items-center gap-2 mb-2">
                         <Ticket size={18} className="text-[#c9a84c]" />
                         <span className="font-bold text-sm">Promo code</span>
@@ -607,32 +654,32 @@ const CheckoutPage = () => {
                         </div>
                     )}
                     {promoError && <p className="text-xs text-red-500 mt-1.5">{promoError}</p>}
-                </div>
+                </div>}
 
                 {/* Summary */}
                 <div className="bg-white rounded-xl shadow-sm p-4 space-y-2 text-sm">
                     <div className="flex justify-between text-stone-600">
                         <span>Subtotal</span>
-                        <Price amount={subtotal} />
+                        <Price amount={subtotal} currency={checkoutCurrency} />
                     </div>
                     {appliedPromo && (
                         <div className="flex justify-between text-stone-600">
                             <span>Promo ({appliedPromo.code})</span>
-                            <Price amount={promoDiscount} prefix="- " className="text-[#c9a84c]" />
+                            <Price amount={promoDiscount} currency={checkoutCurrency} prefix="- " className="text-[#c9a84c]" />
                         </div>
                     )}
                     <div className="flex justify-between font-bold text-stone-900 pt-2 border-t border-stone-100 mt-2">
                         <span>Total</span>
-                        <Price amount={finalTotal} />
+                        <Price amount={finalTotal} currency={checkoutCurrency} />
                     </div>
-                    <p className="text-xs text-stone-600 pt-1">Shipping fee paid upon delivery.</p>
+                    <p className="text-xs text-stone-600 pt-1">{hasProdigiItems ? 'Delivery and tax are included in the quoted product total.' : 'Shipping fee paid upon delivery.'}</p>
                 </div>
 
                 {/* Trust reassurance, right before the customer commits to paying */}
                 <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1.5 text-[11px] font-medium text-stone-500 px-1">
-                    <span className="flex items-center gap-1"><Hammer size={12} className="text-[#c9a84c]" /> Handcrafted locally</span>
-                    <span className="flex items-center gap-1"><Truck size={12} className="text-[#c9a84c]" /> Ships in 5-7 business days</span>
-                    <span className="flex items-center gap-1"><ShieldCheck size={12} className="text-[#c9a84c]" /> Satisfaction guaranteed</span>
+                    <span className="flex items-center gap-1"><Hammer size={12} className="text-[#c9a84c]" /> Made to order</span>
+                    <span className="flex items-center gap-1"><Truck size={12} className="text-[#c9a84c]" /> {hasProdigiItems ? 'Tracked delivery' : 'Ships in 5-7 business days'}</span>
+                    <span className="flex items-center gap-1"><ShieldCheck size={12} className="text-[#c9a84c]" /> Quote-backed total</span>
                 </div>
 
                 {notice && (
@@ -678,21 +725,21 @@ const CheckoutPage = () => {
                     <div className="flex flex-col">
                         <div className="text-[10px] text-stone-500 flex items-center gap-1 mb-0.5">
                             <ShieldCheck size={12} className="text-green-600" />
-                            Secured by Paystack
+                            {isGbpProdigiCheckout ? 'GBP quote' : 'Secured by Paystack'}
                         </div>
                         <div className="flex items-baseline gap-1">
                             <span className="text-xs font-bold text-stone-800">Total:</span>
-                            <Price amount={finalTotal} className="text-xl font-bold text-[#c9a84c]" />
+                            <Price amount={finalTotal} currency={checkoutCurrency} className="text-xl font-bold text-[#c9a84c]" />
                         </div>
                     </div>
                     
                     <button 
                         type="submit"
-                        disabled={isProcessing}
+                        disabled={isProcessing || isGbpProdigiCheckout || hasMixedCurrencies}
                         className="bg-[#c9a84c] text-[#0a0a0a] px-8 py-3 rounded-full font-bold text-sm flex items-center gap-2 disabled:opacity-50 transition-colors shadow-lg shadow-[#c9a84c]/20 hover:bg-[#d4b55c]"
                     >
                         {isProcessing ? <Loader size={16} className="animate-spin" /> : null}
-                        {isProcessing ? 'Processing...' : 'Pay now'}
+                        {isProcessing ? 'Processing...' : isGbpProdigiCheckout ? 'Payment coming soon' : 'Pay now'}
                     </button>
                 </div>
             </form>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useLayoutEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useLayoutEffect, useRef, useMemo, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
 import { Capacitor } from '@capacitor/core';
 import {
@@ -14,6 +14,7 @@ import {
     X
 } from 'lucide-react';
 import { FRAME_STYLES, FRAME_SIZES, MAT_COLORS, formatDimensions, findSizeByDimension, parseCustomSize, clampSizeToValidRange, DEFAULT_DEMO_IMAGE, getDemoImageForOrientation } from '../../data/constants';
+import { displayCategoryName } from '../../data/frameBrowsing';
 import { ROOM_SCENES, computeRoomPlacement, computeRoomLayout, computeReferenceAnchoredTop } from '../../data/roomScenes';
 import { ROOM_SCENE_COMPONENTS, ROOM_SCENE_FOREGROUND_COMPONENTS } from '../../components/framing/roomSceneComponents';
 // ScenePicker and SceneCarousel are kept imported-but-unused from earlier tries — swap back easily if the current approach doesn't work out.
@@ -38,10 +39,12 @@ import { useUnit } from '../../context/UnitContext';
 import { useCart } from '../../context/CartContext';
 import { uploadImageToCloud, getThumbnailUrl } from '../../services/storage';
 import FrameSelectionModal from '../../components/FrameSelectionModal';
+import { activeFrameOrDefault, DEFAULT_PRODIGI_FRAME } from '../../data/frameBrowsing';
 import ArtworkImportMenu from '../../components/framing/ArtworkImportMenu';
 import SizeGuidePanel from '../../components/framing/SizeGuidePanel';
 import ArViewer from '../../components/framing/ArViewer';
 import { clearArModelCache } from '../../utils/ar/buildArModel';
+import { renderFrameOrderPreview } from '../../utils/frameOrderPreview';
 import MetArtSelectionModal from '../../components/MetArtSelectionModal';
 import { renderAlbumPoster } from '../../utils/albumPoster';
 import { renderMoviePoster } from '../../utils/moviePoster';
@@ -49,9 +52,11 @@ import { useAuth } from '../../context/AuthContext';
 import AuthModal from '../../components/AuthModal';
 import Price from '../../components/common/Price';
 import FrameFitPanel from '../../components/framing/FrameFitPanel';
+import ProdigiConfigurationPanel from '../../components/framing/ProdigiConfigurationPanel';
 import { DEFAULT_POSITION, frameGeometry, imageCrop, cropStyle } from '../../utils/frameFit';
 import { prepareFrameOutput } from '../../services/frameFitOutput';
 import { visualizerFullScreenState } from '../../utils/visualizerFullScreenState';
+import { nearestProdigiSize, prodigiAvailableSizes, prodigiConfigurationFromSelection } from '../../utils/prodigiFlow';
 
 const MOBILE_DOUBLE_TAP_DELAY_MS = 300;
 
@@ -143,32 +148,6 @@ const BEVEL_SHADE_DIR = { top: 'to bottom', bottom: 'to top', left: 'to right', 
 // strip's own aspect ratio while its other axis fills the moulding's
 // actual rendered thickness, so it tiles correctly at any frame size.
 
-// Catalogue styling is intentionally inferred from a frame's own name and
-// description rather than from its broad browsing category. That lets every
-// existing SKU participate immediately, while an eventual measured profile
-// (for example `renderProfile: 'scoop'`) can override the inference without
-// changing the renderer.
-const getFrameVisualProfile = (frame) => {
-    const label = `${frame?.name || ''} ${frame?.desc || ''}`.toLowerCase();
-    const explicitProfile = frame?.renderProfile;
-    const profile = explicitProfile || (
-        /floater|float frame/.test(label) ? 'floater' :
-        /scoop|reverse/.test(label) ? 'scoop' :
-        /deep|shadow/.test(label) ? 'deep' :
-        /bevel|angled|lip/.test(label) ? 'bevel' :
-        /ornate|renaissance|embossed|carved|bamboo/.test(label) ? 'raised' :
-        'flat'
-    );
-    const finish = /gold|silver|pewter|metallic|chrome|bronze|copper|rose gold/.test(label)
-        ? 'metallic'
-        : /glossy|lacquer/.test(label)
-            ? 'gloss'
-            : 'matte';
-
-    return { profile, finish };
-};
-
-
 // A single physical moulding side. The parent supplies the computed
 // geometry and mitre clip; this component supplies the material and its
 // lighting, kept as separate layers because the photograph provides the
@@ -253,23 +232,6 @@ const InfoTooltip = ({ text }) => {
     );
 };
 
-const parseDimension = (dim) => {
-    if (!dim || dim === 'null') return 1.0;
-    if (typeof dim === 'number') return dim;
-    let s = dim.replace(/-$/, '').trim();
-    if (s.includes('-')) {
-        const parts = s.split('-');
-        if (parts.length === 2 && parts[1].includes('/')) {
-            const frac = parts[1].split('/');
-            return parseFloat(parts[0]) + (parseFloat(frac[0]) / parseFloat(frac[1]));
-        }
-    } else if (s.includes('/')) {
-        const frac = s.split('/');
-        return parseFloat(frac[0]) / parseFloat(frac[1]);
-    }
-    return parseFloat(s) || 1.0;
-};
-
 const CustomizeFramePage = ({
     uploadedImage,
     setUploadedImage,
@@ -326,6 +288,7 @@ const CustomizeFramePage = ({
     const [isMoviePoster, setIsMoviePoster] = useState(false);
     const [isMoviePosterPrint, setIsMoviePosterPrint] = useState(false);
     const [posterData, setPosterData] = useState(null);
+    const [prodigiSelection, setProdigiSelection] = useState(null);
     const [wallColor, setWallColor] = useState(WALL_COLORS[0]);
     // null = the plain wall-colour backdrop with the sofa scale cue. Set to a
     // ROOM_SCENES id to swap in a full room, where the artwork is sized
@@ -581,7 +544,9 @@ const CustomizeFramePage = ({
         // the Frame Style section entirely) — everywhere else, the customer's
         // current frame selection (or the studio's own default) should stand,
         // not get silently swapped for whatever a catalogue item suggests.
-        if (state.isPresetFramedPrint && state.initialFrame) setSelectedFrame(state.initialFrame);
+        if ((state.isPresetFramedPrint || state.prodigiSelection) && state.initialFrame) {
+            setSelectedFrame(activeFrameOrDefault(state.initialFrame));
+        }
         if (state.initialSize) {
             const { size: sizeToApply, wasClamped, clampedShortCm, clampedLongCm } = clampSizeToValidRange(state.initialSize);
             setSelectedSize(sizeToApply);
@@ -591,7 +556,7 @@ const CustomizeFramePage = ({
             // `customSizeEntry` also preserves a catalogue dimension that is
             // not part of the normal, expanded catalog list.
             setCustomSizeEntry(sizeToApply);
-            setShowAllSizes(true);
+            setShowAllSizes(!state.prodigiSelection);
             setSizeClampNotice(wasClamped
                 ? `This artwork's listed size was outside what we can produce, so it's been adjusted to ${clampedShortCm.toFixed(1)} × ${clampedLongCm.toFixed(1)} cm.`
                 : '');
@@ -616,6 +581,7 @@ const CustomizeFramePage = ({
         setIsMoviePoster(!!state.isMoviePoster);
         setIsMoviePosterPrint(!!state.isMoviePosterPrint);
         setPosterData((state.isAlbumPoster || state.isMoviePosterPrint) ? state.posterData : null);
+        setProdigiSelection(state.prodigiSelection || null);
 
         if (state.openMetArt) setIsMetModalOpen(true);
     };
@@ -628,7 +594,7 @@ const CustomizeFramePage = ({
         // DOM on every layout) can end up scrolled out of view on arrival.
         window.scrollTo(0, 0);
 
-        if (!selectedFrame) setSelectedFrame(FRAME_STYLES[0]);
+        if (!selectedFrame) setSelectedFrame(DEFAULT_PRODIGI_FRAME);
         if (!selectedSize) setSelectedSize(FRAME_SIZES[2]); // 16x20 default
 
         // Sync state if coming from Inspiration 'Get This' or Landings — same
@@ -783,6 +749,14 @@ const CustomizeFramePage = ({
         observer.observe(zoneRef.current);
         return () => observer.disconnect();
     }, []);
+
+    // Park the former 341-frame flow even for a hot session that was already
+    // holding one of those records when this catalogue switch landed.
+    useEffect(() => {
+        if (selectedFrame && !selectedFrame.prodigiProduct) {
+            setSelectedFrame(DEFAULT_PRODIGI_FRAME);
+        }
+    }, [selectedFrame, setSelectedFrame]);
 
 
     // isZoomSettling (declared above, next to isHovered/isMaxZoom) — one
@@ -1025,6 +999,9 @@ const CustomizeFramePage = ({
     const hInch = orientation === 'portrait' ? selectedSize?.height : selectedSize?.width;
     const isSquareFrame = Boolean(wInch && hInch && Math.abs(wInch - hInch) < 0.01);
     const railWidthIn = getMouldingWidthIn(selectedFrame);
+    const isCanvasOnly = selectedFrame?.canvasOnly || selectedFrame?.id === 'frame-canvas';
+    const canvasWrap = prodigiSelection?.attributes?.wrap || 'ImageWrap';
+    const physicalGapIn = Math.max(0, Number(selectedFrame?.canvasGapMm) || 0) / 25.4;
     // The most the mat-width slider can offer for this print size + frame
     // without the render's own 45%-of-frame safety clamp kicking in — see
     // maxMatWidthForSize's own comment in matting.js for why this needs to
@@ -1035,10 +1012,10 @@ const CustomizeFramePage = ({
     const innerWidthCm = (wInch || 0) * 2.54;
     const innerHeightCm = (hInch || 0) * 2.54;
     const railWidthCm = railWidthIn * 2.54;
-    const outerFrameWidthCm = innerWidthCm + (railWidthCm * 2);
-    const outerFrameHeightCm = innerHeightCm + (railWidthCm * 2);
+    const outerFrameWidthCm = innerWidthCm + (railWidthCm + physicalGapIn * 2.54) * 2;
+    const outerFrameHeightCm = innerHeightCm + (railWidthCm + physicalGapIn * 2.54) * 2;
     const fitEnabled = !isPlaceholder && !isPreset && !isAlbumArt && !isAlbumPoster
-        && !isMoviePoster && !isMoviePosterPrint && selectedFrame?.id !== 'frame-canvas'
+        && !isMoviePoster && !isMoviePosterPrint && !isCanvasOnly && !selectedFrame?.isCanvas
         && glassType !== 'canvas-traditional' && glassType !== 'canvas-floater'
         && imageNaturalSize?.w > 0 && !(collageImages?.length > 0);
     const fitGeometry = selectedSize ? frameGeometry(selectedSize, orientation, matWidth, railWidthIn) : null;
@@ -1150,7 +1127,9 @@ const CustomizeFramePage = ({
     // with the order-thumbnail capture below AND with the AR viewer (passed
     // through whole, not collapsed to one number) so none of the three can
     // disagree with each other.
-    const matReveal = getMatReveal(matWidth, selectedSize);
+    const matReveal = selectedFrame?.isCanvas || isCanvasOnly
+        ? { topIn: 0, sideIn: 0, bottomIn: 0 }
+        : getMatReveal(matWidth, selectedSize);
 
 
     useEffect(() => {
@@ -1457,10 +1436,21 @@ const CustomizeFramePage = ({
 
     const selectFrameStyle = (frame) => {
         setSelectedFrame(frame);
+        setProdigiSelection(null);
+        if (frame?.prodigiProduct && !['classic', 'box'].includes(frame.prodigiProduct)) {
+            setMatWidth('none');
+        }
         // A new moulding can change how a piece feels in a room just as much
         // as a new image does, so offer the same room-scene comparison again.
         setShowSceneHint(true);
     };
+
+    const updateProdigiVisualOptions = useCallback(({ matWidth: nextMatWidth, matColorId: nextMatColorId, glassType: nextGlassType }) => {
+        setMatWidth(nextMatWidth);
+        setGlassType(nextGlassType);
+        if (nextMatWidth !== 'none') setMatColor(MAT_COLORS.find(color => color.id === nextMatColorId) || MAT_COLORS[0]);
+        setIsOptimized(false);
+    }, [setMatWidth, setGlassType, setMatColor]);
 
     // Takes a picked image File (from the device dialog OR the cloud-storage
     // picker) and drops it into the studio: instant local preview now, then a
@@ -1620,6 +1610,13 @@ const CustomizeFramePage = ({
                 img.src = sourceImage;
             });
 
+            if (selectedFrame?.prodigiProduct) {
+                const blob = await renderFrameOrderPreview({ frame: selectedFrame, image: img,
+                    widthIn: wInch, heightIn: hInch, matReveal, matColorHex: matColor?.hex, glassType });
+                if (!blob) return null;
+                return await uploadImageToCloud(new File([blob], 'order-thumbnail.png', { type: 'image/png' }));
+            }
+
             const isCanvasPrint = selectedFrame?.id === 'frame-canvas';
             // A regular frame with "Canvas Print" glazing — mirrors the live
             // visualizer's isCanvasGlazing flag, so the order thumbnail
@@ -1744,12 +1741,12 @@ const CustomizeFramePage = ({
     };
 
     const buildCartItem = (visualizerImage) => {
-        const calculatedTotal = Math.round((selectedSize?.price || 0) * (selectedFrame?.priceMod || 1)) +
+        const calculatedTotal = prodigiSelection?.quoteTotalGbp || (Math.round((selectedSize?.price || 0) * (selectedFrame?.priceMod || 1)) +
             (selectedFrame?.id !== 'frame-canvas' && glassType !== 'canvas-floater' && glassType !== 'canvas-traditional' && matWidth !== 'none' ? (matColor.price || 75) : 0) +
-            (selectedFrame?.id !== 'frame-canvas' ? (glassType === 'non-glare' ? 100 : glassType === 'museum' ? 200 : 0) : 0) +
+            (!isCanvasOnly ? (glassType === 'non-glare' ? 100 : glassType === 'museum' ? 200 : 0) : 0) +
             (selectedFrame?.id !== 'frame-canvas' && glassType === 'canvas-floater' ? 400 : 0) +
             (selectedFrame?.id !== 'frame-canvas' && glassType === 'canvas-traditional' ? 350 : 0) +
-            (hardwareType === 'french-cleat' ? 50 : 0);
+            (hardwareType === 'french-cleat' ? 50 : 0));
 
         return {
             productMode: 'frame',
@@ -1759,11 +1756,14 @@ const CustomizeFramePage = ({
             selectedFrame,
             selectedSize,
             totalPrice: calculatedTotal,
+            currency: selectedFrame?.prodigiProduct ? 'GBP' : 'GHS',
             orientation,
             matColor,
             matWidth,
             glassType,
-            hardwareType,
+            hardwareType: selectedFrame?.prodigiProduct
+                ? (prodigiSelection?.hangingHardware?.included ? prodigiSelection.hangingHardware.id : null)
+                : hardwareType,
             activeLayout,
             collageImages,
             frameThickness,
@@ -1781,12 +1781,21 @@ const CustomizeFramePage = ({
             } : isMoviePosterPrint && posterData ? {
                 title: posterData.movie.title,
                 director: posterData.details.director
-            } : null
+            } : null,
+            prodigi: prodigiSelection ? {
+                ...prodigiSelection,
+                sizing: 'fillPrintArea',
+            } : null,
         };
     };
 
     const completeCheckoutAction = async (action) => {
-        if (selectedFrame?.prodigiProduct) return;
+        if (selectedFrame?.prodigiProduct && !prodigiSelection?.quoteTotalGbp) {
+            setFitError(hasOrderableProdigiProduct
+                ? 'Please wait for the live GBP price before adding this item to your cart.'
+                : 'This preview finish is not currently available to order.');
+            return;
+        }
         setLoadingAction(action);
         setFitError('');
         try {
@@ -1826,10 +1835,29 @@ const CustomizeFramePage = ({
     // output — without this it was recomputing from scratch on every render
     // (every keystroke in the custom-size inputs, every unrelated state
     // change), which is the single most render-heavy page in the app.
+    const isProdigiFrame = Boolean(selectedFrame?.prodigiProduct);
+    const prodigiConfiguration = useMemo(() => prodigiConfigurationFromSelection(prodigiSelection), [prodigiSelection]);
+    const prodigiSizes = useMemo(
+        () => prodigiAvailableSizes(selectedFrame, prodigiConfiguration),
+        [selectedFrame, prodigiConfiguration]
+    );
+    const hasOrderableProdigiProduct = Boolean(isProdigiFrame && prodigiSizes.length);
+
+    useEffect(() => {
+        if (!hasOrderableProdigiProduct) return;
+        const currentIsAvailable = prodigiSizes.some((size) =>
+            Math.abs(size.width - selectedSize?.width) < 0.08 && Math.abs(size.height - selectedSize?.height) < 0.08);
+        if (currentIsAvailable) return;
+        const nearest = nearestProdigiSize(prodigiSizes, selectedSize);
+        if (nearest) {
+            setSelectedSize(nearest);
+        }
+    }, [hasOrderableProdigiProduct, prodigiSizes, selectedSize, setSelectedSize]);
+
     const { finalSizesList, leftColumnCollapsed, rightColumnCollapsed } = useMemo(() => {
         const uniqueSizes = [];
         const sizeSeen = new Set();
-        const sortedSizes = [...FRAME_SIZES].sort((a, b) => {
+        const sortedSizes = [...(isProdigiFrame ? prodigiSizes : FRAME_SIZES)].sort((a, b) => {
             const aMax = Math.max(a.width, a.height), aMin = Math.min(a.width, a.height);
             const bMax = Math.max(b.width, b.height), bMin = Math.min(b.width, b.height);
             if (aMax !== bMax) return aMax - bMax;
@@ -1863,7 +1891,7 @@ const CustomizeFramePage = ({
         // actually wants one of these shapes can dial it in via Custom Size.
         const NICHE_ASPECT_RATIO = 1.8;
         const isNicheAspect = (size) => (Math.max(size.width, size.height) / Math.min(size.width, size.height)) > NICHE_ASPECT_RATIO;
-        const normalSizes = uniqueSizes.filter(s => !isNicheAspect(s));
+        const normalSizes = isProdigiFrame ? uniqueSizes : uniqueSizes.filter(s => !isNicheAspect(s));
 
         const finalSizesList = normalSizes;
 
@@ -1877,11 +1905,17 @@ const CustomizeFramePage = ({
         const popularSmallIds = ['5x7', '8x10', 'a4', '11x14', '12x12', 'a3'];
         const popularLargeIds = ['16x20', 'a2', '18x24', '20x30', '24x36', '100x100cm'];
         const findPopular = (ids) => ids.map(id => normalSizes.find(s => s.id === id)).filter(Boolean);
-        const leftColumnCollapsed = findPopular(popularSmallIds);
-        const rightColumnCollapsed = findPopular(popularLargeIds);
+        const compactProdigiSizes = isProdigiFrame ? normalSizes.slice(0, 12) : [];
+        if (isProdigiFrame && selectedSize) {
+            const activeSize = normalSizes.find((size) =>
+                Math.abs(size.width - selectedSize.width) < 0.08 && Math.abs(size.height - selectedSize.height) < 0.08);
+            if (activeSize && !compactProdigiSizes.includes(activeSize)) compactProdigiSizes[11] = activeSize;
+        }
+        const leftColumnCollapsed = isProdigiFrame ? compactProdigiSizes.slice(0, 6) : findPopular(popularSmallIds);
+        const rightColumnCollapsed = isProdigiFrame ? compactProdigiSizes.slice(6, 12) : findPopular(popularLargeIds);
 
         return { finalSizesList, leftColumnCollapsed, rightColumnCollapsed };
-    }, [isAlbumArt, isAlbumPoster, isMoviePoster, isMoviePosterPrint]);
+    }, [isAlbumArt, isAlbumPoster, isMoviePoster, isMoviePosterPrint, isProdigiFrame, prodigiSizes, selectedSize]);
 
     // A created custom size stays visible as the LAST option — same spot as
     // the "Custom Size" trigger button itself — even after the user selects
@@ -1889,7 +1923,7 @@ const CustomizeFramePage = ({
     // (It's tracked in its own customSizeEntry state rather than derived from
     // selectedSize for exactly this reason.) Skipped if it happens to
     // duplicate a catalog size already in the list.
-    const showCustomEntry = customSizeEntry && !finalSizesList.some(s => s.width === customSizeEntry.width && s.height === customSizeEntry.height);
+    const showCustomEntry = !isProdigiFrame && customSizeEntry && !finalSizesList.some(s => s.width === customSizeEntry.width && s.height === customSizeEntry.height);
 
     // Total catalog sizes actually visible in the collapsed view, used to
     // decide whether "+ more sizes" should appear at all and what count to
@@ -1902,24 +1936,37 @@ const CustomizeFramePage = ({
     // visible and highlighted.
     useEffect(() => {
         if (!selectedSize) return;
+        if (isProdigiFrame) return;
         const sameSize = (size) => size.width === selectedSize.width && size.height === selectedSize.height;
         const isVisibleWhenCollapsed = leftColumnCollapsed.some(sameSize)
             || rightColumnCollapsed.some(sameSize)
             || (showCustomEntry && sameSize(customSizeEntry));
         if (!isVisibleWhenCollapsed) setShowAllSizes(true);
-    }, [selectedSize, leftColumnCollapsed, rightColumnCollapsed, showCustomEntry, customSizeEntry]);
+    }, [selectedSize, leftColumnCollapsed, rightColumnCollapsed, showCustomEntry, customSizeEntry, isProdigiFrame]);
+
+    const formatProdigiDimension = (size) => {
+        const source = unit === 'cm' ? size.prodigiSizeCm : size.prodigiSizeInches;
+        const values = source?.match(/\d+(?:\.\d+)?/g)?.slice(0, 2) || [];
+        if (values.length < 2) return source;
+        let [width, height] = values;
+        if (orientation === 'landscape' && Number(width) < Number(height)) [width, height] = [height, width];
+        if (orientation === 'portrait' && Number(width) > Number(height)) [width, height] = [height, width];
+        return `${width} × ${height} ${unit}`;
+    };
 
     const renderSizeButton = (size) => (
         <button
+            type="button"
             key={size.id}
             onClick={() => setSelectedSize(size)}
+            aria-pressed={selectedSize.width === size.width && selectedSize.height === size.height}
             className={`py-2 px-3 rounded-xl border text-xs font-semibold transition-all ${
                 (selectedSize.width === size.width && selectedSize.height === size.height)
                     ? 'border-stone-900 bg-stone-900 text-white shadow-md'
                     : 'border-stone-200 hover:border-stone-400 text-stone-700'
             }`}
         >
-            {formatDimensions(size.label, unit, orientation)}
+            {size.prodigiSizeCm ? formatProdigiDimension(size) : formatDimensions(size.label, unit, orientation)}
             {/* A user-typed size gets a small superscript "+" after the unit —
                 subtle enough not to look like a badge, but enough to mark it
                 as "the one you made" alongside the catalog sizes. */}
@@ -2000,6 +2047,7 @@ const CustomizeFramePage = ({
     
     const showOrientation = !isPreset && !isAlbumArt && !isAlbumPoster && !isMoviePoster && !isMoviePosterPrint;
     const stepOrientation = showOrientation ? stepCounter++ : null;
+    const stepProdigi = selectedFrame?.prodigiProduct ? stepCounter++ : null;
     
     // A canvas print (glassType 'canvas-floater'/'canvas-traditional') is
     // mounted inside whichever frame moulding is selected — it doesn't take
@@ -2009,13 +2057,13 @@ const CustomizeFramePage = ({
     const effectiveCanvasMountStyle = selectedFrame?.canvasFrameStyle || canvasMountStyle;
     const isCanvasGlazing = Boolean(effectiveCanvasMountStyle) && selectedFrame?.id !== 'frame-canvas';
 
-    const showMatting = selectedFrame?.id !== 'frame-canvas' && !isCanvasGlazing && !isPreset;
+    const showMatting = !selectedFrame?.prodigiProduct && selectedFrame?.id !== 'frame-canvas' && !isCanvasGlazing && !isPreset;
     const stepMatting = showMatting ? stepCounter++ : null;
 
-    const showGlazing = selectedFrame?.id !== 'frame-canvas';
+    const showGlazing = !selectedFrame?.prodigiProduct && selectedFrame?.id !== 'frame-canvas';
     const stepGlazing = showGlazing ? stepCounter++ : null;
     
-    const stepHardware = stepCounter++;
+    const stepHardware = !selectedFrame?.prodigiProduct ? stepCounter++ : null;
 
     // The dimension labels/tick-marks and disclaimer note are rendered
     // directly against the wall color using text-stone-800/600 plus
@@ -2903,6 +2951,10 @@ const CustomizeFramePage = ({
                                 mouldingPctW = railWidthIn / fitGeometry.outerWidth * 100;
                                 mouldingPctH = railWidthIn / fitGeometry.outerHeight * 100;
                             }
+                            if (selectedFrame?.prodigiProduct) {
+                                mouldingPctW = railWidthIn / (outerFrameWidthCm / 2.54) * 100;
+                                mouldingPctH = railWidthIn / (outerFrameHeightCm / 2.54) * 100;
+                            }
                             // Close-Up deliberately enlarges the frame for presentation.
                             // Counter that visual-only scale there so a chosen physical mat
                             // width stays equally thick across all frame sizes. Room scenes,
@@ -2924,8 +2976,8 @@ const CustomizeFramePage = ({
                             // edge. Both a fixed physical inch amount converted to %, same
                             // derivation as matPct above, so they scale sensibly across sizes.
                             const supplierGapIn = (selectedFrame?.canvasGapMm || 6.35) / 25.4;
-                            const floaterGapPctW = (supplierGapIn / (wInch + 2 * railWidthIn)) * 100;
-                            const floaterGapPctH = (supplierGapIn / (hInch + 2 * railWidthIn)) * 100;
+                            const floaterGapPctW = (supplierGapIn / (outerFrameWidthCm / 2.54)) * 100;
+                            const floaterGapPctH = (supplierGapIn / (outerFrameHeightCm / 2.54)) * 100;
                             const traditionalOverlapPctW = Math.min(0.375 / (wInch + 2 * railWidthIn) * 100, mouldingPctW);
                             const traditionalOverlapPctH = Math.min(0.375 / (hInch + 2 * railWidthIn) * 100, mouldingPctH);
 
@@ -3172,15 +3224,18 @@ const CustomizeFramePage = ({
                                             {glassType === 'standard' && (
                                                 <div className="absolute inset-0 bg-gradient-to-tr from-white/0 via-white/10 to-white/0 pointer-events-none mix-blend-overlay z-40" />
                                             )}
+                                            {glassType === 'float-glass' && (
+                                                <div className="absolute inset-0 bg-gradient-to-br from-white/5 via-white/20 to-white/0 pointer-events-none mix-blend-screen z-40" />
+                                            )}
                                             {glassType === 'museum' && (
                                                 <div className="absolute inset-0 bg-stone-900/5 pointer-events-none mix-blend-multiply z-40" />
                                             )}
                                         </div>
                                     ) : (
-                                        selectedFrame?.id !== 'frame-canvas' ? (
+                                        !isCanvasOnly ? (
                                             <>
                                                 {/* Outer Frame Edge — 4 Mitered 3D Borders */}
-                                                {selectedFrame?.borderImageSource ? (
+                                                {selectedFrame?.borderImageSource && !getFrameRail(selectedFrame) ? (
                                                     <div 
                                                         className="absolute inset-0 transition-all duration-300 z-20 pointer-events-none"
                                                         style={{
@@ -3304,7 +3359,8 @@ const CustomizeFramePage = ({
                                                     className="absolute top-0 bottom-0 left-0"
                                                     style={{
                                                         width: '4%',
-                                                        backgroundImage: uploadedImage ? `url(${displayImage})` : 'none',
+                                                        backgroundImage: uploadedImage && !['Black', 'White'].includes(canvasWrap) ? `url(${displayImage})` : 'none',
+                                                        backgroundColor: canvasWrap === 'Black' ? '#181818' : '#f4f1e9',
                                                         backgroundSize: '100% 100%',
                                                         backgroundPosition: 'left center',
                                                         transformOrigin: 'left',
@@ -3317,7 +3373,8 @@ const CustomizeFramePage = ({
                                                     className="absolute bottom-0 left-0 right-0"
                                                     style={{
                                                         height: '4%',
-                                                        backgroundImage: uploadedImage ? `url(${displayImage})` : 'none',
+                                                        backgroundImage: uploadedImage && !['Black', 'White'].includes(canvasWrap) ? `url(${displayImage})` : 'none',
+                                                        backgroundColor: canvasWrap === 'Black' ? '#181818' : '#f4f1e9',
                                                         backgroundSize: '100% 100%',
                                                         backgroundPosition: 'bottom center',
                                                         transformOrigin: 'bottom',
@@ -3334,13 +3391,13 @@ const CustomizeFramePage = ({
                                     {/* Artwork Area */}
                                     {!isPreset && (
                                         <div
-                                            className={`absolute overflow-hidden transition-all duration-300 ${isCanvasGlazing && effectiveCanvasMountStyle === 'traditional' ? 'z-[5]' : 'z-20'} ${selectedFrame?.id === 'frame-canvas' || isCanvasGlazing ? 'shadow-[inset_0_0_0_1px_rgba(255,255,255,0.1)]' : 'shadow-[inset_0_1px_3px_rgba(0,0,0,0.1)]'}`}
+                                            className={`absolute overflow-hidden transition-all duration-300 ${isCanvasGlazing && effectiveCanvasMountStyle === 'traditional' ? 'z-[5]' : 'z-20'} ${isCanvasOnly || isCanvasGlazing ? 'shadow-[inset_0_0_0_1px_rgba(255,255,255,0.1)]' : 'shadow-[inset_0_1px_3px_rgba(0,0,0,0.1)]'}`}
                                         style={{
-                                            top: selectedFrame?.id === 'frame-canvas' || isPreset ? '0%' : isCanvasGlazing ? (effectiveCanvasMountStyle === 'floater' ? `${mouldingPctH + floaterGapPctH}%` : `${Math.max(0, mouldingPctH - traditionalOverlapPctH)}%`) : `${mouldingPctH + matPctTop}%`,
-                                            bottom: selectedFrame?.id === 'frame-canvas' || isPreset ? '0%' : isCanvasGlazing ? (effectiveCanvasMountStyle === 'floater' ? `${mouldingPctH + floaterGapPctH}%` : `${Math.max(0, mouldingPctH - traditionalOverlapPctH)}%`) : `${mouldingPctH + matPctBottom}%`,
-                                            left: selectedFrame?.id === 'frame-canvas' || isPreset ? '0%' : isCanvasGlazing ? (effectiveCanvasMountStyle === 'floater' ? `${mouldingPctW + floaterGapPctW}%` : `${Math.max(0, mouldingPctW - traditionalOverlapPctW)}%`) : `${mouldingPctW + matPctW}%`,
-                                            right: selectedFrame?.id === 'frame-canvas' || isPreset ? '0%' : isCanvasGlazing ? (effectiveCanvasMountStyle === 'floater' ? `${mouldingPctW + floaterGapPctW}%` : `${Math.max(0, mouldingPctW - traditionalOverlapPctW)}%`) : `${mouldingPctW + matPctW}%`,
-                                            backgroundColor: (selectedFrame?.id !== 'frame-canvas' && !isCanvasGlazing && matWidth !== 'none' && !isPreset) ? matColor.hex : 'transparent'
+                                            top: isCanvasOnly || isPreset ? '0%' : isCanvasGlazing ? (effectiveCanvasMountStyle === 'floater' ? `${mouldingPctH + floaterGapPctH}%` : `${Math.max(0, mouldingPctH - traditionalOverlapPctH)}%`) : `${mouldingPctH + matPctTop}%`,
+                                            bottom: isCanvasOnly || isPreset ? '0%' : isCanvasGlazing ? (effectiveCanvasMountStyle === 'floater' ? `${mouldingPctH + floaterGapPctH}%` : `${Math.max(0, mouldingPctH - traditionalOverlapPctH)}%`) : `${mouldingPctH + matPctBottom}%`,
+                                            left: isCanvasOnly || isPreset ? '0%' : isCanvasGlazing ? (effectiveCanvasMountStyle === 'floater' ? `${mouldingPctW + floaterGapPctW}%` : `${Math.max(0, mouldingPctW - traditionalOverlapPctW)}%`) : `${mouldingPctW + matPctW}%`,
+                                            right: isCanvasOnly || isPreset ? '0%' : isCanvasGlazing ? (effectiveCanvasMountStyle === 'floater' ? `${mouldingPctW + floaterGapPctW}%` : `${Math.max(0, mouldingPctW - traditionalOverlapPctW)}%`) : `${mouldingPctW + matPctW}%`,
+                                            backgroundColor: (!isCanvasOnly && !isCanvasGlazing && matWidth !== 'none' && !isPreset) ? matColor.hex : 'transparent'
                                         }}
                                     >
                                         {/* Inner Mat Bevel (where mat meets artwork) */}
@@ -3376,10 +3433,13 @@ const CustomizeFramePage = ({
                                         )}
 
                                         {/* Glass Reflection */}
-                                        {selectedFrame?.id !== 'frame-canvas' && glassType === 'standard' && (
+                                        {!isCanvasOnly && !isCanvasGlazing && glassType === 'standard' && (
                                             <div className="absolute inset-0 bg-gradient-to-tr from-white/0 via-white/10 to-white/0 pointer-events-none mix-blend-overlay z-40" />
                                         )}
-                                        {selectedFrame?.id !== 'frame-canvas' && glassType === 'museum' && (
+                                        {!isCanvasOnly && !isCanvasGlazing && glassType === 'float-glass' && (
+                                            <div className="absolute inset-0 bg-gradient-to-br from-white/5 via-white/20 to-white/0 pointer-events-none mix-blend-screen z-40" />
+                                        )}
+                                        {!isCanvasOnly && !isCanvasGlazing && glassType === 'museum' && (
                                             <div className="absolute inset-0 bg-stone-900/5 pointer-events-none mix-blend-multiply z-40" />
                                         )}
                                     </div>
@@ -3510,9 +3570,6 @@ const CustomizeFramePage = ({
                     <div>
                         <h1 className="text-xl font-serif font-bold text-stone-900 mb-1">Customize Your Frame</h1>
                         <p className="text-sm text-stone-500">Perfectly customized to your space.</p>
-                        <a href="/prodigi/catalogue" className="mt-3 inline-flex items-center rounded-full border border-[#d8c28d] bg-[#fbf8ef] px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-stone-700 transition hover:border-[#b8964a] hover:text-stone-950">
-                            Explore Prodigi frames & canvas
-                        </a>
                     </div>
 
                     {/* Only ever appears when clampSizeToValidRange actually
@@ -3573,11 +3630,11 @@ const CustomizeFramePage = ({
                             <div className="flex items-center gap-3">
                                 <div 
                                     className="w-10 h-10 rounded-lg bg-cover bg-center shadow-inner"
-                                    style={{ backgroundImage: `url(${isPreset && uploadedImage ? getThumbnailUrl(uploadedImage, 80) : (selectedFrame.cornerImage || selectedFrame.previewImg)})` }}
+                                    style={{ backgroundImage: `url(${isPreset && uploadedImage ? getThumbnailUrl(uploadedImage, 80) : (selectedFrame.thumbnailImage || selectedFrame.cornerImage || selectedFrame.previewImg)})` }}
                                 />
                                 <div className="text-left">
                                     <p className="text-sm font-bold text-stone-900">{isPreset && presetTitle ? presetTitle : selectedFrame.name}</p>
-                                    <p className="text-[10px] text-stone-500">{isPreset && presetDims ? presetDims : (FRAME_STYLES.find(frame => frame.id === selectedFrame.id)?.category || selectedFrame.category)}</p>
+                                    <p className="text-[10px] text-stone-500">{isPreset && presetDims ? presetDims : displayCategoryName(FRAME_STYLES.find(frame => frame.id === selectedFrame.id)?.category || selectedFrame.category)}</p>
                                 </div>
                             </div>
                             <div className="w-7 h-7 rounded-full bg-stone-100 flex items-center justify-center group-hover:bg-stone-200 transition-colors">
@@ -3633,15 +3690,17 @@ const CustomizeFramePage = ({
                                     </button>
                                 </div>
                             </span>
-                            <button
-                                type="button"
-                                onClick={() => setIsSizeGuideOpen(v => !v)}
-                                className="normal-case tracking-normal font-semibold text-[11px] text-[#c9a84c] hover:text-[#b3924a] underline transition-colors"
-                            >
-                                Size guide
-                            </button>
+                            {!isProdigiFrame && (
+                                <button
+                                    type="button"
+                                    onClick={() => setIsSizeGuideOpen(v => !v)}
+                                    className="normal-case tracking-normal font-semibold text-[11px] text-[#c9a84c] hover:text-[#b3924a] underline transition-colors"
+                                >
+                                    Size guide
+                                </button>
+                            )}
                         </h2>
-                        {isSizeGuideOpen && (
+                        {!isProdigiFrame && isSizeGuideOpen && (
                             <SizeGuidePanel
                                 currentSize={selectedSize}
                                 orientation={orientation}
@@ -3651,6 +3710,11 @@ const CustomizeFramePage = ({
                             />
                         )}
                         <div className="grid grid-cols-2 gap-2">
+                            {isProdigiFrame && finalSizesList.length === 0 && (
+                                <div className="col-span-2 rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs leading-5 text-amber-900" role="status">
+                                    No orderable sizes are currently available for this frame finish.
+                                </div>
+                            )}
                             {(!showAllSizes && finalSizesList.length > 6) ? (
                                 <>
                                     {/* Collapsed: curated, column-major — left
@@ -3666,7 +3730,7 @@ const CustomizeFramePage = ({
                                         left column. */}
                                     <div className="flex flex-col gap-2">
                                         {leftColumnCollapsed.map(renderSizeButton)}
-                                        {!showCustomSizeForm && (
+                                        {!isProdigiFrame && !showCustomSizeForm && (
                                             <button
                                                 onClick={() => { setShowCustomSizeForm(true); setCustomSizeError(''); }}
                                                 className="py-2 px-3 rounded-xl border border-stone-200 hover:border-stone-400 text-stone-700 text-xs font-semibold transition-all text-center"
@@ -3689,7 +3753,7 @@ const CustomizeFramePage = ({
                                         split entirely. */}
                                     {finalSizesList.map(renderSizeButton)}
                                     {showCustomEntry && renderSizeButton(customSizeEntry)}
-                                    {!showCustomSizeForm && (
+                                    {!isProdigiFrame && !showCustomSizeForm && (
                                         <button
                                             onClick={() => { setShowCustomSizeForm(true); setCustomSizeError(''); }}
                                             className="py-2 px-3 rounded-xl border border-stone-200 hover:border-stone-400 text-stone-700 text-xs font-semibold transition-all text-center"
@@ -3700,7 +3764,7 @@ const CustomizeFramePage = ({
                                 </>
                             )}
 
-                            {showCustomSizeForm && (
+                            {!isProdigiFrame && showCustomSizeForm && (
                                 <div className="col-span-2 p-3 rounded-xl border border-stone-300 bg-stone-50 space-y-2">
                                     <div className="flex items-center gap-2">
                                         <input
@@ -3819,8 +3883,20 @@ const CustomizeFramePage = ({
                     </section>
                     )}
 
+                    {selectedFrame?.prodigiProduct && (
+                        <ProdigiConfigurationPanel
+                            key={selectedFrame.id}
+                            step={stepProdigi}
+                            frame={selectedFrame}
+                            size={selectedSize}
+                            selection={prodigiSelection}
+                            onSelectionChange={setProdigiSelection}
+                            onVisualOptionsChange={updateProdigiVisualOptions}
+                        />
+                    )}
+
                     {/* 5. Matting & 6. Glass Type (Hidden for Canvas) */}
-                    {selectedFrame?.id !== 'frame-canvas' && (
+                    {!selectedFrame?.prodigiProduct && selectedFrame?.id !== 'frame-canvas' && (
                         <>
                             {/* 5. Matting — two separate menus: Mat Width (a
                                 free-form slider, styled after
@@ -3933,7 +4009,7 @@ const CustomizeFramePage = ({
                     )}
 
                     {/* 7. Hardware */}
-                    <section>
+                    {!selectedFrame?.prodigiProduct && <section>
                         <h2 className="text-xs font-bold uppercase tracking-wider text-stone-900 mb-3 flex items-center gap-2">
                             <span className="bg-stone-100 text-stone-500 w-5 h-5 rounded-full flex items-center justify-center text-[10px]">{stepHardware}</span>
                             <span>
@@ -3963,25 +4039,30 @@ const CustomizeFramePage = ({
                                 </button>
                             ))}
                         </div>
-                    </section>
+                    </section>}
                 </div>
 
                 {/* Sticky Checkout Footer */}
                 <div className={`bottom-0 z-20 backdrop-blur-md border-t border-stone-200 shadow-[0_-10px_40px_rgba(0,0,0,0.03)] flex ${isSideBySide ? 'flex-col gap-0 items-start py-1.5 px-3' : 'items-center justify-between gap-4 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom,0px))] px-5'} ${isSideBySide ? 'relative bg-white/85' : 'sticky bg-white/95'}`}>
                     <div className="flex flex-col">
-                        {selectedFrame?.prodigiProduct ? (
-                            <span className="max-w-56 text-[10px] leading-4 text-amber-800">Prodigi checkout is not connected yet. You can preview and configure this supplier frame, but ordering is disabled until live SKU pricing and fulfillment are wired.</span>
-                        ) : <Price
+                        {selectedFrame?.prodigiProduct && !hasOrderableProdigiProduct ? (
+                            <span className="max-w-56 text-[10px] leading-4 text-amber-800">Preview ready · this finish is not currently available to order.</span>
+                        ) : selectedFrame?.prodigiProduct && prodigiSelection?.quoteTotalGbp ? (
+                            <div className="flex flex-col items-start leading-none">
+                                <Price amount={prodigiSelection.quoteTotalGbp} currency="GBP" className="text-lg font-bold text-stone-900 tracking-tight" />
+                                <span className="mt-0.5 text-[10px] leading-none text-stone-500">Live delivery and tax included</span>
+                            </div>
+                        ) : !selectedFrame?.prodigiProduct ? <Price
                             amount={
                                 Math.round((selectedSize?.price || 0) * (selectedFrame?.priceMod || 1)) +
                                 (selectedFrame?.id !== 'frame-canvas' && glassType !== 'canvas-floater' && glassType !== 'canvas-traditional' && matWidth !== 'none' ? (matColor.price || 75) : 0) +
-                                (selectedFrame?.id !== 'frame-canvas' ? (glassType === 'non-glare' ? 100 : glassType === 'museum' ? 200 : 0) : 0) +
+                                (!isCanvasOnly ? (glassType === 'non-glare' ? 100 : glassType === 'museum' ? 200 : 0) : 0) +
             (selectedFrame?.id !== 'frame-canvas' && glassType === 'canvas-floater' ? 400 : 0) +
             (selectedFrame?.id !== 'frame-canvas' && glassType === 'canvas-traditional' ? 350 : 0) +
                                 (hardwareType === 'french-cleat' ? 50 : 0)
                             }
                             className="text-lg font-bold text-stone-900 tracking-tight"
-                        />}
+                        /> : null}
                         {!selectedFrame?.prodigiProduct && <span className="text-[8px] text-stone-500 whitespace-nowrap">
                             {isCloudUploadPending ? 'Finishing image upload…' : 'Shipping fee paid upon delivery'}
                         </span>}
@@ -3989,8 +4070,8 @@ const CustomizeFramePage = ({
                     <div className={`flex w-full mt-1 ${isSideBySide ? 'gap-1.5' : 'gap-2 max-w-[300px]'}`}>
                         <button
                             onClick={() => completeCheckoutAction('cart')}
-                            disabled={!hasImage || isCloudUploadPending || loadingAction !== null || Boolean(selectedFrame?.prodigiProduct)}
-                            className={`flex-1 bg-white border rounded-full text-[10px] font-bold uppercase tracking-widest transition-colors flex items-center justify-center gap-1.5 shadow-sm ${isSideBySide ? 'py-1.5' : 'py-2.5'} ${!hasImage || isCloudUploadPending || loadingAction !== null || selectedFrame?.prodigiProduct ? 'opacity-50 cursor-not-allowed border-stone-200 text-stone-400 bg-stone-50' : 'text-stone-900 border-stone-200 hover:bg-stone-50'}`}
+                            disabled={!hasImage || isCloudUploadPending || loadingAction !== null || Boolean(selectedFrame?.prodigiProduct && !prodigiSelection?.quoteTotalGbp)}
+                            className={`flex-1 bg-white border rounded-full text-[10px] font-bold uppercase tracking-widest transition-colors flex items-center justify-center gap-1.5 shadow-sm ${isSideBySide ? 'py-1.5' : 'py-2.5'} ${!hasImage || isCloudUploadPending || loadingAction !== null || (selectedFrame?.prodigiProduct && !prodigiSelection?.quoteTotalGbp) ? 'opacity-50 cursor-not-allowed border-stone-200 text-stone-400 bg-stone-50' : 'text-stone-900 border-stone-200 hover:bg-stone-50'}`}
                         >
                             {loadingAction === 'cart' && <Loader size={12} className="animate-spin" />}
                             {loadingAction === 'cart' ? 'Adding…' : (wasAddedToCart ? 'Added' : 'Add to Cart')}
@@ -4007,8 +4088,8 @@ const CustomizeFramePage = ({
                                 }
                                 completeCheckoutAction('pay');
                             }}
-                            disabled={!hasImage || isCloudUploadPending || loadingAction !== null || Boolean(selectedFrame?.prodigiProduct)}
-                            className={`flex-1 border rounded-full text-[10px] font-bold uppercase tracking-widest transition-colors flex items-center justify-center gap-1.5 shadow-sm ${isSideBySide ? 'py-1.5' : 'py-2.5'} ${!hasImage || isCloudUploadPending || loadingAction !== null || selectedFrame?.prodigiProduct ? 'opacity-50 cursor-not-allowed border-stone-200 text-stone-400 bg-stone-50' : 'bg-[#c9a84c] border-[#c9a84c] text-[#0a0a0a] hover:bg-[#d4b55c]'}`}
+                            disabled={!hasImage || isCloudUploadPending || loadingAction !== null || Boolean(selectedFrame?.prodigiProduct && !prodigiSelection?.quoteTotalGbp)}
+                            className={`flex-1 border rounded-full text-[10px] font-bold uppercase tracking-widest transition-colors flex items-center justify-center gap-1.5 shadow-sm ${isSideBySide ? 'py-1.5' : 'py-2.5'} ${!hasImage || isCloudUploadPending || loadingAction !== null || (selectedFrame?.prodigiProduct && !prodigiSelection?.quoteTotalGbp) ? 'opacity-50 cursor-not-allowed border-stone-200 text-stone-400 bg-stone-50' : 'bg-[#c9a84c] border-[#c9a84c] text-[#0a0a0a] hover:bg-[#d4b55c]'}`}
                         >
                             {loadingAction === 'pay' && <Loader size={12} className="animate-spin" />}
                             Pay Now
@@ -4048,12 +4129,14 @@ const CustomizeFramePage = ({
                 isOpen={isArOpen}
                 onClose={() => setIsArOpen(false)}
                 frame={selectedFrame}
-                widthIn={wInch}
-                heightIn={hInch}
+                widthIn={selectedFrame?.prodigiProduct ? Math.max(1, wInch - matReveal.sideIn * 2) : wInch}
+                heightIn={selectedFrame?.prodigiProduct ? Math.max(1, hInch - matReveal.topIn - matReveal.bottomIn) : hInch}
                 matReveal={matReveal}
                 matColorHex={matColor?.hex}
+                glassType={glassType}
                 artworkUrl={productionImage || uploadedImage}
-                hardwareType={hardwareType}
+                hardwareType={selectedFrame?.prodigiProduct ? 'none' : hardwareType}
+                canvasWrap={canvasWrap}
             />
         </div>
     );

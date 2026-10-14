@@ -1,5 +1,4 @@
 import SOURCE_DIMS from './source_dims.json';
-import { FRAME_STYLES } from './constants';
 import { getThumbnailUrl } from '../services/storage';
 
 export const BASE = 'https://ik.imagekit.io/jybooboo187/inspiration_glossy_art/';

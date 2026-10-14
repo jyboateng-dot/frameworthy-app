@@ -26,7 +26,6 @@ export default function LandingPage({ onStartFraming, navigate, setSelectedFrame
     
     // Pagination logic
     const filteredFrames = framesForCategory(activeCategory);
-    const prodigiFrameCount = PRODIGI_FRAME_CATEGORIES.reduce((count, category) => count + framesForCategory(category).length, 0);
     const itemsPerPage = 12;
     const totalPages = Math.ceil(filteredFrames.length / itemsPerPage);
     const currentFrames = filteredFrames.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
@@ -52,8 +51,8 @@ export default function LandingPage({ onStartFraming, navigate, setSelectedFrame
     return (
         <div className="min-h-screen bg-[#faf9f8] text-stone-900 font-sans antialiased overflow-x-hidden selection:bg-stone-200">
             <PageMeta
-                title="Custom Picture Framing in Ghana"
-                description="Design and order custom-framed prints, photos, and art online. Premium moulding, mats, and glazing, delivered nationwide across Ghana."
+                title="Made-to-Order Frames & Canvas"
+                description="Design made-to-order framed prints and canvas online, with live previews and delivery to the United Kingdom and Jersey."
             />
             {/* Header is handled globally by App.jsx */}
 
@@ -150,7 +149,9 @@ export default function LandingPage({ onStartFraming, navigate, setSelectedFrame
                     <div className="flex flex-col md:flex-row justify-between items-end mb-12">
                         <div>
                             <h2 className="text-3xl lg:text-4xl font-bold tracking-tight text-stone-900 mb-4">Curated Frame Collection</h2>
-                            <p className="text-stone-500 max-w-md">Browse {prodigiFrameCount} Prodigi frame and canvas options, organized by product style.</p>
+                            <p className="text-stone-500 max-w-2xl leading-relaxed">
+                                Explore made-to-order frames and canvases across classic wood, deep box, slim aluminium, traditional canvas, floating canvas, recycled canvas and stretched canvas styles.
+                            </p>
                         </div>
                     </div>
                     
@@ -169,22 +170,35 @@ export default function LandingPage({ onStartFraming, navigate, setSelectedFrame
                     </div>
 
                     {/* Frame Grid */}
-                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-x-5 gap-y-6 mb-12">
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mb-12">
                         {currentFrames.map((frame) => (
                             <div key={frame.id} className="group cursor-pointer" onClick={() => handleFrameSelect(frame)}>
-                                <div className="aspect-square rounded-2xl bg-stone-100 overflow-hidden mb-3 relative transition-transform duration-300 group-hover:scale-[1.02]">
+                                <div className="aspect-square rounded-2xl bg-stone-100 overflow-hidden mb-4 relative transition-transform duration-500 group-hover:scale-[1.02]">
                                     <img
-                                        src={frame.cornerImage || frame.previewImg || `/frames/${frame.filename}`}
+                                        src={frame.thumbnailImage || frame.cornerImage || frame.previewImg || `/frames/${frame.filename}`}
                                         alt={frame.name}
                                         loading="lazy"
                                         decoding="async"
-                                        className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
+                                        style={frame.thumbnailCrop ? {
+                                            transform: `scale(${frame.thumbnailCrop.scale})`,
+                                            transformOrigin: frame.thumbnailCrop.origin,
+                                        } : undefined}
+                                        className={frame.thumbnailImage && !frame.thumbnailCrop
+                                            ? 'w-full h-full object-cover transition-transform duration-700 group-hover:scale-[1.04]'
+                                            : 'w-full h-full object-cover scale-[1.65] origin-[50%_68%] transition-transform duration-700 group-hover:scale-[1.78]'}
                                     />
+                                    <div className="absolute inset-0 shadow-[inset_0_0_46px_12px_rgba(28,26,23,0.18)] pointer-events-none" />
+                                    <div className="absolute inset-0 opacity-0 group-hover:opacity-100 bg-black/10 transition-opacity duration-300 z-10" />
+                                    <div className="absolute inset-0 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-20">
+                                        <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-xl transform translate-y-4 group-hover:translate-y-0 transition-all duration-300">
+                                            <ArrowRight className="w-5 h-5 text-stone-900" />
+                                        </div>
+                                    </div>
                                 </div>
                                 
                                 <div>
-                                    <h3 className="text-sm font-bold text-stone-900 leading-tight">{displayFrameName(frame)}</h3>
-                                    <p className="mt-1.5 text-xs text-stone-500">{displayCategoryName(frame.category)}</p>
+                                    <h3 className="text-lg font-bold text-stone-900 mb-1">{displayFrameName(frame)}</h3>
+                                    <p className="text-sm text-stone-500">{displayCategoryName(frame.category)}</p>
                                 </div>
                             </div>
                         ))}
