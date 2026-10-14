@@ -45,6 +45,24 @@ const preferredSku = (products) => {
     return products[0]?.sku || '';
 };
 
+// The supplier feed can contain more than one orderable SKU for the same
+// customer-facing dimensions (for example inch and metric aliases). Keep the
+// SKU attached to the option row, but present one size choice to the customer.
+// Prefer the familiar inch-labelled SKU when both aliases are available.
+export const uniqueDisplaySizes = (products) => {
+    const bySize = new Map();
+    for (const product of products) {
+        const key = `${product.sizeInches || ''}|${product.sizeCm || ''}`;
+        const existing = bySize.get(key);
+        const productUsesInchSku = /-\d{1,2}X\d{1,2}$/.test(product.sku);
+        const existingUsesMetricSku = /-\d{3,}X\d{3,}$/.test(existing?.sku || '');
+        if (!existing || (productUsesInchSku && existingUsesMetricSku)) {
+            bySize.set(key, product);
+        }
+    }
+    return [...bySize.values()];
+};
+
 const prettifyWrap = (value) => ({
     ImageWrap: 'Image wrap',
     MirrorWrap: 'Mirror wrap',
@@ -74,7 +92,7 @@ export default function ProdigiCataloguePage() {
 
     const familyProducts = useMemo(() => prodigiCatalog.products.filter((item) =>
         item.family === family && item.markets[destination]), [family, destination]);
-    const availableSkus = useMemo(() => [...new Map(familyProducts.map((item) => [item.sku, item])).values()], [familyProducts]);
+    const availableSkus = useMemo(() => uniqueDisplaySizes([...new Map(familyProducts.map((item) => [item.sku, item])).values()]), [familyProducts]);
     const activeSku = availableSkus.some((item) => item.sku === sku) ? sku : preferredSku(availableSkus);
     const sizeVariants = useMemo(() => familyProducts.filter((item) => item.sku === activeSku), [familyProducts, activeSku]);
     const colors = useMemo(() => [...new Set(sizeVariants.map((item) => item.options.color).filter(Boolean))], [sizeVariants]);
