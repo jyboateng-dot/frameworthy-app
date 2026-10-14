@@ -51,6 +51,13 @@ The Codemagic configuration expects:
 - provisioning profile `frameworthy_profile`
 - the `production` environment group with the production `VITE_*` values
 
+The Apple App ID uses Team ID `PRNK95XA3F` and bundle ID
+`com.frameworthyco.app`. The refreshed App Store profile has been checked
+locally and contains the Associated Domains entitlement. It is registered in
+Codemagic under the existing `frameworthy_profile` identity. The matching
+Apple Distribution certificate still needs to be uploaded as
+`frameworthy_cert` before the next iOS release.
+
 ## Release checks
 
 Before creating a release tag:
@@ -62,9 +69,20 @@ Before creating a release tag:
    and Android devices.
 5. Confirm the App Check logs show verified requests from both native apps.
 
+## Universal Links and Android App Links
+
+The app-side routing is configured for `frameworthyco.com` and
+`www.frameworthyco.com`. Apple verification is configured with the Team ID,
+bundle ID, associated-domains entitlement, and
+`public/.well-known/apple-app-site-association` served as JSON by Firebase.
+
+Android verification still requires the SHA-256 fingerprint of the Play App
+Signing certificate. After Google Play account verification and app creation,
+publish that fingerprint in `/.well-known/assetlinks.json` for package
+`com.frameworthyco.app`; do not guess this value.
+
 ## Known native follow-ups
 
-- Configure Universal Links and Android App Links.
 - Add Google Play internal-track publishing.
 - Replace placeholder native tests with launch and critical-flow smoke tests.
 - Decide which assets and flows should be bundled for an offline launch
