@@ -178,8 +178,9 @@ workflows:
         script: |
           APP_VERSION="${CM_TAG#ios-}"
           if [ -z "$APP_VERSION" ] || [ "$APP_VERSION" = "$CM_TAG" ]; then
-            echo "Expected a release tag in the form ios-1.2.3"
-            exit 1
+            # Manual Codemagic runs have no CM_TAG; keep them buildable while
+            # tagged ios-* releases continue to set the real marketing version.
+            APP_VERSION="1.0.0"
           fi
           cd ios/App
           agvtool new-marketing-version "$APP_VERSION"
