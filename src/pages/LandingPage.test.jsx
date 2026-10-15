@@ -15,9 +15,12 @@ describe('home catalogue and carousel', () => {
         expect(screen.getByText(/Explore made-to-order frames and canvases/)).toBeInTheDocument();
         expect(screen.queryByText(/Prodigi/i)).not.toBeInTheDocument();
         expect(screen.getByRole('button', { name: 'Classic Frames' })).toHaveAttribute('aria-pressed', 'true');
+        expect(screen.getByText(/Solid, satin-laminated wood paired with a premium fine-art print/)).toBeInTheDocument();
         expect(screen.getByRole('heading', { name: 'Black' })).toBeInTheDocument();
+        expect(screen.getAllByText('From £16').length).toBeGreaterThan(0);
         expect(screen.getAllByRole('button').filter(button => button.hasAttribute('aria-pressed'))).toHaveLength(7);
         fireEvent.click(screen.getByRole('button', { name: 'Float Framed Canvas' }));
+        expect(screen.getByText(/subtle shadow gap and floating effect/)).toBeInTheDocument();
         const floatFrames = framesForCategory(PRODIGI_FRAME_CATEGORIES[4]);
         fireEvent.click(screen.getByRole('heading', { name: /Natural/ }));
         expect(setSelectedFrame).toHaveBeenCalledWith(floatFrames.find(frame => frame.id.endsWith('-natural')));

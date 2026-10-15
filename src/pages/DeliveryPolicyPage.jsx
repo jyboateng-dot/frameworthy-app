@@ -51,7 +51,10 @@ const DeliveryPolicyPage = ({ navigate }) => (
             <p>
                 For any questions regarding your delivery, please reach us at{' '}
                 <a href="mailto:admin@frameworthyco.com" className="font-bold underline hover:text-stone-900">admin@frameworthyco.com</a>{' '}
-                or call us at 0261 549 517 / 0501 648 227.
+                or call us at +44 7797 789598.
+            </p>
+            <p className="mt-2 text-xs text-stone-500">
+                Frameworthy&amp;co, Liberty Wharf Apartments, Esplanade, St Helier, Jersey, JE2 3AS.
             </p>
         </LegalSection>
     </LegalPageLayout>

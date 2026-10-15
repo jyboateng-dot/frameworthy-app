@@ -38,8 +38,43 @@ export function displayCategoryName(category) {
     return category.replace(/^Prodigi /, '');
 }
 
+export const CATEGORY_DESCRIPTIONS = {
+    'Prodigi Classic Frames': 'Solid, satin-laminated wood paired with a premium fine-art print for a timeless, ready-to-hang finish.',
+    'Prodigi Box Frames': 'Solid, hand-stained wood with a 20 mm face and 33 mm depth for a clean, contemporary shadow-line look.',
+    'Prodigi Aluminium Frames': 'A sleek, lightweight aluminium frame with a slim 10 mm face, shatterproof Perspex and a modern matt finish.',
+    'Prodigi Classic Framed Canvas': 'A 38 mm artist-grade cotton canvas set inside a satin-laminated classic frame for a traditional gallery-style look.',
+    'Prodigi Float Framed Canvas': 'A 38 mm artist-grade canvas set apart from a slim wooden frame to create a subtle shadow gap and floating effect.',
+    'Prodigi Eco Framed Canvas': 'A 38 mm satin canvas made from recycled plastic bottles, set inside a sustainably sourced wood floating frame.',
+    'Prodigi Stretched Canvas': 'Heavyweight artist-grade canvas hand-stretched over 38 mm knotless pine bars for clean edges and a minimalist finish.',
+};
+
+export function frameCategoryDescription(category) {
+    if (!category) return '';
+    const key = category.startsWith('Prodigi ') ? category : `Prodigi ${category}`;
+    return CATEGORY_DESCRIPTIONS[key] || CATEGORY_DESCRIPTIONS[category] || '';
+}
+
 export function displayFrameName(frame) {
     return frame.name.replace(/^(?:Prodigi )?(Classic Canvas|Float Canvas|Eco Canvas|Stretched Canvas|Classic|Box|Aluminium) · /, '');
+}
+
+export const FRAME_STARTING_PRICES_GBP = {
+    'classic': 16,
+    'box': 19,
+    'aluminium': 12,
+    'canvas-classic': 18,
+    'canvas-float': 20,
+    'canvas-eco': 17,
+    'stretched-canvas': 14,
+};
+
+export function frameStartingPrice(frame) {
+    if (!frame) return 0;
+    return FRAME_STARTING_PRICES_GBP[frame.prodigiProduct] || 16;
+}
+
+export function frameStartingPriceDisplay(frame) {
+    return `From £${frameStartingPrice(frame)}`;
 }
 
 export function categoryForFrame(frame) {

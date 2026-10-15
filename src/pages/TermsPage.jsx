@@ -18,8 +18,8 @@ const TermsPage = ({ navigate }) => (
 
         <LegalSection title="2. Who We Are">
             <p>
-                FrameWorthy is operated by Frameworthy&amp;co, No. 17A, Cashew Street, Adjiringanor,
-                Accra, Ghana.
+                FrameWorthy is operated by Frameworthy&amp;co, Liberty Wharf Apartments, Esplanade,
+                St Helier, Jersey, JE2 3AS.
             </p>
         </LegalSection>
 
@@ -97,8 +97,8 @@ const TermsPage = ({ navigate }) => (
 
         <LegalSection title="10. Governing Law">
             <p>
-                These Terms are governed by the laws of Ghana. Any disputes will be subject to the
-                exclusive jurisdiction of the courts of Ghana.
+                These Terms are governed by the laws of Jersey. Any disputes will be subject to the
+                exclusive jurisdiction of the courts of Jersey.
             </p>
         </LegalSection>
 
@@ -113,7 +113,7 @@ const TermsPage = ({ navigate }) => (
             <p>
                 Questions about these Terms? Reach us at{' '}
                 <a href="mailto:admin@frameworthyco.com" className="font-bold underline hover:text-stone-900">admin@frameworthyco.com</a>{' '}
-                or 0261 549 517 / 0501 648 227.
+                or +44 7797 789598.
             </p>
         </LegalSection>
     </LegalPageLayout>

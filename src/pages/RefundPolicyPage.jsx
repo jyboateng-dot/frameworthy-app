@@ -55,7 +55,7 @@ const RefundPolicyPage = ({ navigate }) => (
             <p>
                 Email{' '}
                 <a href="mailto:admin@frameworthyco.com" className="font-bold underline hover:text-stone-900">admin@frameworthyco.com</a>{' '}
-                or call 0261 549 517 / 0501 648 227 with your order ID, a description of the issue,
+                or call +44 7797 789598 with your order ID, a description of the issue,
                 and photos if applicable.
             </p>
         </LegalSection>
@@ -72,7 +72,10 @@ const RefundPolicyPage = ({ navigate }) => (
             <p>
                 Questions about this policy? Reach us at{' '}
                 <a href="mailto:admin@frameworthyco.com" className="font-bold underline hover:text-stone-900">admin@frameworthyco.com</a>{' '}
-                or 0261 549 517 / 0501 648 227.
+                or +44 7797 789598.
+            </p>
+            <p className="mt-2 text-xs text-stone-500">
+                Frameworthy&amp;co, Liberty Wharf Apartments, Esplanade, St Helier, Jersey, JE2 3AS.
             </p>
         </LegalSection>
     </LegalPageLayout>

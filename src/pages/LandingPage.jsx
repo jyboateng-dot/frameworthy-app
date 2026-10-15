@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ArrowRight, ChevronRight, ChevronLeft, Sparkles, Upload, Frame as FrameIcon, SlidersHorizontal, Eye, Truck } from 'lucide-react';
-import { framesForCategory, displayCategoryName, displayFrameName, PRODIGI_FRAME_CATEGORIES } from '../data/frameBrowsing';
+import { framesForCategory, displayCategoryName, displayFrameName, frameStartingPriceDisplay, frameCategoryDescription, PRODIGI_FRAME_CATEGORIES } from '../data/frameBrowsing';
 import { CAROUSEL_SLIDES } from '../data/landingCarouselSlides';
 import { openExternalLinkFromEvent as openExternalLink } from '../utils/nativeLinks';
 import PageMeta from '../components/common/PageMeta';
@@ -156,7 +156,7 @@ export default function LandingPage({ onStartFraming, navigate, setSelectedFrame
                     </div>
                     
                     {/* Category Tabs */}
-                    <div className="flex overflow-x-auto gap-2 pb-6 mb-4 hide-scrollbar">
+                    <div className="flex overflow-x-auto gap-2 pb-3 hide-scrollbar">
                         {PRODIGI_FRAME_CATEGORIES.map(cat => (
                             <button
                                 key={cat}
@@ -168,6 +168,9 @@ export default function LandingPage({ onStartFraming, navigate, setSelectedFrame
                             </button>
                         ))}
                     </div>
+                    <p aria-live="polite" className="mb-8 text-sm leading-6 text-stone-600">
+                        {frameCategoryDescription(activeCategory)}
+                    </p>
 
                     {/* Frame Grid */}
                     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mb-12">
@@ -198,7 +201,7 @@ export default function LandingPage({ onStartFraming, navigate, setSelectedFrame
                                 
                                 <div>
                                     <h3 className="text-lg font-bold text-stone-900 mb-1">{displayFrameName(frame)}</h3>
-                                    <p className="text-sm text-stone-500">{displayCategoryName(frame.category)}</p>
+                                    <p className="text-sm text-stone-500">{frameStartingPriceDisplay(frame)}</p>
                                 </div>
                             </div>
                         ))}
@@ -276,8 +279,9 @@ export default function LandingPage({ onStartFraming, navigate, setSelectedFrame
                         <div>
                             <h6 className="text-white font-bold uppercase tracking-widest text-xs mb-6">Frameworthy&amp;co</h6>
                             <p className="leading-loose">
-                                No. 17A, Cashew Street<br />
-                                Adjiringanor, Accra, Ghana
+                                Liberty Wharf Apartments<br />
+                                Esplanade, St Helier<br />
+                                Jersey, JE2 3AS
                             </p>
                         </div>
 
@@ -285,8 +289,7 @@ export default function LandingPage({ onStartFraming, navigate, setSelectedFrame
                         <div>
                             <h6 className="text-white font-bold uppercase tracking-widest text-xs mb-6">Contact</h6>
                             <p className="leading-loose">
-                                Tel: 0261 549 517<br />
-                                Tel: 0501 648 227<br />
+                                Tel: +44 7797 789598<br />
                                 Email: <a href="mailto:admin@frameworthyco.com" className="hover:text-white transition-colors">admin@frameworthyco.com</a>
                             </p>
                         </div>

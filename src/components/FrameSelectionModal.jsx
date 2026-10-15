@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { framesForCategory, categoryForFrame, displayCategoryName, displayFrameName, PRODIGI_FRAME_CATEGORIES } from '../data/frameBrowsing';
+import { framesForCategory, categoryForFrame, displayCategoryName, displayFrameName, frameStartingPriceDisplay, frameCategoryDescription, PRODIGI_FRAME_CATEGORIES } from '../data/frameBrowsing';
 import { getFrameDepthPresentation } from '../utils/frameDepthPresentation';
 
 function FrameDepthIndicator({ frame }) {
@@ -54,17 +54,22 @@ export default function FrameSelectionModal({ isOpen, onClose, selectedFrame, on
             </div>
 
             {/* Categories */}
-            <div className="flex items-center overflow-x-auto no-scrollbar p-3.5 gap-1.5 border-b border-gray-50 bg-stone-50/50 shrink-0">
-                {PRODIGI_FRAME_CATEGORIES.map(cat => (
-                    <button
-                        key={cat}
-                        onClick={() => setActiveCategory(cat)}
-                        aria-pressed={activeCategory === cat}
-                        className={`flex-shrink-0 whitespace-nowrap px-3 py-1.5 rounded-full text-xs font-semibold transition-all ${activeCategory === cat ? 'bg-black text-white shadow-md' : 'bg-white text-stone-600 hover:bg-stone-100 border border-stone-200'}`}
-                    >
-                        {displayCategoryName(cat)}
-                    </button>
-                ))}
+            <div className="border-b border-gray-100 bg-stone-50/50 shrink-0">
+                <div className="flex items-center overflow-x-auto no-scrollbar px-3.5 pt-3.5 pb-2 gap-1.5">
+                    {PRODIGI_FRAME_CATEGORIES.map(cat => (
+                        <button
+                            key={cat}
+                            onClick={() => setActiveCategory(cat)}
+                            aria-pressed={activeCategory === cat}
+                            className={`flex-shrink-0 whitespace-nowrap px-3 py-1.5 rounded-full text-xs font-semibold transition-all ${activeCategory === cat ? 'bg-black text-white shadow-md' : 'bg-white text-stone-600 hover:bg-stone-100 border border-stone-200'}`}
+                        >
+                            {displayCategoryName(cat)}
+                        </button>
+                    ))}
+                </div>
+                <p aria-live="polite" className="mx-auto w-full max-w-6xl px-5 pb-3 text-xs leading-5 text-stone-600">
+                    {frameCategoryDescription(activeCategory)}
+                </p>
             </div>
 
             {/* Grid */}
@@ -96,7 +101,7 @@ export default function FrameSelectionModal({ isOpen, onClose, selectedFrame, on
                             </div>
                             <div className="pt-3 text-left">
                                 <h3 className="text-sm font-bold text-stone-900 leading-tight line-clamp-2">{displayFrameName(f)}</h3>
-                                <p className="mt-1.5 text-xs text-stone-500">{displayCategoryName(f.category)}</p>
+                                <p className="mt-1.5 text-xs text-stone-500">{frameStartingPriceDisplay(f)}</p>
                             </div>
                         </button>
                     ))}

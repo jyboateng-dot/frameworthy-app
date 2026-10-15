@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { CATEGORIES } from './constants';
-import { activeFrameOrDefault, categoryForFrame, DEFAULT_PRODIGI_FRAME, framesForCategory, FEATURED_FRAME_IDS, prodigiPresentationForFrame, displayCategoryName, PRODIGI_FRAME_CATEGORIES, PRODIGI_FRAME_STYLES } from './frameBrowsing';
+import { activeFrameOrDefault, categoryForFrame, DEFAULT_PRODIGI_FRAME, framesForCategory, FEATURED_FRAME_IDS, prodigiPresentationForFrame, displayCategoryName, frameStartingPrice, frameStartingPriceDisplay, frameCategoryDescription, PRODIGI_FRAME_CATEGORIES, PRODIGI_FRAME_STYLES } from './frameBrowsing';
 
 describe('frame catalogue browsing', () => {
     it('includes detailed options in all seven active frame categories', () => {
@@ -100,5 +100,28 @@ describe('frame catalogue browsing', () => {
         expect(categoryForFrame({ id: 'frame-8838', category: 'Natural Woods' })).toBe(PRODIGI_FRAME_CATEGORIES[0]);
         expect(categoryForFrame({ id: 'removed-frame' })).toBe(PRODIGI_FRAME_CATEGORIES[0]);
         expect(activeFrameOrDefault({ id: 'frame-8446' })).toBe(DEFAULT_PRODIGI_FRAME);
+    });
+
+    it('indicates starting prices for each frame style', () => {
+        const classic = framesForCategory('Prodigi Classic Frames')[0];
+        const box = framesForCategory('Prodigi Box Frames')[0];
+        const alu = framesForCategory('Prodigi Aluminium Frames')[0];
+        const stretched = framesForCategory('Prodigi Stretched Canvas')[0];
+
+        expect(frameStartingPrice(classic)).toBe(16);
+        expect(frameStartingPriceDisplay(classic)).toBe('From £16');
+        expect(frameStartingPrice(box)).toBe(19);
+        expect(frameStartingPriceDisplay(box)).toBe('From £19');
+        expect(frameStartingPrice(alu)).toBe(12);
+        expect(frameStartingPriceDisplay(alu)).toBe('From £12');
+        expect(frameStartingPrice(stretched)).toBe(14);
+        expect(frameStartingPriceDisplay(stretched)).toBe('From £14');
+    });
+
+    it('provides descriptive summaries for each frame category pill', () => {
+        expect(PRODIGI_FRAME_CATEGORIES.every(category => frameCategoryDescription(category).length > 40)).toBe(true);
+        expect(frameCategoryDescription('Prodigi Classic Frames')).toContain('satin-laminated wood');
+        expect(frameCategoryDescription('Classic Frames')).toContain('satin-laminated wood');
+        expect(frameCategoryDescription('Float Framed Canvas')).toContain('shadow gap');
     });
 });

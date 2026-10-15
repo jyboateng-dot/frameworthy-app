@@ -252,12 +252,12 @@ const HelpCenterPage = ({ navigate, onOpenChat }) => {
                                 Speak directly with our support team during business hours.
                             </p>
                             <div className="space-y-1 mb-4">
-                                <a href="tel:0261549517" className="block text-xs font-bold text-stone-900 hover:text-[#c9a84c] transition">
-                                    📞 0261 549 517
+                                <a href="tel:+447797789598" className="block text-xs font-bold text-stone-900 hover:text-[#c9a84c] transition">
+                                    📞 +44 7797 789598
                                 </a>
-                                <a href="tel:0501648227" className="block text-xs font-bold text-stone-900 hover:text-[#c9a84c] transition">
-                                    📞 0501 648 227
-                                </a>
+                                <p className="text-[11px] text-stone-500 pt-1">
+                                    Liberty Wharf Apartments, Esplanade, St Helier, Jersey, JE2 3AS
+                                </p>
                             </div>
                         </div>
                         <div className="flex items-center gap-1.5 text-[10px] text-stone-400 uppercase tracking-wider pt-2 border-t border-stone-100">

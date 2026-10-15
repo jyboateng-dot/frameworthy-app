@@ -118,7 +118,7 @@ async function triggerAiResponse(uid, text) {
 
         if (userWantsHuman) {
             // Handoff message
-            aiResponseText = "I've notified our studio support team! A human representative will take over this conversation shortly. You can also call us directly at 0261 549 517 / 0501 648 227 (Mon-Sat, 8am-6pm GMT).";
+            aiResponseText = "I've notified our studio support team! A human representative will take over this conversation shortly. You can also call us directly at +44 7797 789598 (Mon-Sat, 8am-6pm GMT).";
         } else {
             // Fetch recent messages for conversation context
             const q = query(collection(db, 'chats', uid, 'messages'), orderBy('createdAt', 'desc'), limit(8));

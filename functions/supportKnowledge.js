@@ -37,8 +37,8 @@ ORDERS AND SUPPORT
 - Made-to-order products can only be cancelled before production begins.
 - Damage or incorrect-item claims should be reported within 72 hours with photographs.
 - Support email: admin@frameworthyco.com.
-- Physical business address: No. 17A, Cashew Street, Adjiringanor, Accra, Ghana.
-- Phone: 0261 549 517 / 0501 648 227, Monday-Saturday, 8:00 AM-6:00 PM GMT.
+- Physical business address: Liberty Wharf Apartments, Esplanade, St Helier, Jersey, JE2 3AS.
+- Phone: +44 7797 789598, Monday-Saturday, 8:00 AM-6:00 PM GMT.
 `;
 
 module.exports = { FRAMEWORTHY_KNOWLEDGE_BASE };

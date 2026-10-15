@@ -39,11 +39,15 @@ it('presents fulfilment finishes as selectable cards in the shared curated colle
 
     expect(screen.getByRole('heading', { name: 'Curated Frame Collection' })).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Classic Frames' }));
+    expect(screen.getByText(/Solid, satin-laminated wood paired with a premium fine-art print/)).toBeInTheDocument();
     const classicBlack = screen.getByRole('button', { name: /Black/ });
     expect(classicBlack.querySelector('img')).toHaveAttribute('src', expect.stringContaining('classic-black.png'));
     expect(classicBlack).toHaveTextContent('22 mm depth');
+    expect(classicBlack).toHaveTextContent('From £16');
     fireEvent.click(screen.getByRole('button', { name: 'Box Frames' }));
+    expect(screen.getByText(/clean, contemporary shadow-line look/)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Black/ })).toHaveTextContent('33 mm depth');
+    expect(screen.getByRole('button', { name: /Black/ })).toHaveTextContent('From £19');
     fireEvent.click(screen.getByRole('button', { name: 'Classic Frames' }));
     fireEvent.click(screen.getByRole('button', { name: /Black/ }));
     expect(onSelect).toHaveBeenCalledWith(FRAME_STYLES.find(frame => frame.id === 'prodigi-classic-black'));
