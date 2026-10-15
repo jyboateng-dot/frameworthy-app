@@ -319,9 +319,24 @@ const CustomizeFramePage = ({
     // watches this counter so the hint can open the existing picker without
     // adding a second mobile-only flow.
     const [sceneAutoOpenTick, setSceneAutoOpenTick] = useState(0);
-    // The invitation is reset for every fresh artwork. Dismissing it only
-    // affects the image currently being customized.
+    // The invitation is reset for every fresh artwork. Auto-dismisses after
+    // a recommended 6 seconds so it doesn't obstruct the visualizer indefinitely.
     const [showSceneHint, setShowSceneHint] = useState(true);
+    const sceneHintTimeoutRef = useRef(null);
+
+    useEffect(() => {
+        if (!showSceneHint) {
+            if (sceneHintTimeoutRef.current) window.clearTimeout(sceneHintTimeoutRef.current);
+            return;
+        }
+        sceneHintTimeoutRef.current = window.setTimeout(() => {
+            setShowSceneHint(false);
+        }, 6000);
+
+        return () => {
+            if (sceneHintTimeoutRef.current) window.clearTimeout(sceneHintTimeoutRef.current);
+        };
+    }, [showSceneHint]);
     // Resolved async per selectedFrame — see utils/frameTexture.js. Stays
     // null (falls back to the synthesized-gradient moulding) until/unless a
     // confident on-material anchor is found for this frame's corner photo.
@@ -2390,7 +2405,17 @@ const CustomizeFramePage = ({
                 {showSceneHint && hasImage && !roomSceneId && !isFullScreen && !isMaxZoom ? (
                     <aside
                         aria-label="Room scene preview hint"
-                        className="relative z-20 flex w-[min(17.75rem,calc(100vw-1rem))] items-center gap-1.5 rounded-2xl border border-stone-200/90 bg-white/95 p-1.5 pr-2.5 font-sans shadow-lg shadow-stone-900/10 backdrop-blur"
+                        onMouseEnter={() => {
+                            if (sceneHintTimeoutRef.current) window.clearTimeout(sceneHintTimeoutRef.current);
+                        }}
+                        onMouseLeave={() => {
+                            if (showSceneHint) {
+                                sceneHintTimeoutRef.current = window.setTimeout(() => {
+                                    setShowSceneHint(false);
+                                }, 2000);
+                            }
+                        }}
+                        className="relative z-20 flex w-[min(18.5rem,calc(100vw-1rem))] items-center gap-1.5 rounded-2xl border border-stone-200/90 bg-white/95 p-1.5 pr-2 font-sans shadow-lg shadow-stone-900/10 backdrop-blur transition-all duration-300"
                     >
                         <div className="relative h-11 w-[4.125rem] shrink-0 overflow-hidden rounded-lg bg-stone-100 sm:h-[3.25rem] sm:w-[5.125rem]" style={{ containerType: 'inline-size' }}>
                             <img
@@ -2417,7 +2442,7 @@ const CustomizeFramePage = ({
                                 </div>
                             )}
                         </div>
-                        <div className="min-w-0 py-0.5">
+                        <div className="min-w-0 flex-1 py-0.5">
                             <p className="font-serif font-light tracking-tight text-[13.5px] leading-4 text-stone-900 sm:text-[14.5px]">
                                 See your frame in context
                             </p>
@@ -2430,6 +2455,14 @@ const CustomizeFramePage = ({
                                 <span aria-hidden="true" className="text-sm leading-none">→</span>
                             </button>
                         </div>
+                        <button
+                            type="button"
+                            onClick={dismissSceneHint}
+                            aria-label="Dismiss hint"
+                            className="self-start p-1 text-stone-400 hover:text-stone-700 rounded-full transition-colors"
+                        >
+                            <X size={13} />
+                        </button>
                     </aside>
                 ) : (
                     // The position indicator itself — a row of dots, one per
