@@ -62,8 +62,9 @@ describe('frame catalogue browsing', () => {
             expect(frame.cornerImage).toBe(frame.borderImageSource);
             expect(frame.previewImg).toBe(frame.borderImageSource);
         }
-        expect(frames.find(frame => frame.prodigiColor === 'black')?.thumbnailImage).toBe('/prodigi/views/canvas-eco-product.webp');
-        expect(frames.find(frame => frame.prodigiColor === 'white')?.thumbnailImage).toBe('/prodigi/views/canvas-eco-detail.webp');
+        expect(frames.find(frame => frame.prodigiColor === 'black')?.thumbnailImage).toBe('/prodigi/views/canvas-eco-black-corner.jpg');
+        expect(frames.find(frame => frame.prodigiColor === 'white')?.thumbnailImage).toBe('/prodigi/views/canvas-eco-white-corner.jpg');
+        expect(frames.every(frame => frame.thumbnailCrop === undefined)).toBe(true);
     });
 
     it('uses the approved product image wherever stretched canvas is shown as a thumbnail', () => {

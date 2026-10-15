@@ -269,12 +269,12 @@ const PRODIGI_FLOAT_CANVAS_THUMBNAILS = {
 // remaining finishes use the equivalent photographed floater frame; the Eco
 // product record still supplies the recycled canvas material and ECO SKU.
 const PRODIGI_ECO_CANVAS_THUMBNAILS = {
-    black: '/prodigi/views/canvas-eco-product.webp',
-    white: '/prodigi/views/canvas-eco-detail.webp',
-    'antique-gold': PRODIGI_FLOAT_CANVAS_THUMBNAILS['antique-gold'],
-    'antique-silver': PRODIGI_FLOAT_CANVAS_THUMBNAILS['antique-silver'],
-    natural: PRODIGI_FLOAT_CANVAS_THUMBNAILS.natural,
-    brown: PRODIGI_FLOAT_CANVAS_THUMBNAILS.brown,
+    black: '/prodigi/views/canvas-eco-black-corner.jpg',
+    white: '/prodigi/views/canvas-eco-white-corner.jpg',
+    'antique-gold': '/prodigi/views/canvas-eco-antique-gold-corner.jpg',
+    'antique-silver': '/prodigi/views/canvas-eco-antique-silver-corner.jpg',
+    natural: '/prodigi/views/canvas-eco-natural-corner.jpg',
+    brown: '/prodigi/views/canvas-eco-brown-corner.jpg',
 };
 
 const PRODIGI_FRAME_RECORDS = [
@@ -322,9 +322,6 @@ const PRODIGI_FRAME_RECORDS = [
         category: 'Prodigi Eco Framed Canvas', baseColor: ['#242321', '#f4f1e9', '#c4a357', '#aaa9a5', '#b08a5a', '#68472f'][index],
         width: '12px', widthCategory: 'narrow', priceMod: 1, type: 'Canvas Frame', desc: '38 mm recycled satin canvas · floating frame with a 5 mm reveal.',
         thumbnailImage: PRODIGI_ECO_CANVAS_THUMBNAILS[color],
-        thumbnailCrop: color === 'white'
-            ? { scale: 2.3, origin: '100% 50%' }
-            : undefined,
         previewImg: `/prodigi/finishes/canvas-eco-${color}.png`, cornerImage: `/prodigi/finishes/canvas-eco-${color}.png`, borderImageSource: `/prodigi/finishes/canvas-eco-${color}.png`, borderImageSlicePct: 27,
         mouldingWidthIn: 12 / 25.4, rabbetDepthIn: 40 / 25.4, totalDepthIn: 53 / 25.4, renderProfile: 'floater', finish: /gold|silver/.test(color) ? 'metallic' : 'matte', prodigiProduct: 'canvas-eco', prodigiColor: ({ 'antique-gold': 'gold', 'antique-silver': 'silver' }[color] || color), canvasThicknessMm: 38, canvasFrameStyle: 'floater', canvasGapMm: 5, isCanvas: true,
     })),
