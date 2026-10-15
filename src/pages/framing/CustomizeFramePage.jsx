@@ -1808,6 +1808,20 @@ const CustomizeFramePage = ({
         }
     };
 
+    const prepareFrameOutputWithTimeout = async (source, geometry, position, frameColor, matColor, timeoutMs = 5000) => {
+        let timeoutId;
+        try {
+            return await Promise.race([
+                prepareFrameOutput(source, geometry, position, frameColor, matColor),
+                new Promise((resolve) => {
+                    timeoutId = setTimeout(() => resolve(null), timeoutMs);
+                }),
+            ]);
+        } finally {
+            if (timeoutId) clearTimeout(timeoutId);
+        }
+    };
+
     const completeCheckoutAction = async (action) => {
         if (selectedFrame?.prodigiProduct && !prodigiSelection?.quoteTotalGbp) {
             setFitError(hasOrderableProdigiProduct
@@ -1819,10 +1833,14 @@ const CustomizeFramePage = ({
         setFitError('');
         try {
             if (fitEnabled) {
-                const output = await prepareFrameOutput(productionImage || uploadedImage, fitGeometry,
+                const output = await prepareFrameOutputWithTimeout(productionImage || uploadedImage, fitGeometry,
                     fitPosition, selectedFrame.baseColor, matColor.hex);
                 if (action === 'pay') toggleAllSelection(false);
-                addToCart({ ...buildCartItem(output.visualizerImage), ...output });
+                if (output) {
+                    addToCart({ ...buildCartItem(output.visualizerImage), ...output });
+                } else {
+                    addToCart(buildCartItem(null));
+                }
             } else {
                 const visualizerImage = await captureVisualizerImageWithTimeout();
                 if (action === 'pay') toggleAllSelection(false);
