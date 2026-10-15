@@ -4,6 +4,7 @@ import { Focus, RotateCcw, X, Check } from 'lucide-react';
 import { FRAME_SIZES, formatDimensions } from '../../data/constants';
 import { DEFAULT_POSITION, frameGeometry, imageCrop, cropStyle } from '../../utils/frameFit';
 import { getFrameRail, getRailTextureStyle, getRailShading } from '../../utils/frameRail';
+import { getFrameInnerShadow, getFrameWallShadow } from '../../utils/frameDepthPresentation';
 import { bestFitOptions } from '../../utils/bestFitOptions';
 import Price from '../common/Price';
 
@@ -40,7 +41,7 @@ export function FitPreview({ image, natural, geometry, position, frame, matColor
         <div style={{ aspectRatio: `${geometry.outerWidth} / ${geometry.outerHeight}`,
             width: geometry.outerWidth >= geometry.outerHeight ? '100%' : 'auto',
             height: geometry.outerWidth >= geometry.outerHeight ? 'auto' : '100%', maxHeight: '100%', maxWidth: '100%',
-            background: '#fff' }} className="relative shadow-[0_8px_20px_rgba(0,0,0,0.20)]">
+            background: '#fff', boxShadow: getFrameWallShadow(frame) }} className="relative">
             {frame?.borderImageSource && !getFrameRail(frame) ? <div className="absolute inset-0 z-10 pointer-events-none" style={{
                 borderStyle: 'solid', borderWidth: '1px', borderColor: 'transparent',
                 borderImageWidth: `${railPctY}% ${railPctX}%`,
@@ -63,7 +64,7 @@ export function FitPreview({ image, natural, geometry, position, frame, matColor
                 inset: `${matPctY}% ${matPctX}%` }}>
                 <img src={image} alt="Frame composition" style={cropStyle(natural, crop)} />
             </div>
-            <div className="absolute inset-0 z-40 pointer-events-none shadow-[inset_0_2px_12px_rgba(0,0,0,0.32)]" />
+            <div className="absolute inset-0 z-40 pointer-events-none" style={{ boxShadow: getFrameInnerShadow(frame) }} />
         </div>
     </div>;
 }

@@ -58,6 +58,7 @@ import { prepareFrameOutput } from '../../services/frameFitOutput';
 import { loadImageCached } from '../../utils/imageCache';
 import { visualizerFullScreenState } from '../../utils/visualizerFullScreenState';
 import { nearestProdigiSize, prodigiAvailableSizes, prodigiConfigurationFromSelection } from '../../utils/prodigiFlow';
+import { getFrameInnerShadow, getFrameWallShadow } from '../../utils/frameDepthPresentation';
 
 const MOBILE_DOUBLE_TAP_DELAY_MS = 300;
 
@@ -3240,12 +3241,10 @@ const CustomizeFramePage = ({
                                     // already relayouts each frame from the width
                                     // change — the one place here worth being
                                     // specific about.
-                                    className={`relative shadow-[0_25px_50px_rgba(0,0,0,0.3)] select-none transition-[width,margin,transform,box-shadow] ${isTransitioning ? `scene-frame-transition ${ROOM_SCENE_MOTION}` : ZOOM_MOTION} ${
+                                    className={`relative select-none transition-[width,margin,transform,box-shadow] ${isTransitioning ? `scene-frame-transition ${ROOM_SCENE_MOTION}` : ZOOM_MOTION} ${
                                         isMaxZoom && !isFullScreen ? 'cursor-zoom-out' : isFullScreen ? '' : 'cursor-zoom-in'
                                     } ${
-                                        isHovered || isMaxZoom || isFullScreen || isZoomedByDefault
-                                            ? 'shadow-[0_50px_100px_rgba(0,0,0,0.55)] z-40'
-                                            : 'z-10'
+                                        isHovered || isMaxZoom || isFullScreen || isZoomedByDefault ? 'z-40' : 'z-10'
                                     }`}
                                     style={{
                                         width: `${adjustedDisplayedFrameWidthPct}%`,
@@ -3253,6 +3252,10 @@ const CustomizeFramePage = ({
                                         aspectRatio: `${outerFrameWidthCm} / ${outerFrameHeightCm}`,
                                         marginTop: `${pushDownAmount + roomSceneVerticalOffsetPx}px`,
                                         marginLeft: `${pushRightAmount}px`,
+                                        boxShadow: getFrameWallShadow(
+                                            renderedFrame || selectedFrame,
+                                            isHovered || isMaxZoom || isFullScreen || isZoomedByDefault
+                                        ),
                                         // -11px is a fixed horizontal nudge for the frame's own
                                         // drop shadow (shadow-[...25px_50px...] renders
                                         // asymmetrically, so the frame+shadow composite's visual
@@ -3352,12 +3355,13 @@ const CustomizeFramePage = ({
                                                     >
                                                         {/* Inner depth shadow */}
                                                         <div 
-                                                            className="absolute shadow-[inset_0_2px_12px_rgba(0,0,0,0.5)] pointer-events-none z-20" 
+                                                            className="absolute pointer-events-none z-20"
                                                             style={{
                                                                 top: `${mouldingPctH}%`,
                                                                 bottom: `${mouldingPctH}%`,
                                                                 left: `${mouldingPctW}%`,
-                                                                right: `${mouldingPctW}%`
+                                                                right: `${mouldingPctW}%`,
+                                                                boxShadow: getFrameInnerShadow(renderedFrame || selectedFrame)
                                                             }}
                                                         />
                                                     </div>
@@ -3429,7 +3433,7 @@ const CustomizeFramePage = ({
                                                     </svg>
                                                     
                                                     {/* Inner depth shadow */}
-                                                    <div className="absolute inset-0 shadow-[inset_0_2px_12px_rgba(0,0,0,0.5)] pointer-events-none z-20" />
+                                                    <div className="absolute inset-0 pointer-events-none z-20" style={{ boxShadow: getFrameInnerShadow(renderedFrame || selectedFrame) }} />
                                                 </div>
                                                 )}
                                                 {/* Matting Background */}

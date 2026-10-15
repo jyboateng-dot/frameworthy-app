@@ -1,5 +1,6 @@
 import { getFrameRail } from './frameRail';
 import { getFrameRenderProfile } from './frameRenderProfile';
+import { getFrameCanvasShadow } from './frameDepthPresentation';
 
 const load = src => new Promise((resolve, reject) => {
     const image = new Image();
@@ -28,6 +29,14 @@ export async function renderFrameOrderPreview({ frame, image, widthIn, heightIn,
     const gap = profile.openingGapIn * scale;
     const canvasProduct = frame.isCanvas || frame.canvasOnly;
     const mat = canvasProduct ? { topIn: 0, sideIn: 0, bottomIn: 0 } : matReveal;
+    const frameShadow = getFrameCanvasShadow(frame, scale);
+    ctx.save();
+    ctx.shadowColor = frameShadow.color;
+    ctx.shadowOffsetY = frameShadow.offsetY;
+    ctx.shadowBlur = frameShadow.blur;
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(x, y, w, h);
+    ctx.restore();
     ctx.fillStyle = gap > 0 ? '#24211e' : matColorHex || '#fff';
     ctx.fillRect(x + border, y + border, w - border * 2, h - border * 2);
     const left = x + border + gap + (mat?.sideIn || 0) * scale;

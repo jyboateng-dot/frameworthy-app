@@ -1,5 +1,22 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { framesForCategory, categoryForFrame, displayCategoryName, displayFrameName, PRODIGI_FRAME_CATEGORIES } from '../data/frameBrowsing';
+import { getFrameDepthPresentation } from '../utils/frameDepthPresentation';
+
+function FrameDepthIndicator({ frame }) {
+    const { depthRatio, label } = getFrameDepthPresentation(frame);
+    const side = 3 + depthRatio * 8;
+
+    return (
+        <div className="absolute bottom-2 left-2 flex items-center gap-1.5 rounded-full bg-white/90 px-2 py-1 text-[10px] font-semibold text-stone-700 shadow-sm backdrop-blur-sm">
+            <svg aria-hidden="true" viewBox="0 0 30 20" className="h-3.5 w-5 overflow-visible">
+                <rect x="2" y="2" width="14" height="14" rx="1" fill="white" stroke="currentColor" strokeWidth="1.2" />
+                <path d={`M16 2 L${16 + side} 5 L${16 + side} 19 L16 16 Z`} fill="currentColor" opacity="0.3" />
+                <path d={`M16 2 L${16 + side} 5 M${16 + side} 5 V19 L16 16`} fill="none" stroke="currentColor" strokeWidth="1.2" />
+            </svg>
+            <span>{label}</span>
+        </div>
+    );
+}
 
 export default function FrameSelectionModal({ isOpen, onClose, selectedFrame, onSelect }) {
     const [activeCategory, setActiveCategory] = useState(() => {
@@ -72,6 +89,7 @@ export default function FrameSelectionModal({ isOpen, onClose, selectedFrame, on
                                     } : undefined}
                                     className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-300"
                                 />
+                                <FrameDepthIndicator frame={f} />
                                 {selectedFrame?.id === f.id && (
                                     <div className="absolute top-2 right-2 bg-black text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">✓</div>
                                 )}
