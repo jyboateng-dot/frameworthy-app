@@ -68,6 +68,9 @@ jobs:
           VITE_EMAILJS_TEMPLATE_ID: ${{ secrets.VITE_EMAILJS_TEMPLATE_ID }}
           VITE_EMAILJS_PUBLIC_KEY: ${{ secrets.VITE_EMAILJS_PUBLIC_KEY }}
           VITE_APPCHECK_RECAPTCHA_SITE_KEY: ${{ secrets.VITE_APPCHECK_RECAPTCHA_SITE_KEY }}
+          VITE_IDEAL_POSTCODES_API_KEY: ${{ secrets.VITE_IDEAL_POSTCODES_API_KEY }}
+          VITE_GEOAPIFY_API_KEY: ${{ secrets.VITE_GEOAPIFY_API_KEY }}
+          VITE_ADDRESS_LOOKUP_PROVIDER: ${{ vars.VITE_ADDRESS_LOOKUP_PROVIDER || 'ideal' }}
 
       # Reuses the same service account as deploy-functions.yml — it needs
       # the Firebase Hosting Admin role added alongside the roles already
