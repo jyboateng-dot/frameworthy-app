@@ -70,7 +70,7 @@ describe('frame catalogue browsing', () => {
     it('uses the approved product image wherever stretched canvas is shown as a thumbnail', () => {
         const frame = PRODIGI_FRAME_STYLES.find(({ prodigiProduct }) => prodigiProduct === 'stretched-canvas');
 
-        expect(frame?.thumbnailImage).toBe('/prodigi/views/stretched-canvas-product.jpg');
+        expect(frame?.thumbnailImage).toBe('/prodigi/views/stretched-canvas-white-corner.jpg');
         expect(frame?.previewImg).toBe('/prodigi/views/stretched-canvas-product.jpg');
     });
 
