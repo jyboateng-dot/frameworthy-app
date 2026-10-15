@@ -6,6 +6,12 @@ describe('delivery address helpers', () => {
         expect(normalizePostalCode('  je1   1aa ')).toBe('JE1 1AA');
         expect(isValidDeliveryPostalCode('JE', 'je1 1aa')).toBe(true);
         expect(isValidDeliveryPostalCode('GB', 'SW1A 1AA')).toBe(true);
+        expect(normalizePostalCode('sw1a1aa')).toBe('SW1A 1AA');
+        expect(normalizePostalCode('gir0aa')).toBe('GIR 0AA');
+        expect(isValidDeliveryPostalCode('GB', 'GIR 0AA')).toBe(true);
+        expect(isValidDeliveryPostalCode('JE', 'SW1A 1AA')).toBe(false);
+        expect(isValidDeliveryPostalCode('GB', 'JE2 3AA')).toBe(false);
+        expect(isValidDeliveryPostalCode('GB', 'GY1 1AA')).toBe(false);
     });
 
     it('rejects malformed GB/Jersey postcodes while allowing other market postal codes', () => {

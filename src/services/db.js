@@ -93,9 +93,9 @@ export const getUserDeliveryAddresses = async (userId) => {
         
         for (const order of orders) {
             if (order.shippingAddress) {
-                const { address, line2, city, stateOrCounty, postalOrZipCode, zip, phone } = order.shippingAddress;
+                const { address, line2, city, stateOrCounty, postalOrZipCode, zip, phone, countryCode } = order.shippingAddress;
                 const name = order.customerName || '';
-                const key = `${name}|${phone}|${city}|${address}|${line2 || ''}|${postalOrZipCode || zip || ''}`.toLowerCase();
+                const key = `${name}|${phone}|${city}|${address}|${line2 || ''}|${postalOrZipCode || zip || ''}|${countryCode || ''}`.toLowerCase();
                 if (!seen.has(key)) {
                     seen.add(key);
                     addresses.push({
@@ -106,6 +106,7 @@ export const getUserDeliveryAddresses = async (userId) => {
                         deliveryAddress: address,
                         addressLine2: line2 || '',
                         stateOrCounty: stateOrCounty || '',
+                        countryCode: countryCode || '',
                         postalOrZipCode: postalOrZipCode || zip || ''
                     });
                 }

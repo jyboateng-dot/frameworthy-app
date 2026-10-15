@@ -9,6 +9,17 @@ describe('CartContext', () => {
         localStorage.clear();
     });
 
+    it('updates destination quotes together without losing quantities or unselected items', () => {
+        localStorage.setItem('frameworthy_cart', JSON.stringify([
+            { id: 'a', quantity: 3, isSelected: true, totalPrice: 20, prodigi: { destinationCountryCode: 'GB' } },
+            { id: 'b', quantity: 1, isSelected: false, totalPrice: 30, prodigi: { destinationCountryCode: 'GB' } },
+        ]));
+        const { result } = renderHook(() => useCart(), { wrapper });
+        act(() => result.current.updateDeliveryQuotes([{ id: 'a', totalPrice: 18, prodigi: { destinationCountryCode: 'JE' } }]));
+        expect(result.current.cartItems[0]).toMatchObject({ quantity: 3, isSelected: true, totalPrice: 18, currency: 'GBP', prodigi: { destinationCountryCode: 'JE' } });
+        expect(result.current.cartItems[1]).toMatchObject({ quantity: 1, isSelected: false, totalPrice: 30, prodigi: { destinationCountryCode: 'GB' } });
+    });
+
     it('starts empty when localStorage has no saved cart', () => {
         const { result } = renderHook(() => useCart(), { wrapper });
         expect(result.current.cartItems).toEqual([]);

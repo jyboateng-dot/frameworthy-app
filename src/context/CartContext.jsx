@@ -109,6 +109,16 @@ export const CartProvider = ({ children }) => {
         setCartItems(prev => prev.filter(item => !idSet.has(item.id)));
     };
 
+    // Commit a destination's quotes together; never leave a partially
+    // repriced cart if one product cannot be delivered to the new country.
+    const updateDeliveryQuotes = (updates) => {
+        const byId = new Map(updates.map(update => [update.id, update]));
+        setCartItems(prev => prev.map(item => {
+            const update = byId.get(item.id);
+            return update ? { ...item, totalPrice: update.totalPrice, currency: 'GBP', prodigi: update.prodigi } : item;
+        }));
+    };
+
     return (
         <CartContext.Provider value={{ 
             cartCount, 
@@ -120,6 +130,7 @@ export const CartProvider = ({ children }) => {
             toggleAllSelection,
             clearCart,
             removeItems,
+            updateDeliveryQuotes,
             isCartOpen,
             setIsCartOpen
         }}>

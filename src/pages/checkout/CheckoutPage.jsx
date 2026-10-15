@@ -7,14 +7,16 @@ import { useCart } from '../../context/CartContext';
 import { useAuth } from '../../context/AuthContext';
 import { createOrder, getUserDeliveryAddresses } from '../../services/db';
 import { functions } from '../../services/firebase';
-import { MapPin, CreditCard, Ticket, ShieldCheck, Loader, X, Smartphone, Copy, Check, Hammer, Truck } from 'lucide-react';
+import { CreditCard, Ticket, ShieldCheck, Loader, X, Smartphone, Copy, Check, Hammer, Truck } from 'lucide-react';
 import { generateItemDescription, formatDimensionWithOrientation } from '../../utils/itemFormatters';
 import { formatDimensions } from '../../data/constants';
 import { useUnit } from '../../context/UnitContext';
 import { calculateSubtotal, resolvePromoCode, calculatePromoDiscount, calculateFinalTotal } from '../../utils/pricing';
 import Price from '../../components/common/Price';
 import { getThumbnailUrl } from '../../services/storage';
-import { deliveryCountryName, isGbJerseyCountry, isValidDeliveryPostalCode, normalizePostalCode } from '../../utils/deliveryAddress';
+import DeliveryAddressSection from '../../components/checkout/DeliveryAddressSection';
+import { quoteCheckoutDestination } from '../../services/checkoutDelivery';
+import { isGbJerseyCountry, isValidDeliveryPostalCode, normalizePostalCode } from '../../utils/deliveryAddress';
 
 const PAYSTACK_PUBLIC_KEY = import.meta.env.VITE_PAYSTACK_PUBLIC_KEY;
 const EMAILJS_SERVICE_ID = import.meta.env.VITE_EMAILJS_SERVICE_ID;
@@ -47,7 +49,7 @@ const sendOrderConfirmationEmail = ({ email, orderId, items, total, address, lin
 
 const CheckoutPage = () => {
     const navigate = useNavigate();
-    const { cartItems, removeItems } = useCart();
+    const { cartItems, removeItems, updateDeliveryQuotes } = useCart();
     const { user } = useAuth();
     const { unit } = useUnit();
     
@@ -107,9 +109,22 @@ const CheckoutPage = () => {
     const [stateOrCounty, setStateOrCounty] = useState('');
     const [postalOrZipCode, setPostalOrZipCode] = useState('');
 
+    const [isUpdatingCountry, setIsUpdatingCountry] = useState(false);
+    const [countryError, setCountryError] = useState('');
+    const destinationRequest = useRef(0);
+    const currentItemsRef = useRef(checkoutItems);
+    currentItemsRef.current = checkoutItems;
+
     const [savedAddresses, setSavedAddresses] = useState([]);
     const [selectedAddressId, setSelectedAddressId] = useState('new');
     const [isFetchingAddresses, setIsFetchingAddresses] = useState(false);
+    const deliveryEditedRef = useRef(false);
+
+    useEffect(() => {
+        if (!user) return;
+        setEmail(current => current || user.email || '');
+        setFullName(current => current || user.displayName || '');
+    }, [user]);
 
     useEffect(() => {
         if (!user) return;
@@ -120,13 +135,14 @@ const CheckoutPage = () => {
         // name/phone/city/address right as the new user is about to place
         // an order under their own account.
         let cancelled = false;
-        // eslint-disable-next-line react-hooks/set-state-in-effect -- standard "flip on loading before the fetch starts" idiom
         setIsFetchingAddresses(true);
         getUserDeliveryAddresses(user.uid).then(addresses => {
             if (cancelled) return;
-            setSavedAddresses(addresses);
-            if (addresses.length > 0) {
-                const latest = addresses[0];
+            const matchingAddresses = addresses.filter(address => address.countryCode === prodigiDestination
+                || (!address.countryCode && isValidDeliveryPostalCode(prodigiDestination, address.postalOrZipCode || address.zip || '')));
+            setSavedAddresses(matchingAddresses);
+            if (matchingAddresses.length > 0 && !deliveryEditedRef.current) {
+                const latest = matchingAddresses[0];
                 setSelectedAddressId(latest.id);
                 setFullName(latest.fullName);
                 setPhoneNumber(latest.phoneNumber);
@@ -143,14 +159,12 @@ const CheckoutPage = () => {
             setIsFetchingAddresses(false);
         });
         return () => { cancelled = true; };
-    }, [user]);
+    }, [user, prodigiDestination]);
 
     const handleAddressSelect = (e) => {
         const val = e.target.value;
         setSelectedAddressId(val);
         if (val === 'new') {
-            setFullName(user ? user.displayName || '' : '');
-            setPhoneNumber('');
             setCity('');
             setDeliveryAddress('');
             setAddressLine2('');
@@ -171,9 +185,43 @@ const CheckoutPage = () => {
     };
 
     const handleFieldChange = (setter) => (e) => {
+        deliveryEditedRef.current = true;
         setter(e.target.value);
         if (selectedAddressId !== 'new' && selectedAddressId !== 'custom') {
             setSelectedAddressId('custom');
+        }
+    };
+
+    const updateDeliveryAddress = (updates) => {
+        deliveryEditedRef.current = true;
+        const setters = { line1: setDeliveryAddress, line2: setAddressLine2, city: setCity, stateOrCounty: setStateOrCounty, postalOrZipCode: setPostalOrZipCode };
+        Object.entries(updates).forEach(([key, value]) => setters[key]?.(value));
+        setSelectedAddressId('custom');
+    };
+
+    const changeDeliveryCountry = async (countryCode) => {
+        if (countryCode === prodigiDestination && prodigiDestinations.length === 1) return;
+        const request = ++destinationRequest.current;
+        const snapshot = JSON.stringify(checkoutItems);
+        setIsUpdatingCountry(true);
+        setCountryError('');
+        try {
+            const updates = await quoteCheckoutDestination(checkoutItems, countryCode);
+            if (request !== destinationRequest.current) return;
+            if (JSON.stringify(currentItemsRef.current) !== snapshot) throw new Error('Your cart changed while updating delivery. Please choose the country again.');
+            updateDeliveryQuotes(updates);
+            deliveryEditedRef.current = false;
+            setDeliveryAddress('');
+            setAddressLine2('');
+            setCity('');
+            setStateOrCounty('');
+            setPostalOrZipCode('');
+            setSelectedAddressId('new');
+            setSavedAddresses([]);
+        } catch {
+            if (request === destinationRequest.current) setCountryError('We could not update delivery for every item. Your current country and prices are unchanged. Please try again or review your cart.');
+        } finally {
+            if (request === destinationRequest.current) setIsUpdatingCountry(false);
         }
     };
 
@@ -216,6 +264,7 @@ const CheckoutPage = () => {
     const handleCheckoutSubmit = (e) => {
         e.preventDefault();
 
+        if (isUpdatingCountry) return;
         if (isGbpProdigiCheckout) {
             setError('GBP payment is not available yet. Your configured items remain saved in the cart.');
             return;
@@ -469,142 +518,48 @@ const CheckoutPage = () => {
         <div className="min-h-screen bg-[#faf9f8] pb-24 font-sans text-stone-900">
             {/* Header */}
             <div className="bg-white sticky top-0 z-40 px-4 py-3 flex items-center gap-4 border-b border-stone-100 shadow-sm">
-                <div className="text-xl font-bold text-stone-900">Order confirmation</div>
+                <h1 className="text-xl font-serif font-bold text-stone-900">Checkout</h1>
+                <button type="button" onClick={() => navigate('/cart')} className="ml-auto text-sm text-stone-600 underline underline-offset-4">Back to cart</button>
             </div>
 
             <form onSubmit={handleCheckoutSubmit} className="max-w-2xl mx-auto pt-3 px-3 space-y-3">
                 
-                {/* Shipping Address */}
-                <div className="bg-white rounded-xl overflow-hidden shadow-sm relative">
-                    <div className="p-4">
-                        <div className="flex items-start gap-3">
-                            <MapPin size={20} className="text-stone-800 mt-1 flex-shrink-0" />
-                            <div className="flex-1 space-y-2.5">
-                                <div>
-                                    <div className="flex items-center justify-between mb-3">
-                                        <h3 className="font-bold text-sm text-stone-900">Delivery address</h3>
-                                        {isFetchingAddresses ? (
-                                            <Loader size={14} className="animate-spin text-stone-400" />
-                                        ) : savedAddresses.length > 0 ? (
-                                            <select 
-                                                value={selectedAddressId} 
-                                                onChange={handleAddressSelect}
-                                                className="text-xs border border-stone-200 rounded px-2 py-1 bg-stone-50 text-stone-700 outline-none focus:border-stone-400 max-w-[150px] truncate"
-                                            >
-                                                {savedAddresses.map((addr, idx) => (
-                                                    <option key={addr.id} value={addr.id}>
-                                                        {idx === 0 ? 'Latest Address' : `Previous Address ${idx}`} ({addr.city})
-                                                    </option>
-                                                ))}
-                                                {selectedAddressId === 'custom' && <option value="custom">Custom Address (Unsaved)</option>}
-                                                <option value="new">+ Enter new address</option>
-                                            </select>
-                                        ) : null}
-                                    </div>
-                                    <label htmlFor="checkout-fullname" className="sr-only">Full Name</label>
-                                    <input
-                                        id="checkout-fullname"
-                                        type="text"
-                                        required
-                                        placeholder="Full Name"
-                                        autoComplete="name"
-                                        className="w-full border-b border-stone-200 py-1.5 text-base focus:outline-none focus:border-stone-500 bg-transparent mb-2"
-                                        value={fullName}
-                                        onChange={handleFieldChange(setFullName)}
-                                    />
-                                    <label htmlFor="checkout-phone" className="sr-only">Phone Number</label>
-                                    <input
-                                        id="checkout-phone"
-                                        type="tel"
-                                        required
-                                        placeholder={isGbJerseyCountry(prodigiDestination) ? 'Phone number (e.g. +44 1534 123456)' : 'Phone number'}
-                                        autoComplete="tel"
-                                        inputMode="tel"
-                                        className="w-full border-b border-stone-200 py-1.5 text-base focus:outline-none focus:border-stone-500 bg-transparent mb-2"
-                                        value={phoneNumber}
-                                        onChange={handleFieldChange(setPhoneNumber)}
-                                    />
-                                    <label htmlFor="checkout-email" className="sr-only">Email Address</label>
-                                    <input
-                                        id="checkout-email"
-                                        type="email"
-                                        required
-                                        placeholder="Email Address"
-                                        autoComplete="email"
-                                        className="w-full border-b border-stone-200 py-1.5 text-base focus:outline-none focus:border-stone-500 bg-transparent"
-                                        value={email}
-                                        onChange={(e) => setEmail(e.target.value)}
-                                    />
-                                </div>
-                                <div>
-                                    <label htmlFor="checkout-city" className="sr-only">City</label>
-                                    <input
-                                        id="checkout-city"
-                                        type="text"
-                                        required
-                                        placeholder={isGbJerseyCountry(prodigiDestination) ? 'Town or city (e.g. St Helier)' : 'City (e.g. Accra)'}
-                                        autoComplete="address-level2"
-                                        className="w-full border-b border-stone-200 py-1.5 text-base focus:outline-none focus:border-stone-500 bg-transparent"
-                                        value={city}
-                                        onChange={handleFieldChange(setCity)}
-                                    />
-                                </div>
-                                {hasProdigiItems && (
-                                    <div>
-                                        <label htmlFor="checkout-country" className="text-[10px] font-bold uppercase tracking-wide text-stone-500">Country</label>
-                                        <input id="checkout-country" value={deliveryCountryName(prodigiDestination)} readOnly autoComplete="country-name" className="w-full border-b border-stone-200 bg-stone-50 py-1.5 text-base text-stone-700" />
-                                    </div>
-                                )}
-                                <div>
-                                    <label htmlFor="checkout-address" className="sr-only">Address line 1</label>
-                                    <textarea
-                                        id="checkout-address"
-                                        required
-                                        placeholder={isGbJerseyCountry(prodigiDestination) ? 'Address line 1 (house number and street)' : 'Delivery address / landmark'}
-                                        autoComplete="address-line1"
-                                        className="w-full border-b border-stone-200 py-1.5 text-base focus:outline-none focus:border-stone-500 bg-transparent resize-none"
-                                        rows="2"
-                                        value={deliveryAddress}
-                                        onChange={handleFieldChange(setDeliveryAddress)}
-                                    />
-                                </div>
-                                <div>
-                                    <label htmlFor="checkout-address-line2" className="sr-only">Address line 2</label>
-                                    <input
-                                        id="checkout-address-line2"
-                                        type="text"
-                                        placeholder="Address line 2 (optional)"
-                                        autoComplete="address-line2"
-                                        className="w-full border-b border-stone-200 py-1.5 text-base focus:outline-none focus:border-stone-500 bg-transparent"
-                                        value={addressLine2}
-                                        onChange={handleFieldChange(setAddressLine2)}
-                                    />
-                                </div>
-                                {hasProdigiItems && (
-                                    <div className="grid grid-cols-2 gap-3">
-                                        <div>
-                                            <label htmlFor="checkout-county" className="text-[10px] font-bold uppercase tracking-wide text-stone-500">County / parish <span className="font-normal normal-case">(optional)</span></label>
-                                            <input id="checkout-county" value={stateOrCounty} onChange={handleFieldChange(setStateOrCounty)} autoComplete="address-level1" placeholder={prodigiDestination === 'JE' ? 'Parish (optional)' : 'County (optional)'} className="w-full border-b border-stone-200 py-1.5 text-base focus:outline-none focus:border-stone-500 bg-transparent" />
-                                        </div>
-                                        <div>
-                                            <label htmlFor="checkout-postal" className="text-[10px] font-bold uppercase tracking-wide text-stone-500">Postcode</label>
-                                            <input id="checkout-postal" required value={postalOrZipCode} onChange={handleFieldChange(setPostalOrZipCode)} placeholder={isGbJerseyCountry(prodigiDestination) ? 'e.g. JE1 1AA' : 'Postal code'} autoComplete="postal-code" autoCapitalize="characters" inputMode="text" className="w-full border-b border-stone-200 py-1.5 text-base focus:outline-none focus:border-stone-500 bg-transparent uppercase" />
-                                        </div>
-                                    </div>
-                                )}
-                                {hasProdigiItems && <p className="text-[11px] leading-4 text-stone-500">Delivering to {deliveryCountryName(prodigiDestination)}. Use the address format recognised by your local postal service.</p>}
-                            </div>
+                <section className="rounded-xl border border-stone-200 bg-white p-4 sm:p-5" aria-labelledby="contact-heading">
+                    <h2 id="contact-heading" className="mb-4 text-sm font-bold">Contact</h2>
+                    <div className="space-y-3">
+                        <label className="block text-xs font-medium text-stone-700">Email
+                            <input id="checkout-email" name="email" type="email" autoComplete="email" required value={email} onChange={event => setEmail(event.target.value)} className="mt-1 w-full rounded-lg border border-stone-200 px-3 py-2.5 text-base focus:outline-none focus:ring-2 focus:ring-[#c9a84c]" />
+                        </label>
+                        <div className="grid gap-3 sm:grid-cols-2">
+                            <label className="block text-xs font-medium text-stone-700">Full name
+                                <input id="checkout-fullname" name="name" autoComplete="shipping name" required value={fullName} onChange={handleFieldChange(setFullName)} className="mt-1 w-full rounded-lg border border-stone-200 px-3 py-2.5 text-base focus:outline-none focus:ring-2 focus:ring-[#c9a84c]" />
+                            </label>
+                            <label className="block text-xs font-medium text-stone-700">Phone number
+                                <input id="checkout-phone" name="tel" type="tel" autoComplete="shipping tel" required value={phoneNumber} onChange={handleFieldChange(setPhoneNumber)} className="mt-1 w-full rounded-lg border border-stone-200 px-3 py-2.5 text-base focus:outline-none focus:ring-2 focus:ring-[#c9a84c]" />
+                            </label>
                         </div>
+                        <p className="text-xs text-stone-500">For your order confirmation and delivery updates.</p>
                     </div>
-                    {/* AliExpress-style Envelope Border */}
-                    <div className="h-1 w-full" style={{ background: 'repeating-linear-gradient(45deg, #e41e31, #e41e31 10px, transparent 10px, transparent 20px, #1877f2 20px, #1877f2 30px, transparent 30px, transparent 40px)' }}></div>
-                </div>
+                </section>
+                <DeliveryAddressSection
+                    address={{ fullName, line1: deliveryAddress, line2: addressLine2, city, stateOrCounty, postalOrZipCode }}
+                    onChange={updateDeliveryAddress}
+                    countryCode={prodigiDestination}
+                    onCountryChange={changeDeliveryCountry}
+                    isUpdatingCountry={isUpdatingCountry}
+                    countryError={countryError}
+                    savedAddresses={savedAddresses}
+                    selectedAddressId={selectedAddressId}
+                    onAddressSelect={handleAddressSelect}
+                    isFetchingAddresses={isFetchingAddresses}
+                />
+                {(hasMixedCurrencies || prodigiDestinations.length > 1) && <p role="alert" className="rounded-xl bg-amber-50 p-4 text-sm text-amber-900">Your selected items have different currencies or delivery countries. Please choose one destination for all items or check them out separately.</p>}
 
                 {/* Payment Method */}
                 {isGbpProdigiCheckout ? (
                     <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
                         <h3 className="font-bold text-sm text-amber-950">Payment coming soon</h3>
-                        <p className="mt-1 text-xs leading-5 text-amber-900">Review your GBP quote and delivery details. Payment is temporarily unavailable while the GBP gateway is being connected.</p>
+                        <p className="mt-1 text-xs leading-5 text-amber-900">Your items are saved in your cart. Online payment is not available yet.</p>
                     </div>
                 ) : <div className="bg-white rounded-xl shadow-sm overflow-hidden p-4">
                     <h3 className="font-bold text-sm text-stone-900 mb-3">Payment Method</h3>
@@ -623,7 +578,13 @@ const CheckoutPage = () => {
                 </div>}
 
                 {/* Items Container */}
-                <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+                <details className="group rounded-xl border border-stone-200 bg-white overflow-hidden">
+                    <summary className="flex cursor-pointer list-none items-center gap-3 p-4">
+                        <img src={getThumbnailUrl(checkoutItems[0].visualizerImage || checkoutItems[0].productionImage || checkoutItems[0].uploadedImage, 120)} alt="Your configured artwork" className="h-12 w-12 rounded-lg bg-stone-100 object-contain" />
+                        <span className="flex-1 text-sm font-bold">Your order · {checkoutItems.reduce((count, item) => count + (item.quantity || 1), 0)} item(s)</span>
+                        <span className="text-xs text-stone-500 underline underline-offset-4 group-open:hidden">View details</span>
+                        <span className="hidden text-xs text-stone-500 underline underline-offset-4 group-open:inline">Hide details</span>
+                    </summary>
                     <div className="p-4 space-y-4">
                         <h3 className="font-bold text-sm text-stone-900 -mb-1">
                             {checkoutItems.length === 1 ? 'Review Order' : 'Review Orders'}
@@ -654,7 +615,7 @@ const CheckoutPage = () => {
                             );
                         })}
                     </div>
-                </div>
+                </details>
 
                 {/* Promo Code */}
                 {checkoutCurrency === 'GHS' && <div className="bg-white rounded-xl shadow-sm p-4">
@@ -702,7 +663,7 @@ const CheckoutPage = () => {
                 {/* Summary */}
                 <div className="bg-white rounded-xl shadow-sm p-4 space-y-2 text-sm">
                     <div className="flex justify-between text-stone-600">
-                        <span>Subtotal</span>
+                        <span>{hasProdigiItems ? 'Items, delivery & tax' : 'Subtotal'}</span>
                         <Price amount={subtotal} currency={checkoutCurrency} />
                     </div>
                     {appliedPromo && (
@@ -712,7 +673,7 @@ const CheckoutPage = () => {
                         </div>
                     )}
                     <div className="flex justify-between font-bold text-stone-900 pt-2 border-t border-stone-100 mt-2">
-                        <span>Total</span>
+                        <span>Total{checkoutCurrency === 'GBP' ? ' (GBP)' : ''}</span>
                         <Price amount={finalTotal} currency={checkoutCurrency} />
                     </div>
                     <p className="text-xs text-stone-600 pt-1">{hasProdigiItems ? 'Delivery and tax are included in the quoted product total.' : 'Shipping fee paid upon delivery.'}</p>
@@ -778,7 +739,7 @@ const CheckoutPage = () => {
                     
                     <button 
                         type="submit"
-                        disabled={isProcessing || isGbpProdigiCheckout || hasMixedCurrencies}
+                        disabled={isProcessing || isGbpProdigiCheckout || hasMixedCurrencies || isUpdatingCountry || prodigiDestinations.length > 1}
                         className="bg-[#c9a84c] text-[#0a0a0a] px-8 py-3 rounded-full font-bold text-sm flex items-center gap-2 disabled:opacity-50 transition-colors shadow-lg shadow-[#c9a84c]/20 hover:bg-[#d4b55c]"
                     >
                         {isProcessing ? <Loader size={16} className="animate-spin" /> : null}
