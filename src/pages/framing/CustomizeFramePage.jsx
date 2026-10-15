@@ -3670,7 +3670,7 @@ const CustomizeFramePage = ({
                     
                     {/* Header */}
                     <div>
-                        <h1 className="text-xl font-serif font-bold text-stone-900 mb-1">Customize Your Frame</h1>
+                        <h1 className="text-xl font-serif font-bold text-stone-900 mb-1">Start Framing</h1>
                         <p className="text-sm text-stone-500">Perfectly customized to your space.</p>
                     </div>
 

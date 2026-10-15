@@ -105,7 +105,7 @@ const WishlistPage = () => {
                                             onClick={() => customizeProduct(product)}
                                             className="flex-1 bg-stone-900 text-white py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest hover:bg-stone-800 transition-colors"
                                         >
-                                            Customize
+                                            Start Framing
                                         </button>
                                     </div>
                                 </div>

@@ -357,7 +357,7 @@ export default function ProdigiCataloguePage() {
                                 </button>
                                 <button type="button" onClick={configureProduct}
                                     className="rounded-full bg-[#c9a84c] px-4 py-3 text-xs font-bold uppercase tracking-wide text-stone-950 transition hover:bg-[#d4b55c]">
-                                    Customize this product
+                                    Start Framing
                                 </button>
                             </div>
                             <p className="mt-4 flex items-center gap-2 text-xs text-stone-600"><PackageCheck size={15} className="text-[#947735]" /> Standard shipping: {selectedMarket.deliveryDays.min === selectedMarket.deliveryDays.max ? `${selectedMarket.deliveryDays.min} days` : `${selectedMarket.deliveryDays.min}–${selectedMarket.deliveryDays.max} days`}{selectedMarket.tracked ? ', tracked' : ''}</p>
