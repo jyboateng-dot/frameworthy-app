@@ -49,7 +49,7 @@ describe('frame catalogue browsing', () => {
             expect(frame.cornerImage).toBe(frame.borderImageSource);
             expect(frame.previewImg).toBe(frame.borderImageSource);
         }
-        expect(frames.find(frame => frame.prodigiColor === 'silver')?.thumbnailCrop).toEqual({ scale: 2.1, origin: '0% 0%' });
+        expect(frames.find(frame => frame.prodigiColor === 'silver')?.thumbnailCrop).toBeUndefined();
     });
 
     it('uses a canvas-in-frame thumbnail and matching finish texture for every eco framed canvas', () => {

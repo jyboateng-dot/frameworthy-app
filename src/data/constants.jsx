@@ -257,12 +257,12 @@ export const CATEGORIES = [
 // Prodigi frames are separate fulfilment products, but use the same picker
 // and visualizer record contract as FrameWorthy's existing mouldings.
 const PRODIGI_FLOAT_CANVAS_THUMBNAILS = {
-    black: '/prodigi/views/canvas-float-black.webp',
-    white: '/prodigi/views/canvas-float-white.webp',
-    'antique-gold': '/prodigi/views/canvas-float-antique-gold.webp',
-    'antique-silver': '/prodigi/views/canvas-float-antique-silver.webp',
-    natural: '/prodigi/views/canvas-float-natural.webp',
-    brown: '/prodigi/views/canvas-float-brown.jpg',
+    black: '/prodigi/views/canvas-float-black-corner.jpg',
+    white: '/prodigi/views/canvas-float-white-corner.jpg',
+    'antique-gold': '/prodigi/views/canvas-float-antique-gold-corner.jpg',
+    'antique-silver': '/prodigi/views/canvas-float-antique-silver-corner.jpg',
+    natural: '/prodigi/views/canvas-float-natural-corner.jpg',
+    brown: '/prodigi/views/canvas-float-brown-corner.jpg',
 };
 
 // Prodigi publishes Eco product photography for black and white only. The
@@ -314,7 +314,6 @@ const PRODIGI_FRAME_RECORDS = [
         category: 'Prodigi Float Framed Canvas', baseColor: ['#242321', '#f4f1e9', '#c4a357', '#aaa9a5', '#b08a5a', '#68472f'][index],
         width: '12px', widthCategory: 'narrow', priceMod: 1, type: 'Canvas Frame', desc: '38 mm cotton canvas · floating frame with a 5 mm reveal.',
         thumbnailImage: PRODIGI_FLOAT_CANVAS_THUMBNAILS[color],
-        thumbnailCrop: color === 'antique-silver' ? { scale: 2.1, origin: '0% 0%' } : undefined,
         previewImg: `/prodigi/finishes/canvas-float-${color}.png`, cornerImage: `/prodigi/finishes/canvas-float-${color}.png`, borderImageSource: `/prodigi/finishes/canvas-float-${color}.png`, borderImageSlicePct: 27,
         mouldingWidthIn: 12 / 25.4, rabbetDepthIn: 40 / 25.4, totalDepthIn: 53 / 25.4, renderProfile: 'floater', finish: /gold|silver/.test(color) ? 'metallic' : 'matte', prodigiProduct: 'canvas-float', prodigiColor: ({ 'antique-gold': 'gold', 'antique-silver': 'silver' }[color] || color), canvasThicknessMm: 38, canvasFrameStyle: 'floater', canvasGapMm: 5, isCanvas: true,
     })),
@@ -325,7 +324,7 @@ const PRODIGI_FRAME_RECORDS = [
         thumbnailImage: PRODIGI_ECO_CANVAS_THUMBNAILS[color],
         thumbnailCrop: color === 'white'
             ? { scale: 2.3, origin: '100% 50%' }
-            : color === 'antique-silver' ? { scale: 2.1, origin: '0% 0%' } : undefined,
+            : undefined,
         previewImg: `/prodigi/finishes/canvas-eco-${color}.png`, cornerImage: `/prodigi/finishes/canvas-eco-${color}.png`, borderImageSource: `/prodigi/finishes/canvas-eco-${color}.png`, borderImageSlicePct: 27,
         mouldingWidthIn: 12 / 25.4, rabbetDepthIn: 40 / 25.4, totalDepthIn: 53 / 25.4, renderProfile: 'floater', finish: /gold|silver/.test(color) ? 'metallic' : 'matte', prodigiProduct: 'canvas-eco', prodigiColor: ({ 'antique-gold': 'gold', 'antique-silver': 'silver' }[color] || color), canvasThicknessMm: 38, canvasFrameStyle: 'floater', canvasGapMm: 5, isCanvas: true,
     })),
