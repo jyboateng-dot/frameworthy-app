@@ -57,7 +57,7 @@ import { DEFAULT_POSITION, frameGeometry, imageCrop, cropStyle } from '../../uti
 import { prepareFrameOutput } from '../../services/frameFitOutput';
 import { loadImageCached } from '../../utils/imageCache';
 import { visualizerFullScreenState } from '../../utils/visualizerFullScreenState';
-import { nearestProdigiSize, prodigiAvailableSizes, prodigiConfigurationFromSelection } from '../../utils/prodigiFlow';
+import { nearestProdigiSize, prodigiAvailableSizes, prodigiConfigurationFromSelection, prodigiHangingHardware } from '../../utils/prodigiFlow';
 import { getFrameInnerShadow, getFrameWallShadow } from '../../utils/frameDepthPresentation';
 
 const MOBILE_DOUBLE_TAP_DELAY_MS = 300;
@@ -4251,7 +4251,9 @@ const CustomizeFramePage = ({
                 matColorHex={matColor?.hex}
                 glassType={glassType}
                 artworkUrl={productionImage || uploadedImage}
-                hardwareType={selectedFrame?.prodigiProduct ? 'none' : hardwareType}
+                hardwareType={selectedFrame?.prodigiProduct
+                    ? prodigiHangingHardware(selectedFrame, selectedSize).id
+                    : hardwareType}
                 canvasWrap={canvasWrap}
             />
         </div>

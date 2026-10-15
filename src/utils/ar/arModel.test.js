@@ -322,7 +322,7 @@ describe('hanging hardware', () => {
 
     it('builds distinct geometry for every catalogue option', () => {
         const seen = new Map();
-        for (const type of ['wire', 'sawtooth', 'french-cleat', 'easel']) {
+        for (const type of ['wire', 'cobra-hook', 'sawtooth', 'built-in-rear-hanger', 'french-cleat', 'easel']) {
             const parts = buildHardwareParts(type, frameSize);
             expect(parts, type).toHaveLength(1);
             const triangles = parts[0].indices.length / 3;
@@ -340,7 +340,7 @@ describe('hanging hardware', () => {
     });
 
     it('keeps hardware behind the artwork, never in front of it', () => {
-        for (const type of ['wire', 'sawtooth', 'french-cleat', 'easel']) {
+        for (const type of ['wire', 'cobra-hook', 'sawtooth', 'built-in-rear-hanger', 'french-cleat', 'easel']) {
             const [part] = buildHardwareParts(type, frameSize);
             for (let i = 2; i < part.positions.length; i += 3) {
                 // Anything at positive Z would be poking through the
@@ -351,7 +351,7 @@ describe('hanging hardware', () => {
     });
 
     it('keeps hardware within the frame it mounts to', () => {
-        for (const type of ['wire', 'sawtooth', 'french-cleat']) {
+        for (const type of ['wire', 'cobra-hook', 'sawtooth', 'built-in-rear-hanger', 'french-cleat']) {
             const [part] = buildHardwareParts(type, frameSize);
             for (let i = 0; i < part.positions.length; i += 3) {
                 expect(Math.abs(part.positions[i]), `${type} X`)
@@ -360,6 +360,12 @@ describe('hanging hardware', () => {
                     .toBeLessThanOrEqual(frameSize.outerHeightM / 2 + 1e-6);
             }
         }
+    });
+
+    it('adds a second Cobra hanger when the frame is wide enough to need one', () => {
+        const [small] = buildHardwareParts('cobra-hook', { outerWidthM: 0.35, outerHeightM: 0.45 });
+        const [medium] = buildHardwareParts('cobra-hook', { outerWidthM: 0.6, outerHeightM: 0.75 });
+        expect(medium.indices.length).toBe(small.indices.length * 2);
     });
 
     it('lets the easel stand proud of the frame, since it is a kickstand', () => {
