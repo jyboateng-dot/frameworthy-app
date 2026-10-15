@@ -55,6 +55,7 @@ import FrameFitPanel from '../../components/framing/FrameFitPanel';
 import ProdigiConfigurationPanel from '../../components/framing/ProdigiConfigurationPanel';
 import { DEFAULT_POSITION, frameGeometry, imageCrop, cropStyle } from '../../utils/frameFit';
 import { prepareFrameOutput } from '../../services/frameFitOutput';
+import { loadImageCached } from '../../utils/imageCache';
 import { visualizerFullScreenState } from '../../utils/visualizerFullScreenState';
 import { nearestProdigiSize, prodigiAvailableSizes, prodigiConfigurationFromSelection } from '../../utils/prodigiFlow';
 
@@ -269,7 +270,7 @@ const CustomizeFramePage = ({
 }) => {
     const location = useLocation();
     const { unit, setUnit } = useUnit();
-    const { addToCart, toggleAllSelection } = useCart();
+    const { addToCart, updateCartItem, toggleAllSelection } = useCart();
     const { user } = useAuth();
     const [showAuthModal, setShowAuthModal] = useState(false);
     const [fitPosition, setFitPosition] = useState(DEFAULT_POSITION);
@@ -281,6 +282,14 @@ const CustomizeFramePage = ({
     const isPlaceholder = uploadedImage === DEFAULT_DEMO_IMAGE
         || uploadedImage?.includes('images.unsplash.com/photo-1526045478516-99145907023c');
     const hasImage = Boolean((uploadedImage && !isPlaceholder) || productionImage || (collageImages && collageImages.length > 0));
+
+    // Warm the shared image cache while the customer is still configuring, so
+    // Add to Cart doesn't start by downloading and decoding the original.
+    // Best-effort: a failure here just means it loads on demand later.
+    useEffect(() => {
+        const source = productionImage || (!isPlaceholder ? uploadedImage : null);
+        if (source) loadImageCached(source).catch(() => {});
+    }, [productionImage, uploadedImage, isPlaceholder]);
     
     // Core State
     const [isAlbumArt, setIsAlbumArt] = useState(false);
@@ -1602,19 +1611,13 @@ const CustomizeFramePage = ({
         if (!sourceImage) return null;
 
         try {
-            const img = new Image();
-            img.crossOrigin = 'anonymous';
-            await new Promise((resolve, reject) => {
-                img.onload = resolve;
-                img.onerror = reject;
-                img.src = sourceImage;
-            });
+            const img = await loadImageCached(sourceImage);
 
             if (selectedFrame?.prodigiProduct) {
                 const blob = await renderFrameOrderPreview({ frame: selectedFrame, image: img,
                     widthIn: wInch, heightIn: hInch, matReveal, matColorHex: matColor?.hex, glassType });
                 if (!blob) return null;
-                return await uploadImageToCloud(new File([blob], 'order-thumbnail.png', { type: 'image/png' }));
+                return await uploadImageToCloud(new File([blob], 'order-thumbnail.jpg', { type: blob.type || 'image/jpeg' }));
             }
 
             const isCanvasPrint = selectedFrame?.id === 'frame-canvas';
@@ -1646,6 +1649,10 @@ const CustomizeFramePage = ({
             canvas.width = CANVAS_SIZE;
             canvas.height = CANVAS_SIZE;
             const ctx = canvas.getContext('2d');
+            // JPEG has no alpha, so give the margin around the frame an
+            // opaque off-white (same as the Prodigi order preview).
+            ctx.fillStyle = '#faf9f7';
+            ctx.fillRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
 
             const maxDim = CANVAS_SIZE * 0.88; // margin so the frame isn't flush with the thumbnail edge
             const w = frameAspect >= 1 ? maxDim : maxDim * frameAspect;
@@ -1730,9 +1737,9 @@ const CustomizeFramePage = ({
                 ctx.fillRect(offsetX + w - borderW, offsetY, borderW, h); // right
             }
 
-            const blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/png'));
+            const blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/jpeg', 0.85));
             if (!blob) return null;
-            const file = new File([blob], 'order-thumbnail.png', { type: 'image/png' });
+            const file = new File([blob], 'order-thumbnail.jpg', { type: blob.type || 'image/jpeg' });
             return await uploadImageToCloud(file);
         } catch (err) {
             console.warn('Order thumbnail generation failed, falling back to raw artwork image:', err);
@@ -1808,11 +1815,11 @@ const CustomizeFramePage = ({
         }
     };
 
-    const prepareFrameOutputWithTimeout = async (source, geometry, position, frameColor, matColor, timeoutMs = 5000) => {
+    const prepareFrameOutputWithTimeout = async (source, geometry, position, frameColor, matColor, options = {}, timeoutMs = 12000) => {
         let timeoutId;
         try {
             return await Promise.race([
-                prepareFrameOutput(source, geometry, position, frameColor, matColor),
+                prepareFrameOutput(source, geometry, position, frameColor, matColor, options),
                 new Promise((resolve) => {
                     timeoutId = setTimeout(() => resolve(null), timeoutMs);
                 }),
@@ -1822,6 +1829,17 @@ const CustomizeFramePage = ({
         }
     };
 
+    // The thumbnail is cosmetic, so for "Add to cart" it uploads in the
+    // background and is attached to the item when it lands. If the customer
+    // removed the item meanwhile, or the upload failed (null), nothing
+    // happens and every thumbnail slot keeps falling back to the artwork.
+    const attachThumbnailWhenReady = (cartItemId, pendingThumbnail) => {
+        if (!cartItemId || !pendingThumbnail) return;
+        Promise.resolve(pendingThumbnail)
+            .then((url) => { if (url) updateCartItem(cartItemId, { visualizerImage: url }); })
+            .catch(() => {});
+    };
+
     const completeCheckoutAction = async (action) => {
         if (selectedFrame?.prodigiProduct && !prodigiSelection?.quoteTotalGbp) {
             setFitError(hasOrderableProdigiProduct
@@ -1829,20 +1847,34 @@ const CustomizeFramePage = ({
                 : 'This preview finish is not currently available to order.');
             return;
         }
+        // "Buy now" keeps waiting for the thumbnail so the order that follows
+        // straight away is created with it; "Add to cart" doesn't need to.
+        const thumbnailInBackground = action === 'cart';
         setLoadingAction(action);
         setFitError('');
         try {
             if (fitEnabled) {
-                const output = await prepareFrameOutputWithTimeout(productionImage || uploadedImage, fitGeometry,
-                    fitPosition, selectedFrame.baseColor, matColor.hex);
+                // Give Pay Now ample time (25s) to upload high-res print + thumbnail
+                const timeoutMs = action === 'pay' ? 25000 : 12000;
+                const result = await prepareFrameOutputWithTimeout(productionImage || uploadedImage, fitGeometry,
+                    fitPosition, selectedFrame.baseColor, matColor.hex, { deferThumbnail: thumbnailInBackground }, timeoutMs);
                 if (action === 'pay') toggleAllSelection(false);
-                if (output) {
-                    addToCart({ ...buildCartItem(output.visualizerImage), ...output });
+                if (result) {
+                    // thumbnailUpload is a promise, not cart data — keep it out of the item.
+                    const { thumbnailUpload, ...output } = result;
+                    const cartItemId = addToCart({ ...buildCartItem(output.visualizerImage), ...output });
+                    attachThumbnailWhenReady(cartItemId, thumbnailUpload);
+                } else if (action === 'pay') {
+                    // Pay Now must never navigate to checkout with missing production specs
+                    throw new Error('Preparing your high-resolution print timed out. Please check your connection and try again.');
                 } else {
                     addToCart(buildCartItem(null));
                 }
+            } else if (thumbnailInBackground) {
+                const cartItemId = addToCart(buildCartItem(null));
+                attachThumbnailWhenReady(cartItemId, captureVisualizerImage());
             } else {
-                const visualizerImage = await captureVisualizerImageWithTimeout();
+                const visualizerImage = await captureVisualizerImageWithTimeout(action === 'pay' ? 15000 : 8000);
                 if (action === 'pay') toggleAllSelection(false);
                 addToCart(buildCartItem(visualizerImage));
             }
@@ -3875,6 +3907,9 @@ const CustomizeFramePage = ({
                         size={selectedSize} orientation={orientation} mat={matWidth} rail={railWidthIn}
                         frame={selectedFrame} matColor={matColor.hex} matPrice={matColor.price || 75}
                         unit={unit} price={buildCartItem(null).totalPrice} position={fitPosition} onPosition={setFitPosition}
+                        availableSizes={isProdigiFrame ? prodigiSizes : FRAME_SIZES}
+                        prodigiConfiguration={prodigiConfiguration}
+                        currency={isProdigiFrame ? 'GBP' : 'GHS'}
                         onApply={choice => { setIsOptimized(false); setSelectedSize(choice.size);
                             setOrientation(choice.orientation); setMatWidth(choice.mat); setFitPosition(choice.position); }}
                         error={fitError}
@@ -4080,57 +4115,64 @@ const CustomizeFramePage = ({
                 </div>
 
                 {/* Sticky Checkout Footer */}
-                <div className={`bottom-0 z-20 backdrop-blur-md border-t border-stone-200 shadow-[0_-10px_40px_rgba(0,0,0,0.03)] flex ${isSideBySide ? 'flex-col gap-0 items-start py-1.5 px-3' : 'items-center justify-between gap-4 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom,0px))] px-5'} ${isSideBySide ? 'relative bg-white/85' : 'sticky bg-white/95'}`}>
-                    <div className="flex flex-col">
-                        {selectedFrame?.prodigiProduct && !hasOrderableProdigiProduct ? (
-                            <span className="max-w-56 text-[10px] leading-4 text-amber-800">Preview ready · this finish is not currently available to order.</span>
-                        ) : selectedFrame?.prodigiProduct && prodigiSelection?.quoteTotalGbp ? (
-                            <div className="flex flex-col items-start leading-none">
-                                <Price amount={prodigiSelection.quoteTotalGbp} currency="GBP" className="text-lg font-bold text-stone-900 tracking-tight" />
-                                <span className="mt-0.5 text-[10px] leading-none text-stone-500">Live delivery and tax included</span>
-                            </div>
-                        ) : !selectedFrame?.prodigiProduct ? <Price
-                            amount={
-                                Math.round((selectedSize?.price || 0) * (selectedFrame?.priceMod || 1)) +
-                                (selectedFrame?.id !== 'frame-canvas' && glassType !== 'canvas-floater' && glassType !== 'canvas-traditional' && matWidth !== 'none' ? (matColor.price || 75) : 0) +
-                                (!isCanvasOnly ? (glassType === 'non-glare' ? 100 : glassType === 'museum' ? 200 : 0) : 0) +
-            (selectedFrame?.id !== 'frame-canvas' && glassType === 'canvas-floater' ? 400 : 0) +
-            (selectedFrame?.id !== 'frame-canvas' && glassType === 'canvas-traditional' ? 350 : 0) +
-                                (hardwareType === 'french-cleat' ? 50 : 0)
-                            }
-                            className="text-lg font-bold text-stone-900 tracking-tight"
-                        /> : null}
-                        {!selectedFrame?.prodigiProduct && <span className="text-[8px] text-stone-500 whitespace-nowrap">
-                            {isCloudUploadPending ? 'Finishing image upload…' : 'Shipping fee paid upon delivery'}
-                        </span>}
-                    </div>
-                    <div className={`flex w-full mt-1 ${isSideBySide ? 'gap-1.5' : 'gap-2 max-w-[300px]'}`}>
-                        <button
-                            onClick={() => completeCheckoutAction('cart')}
-                            disabled={!hasImage || isCloudUploadPending || loadingAction !== null || Boolean(selectedFrame?.prodigiProduct && !prodigiSelection?.quoteTotalGbp)}
-                            className={`flex-1 bg-white border rounded-full text-[10px] font-bold uppercase tracking-widest transition-colors flex items-center justify-center gap-1.5 shadow-sm ${isSideBySide ? 'py-1.5' : 'py-2.5'} ${!hasImage || isCloudUploadPending || loadingAction !== null || (selectedFrame?.prodigiProduct && !prodigiSelection?.quoteTotalGbp) ? 'opacity-50 cursor-not-allowed border-stone-200 text-stone-400 bg-stone-50' : 'text-stone-900 border-stone-200 hover:bg-stone-50'}`}
-                        >
-                            {loadingAction === 'cart' && <Loader size={12} className="animate-spin" />}
-                            {loadingAction === 'cart' ? 'Adding…' : (wasAddedToCart ? 'Added' : 'Add to Cart')}
-                        </button>
-                        <button
-                            onClick={() => {
-                                if (wasAddedToCart) {
-                                    if (!user) {
-                                        setShowAuthModal(true);
-                                    } else {
-                                        navigate('/checkout');
-                                    }
-                                    return;
+                <div className={`bottom-0 z-20 backdrop-blur-md border-t border-stone-200 shadow-[0_-10px_40px_rgba(0,0,0,0.03)] ${isSideBySide ? 'relative bg-white/85 py-1.5 px-3' : 'sticky bg-white/95 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom,0px))] px-5'}`}>
+                    {fitError && (
+                        <div className="w-full text-[11px] font-medium text-rose-700 bg-rose-50 border border-rose-200 rounded-lg px-2.5 py-1.5 mb-2 text-center">
+                            {fitError}
+                        </div>
+                    )}
+                    <div className={`flex ${isSideBySide ? 'flex-col gap-0 items-start' : 'items-center justify-between gap-4'}`}>
+                        <div className="flex flex-col">
+                            {selectedFrame?.prodigiProduct && !hasOrderableProdigiProduct ? (
+                                <span className="max-w-56 text-[10px] leading-4 text-amber-800">Preview ready · this finish is not currently available to order.</span>
+                            ) : selectedFrame?.prodigiProduct && prodigiSelection?.quoteTotalGbp ? (
+                                <div className="flex flex-col items-start leading-none">
+                                    <Price amount={prodigiSelection.quoteTotalGbp} currency="GBP" className="text-lg font-bold text-stone-900 tracking-tight" />
+                                    <span className="mt-0.5 text-[10px] leading-none text-stone-500">Live delivery and tax included</span>
+                                </div>
+                            ) : !selectedFrame?.prodigiProduct ? <Price
+                                amount={
+                                    Math.round((selectedSize?.price || 0) * (selectedFrame?.priceMod || 1)) +
+                                    (selectedFrame?.id !== 'frame-canvas' && glassType !== 'canvas-floater' && glassType !== 'canvas-traditional' && matWidth !== 'none' ? (matColor.price || 75) : 0) +
+                                    (!isCanvasOnly ? (glassType === 'non-glare' ? 100 : glassType === 'museum' ? 200 : 0) : 0) +
+                (selectedFrame?.id !== 'frame-canvas' && glassType === 'canvas-floater' ? 400 : 0) +
+                (selectedFrame?.id !== 'frame-canvas' && glassType === 'canvas-traditional' ? 350 : 0) +
+                                    (hardwareType === 'french-cleat' ? 50 : 0)
                                 }
-                                completeCheckoutAction('pay');
-                            }}
-                            disabled={!hasImage || isCloudUploadPending || loadingAction !== null || Boolean(selectedFrame?.prodigiProduct && !prodigiSelection?.quoteTotalGbp)}
-                            className={`flex-1 border rounded-full text-[10px] font-bold uppercase tracking-widest transition-colors flex items-center justify-center gap-1.5 shadow-sm ${isSideBySide ? 'py-1.5' : 'py-2.5'} ${!hasImage || isCloudUploadPending || loadingAction !== null || (selectedFrame?.prodigiProduct && !prodigiSelection?.quoteTotalGbp) ? 'opacity-50 cursor-not-allowed border-stone-200 text-stone-400 bg-stone-50' : 'bg-[#c9a84c] border-[#c9a84c] text-[#0a0a0a] hover:bg-[#d4b55c]'}`}
-                        >
-                            {loadingAction === 'pay' && <Loader size={12} className="animate-spin" />}
-                            Pay Now
-                        </button>
+                                className="text-lg font-bold text-stone-900 tracking-tight"
+                            /> : null}
+                            {!selectedFrame?.prodigiProduct && <span className="text-[8px] text-stone-500 whitespace-nowrap">
+                                {isCloudUploadPending ? 'Finishing image upload…' : 'Shipping fee paid upon delivery'}
+                            </span>}
+                        </div>
+                        <div className={`flex w-full mt-1 ${isSideBySide ? 'gap-1.5' : 'gap-2 max-w-[300px]'}`}>
+                            <button
+                                onClick={() => completeCheckoutAction('cart')}
+                                disabled={!hasImage || isCloudUploadPending || loadingAction !== null || Boolean(selectedFrame?.prodigiProduct && !prodigiSelection?.quoteTotalGbp)}
+                                className={`flex-1 bg-white border rounded-full text-[10px] font-bold uppercase tracking-widest transition-colors flex items-center justify-center gap-1.5 shadow-sm ${isSideBySide ? 'py-1.5' : 'py-2.5'} ${!hasImage || isCloudUploadPending || loadingAction !== null || (selectedFrame?.prodigiProduct && !prodigiSelection?.quoteTotalGbp) ? 'opacity-50 cursor-not-allowed border-stone-200 text-stone-400 bg-stone-50' : 'text-stone-900 border-stone-200 hover:bg-stone-50'}`}
+                            >
+                                {loadingAction === 'cart' && <Loader size={12} className="animate-spin" />}
+                                {loadingAction === 'cart' ? 'Adding…' : (wasAddedToCart ? 'Added' : 'Add to Cart')}
+                            </button>
+                            <button
+                                onClick={() => {
+                                    if (wasAddedToCart) {
+                                        if (!user) {
+                                            setShowAuthModal(true);
+                                        } else {
+                                            navigate('/checkout');
+                                        }
+                                        return;
+                                    }
+                                    completeCheckoutAction('pay');
+                                }}
+                                disabled={!hasImage || isCloudUploadPending || loadingAction !== null || Boolean(selectedFrame?.prodigiProduct && !prodigiSelection?.quoteTotalGbp)}
+                                className={`flex-1 border rounded-full text-[10px] font-bold uppercase tracking-widest transition-colors flex items-center justify-center gap-1.5 shadow-sm ${isSideBySide ? 'py-1.5' : 'py-2.5'} ${!hasImage || isCloudUploadPending || loadingAction !== null || (selectedFrame?.prodigiProduct && !prodigiSelection?.quoteTotalGbp) ? 'opacity-50 cursor-not-allowed border-stone-200 text-stone-400 bg-stone-50' : 'bg-[#c9a84c] border-[#c9a84c] text-[#0a0a0a] hover:bg-[#d4b55c]'}`}
+                            >
+                                {loadingAction === 'pay' && <Loader size={12} className="animate-spin" />}
+                                {loadingAction === 'pay' ? 'Preparing…' : 'Pay Now'}
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>

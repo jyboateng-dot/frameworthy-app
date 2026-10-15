@@ -69,7 +69,8 @@ export function FitPreview({ image, natural, geometry, position, frame, matColor
 }
 
 export default function FrameFitPanel({ image, natural, size, orientation, mat, rail, frame, matColor,
-    unit, position, onPosition, onApply, error, price, matPrice, step }) {
+    unit, position, onPosition, onApply, error, price, matPrice, step,
+    availableSizes = FRAME_SIZES, prodigiConfiguration = {}, currency = 'GHS' }) {
     const [compare, setCompare] = useState(false);
     const [undo, setUndo] = useState(null);
     const dialogRef = useRef(null);
@@ -81,8 +82,18 @@ export default function FrameFitPanel({ image, natural, size, orientation, mat, 
         return () => previous?.focus();
     }, [open]);
     const geometry = frameGeometry(size, orientation, mat, rail);
-    const options = useMemo(() => bestFitOptions({ sizes: FRAME_SIZES, natural, size,
-        orientation, mat, rail, frame, price, matPrice }), [natural, size, orientation, mat, rail, frame, price, matPrice]);
+    const options = useMemo(() => bestFitOptions({
+        sizes: availableSizes,
+        natural,
+        size,
+        orientation,
+        mat,
+        rail,
+        frame,
+        price,
+        matPrice,
+        prodigiConfiguration,
+    }), [availableSizes, natural, size, orientation, mat, rail, frame, price, matPrice, prodigiConfiguration]);
     const applyOption = option => {
         setUndo({ size, orientation, mat, position });
         onApply({ ...option, position: DEFAULT_POSITION });
@@ -119,7 +130,7 @@ export default function FrameFitPanel({ image, natural, size, orientation, mat, 
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
                     <div className="space-y-3">{preview(geometry)}<p className="text-sm font-semibold">Current Frame</p>
                         <p className="text-xs">{formatDimensions(size.label, unit, orientation)} · {geometry.width === geometry.height ? 'Square' : orientation === 'landscape' ? 'Landscape' : 'Portrait'} · {mat === 'none' ? 'No Mat' : `${(Number(mat) * (unit === 'cm' ? 2.54 : 1)).toFixed(1)} ${unit} mat`}</p>
-                        <Price amount={price} />
+                        <Price amount={price} currency={currency} />
                         <p className="text-xs">{Math.floor((imageCrop(natural, geometry, position)?.retained || 0) * 100)}% of image visible</p>
                     </div>
                     {options.map((option, i) => <div key={i} className="space-y-3">
@@ -128,7 +139,11 @@ export default function FrameFitPanel({ image, natural, size, orientation, mat, 
                             onClick={() => applyOption(option)}>{preview(option.geometry, DEFAULT_POSITION)}</button>
                         <p className="text-sm font-semibold">{formatDimensions(option.size.label, unit, option.orientation)} · {option.geometry.width === option.geometry.height ? 'Square' : option.orientation === 'landscape' ? 'Landscape' : 'Portrait'}</p>
                         <p className="text-xs">{Math.floor(option.retained * 100)}% of image visible · {option.mat === 'none' ? 'No Mat' : `${(Number(option.mat) * (unit === 'cm' ? 2.54 : 1)).toFixed(1)} ${unit} mat`}</p>
-                        <Price amount={option.price} />
+                        {option.price !== null ? (
+                            <Price amount={option.price} currency={currency} />
+                        ) : (
+                            <span className="text-xs font-semibold text-stone-600">Live quote on apply</span>
+                        )}
                         <button type="button" className="flex items-center gap-1 text-sm font-semibold" onClick={() => applyOption(option)}><Check size={15} />Apply</button>
                     </div>)}
                 </div>

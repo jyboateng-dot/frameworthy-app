@@ -67,6 +67,17 @@ export const CartProvider = ({ children }) => {
         };
         setCartItems(prev => [itemWithId, ...prev]);
         setIsCartOpen(true);
+        return itemWithId.id;
+    };
+
+    // Patches one cart item by id. Used to attach data that finishes
+    // computing after the item was added (e.g. the uploaded order
+    // thumbnail). If the item has been removed in the meantime this leaves
+    // the cart untouched rather than resurrecting it.
+    const updateCartItem = (id, updates) => {
+        setCartItems(prev => (prev.some(item => item.id === id)
+            ? prev.map(item => (item.id === id ? { ...item, ...updates } : item))
+            : prev));
     };
 
     const removeFromCart = (id) => {
@@ -124,6 +135,7 @@ export const CartProvider = ({ children }) => {
             cartCount, 
             cartItems, 
             addToCart, 
+            updateCartItem,
             removeFromCart,
             updateQuantity,
             toggleItemSelection,

@@ -9,6 +9,33 @@ describe('CartContext', () => {
         localStorage.clear();
     });
 
+    it('addToCart returns the new item id so a late result can be attached to it', () => {
+        const { result } = renderHook(() => useCart(), { wrapper });
+        let id;
+        act(() => { id = result.current.addToCart({ name: 'frame' }); });
+        expect(typeof id).toBe('string');
+        expect(result.current.cartItems[0]).toMatchObject({ id, name: 'frame', quantity: 1, isSelected: true });
+    });
+
+    it('updateCartItem patches only the matching item', () => {
+        const { result } = renderHook(() => useCart(), { wrapper });
+        let first; let second;
+        act(() => { first = result.current.addToCart({ name: 'a', visualizerImage: null }); });
+        act(() => { second = result.current.addToCart({ name: 'b', visualizerImage: null }); });
+        act(() => result.current.updateCartItem(first, { visualizerImage: 'https://cdn/thumb.jpg' }));
+        expect(result.current.cartItems.find((item) => item.id === first).visualizerImage).toBe('https://cdn/thumb.jpg');
+        expect(result.current.cartItems.find((item) => item.id === second).visualizerImage).toBeNull();
+    });
+
+    it('updateCartItem does not resurrect an item that was removed before the update arrived', () => {
+        const { result } = renderHook(() => useCart(), { wrapper });
+        let id;
+        act(() => { id = result.current.addToCart({ name: 'a' }); });
+        act(() => result.current.removeFromCart(id));
+        act(() => result.current.updateCartItem(id, { visualizerImage: 'https://cdn/late.jpg' }));
+        expect(result.current.cartItems).toEqual([]);
+    });
+
     it('updates destination quotes together without losing quantities or unselected items', () => {
         localStorage.setItem('frameworthy_cart', JSON.stringify([
             { id: 'a', quantity: 3, isSelected: true, totalPrice: 20, prodigi: { destinationCountryCode: 'GB' } },

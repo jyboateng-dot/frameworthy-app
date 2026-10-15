@@ -54,8 +54,9 @@ export async function renderFrameOrderPreview({ frame, image, widthIn, heightIn,
         ctx.fillRect(glazeX, glazeY, glazeW, glazeH);
     }
     if (border > 0) {
-        const horizontal = rail ? await load(rail.h) : null;
-        const vertical = rail ? await load(rail.v) : null;
+        const [horizontal, vertical] = rail
+            ? await Promise.all([load(rail.h), load(rail.v)])
+            : [null, null];
         const sides = [
             ['top', [[x,y],[x+w,y],[x+w-border,y+border],[x+border,y+border]]],
             ['bottom', [[x,y+h],[x+w,y+h],[x+w-border,y+h-border],[x+border,y+h-border]]],
@@ -82,5 +83,5 @@ export async function renderFrameOrderPreview({ frame, image, widthIn, heightIn,
             ctx.restore();
         }
     }
-    return new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+    return new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', 0.85));
 }
