@@ -14,6 +14,7 @@ import { useUnit } from '../../context/UnitContext';
 import { calculateSubtotal, resolvePromoCode, calculatePromoDiscount, calculateFinalTotal } from '../../utils/pricing';
 import Price from '../../components/common/Price';
 import { getThumbnailUrl } from '../../services/storage';
+import { deliveryCountryName, isGbJerseyCountry, isValidDeliveryPostalCode, normalizePostalCode } from '../../utils/deliveryAddress';
 
 const PAYSTACK_PUBLIC_KEY = import.meta.env.VITE_PAYSTACK_PUBLIC_KEY;
 const EMAILJS_SERVICE_ID = import.meta.env.VITE_EMAILJS_SERVICE_ID;
@@ -23,7 +24,7 @@ const verifyPaystackPayment = httpsCallable(functions, 'verifyPaystackPayment');
 
 // Best-effort — a failed confirmation email shouldn't block checkout, since
 // the order is already paid and verified by this point.
-const sendOrderConfirmationEmail = ({ email, orderId, items, total, address, city, phone, promoCode, promoDiscount, unit }) => {
+const sendOrderConfirmationEmail = ({ email, orderId, items, total, address, line2, city, stateOrCounty, postalOrZipCode, phone, promoCode, promoDiscount, unit }) => {
     if (!EMAILJS_SERVICE_ID || !EMAILJS_TEMPLATE_ID || !EMAILJS_PUBLIC_KEY) return;
 
     const orderItemsText = items
@@ -37,7 +38,7 @@ const sendOrderConfirmationEmail = ({ email, orderId, items, total, address, cit
         order_date: new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }),
         order_items: orderItemsText,
         order_total: `GHS ${total.toFixed(2)}`,
-        shipping_address: `${address}\n${city}\n${phone}`,
+        shipping_address: [address, line2, [city, stateOrCounty, postalOrZipCode].filter(Boolean).join(', '), phone].filter(Boolean).join('\n'),
         to_name: email.split('@')[0]
     }, { publicKey: EMAILJS_PUBLIC_KEY }).catch(err => {
         console.error('Order confirmation email failed to send:', err);
@@ -102,6 +103,8 @@ const CheckoutPage = () => {
     const [phoneNumber, setPhoneNumber] = useState('');
     const [city, setCity] = useState('');
     const [deliveryAddress, setDeliveryAddress] = useState('');
+    const [addressLine2, setAddressLine2] = useState('');
+    const [stateOrCounty, setStateOrCounty] = useState('');
     const [postalOrZipCode, setPostalOrZipCode] = useState('');
 
     const [savedAddresses, setSavedAddresses] = useState([]);
@@ -129,6 +132,8 @@ const CheckoutPage = () => {
                 setPhoneNumber(latest.phoneNumber);
                 setCity(latest.city);
                 setDeliveryAddress(latest.deliveryAddress);
+                setAddressLine2(latest.addressLine2 || '');
+                setStateOrCounty(latest.stateOrCounty || '');
                 setPostalOrZipCode(latest.postalOrZipCode || latest.zip || '');
             }
             setIsFetchingAddresses(false);
@@ -148,6 +153,9 @@ const CheckoutPage = () => {
             setPhoneNumber('');
             setCity('');
             setDeliveryAddress('');
+            setAddressLine2('');
+            setStateOrCounty('');
+            setPostalOrZipCode('');
         } else {
             const addr = savedAddresses.find(a => a.id === val);
             if (addr) {
@@ -155,6 +163,8 @@ const CheckoutPage = () => {
                 setPhoneNumber(addr.phoneNumber);
                 setCity(addr.city);
                 setDeliveryAddress(addr.deliveryAddress);
+                setAddressLine2(addr.addressLine2 || '');
+                setStateOrCounty(addr.stateOrCounty || '');
                 setPostalOrZipCode(addr.postalOrZipCode || addr.zip || '');
             }
         }
@@ -215,7 +225,7 @@ const CheckoutPage = () => {
             return;
         }
 
-        if (!fullName) {
+        if (!fullName.trim()) {
             setError('Please enter your full name.');
             return;
         }
@@ -233,7 +243,7 @@ const CheckoutPage = () => {
             setError('Please enter a valid phone number.');
             return;
         }
-        if (!city || !deliveryAddress) {
+        if (!city.trim() || !deliveryAddress.trim()) {
             setError('Please complete delivery address details.');
             return;
         }
@@ -241,8 +251,11 @@ const CheckoutPage = () => {
             setError('Items shipping to different countries must be checked out separately.');
             return;
         }
-        if (hasProdigiItems && !postalOrZipCode.trim()) {
-            setError('Please enter the postal code required for delivery.');
+        const normalizedPostalCode = normalizePostalCode(postalOrZipCode);
+        if (hasProdigiItems && !isValidDeliveryPostalCode(prodigiDestination, normalizedPostalCode)) {
+            setError(isGbJerseyCountry(prodigiDestination)
+                ? 'Please enter a valid UK or Jersey postcode, for example SW1A 1AA.'
+                : 'Please enter the postal code required for delivery.');
             return;
         }
 
@@ -257,10 +270,12 @@ const CheckoutPage = () => {
             customerName: fullName,
             shippingAddress: {
                 address: deliveryAddress,
+                line2: addressLine2,
                 phone: phoneNumber,
                 city: city,
-                zip: postalOrZipCode || '00233',
-                postalOrZipCode: postalOrZipCode || '00233',
+                stateOrCounty,
+                zip: normalizedPostalCode || '00233',
+                postalOrZipCode: normalizedPostalCode || '00233',
                 countryCode: prodigiDestination,
             },
             items: checkoutItems.map(item => ({
@@ -328,7 +343,7 @@ const CheckoutPage = () => {
         const attemptKey = [
             checkoutItems.map(i => i.id).sort().join(','),
             appliedPromo?.code || '',
-            email, phoneNumber, city, deliveryAddress, postalOrZipCode, prodigiDestination, fullName
+            email, phoneNumber, city, deliveryAddress, addressLine2, stateOrCounty, normalizedPostalCode, prodigiDestination, fullName
         ].join('|');
 
         (async () => {
@@ -382,7 +397,7 @@ const CheckoutPage = () => {
                         custom_fields: [
                             { display_name: 'Order ID', variable_name: 'order_id', value: orderId },
                             { display_name: 'Customer', variable_name: 'customer_name', value: fullName },
-                            { display_name: 'Delivery', variable_name: 'delivery', value: `${deliveryAddress}, ${city}` },
+                            { display_name: 'Delivery', variable_name: 'delivery', value: [deliveryAddress, addressLine2, city, stateOrCounty, normalizedPostalCode].filter(Boolean).join(', ') },
                             { display_name: 'Items', variable_name: 'item_count', value: String(itemCount) }
                         ]
                     },
@@ -403,7 +418,10 @@ const CheckoutPage = () => {
                                 items: checkoutItems,
                                 total: finalTotal,
                                 address: deliveryAddress,
+                                line2: addressLine2,
                                 city,
+                                stateOrCounty,
+                                postalOrZipCode: normalizedPostalCode,
                                 phone: phoneNumber,
                                 promoCode: appliedPromo?.code || null,
                                 promoDiscount: appliedPromo ? promoDiscount : 0,
@@ -464,7 +482,7 @@ const CheckoutPage = () => {
                             <div className="flex-1 space-y-2.5">
                                 <div>
                                     <div className="flex items-center justify-between mb-3">
-                                        <h3 className="font-bold text-sm text-stone-900">Delivery Details</h3>
+                                        <h3 className="font-bold text-sm text-stone-900">Delivery address</h3>
                                         {isFetchingAddresses ? (
                                             <Loader size={14} className="animate-spin text-stone-400" />
                                         ) : savedAddresses.length > 0 ? (
@@ -489,6 +507,7 @@ const CheckoutPage = () => {
                                         type="text"
                                         required
                                         placeholder="Full Name"
+                                        autoComplete="name"
                                         className="w-full border-b border-stone-200 py-1.5 text-base focus:outline-none focus:border-stone-500 bg-transparent mb-2"
                                         value={fullName}
                                         onChange={handleFieldChange(setFullName)}
@@ -498,7 +517,9 @@ const CheckoutPage = () => {
                                         id="checkout-phone"
                                         type="tel"
                                         required
-                                        placeholder="Phone Number (e.g. 024 000 0000)"
+                                        placeholder={isGbJerseyCountry(prodigiDestination) ? 'Phone number (e.g. +44 1534 123456)' : 'Phone number'}
+                                        autoComplete="tel"
+                                        inputMode="tel"
                                         className="w-full border-b border-stone-200 py-1.5 text-base focus:outline-none focus:border-stone-500 bg-transparent mb-2"
                                         value={phoneNumber}
                                         onChange={handleFieldChange(setPhoneNumber)}
@@ -509,6 +530,7 @@ const CheckoutPage = () => {
                                         type="email"
                                         required
                                         placeholder="Email Address"
+                                        autoComplete="email"
                                         className="w-full border-b border-stone-200 py-1.5 text-base focus:outline-none focus:border-stone-500 bg-transparent"
                                         value={email}
                                         onChange={(e) => setEmail(e.target.value)}
@@ -520,36 +542,57 @@ const CheckoutPage = () => {
                                         id="checkout-city"
                                         type="text"
                                         required
-                                        placeholder="City (e.g. Accra)"
+                                        placeholder={isGbJerseyCountry(prodigiDestination) ? 'Town or city (e.g. St Helier)' : 'City (e.g. Accra)'}
+                                        autoComplete="address-level2"
                                         className="w-full border-b border-stone-200 py-1.5 text-base focus:outline-none focus:border-stone-500 bg-transparent"
                                         value={city}
                                         onChange={handleFieldChange(setCity)}
                                     />
                                 </div>
+                                {hasProdigiItems && (
+                                    <div>
+                                        <label htmlFor="checkout-country" className="text-[10px] font-bold uppercase tracking-wide text-stone-500">Country</label>
+                                        <input id="checkout-country" value={deliveryCountryName(prodigiDestination)} readOnly autoComplete="country-name" className="w-full border-b border-stone-200 bg-stone-50 py-1.5 text-base text-stone-700" />
+                                    </div>
+                                )}
                                 <div>
-                                    <label htmlFor="checkout-address" className="sr-only">Delivery Address / Landmark</label>
+                                    <label htmlFor="checkout-address" className="sr-only">Address line 1</label>
                                     <textarea
                                         id="checkout-address"
                                         required
-                                        placeholder="Delivery Address / Landmark"
+                                        placeholder={isGbJerseyCountry(prodigiDestination) ? 'Address line 1 (house number and street)' : 'Delivery address / landmark'}
+                                        autoComplete="address-line1"
                                         className="w-full border-b border-stone-200 py-1.5 text-base focus:outline-none focus:border-stone-500 bg-transparent resize-none"
                                         rows="2"
                                         value={deliveryAddress}
                                         onChange={handleFieldChange(setDeliveryAddress)}
                                     />
                                 </div>
+                                <div>
+                                    <label htmlFor="checkout-address-line2" className="sr-only">Address line 2</label>
+                                    <input
+                                        id="checkout-address-line2"
+                                        type="text"
+                                        placeholder="Address line 2 (optional)"
+                                        autoComplete="address-line2"
+                                        className="w-full border-b border-stone-200 py-1.5 text-base focus:outline-none focus:border-stone-500 bg-transparent"
+                                        value={addressLine2}
+                                        onChange={handleFieldChange(setAddressLine2)}
+                                    />
+                                </div>
                                 {hasProdigiItems && (
-                                    <div className="grid grid-cols-[1fr_1.4fr] gap-3">
+                                    <div className="grid grid-cols-2 gap-3">
                                         <div>
-                                            <label htmlFor="checkout-country" className="text-[10px] font-bold uppercase tracking-wide text-stone-500">Country</label>
-                                            <input id="checkout-country" value={prodigiDestination === 'GB' ? 'United Kingdom' : prodigiDestination === 'JE' ? 'Jersey' : prodigiDestination} readOnly className="w-full border-b border-stone-200 bg-stone-50 py-1.5 text-base text-stone-700" />
+                                            <label htmlFor="checkout-county" className="text-[10px] font-bold uppercase tracking-wide text-stone-500">County / parish <span className="font-normal normal-case">(optional)</span></label>
+                                            <input id="checkout-county" value={stateOrCounty} onChange={handleFieldChange(setStateOrCounty)} autoComplete="address-level1" placeholder={prodigiDestination === 'JE' ? 'Parish (optional)' : 'County (optional)'} className="w-full border-b border-stone-200 py-1.5 text-base focus:outline-none focus:border-stone-500 bg-transparent" />
                                         </div>
                                         <div>
-                                            <label htmlFor="checkout-postal" className="text-[10px] font-bold uppercase tracking-wide text-stone-500">Postal code</label>
-                                            <input id="checkout-postal" required value={postalOrZipCode} onChange={handleFieldChange(setPostalOrZipCode)} placeholder="Postal code" className="w-full border-b border-stone-200 py-1.5 text-base focus:outline-none focus:border-stone-500 bg-transparent" />
+                                            <label htmlFor="checkout-postal" className="text-[10px] font-bold uppercase tracking-wide text-stone-500">Postcode</label>
+                                            <input id="checkout-postal" required value={postalOrZipCode} onChange={handleFieldChange(setPostalOrZipCode)} placeholder={isGbJerseyCountry(prodigiDestination) ? 'e.g. JE1 1AA' : 'Postal code'} autoComplete="postal-code" autoCapitalize="characters" inputMode="text" className="w-full border-b border-stone-200 py-1.5 text-base focus:outline-none focus:border-stone-500 bg-transparent uppercase" />
                                         </div>
                                     </div>
                                 )}
+                                {hasProdigiItems && <p className="text-[11px] leading-4 text-stone-500">Delivering to {deliveryCountryName(prodigiDestination)}. Use the address format recognised by your local postal service.</p>}
                             </div>
                         </div>
                     </div>
