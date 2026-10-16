@@ -89,6 +89,7 @@ export default function ProdigiConfigurationPanel({
     const product = useMemo(() => resolveProdigiProduct(frame, size, configuration), [frame, size, configuration]);
     const hangingHardware = useMemo(() => prodigiHangingHardware(frame, size), [frame, size]);
     const mountWidthIn = activeMounted ? prodigiMountWidthInForSize(size, product) : null;
+    const mountWidthLabel = mountWidthIn ? `${mountWidthIn}" (${Math.round(mountWidthIn * 25.4)} mm)` : 'Custom';
     const hasImportedProducts = prodigiProductsForFrame(frame).length > 0;
 
     useEffect(() => {
