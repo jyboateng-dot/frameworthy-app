@@ -58,7 +58,13 @@ export function displayFrameName(frame) {
     return frame.name.replace(/^(?:Prodigi )?(Classic Canvas|Float Canvas|Eco Canvas|Stretched Canvas|Classic|Box|Aluminium) · /, '');
 }
 
-export const FRAME_STARTING_PRICES_GBP = {
+const envMarkup = typeof import.meta !== 'undefined' && import.meta.env?.VITE_PRODIGI_RETAIL_MARKUP_PERCENT
+    ? Number(import.meta.env.VITE_PRODIGI_RETAIL_MARKUP_PERCENT)
+    : NaN;
+
+export const DEFAULT_FRAME_MARKUP_PERCENT = Number.isFinite(envMarkup) && envMarkup > 0 ? envMarkup : 40;
+
+export const WHOLESALE_FRAME_STARTING_PRICES_GBP = {
     'classic': 16,
     'box': 19,
     'aluminium': 12,
@@ -68,13 +74,28 @@ export const FRAME_STARTING_PRICES_GBP = {
     'stretched-canvas': 14,
 };
 
-export function frameStartingPrice(frame) {
-    if (!frame) return 0;
-    return FRAME_STARTING_PRICES_GBP[frame.prodigiProduct] || 16;
+// Calculate retail starting prices with the configured markup percentage, rounded to whole pounds
+export function calculateRetailStartingPrice(wholesale, markupPercent = DEFAULT_FRAME_MARKUP_PERCENT) {
+    if (!Number.isFinite(wholesale) || wholesale <= 0) return 0;
+    return Math.round(wholesale * (1 + Number(markupPercent) / 100));
 }
 
-export function frameStartingPriceDisplay(frame) {
-    return `From £${frameStartingPrice(frame)}`;
+export const FRAME_STARTING_PRICES_GBP = Object.fromEntries(
+    Object.entries(WHOLESALE_FRAME_STARTING_PRICES_GBP).map(([key, wholesale]) => [
+        key,
+        calculateRetailStartingPrice(wholesale),
+    ])
+);
+
+export function frameStartingPrice(frame, markupPercent = DEFAULT_FRAME_MARKUP_PERCENT) {
+    if (!frame) return 0;
+    const wholesale = WHOLESALE_FRAME_STARTING_PRICES_GBP[frame.prodigiProduct];
+    if (wholesale) return calculateRetailStartingPrice(wholesale, markupPercent);
+    return FRAME_STARTING_PRICES_GBP[frame.prodigiProduct] || 22;
+}
+
+export function frameStartingPriceDisplay(frame, markupPercent = DEFAULT_FRAME_MARKUP_PERCENT) {
+    return `From £${frameStartingPrice(frame, markupPercent)}`;
 }
 
 export function categoryForFrame(frame) {
