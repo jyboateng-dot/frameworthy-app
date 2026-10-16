@@ -4,7 +4,23 @@ import { formatDimensions } from '../data/constants';
 // Shared human-readable labels — kept here so the cart/checkout description
 // string and the admin fulfillment view (OrderDetailModal) never drift out
 // of sync with each other.
-export const GLASS_LABELS = { standard: 'Standard Acrylic', 'non-glare': 'Non-Glare Acrylic', museum: 'Museum Glass', 'canvas-traditional': 'Traditional Canvas', 'canvas-floater': 'Floater Canvas' };
+// Shared human-readable labels — kept here so the cart/checkout description
+// string and the admin fulfillment view (OrderDetailModal) never drift out
+// of sync with each other.
+export const GLASS_LABELS = {
+    standard: 'Shatterproof Perspex',
+    'non-glare': 'Non-Glare Acrylic',
+    museum: 'Museum Glass',
+    'canvas-traditional': 'Traditional Canvas',
+    'canvas-floater': 'Floater Canvas',
+};
+
+export const PRODIGI_GLAZE_LABELS = {
+    'Acrylic / Perspex': 'Shatterproof Perspex',
+    'Float glass': 'Float Glass',
+    Motheye: 'Moth-eye Anti-Reflective',
+};
+
 export const HARDWARE_LABELS = {
     wire: 'Wire Hanging',
     sawtooth: 'Sawtooth Hanger',
@@ -25,6 +41,67 @@ export const matWidthLabel = (matWidth) => {
     if (MAT_WIDTH_LABELS[matWidth]) return MAT_WIDTH_LABELS[matWidth];
     const inches = Number(matWidth);
     return Number.isFinite(inches) ? `${inches}" Mat` : `${matWidth} Mat`;
+};
+
+/**
+ * Checks whether an item represents a canvas product (stretched canvas or float framed canvas).
+ * Canvas items never have glazing or mat boards.
+ */
+export const isCanvasProduct = (item) => {
+    if (!item) return false;
+    return Boolean(
+        item.isCanvas ||
+        item.selectedFrame?.id === 'frame-canvas' ||
+        item.selectedFrame?.prodigiProduct === 'stretched-canvas' ||
+        item.selectedFrame?.prodigiProduct === 'canvas-float' ||
+        item.selectedFrame?.prodigiProduct?.startsWith('canvas') ||
+        item.prodigi?.productFamily?.includes('canvas') ||
+        item.prodigi?.productFamily === 'stretched-canvas' ||
+        item.prodigi?.productFamily === 'canvas-float' ||
+        item.prodigi?.sku?.includes('-CAN-') ||
+        item.prodigi?.sku?.includes('-FRA-CAN-') ||
+        item.glassType === 'canvas-traditional' ||
+        item.glassType === 'canvas-floater'
+    );
+};
+
+/**
+ * Clean primary title for the item in cart and checkout cards (e.g. "Custom Framed Print",
+ * "Custom Floater Canvas", or specific poster title).
+ */
+export const getItemTitle = (item) => {
+    if (!item) return 'Custom Artwork';
+    if ((item.isAlbumPoster || item.isMoviePosterPrint) && item.posterMeta?.title) {
+        return `${item.posterMeta.title} Poster`;
+    }
+    if (item.presetTitle) {
+        return item.presetTitle;
+    }
+    if (isCanvasProduct(item)) {
+        const isFloater = Boolean(
+            item.selectedFrame?.prodigiProduct === 'canvas-float' ||
+            item.prodigi?.productFamily?.includes('float') ||
+            item.selectedFrame?.name?.toLowerCase().includes('float') ||
+            item.glassType === 'canvas-floater'
+        );
+        return isFloater ? 'Custom Floater Canvas' : 'Custom Canvas Print';
+    }
+    return 'Custom Framed Print';
+};
+
+/**
+ * Subtitle for the item in cart and checkout cards (e.g. "Classic · Black",
+ * "Float Canvas · Antique Gold", or frame style name).
+ */
+export const getItemSubtitle = (item) => {
+    if (!item) return '';
+    if (item.selectedFrame?.name) {
+        return item.selectedFrame.name;
+    }
+    if (isCanvasProduct(item)) {
+        return 'Stretched Canvas (38mm)';
+    }
+    return '';
 };
 
 // Standard nomenclature for describing an order item, used everywhere one is
@@ -48,8 +125,27 @@ export const generateItemDescription = (item) => {
         specs.push(`${item.selectedFrame.name} Frame`);
     }
 
-    // Matting (combine width and color into one string e.g. "Narrow Polar White Mat")
-    if (item.matWidth && item.matWidth !== 'none') {
+    const isCanvas = isCanvasProduct(item);
+
+    // Canvas wrap for canvas items
+    if (isCanvas && item.prodigi?.attributes?.wrap) {
+        const wrapLabels = {
+            ImageWrap: 'Image Wrap',
+            Black: 'Black Edge Wrap',
+            White: 'White Edge Wrap',
+            MirrorWrap: 'Mirror Wrap',
+        };
+        specs.push(wrapLabels[item.prodigi.attributes.wrap] || `${item.prodigi.attributes.wrap} Wrap`);
+    }
+
+    // Matting (combine width and color into one string e.g. "Narrow Polar White Mat" or "2\" Snow white Mount")
+    const isProdigiMounted = Boolean(item.prodigi?.attributes?.mount && !/^no mount/i.test(item.prodigi.attributes.mount));
+    if (isProdigiMounted && !isCanvas) {
+        const mountColor = item.prodigi.attributes.mountColor || item.matColor?.name || 'Snow white';
+        const width = item.prodigi.mountWidthIn || (item.matWidth !== 'none' ? item.matWidth : null);
+        const widthStr = width ? `${width}"` : '';
+        specs.push(`${widthStr ? `${widthStr} ` : ''}${mountColor} Mount`.trim());
+    } else if (item.matWidth && item.matWidth !== 'none' && !isCanvas) {
         let widthStr = matWidthLabel(item.matWidth);
         // Strip " Mat" suffix if present so we can inject the color before it
         if (widthStr.endsWith(' Mat')) {
@@ -63,13 +159,20 @@ export const generateItemDescription = (item) => {
         }
     }
 
-    // Glazing
-    if (item.glassType) {
-        specs.push(`${GLASS_LABELS[item.glassType] || item.glassType} Glazing`);
+    // Glazing (only for framed prints with glaze; NEVER for canvas)
+    if (!isCanvas) {
+        if (item.prodigi?.attributes?.glaze) {
+            const glaze = item.prodigi.attributes.glaze;
+            const label = PRODIGI_GLAZE_LABELS[glaze] || (glaze === 'standard' ? 'Shatterproof Perspex' : glaze);
+            specs.push(`${label} Glazing`);
+        } else if (item.glassType && !item.glassType.startsWith('canvas')) {
+            const label = item.glassType === 'standard' ? 'Shatterproof Perspex' : (GLASS_LABELS[item.glassType] || item.glassType);
+            specs.push(`${label} Glazing`);
+        }
     }
 
     // Hardware
-    if (item.hardwareType) {
+    if (item.hardwareType && item.hardwareType !== 'none') {
         specs.push(`${HARDWARE_LABELS[item.hardwareType] || item.hardwareType} Hardware`);
     }
 
@@ -77,6 +180,96 @@ export const generateItemDescription = (item) => {
         return `${baseName} - ${specs.join(', ')}`;
     }
     return baseName;
+};
+
+/**
+ * Returns structured specification pills matching the user's customizer
+ * selections and what is sent to Prodigi for production.
+ * By default, excludes the frame name since that is displayed as the card subtitle.
+ */
+export const getItemCustomizerSpecs = (item, options = {}) => {
+    if (!item) return [];
+    const specs = [];
+    const { includeFrame = false } = options;
+
+    const isProdigi = Boolean(item.prodigi || item.currency === 'GBP' || item.selectedFrame?.prodigiProduct);
+    const isCanvas = isCanvasProduct(item);
+
+    // 1. Frame Style & Finish (only if explicitly requested)
+    if (includeFrame && item.selectedFrame?.name) {
+        specs.push({ label: 'Frame', value: item.selectedFrame.name });
+    }
+
+    // 2. Mount / Mat (only for framed prints, never canvas)
+    if (!isCanvas) {
+        const isProdigiMounted = Boolean(item.prodigi?.attributes?.mount && !/^no mount/i.test(item.prodigi.attributes.mount));
+        if (isProdigiMounted) {
+            const mountColor = item.prodigi.attributes.mountColor || 'Snow white';
+            const width = item.prodigi.mountWidthIn ? `${item.prodigi.mountWidthIn}"` : '';
+            specs.push({ label: 'Mount', value: `${width ? `${width} ` : ''}${mountColor}`.trim() });
+        } else if (item.matWidth && item.matWidth !== 'none') {
+            const width = matWidthLabel(item.matWidth);
+            const color = item.matColor?.name ? ` (${item.matColor.name})` : '';
+            specs.push({ label: 'Mat', value: `${width}${color}` });
+        } else if (isProdigi) {
+            specs.push({ label: 'Mount', value: 'No mount' });
+        }
+    }
+
+    // 3. Glazing (NEVER for canvas items)
+    if (!isCanvas) {
+        if (item.prodigi?.attributes?.glaze) {
+            const glaze = item.prodigi.attributes.glaze;
+            const label = PRODIGI_GLAZE_LABELS[glaze] || (glaze === 'standard' ? 'Shatterproof Perspex' : glaze);
+            specs.push({ label: 'Glazing', value: label });
+        } else if (item.glassType && !item.glassType.startsWith('canvas')) {
+            const label = item.glassType === 'standard' ? 'Shatterproof Perspex' : (GLASS_LABELS[item.glassType] || item.glassType);
+            specs.push({ label: 'Glazing', value: label });
+        }
+    }
+
+    // 4. Canvas Edge Finish (for canvas items)
+    if (isCanvas) {
+        const wrap = item.prodigi?.attributes?.wrap || item.canvasWrap;
+        if (wrap) {
+            const wrapLabels = {
+                ImageWrap: 'Image Wrap',
+                Black: 'Black Edge',
+                White: 'White Edge',
+                MirrorWrap: 'Mirror Wrap',
+            };
+            specs.push({ label: 'Edge Finish', value: wrapLabels[wrap] || wrap });
+        }
+    }
+
+    // 5. Paper / Material substrate
+    if (item.prodigi?.attributes?.paperType) {
+        const paper = item.prodigi.attributes.paperType;
+        const weight = item.prodigi.attributes.substrateWeight ? ` (${item.prodigi.attributes.substrateWeight})` : '';
+        const paperLabel = paper === 'EMA'
+            ? 'Enhanced Matte Art Paper'
+            : paper === 'Standard canvas (SC)'
+            ? 'Standard Cotton Canvas'
+            : paper === 'Recycled canvas'
+            ? 'Recycled Canvas'
+            : paper;
+        const labelName = isCanvas ? 'Material' : 'Paper';
+        specs.push({ label: labelName, value: `${paperLabel}${weight}` });
+    }
+
+    // 6. Hanging Hardware
+    if (item.prodigi?.hangingHardware?.label) {
+        specs.push({
+            label: 'Hardware',
+            value: item.prodigi.hangingHardware.included
+                ? `${item.prodigi.hangingHardware.label} (included)`
+                : item.prodigi.hangingHardware.label
+        });
+    } else if (item.hardwareType && item.hardwareType !== 'none') {
+        specs.push({ label: 'Hardware', value: HARDWARE_LABELS[item.hardwareType] || item.hardwareType });
+    }
+
+    return specs;
 };
 
 // Combines the dimension label with orientation on one line, matching the

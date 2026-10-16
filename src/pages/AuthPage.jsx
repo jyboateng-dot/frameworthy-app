@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Mail, Lock, User, ArrowRight, X, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import Wordmark from '../components/common/Wordmark';
 
 const CAROUSEL_SLIDES = [
@@ -67,7 +67,9 @@ const CAROUSEL_SLIDES = [
     }
 ];
 
-const AuthPage = ({ navigate }) => {
+const AuthPage = ({ navigate: navigateProp }) => {
+    const routerNavigate = useNavigate();
+    const navigate = navigateProp || routerNavigate;
     const { login, signup, googleLogin, appleLogin, resetPassword, redirectReturnTo, clearRedirectReturnTo } = useAuth();
     const location = useLocation();
 
@@ -138,7 +140,21 @@ const AuthPage = ({ navigate }) => {
             if (navigate) navigate(returnTo);
         } catch (err) {
             console.error(err);
-            setErrors({ form: err.message || 'Authentication failed' });
+            if (err.code === 'auth/popup-closed-by-user' || err.code === 'auth/cancelled-popup-request') {
+                setIsLoading(false);
+                return;
+            }
+            let msg = 'Authentication failed';
+            if (err.code === 'auth/popup-blocked') {
+                msg = 'Your browser blocked the sign-in pop-up. Please allow pop-ups for this site and try again.';
+            } else if (err.code === 'auth/account-exists-with-different-credential') {
+                msg = 'An account already exists with this email using a different sign-in method.';
+            } else if (err.code === 'auth/unauthorized-domain') {
+                msg = 'This domain is not authorized for authentication in Firebase.';
+            } else if (err.message) {
+                msg = err.message;
+            }
+            setErrors({ form: msg });
             setIsLoading(false);
         }
     };
@@ -200,6 +216,10 @@ const AuthPage = ({ navigate }) => {
                     // own REST API returns a distinct EMAIL_EXISTS code
                     // regardless of what this app's UI shows.
                     msg = "Couldn't create your account with that email. If you already have one, try signing in instead.";
+                } else if (err.code === 'auth/weak-password') {
+                    msg = 'Password is too weak. Please use at least 6 characters.';
+                } else if (err.code === 'auth/too-many-requests') {
+                    msg = 'Access temporarily disabled due to many failed login attempts. Please reset your password or try again later.';
                 }
                 setErrors({ form: msg });
             } finally {

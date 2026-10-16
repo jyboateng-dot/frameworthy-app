@@ -8,6 +8,7 @@ import { railCandidates } from './arTextures';
 import { buildFrameMesh } from './frameMesh';
 import { buildGlb } from './glbWriter';
 import { buildUsda, packUsdz } from './usdzWriter';
+import { buildHardwareParts } from './frameHardware';
 
 const frames = FRAME_STYLES.filter(frame => frame.prodigiProduct);
 const noMat = { topIn: 0, sideIn: 0, bottomIn: 0 };
@@ -133,5 +134,63 @@ describe('Prodigi rendering integration', () => {
         expect(canvasMesh.parts.find(p => p.material === 'stretcherBar')).toBeDefined();
         expect(canvasMesh.parts.find(p => p.material === 'backing')).toBeDefined();
         expect(canvasMesh.parts.find(p => p.material === 'railBack')).toBeUndefined();
+    });
+
+    it('attaches accurate hanging hardware and preserves physical depth and profiles across all families', () => {
+        // 1. Classic Frame: 22mm depth, Cobra hook hardware, kraft tape railBack
+        const classic = frames.find(f => f.prodigiProduct === 'classic');
+        const classicMesh = meshFor(classic);
+        const classicHardware = buildHardwareParts('cobra-hook', classicMesh);
+        classicMesh.parts.push(...classicHardware);
+
+        expect(classicMesh.depthM).toBeCloseTo(22 / 25.4 * 0.0254, 4);
+        expect(classicMesh.parts.some(p => p.material === 'hardware')).toBe(true);
+        expect(classicMesh.parts.some(p => p.material === 'railSide')).toBe(true);
+        expect(classicMesh.parts.some(p => p.material === 'railBack')).toBe(true);
+        expect(classicMesh.parts.some(p => p.material === 'backing')).toBe(true);
+
+        // Hardware sits behind the frame (z <= 0)
+        const hwPart = classicMesh.parts.find(p => p.material === 'hardware');
+        const hwZs = hwPart.positions.filter((_, i) => i % 3 === 2);
+        expect(Math.max(...hwZs)).toBeLessThanOrEqual(0.001);
+
+        // 2. Aluminium Frame: 19mm depth, built-in rear hanger
+        const alu = frames.find(f => f.prodigiProduct === 'aluminium');
+        const aluMesh = meshFor(alu);
+        const aluHardware = buildHardwareParts('built-in-rear-hanger', aluMesh);
+        aluMesh.parts.push(...aluHardware);
+
+        expect(aluMesh.depthM).toBeCloseTo(19 / 25.4 * 0.0254, 4);
+        expect(aluMesh.parts.some(p => p.material === 'hardware')).toBe(true);
+        expect(aluMesh.parts.some(p => p.material === 'railSide')).toBe(true);
+        expect(aluMesh.parts.some(p => p.material === 'railBack')).toBe(true);
+
+        // 3. Stretched Canvas: 38mm depth, 4 wrapped canvas sides, no hardware
+        const stretched = frames.find(f => f.canvasOnly);
+        const canvasMesh = meshFor(stretched);
+        // Canvas hanging hardware must be 'none'
+        const canvasHardware = buildHardwareParts('none', canvasMesh);
+        expect(canvasHardware).toEqual([]);
+
+        expect(canvasMesh.depthM).toBeCloseTo(38 / 25.4 * 0.0254, 4);
+        expect(canvasMesh.parts.some(p => p.material === 'hardware')).toBe(false);
+        for (const side of ['Top', 'Bottom', 'Left', 'Right']) {
+            expect(canvasMesh.parts.some(p => p.material === `canvas${side}`)).toBe(true);
+        }
+        expect(canvasMesh.parts.some(p => p.material === 'stretcherBar')).toBe(true);
+        expect(canvasMesh.parts.some(p => p.material === 'backing')).toBe(true);
+
+        // 4. Float Canvas Frame: 53mm depth, 38mm canvas, 5mm shadow gap, no hardware
+        const floater = frames.find(f => f.prodigiProduct === 'canvas-float');
+        const floaterMesh = meshFor(floater);
+        const floaterHardware = buildHardwareParts('none', floaterMesh);
+        expect(floaterHardware).toEqual([]);
+
+        expect(floaterMesh.depthM).toBeCloseTo(53 / 25.4 * 0.0254, 4);
+        expect(floaterMesh.parts.some(p => p.material === 'shadowGap')).toBe(true);
+        expect(floaterMesh.parts.some(p => p.material === 'railSide')).toBe(true);
+        for (const side of ['Top', 'Bottom', 'Left', 'Right']) {
+            expect(floaterMesh.parts.some(p => p.material === `canvas${side}`)).toBe(true);
+        }
     });
 });

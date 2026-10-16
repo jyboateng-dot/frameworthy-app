@@ -4,7 +4,7 @@ import { useWishlist } from '../../context/WishlistContext';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { MapPin, Heart, Trash2, ChevronRight, Minus, Plus, ShoppingBag } from 'lucide-react';
-import { generateItemDescription, formatDimensionWithOrientation } from '../../utils/itemFormatters';
+import { getItemTitle, getItemSubtitle, generateItemDescription, formatDimensionWithOrientation, getItemCustomizerSpecs } from '../../utils/itemFormatters';
 import { useUnit } from '../../context/UnitContext';
 
 import AuthModal from '../../components/AuthModal';
@@ -82,7 +82,7 @@ const CartPage = () => {
 
             {/* Global Delivery Notice */}
             <div className="px-4 py-3 bg-white flex items-center gap-3 border-b border-stone-100">
-                <span className="text-stone-900 text-xs">{selectedCurrency === 'GBP' ? 'Delivery and tax included in the live quote' : 'Shipping fee paid upon delivery'}</span>
+                <span className="text-stone-600 text-xs">Delivery and tax are calculated at checkout</span>
             </div>
 
             {/* Store Group */}
@@ -90,7 +90,10 @@ const CartPage = () => {
                 {/* Items */}
                 <div className="flex flex-col gap-4">
                     {cartItems.map((item) => {
+                        const itemTitle = getItemTitle(item);
+                        const itemSubtitle = getItemSubtitle(item);
                         const fullDescription = generateItemDescription(item);
+                        const specs = getItemCustomizerSpecs(item);
                         
                         const variantText = item.isPreset && item.presetDims
                             ? item.presetDims
@@ -101,7 +104,7 @@ const CartPage = () => {
                                 <button
                                     onClick={() => toggleItemSelection(item.id)}
                                     className={`w-5 h-5 mt-8 rounded-full border flex items-center justify-center flex-shrink-0 transition-colors ${item.isSelected ? 'bg-[#c9a84c] border-[#c9a84c]' : 'border-stone-300'}`}
-                                    aria-label={item.isSelected ? `Deselect ${fullDescription}` : `Select ${fullDescription}`}
+                                    aria-label={item.isSelected ? `Deselect ${itemTitle}` : `Select ${itemTitle}`}
                                     aria-pressed={item.isSelected}
                                 >
                                     {item.isSelected && <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M10 3L4.5 8.5L2 6" stroke="#0a0a0a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>}
@@ -119,25 +122,46 @@ const CartPage = () => {
                                 {/* Details */}
                                 <div className="flex-1 flex flex-col justify-between min-w-0">
                                     <div>
-                                        <h3 className="text-sm text-stone-800 leading-normal" title={fullDescription}>
-                                            {fullDescription}
-                                            <span className="inline-flex items-center text-xs text-stone-500 bg-stone-50 px-1.5 py-0.5 rounded border border-stone-200 ml-2 align-middle">
+                                        <div className="flex items-center gap-2 flex-wrap">
+                                            <h3 className="text-sm font-bold text-stone-900 leading-snug">
+                                                {itemTitle}
+                                            </h3>
+                                            <span className="inline-flex items-center text-[11px] font-medium text-stone-600 bg-stone-100 px-2 py-0.5 rounded border border-stone-200">
                                                 <span className="truncate max-w-[160px]">{formatDimensionWithOrientation(variantText, item.orientation, unit)}</span>
                                             </span>
-                                        </h3>
+                                        </div>
+
+                                        {itemSubtitle && (
+                                            <p className="text-xs font-medium text-stone-700 mt-0.5">
+                                                {itemSubtitle}
+                                            </p>
+                                        )}
+
+                                        {specs.length > 0 && (
+                                            <div className="mt-1.5 flex flex-wrap gap-1">
+                                                {specs.map((spec, sIdx) => (
+                                                    <span
+                                                        key={sIdx}
+                                                        className="inline-flex items-center text-[10px] px-1.5 py-0.5 rounded bg-stone-100 text-stone-600 font-medium"
+                                                    >
+                                                        <span className="text-stone-400 mr-1">{spec.label}:</span>
+                                                        <span className="text-stone-700">{spec.value}</span>
+                                                    </span>
+                                                ))}
+                                            </div>
+                                        )}
                                     </div>
 
-                                    <div className="mt-1 flex items-end justify-between">
+                                    <div className="mt-2 flex items-end justify-between">
                                         <div>
                                             <div className="flex items-baseline gap-1.5">
-                                                <Price amount={item.totalPrice || 0} currency={item.currency || 'GHS'} className="font-bold text-stone-900 text-sm" />
+                                                <Price amount={item.prodigi?.quoteItemsGbp || item.totalPrice || 0} currency={item.currency || 'GBP'} className="font-bold text-stone-900 text-sm" />
                                             </div>
-
                                         </div>
                                         
                                         {/* Stepper — buttons sized to the ~40px minimum
                                             recommended touch target (was 28px). */}
-                                        <div className="flex items-center border border-stone-200 rounded-full bg-white h-10">
+                                        <div className="flex items-center border border-stone-200 rounded-full bg-white h-9">
                                             <button
                                                 onClick={() => updateQuantity(item.id, item.quantity - 1)}
                                                 disabled={Boolean(item.prodigi)}
@@ -180,9 +204,9 @@ const CartPage = () => {
                 </button>
 
                 <div className="flex items-center gap-3">
-                    <div className="flex flex-col items-end">
+                    <div className="flex flex-col items-end leading-tight">
                         <Price amount={totalSelectedPrice} currency={selectedCurrency} className="text-lg font-bold text-stone-900" />
-
+                        <span className="text-[10px] text-stone-500">Excl. delivery & tax</span>
                     </div>
                     
                     <button 

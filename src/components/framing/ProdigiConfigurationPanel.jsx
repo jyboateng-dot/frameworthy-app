@@ -89,7 +89,6 @@ export default function ProdigiConfigurationPanel({
     const product = useMemo(() => resolveProdigiProduct(frame, size, configuration), [frame, size, configuration]);
     const hangingHardware = useMemo(() => prodigiHangingHardware(frame, size), [frame, size]);
     const mountWidthIn = activeMounted ? prodigiMountWidthInForSize(size, product) : null;
-    const mountWidthLabel = mountWidthIn ? `${mountWidthIn}\u2033 / ${(mountWidthIn * 2.54).toFixed(1)} cm` : '';
     const hasImportedProducts = prodigiProductsForFrame(frame).length > 0;
 
     useEffect(() => {
@@ -118,6 +117,9 @@ export default function ProdigiConfigurationPanel({
             next.quoteToken = selection.quoteToken || null;
             next.retailTotalGhs = selection.retailTotalGhs || null;
             next.quoteTotalGbp = selection.quoteTotalGbp || null;
+            next.quoteItemsGbp = selection.quoteItemsGbp || null;
+            next.quoteShippingGbp = selection.quoteShippingGbp || null;
+            next.quoteTaxGbp = selection.quoteTaxGbp || null;
             next.quoteCurrency = selection.quoteCurrency || null;
             next.quoteExpiresAt = selection.quoteExpiresAt || null;
             next.shippingMethod = selection.shippingMethod || 'Standard';
@@ -148,9 +150,10 @@ export default function ProdigiConfigurationPanel({
         if (!product || selection?.productId !== product.id || selection?.quoteTotalGbp) return undefined;
         const quoteSignature = `${product.id}::${destination}`;
         if (autoQuoteAttemptRef.current === quoteSignature) return undefined;
-        autoQuoteAttemptRef.current = quoteSignature;
         let cancelled = false;
         const timer = window.setTimeout(async () => {
+            if (cancelled) return;
+            autoQuoteAttemptRef.current = quoteSignature;
             setIsQuoting(true);
             setQuoteError('');
             try {
@@ -172,10 +175,14 @@ export default function ProdigiConfigurationPanel({
                     quoteToken: quote.retail?.token || null,
                     retailTotalGhs: quote.retail?.totalGhs || null,
                     quoteTotalGbp: Number(quote.total.amount),
+                    quoteItemsGbp: Number(quote.items?.amount) || null,
+                    quoteShippingGbp: Number(quote.shipping?.amount) || null,
+                    quoteTaxGbp: Number(quote.tax?.amount) || null,
                     quoteCurrency: 'GBP',
                     quoteExpiresAt: quote.retail?.expiresAt || null,
                 });
             } catch (error) {
+                autoQuoteAttemptRef.current = '';
                 if (!cancelled) setQuoteError(error?.message?.replace(/^Firebase:\s*/i, '').replace(/Prodigi/gi, 'the fulfilment service') || 'Live pricing is unavailable right now.');
             } finally {
                 if (!cancelled) setIsQuoting(false);
@@ -325,10 +332,13 @@ export default function ProdigiConfigurationPanel({
             {product ? (
                 <section className="border-t border-stone-200 pt-4">
                     {isQuoting && <p className="text-center text-[10px] font-semibold text-stone-500" aria-live="polite">Updating price…</p>}
-                    {selection?.quoteTotalGbp && (
+                    {(selection?.quoteItemsGbp || selection?.quoteTotalGbp) && (
                         <div className="mt-3 flex items-center justify-between rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs text-emerald-900" aria-live="polite">
-                            <span className="flex items-center gap-1.5 font-semibold"><Check size={13} /> Live total</span>
-                            <span className="font-bold">£{Number(selection.quoteTotalGbp).toFixed(2)}</span>
+                            <div className="flex flex-col">
+                                <span className="flex items-center gap-1.5 font-semibold"><Check size={13} /> Item price</span>
+                                <span className="text-[10px] text-emerald-700">Delivery & tax calculated at checkout</span>
+                            </div>
+                            <span className="font-bold text-sm">£{Number(selection.quoteItemsGbp || selection.quoteTotalGbp).toFixed(2)}</span>
                         </div>
                     )}
                     {quoteError && <p role="alert" className="mt-3 rounded-xl bg-amber-100 p-3 text-xs leading-5 text-amber-950">{quoteError}</p>}

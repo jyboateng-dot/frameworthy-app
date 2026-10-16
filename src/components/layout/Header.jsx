@@ -60,7 +60,7 @@ const Header = ({
         }, 150);
     };    return (
         <>
-        <nav className="min-h-[47px] flex items-center justify-between px-4 pb-[7.5px] pt-[calc(7.5px+env(safe-area-inset-top,0px))] bg-[#0a0a0a] border-b border-white/[0.07] sticky top-0 z-[100] backdrop-blur-sm">
+        <nav className="h-[calc(47px+env(safe-area-inset-top,0px))] min-h-[calc(47px+env(safe-area-inset-top,0px))] max-h-[calc(47px+env(safe-area-inset-top,0px))] box-border flex items-center justify-between px-4 pb-[7.5px] pt-[calc(7.5px+env(safe-area-inset-top,0px))] bg-[#0a0a0a] border-b border-white/[0.07] sticky top-0 z-[100] backdrop-blur-sm">
             <div className="flex items-center gap-1 sm:gap-2 min-w-0">
                 {showBack && (
                     <button onClick={() => navigate(-1)} className="text-[#9a8e7d] p-1 sm:p-1.5 hover:bg-white/[0.05] rounded-full transition mr-0.5 sm:mr-1 shrink-0" aria-label="Go back">
@@ -113,10 +113,10 @@ const Header = ({
                 {/* Help Centre Icon */}
                 <button
                     onClick={() => navigate('/help')}
-                    className="hidden sm:flex text-[#9a8e7d] p-1.5 sm:p-2 hover:text-[#e8e2d9] hover:bg-white/[0.05] rounded-full transition"
+                    className="hidden sm:flex text-[#9a8e7d] p-1.5 hover:text-[#e8e2d9] hover:bg-white/[0.05] rounded-full transition"
                     title="Help Centre"
                 >
-                    <Headphones size={20} className="sm:w-5 sm:h-5" />
+                    <Headphones size={18} className="sm:w-5 sm:h-5" />
                 </button>
 
                 {/* User Menu */}
@@ -188,10 +188,10 @@ const Header = ({
                 ) : (
                     <button
                         onClick={() => navigate('/login')}
-                        className="hidden sm:flex items-center justify-center w-9 h-9 rounded-full text-[#9a8e7d] hover:text-[#c9a84c] hover:bg-white/[0.05] transition"
+                        className="hidden sm:flex items-center justify-center w-8 h-8 rounded-full text-[#9a8e7d] hover:text-[#c9a84c] hover:bg-white/[0.05] transition"
                         title="Sign In"
                     >
-                        <User size={20} />
+                        <User size={18} />
                     </button>
                 )}
 
@@ -199,10 +199,10 @@ const Header = ({
                 <div className="relative shrink-0">
                     <button
                         onClick={() => navigate('/cart')}
-                        className="text-[#9a8e7d] p-1.5 sm:p-2 hover:bg-white/[0.05] rounded-full transition"
+                        className="text-[#9a8e7d] p-1.5 hover:bg-white/[0.05] rounded-full transition"
                         aria-label="Cart"
                     >
-                        <ShoppingCart size={20} className="sm:w-6 sm:h-6" />
+                        <ShoppingCart size={18} className="sm:w-5 sm:h-5" />
                     </button>
                     {cartCount > 0 && (
                         <span className="absolute -top-1 -right-1 bg-[#c9a84c] text-[#0a0808] text-xs rounded-full h-4 w-4 flex items-center justify-center font-center font-bold">{cartCount}</span>
@@ -215,10 +215,10 @@ const Header = ({
                 >
                     <button
                         onClick={() => setIsMenuOpen(!isMenuOpen)}
-                        className="text-[#9a8e7d] p-1.5 sm:p-2 hover:bg-white/[0.05] rounded-full transition"
+                        className="text-[#9a8e7d] p-1.5 hover:bg-white/[0.05] rounded-full transition"
                         aria-label="Menu"
                     >
-                        <Menu size={20} className="sm:w-6 sm:h-6" />
+                        <Menu size={18} className="sm:w-5 sm:h-5" />
                     </button>
 
                     {/* Mobile Menu Overlay */}

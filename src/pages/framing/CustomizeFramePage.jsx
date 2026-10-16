@@ -1764,12 +1764,14 @@ const CustomizeFramePage = ({
     };
 
     const buildCartItem = (visualizerImage) => {
-        const calculatedTotal = prodigiSelection?.quoteTotalGbp || (Math.round((selectedSize?.price || 0) * (selectedFrame?.priceMod || 1)) +
-            (selectedFrame?.id !== 'frame-canvas' && glassType !== 'canvas-floater' && glassType !== 'canvas-traditional' && matWidth !== 'none' ? (matColor.price || 75) : 0) +
-            (!isCanvasOnly ? (glassType === 'non-glare' ? 100 : glassType === 'museum' ? 200 : 0) : 0) +
-            (selectedFrame?.id !== 'frame-canvas' && glassType === 'canvas-floater' ? 400 : 0) +
-            (selectedFrame?.id !== 'frame-canvas' && glassType === 'canvas-traditional' ? 350 : 0) +
-            (hardwareType === 'french-cleat' ? 50 : 0));
+        const itemSubtotal = selectedFrame?.prodigiProduct
+            ? (Number(prodigiSelection?.quoteItemsGbp) || Number(prodigiSelection?.quoteTotalGbp) || 0)
+            : (Math.round((selectedSize?.price || 0) * (selectedFrame?.priceMod || 1)) +
+                (selectedFrame?.id !== 'frame-canvas' && glassType !== 'canvas-floater' && glassType !== 'canvas-traditional' && matWidth !== 'none' ? (matColor.price || 75) : 0) +
+                (!isCanvasOnly ? (glassType === 'non-glare' ? 100 : glassType === 'museum' ? 200 : 0) : 0) +
+                (selectedFrame?.id !== 'frame-canvas' && glassType === 'canvas-floater' ? 400 : 0) +
+                (selectedFrame?.id !== 'frame-canvas' && glassType === 'canvas-traditional' ? 350 : 0) +
+                (hardwareType === 'french-cleat' ? 50 : 0));
 
         return {
             productMode: 'frame',
@@ -1778,7 +1780,7 @@ const CustomizeFramePage = ({
             visualizerImage,
             selectedFrame,
             selectedSize,
-            totalPrice: calculatedTotal,
+            totalPrice: itemSubtotal,
             currency: selectedFrame?.prodigiProduct ? 'GBP' : 'GHS',
             orientation,
             matColor,
@@ -2387,7 +2389,7 @@ const CustomizeFramePage = ({
                     reveal-zoom transition. */}
                 <div
                     data-testid="visualizer-chrome"
-                    className={`absolute top-1.5 left-1.5 right-1.5 sm:top-2 sm:left-2 sm:right-2 z-50 grid grid-cols-[auto_minmax(0,1fr)_auto] items-start gap-2 sm:gap-3 transition-opacity ${CHROME_MOTION} ${
+                    className={`absolute top-3.5 left-3.5 right-3.5 sm:top-4 sm:left-4 sm:right-4 z-50 grid grid-cols-[auto_minmax(0,1fr)_auto] items-start gap-2 sm:gap-3 transition-opacity ${CHROME_MOTION} ${
                         ((isHovered && activeRoom) || isFullScreen || isMaxZoom) ? 'opacity-0 pointer-events-none' : 'opacity-100'
                     }`}
                 >
@@ -3593,7 +3595,7 @@ const CustomizeFramePage = ({
                 <button
                     onClick={() => (isFullScreen ? exitFullScreen() : enterFullScreen())}
                     data-testid="visualizer-chrome"
-                    className={`group absolute ${isFullScreen ? 'bottom-[max(1.5rem,env(safe-area-inset-bottom))] right-5 sm:bottom-6 sm:right-6' : 'bottom-1 right-3 sm:bottom-2 sm:right-6'} z-30 w-10 h-10 flex items-center justify-center rounded-full border border-stone-200 shadow-sm hover:shadow-md transition-all ${CHROME_MOTION} bg-white/95 backdrop-blur text-stone-700 ${
+                    className={`group absolute ${isFullScreen ? 'bottom-[max(1.5rem,env(safe-area-inset-bottom))] right-5 sm:bottom-6 sm:right-6' : 'bottom-3.5 right-3.5 sm:bottom-4 sm:right-6'} z-30 w-10 h-10 flex items-center justify-center rounded-full border border-stone-200 shadow-sm hover:shadow-md transition-all ${CHROME_MOTION} bg-white/95 backdrop-blur text-stone-700 ${
                         ((isHovered && activeRoom) || isMaxZoom) && !isFullScreen ? 'opacity-0 scale-75 pointer-events-none' : 'opacity-100 scale-100'
                     }`}
                     aria-label={isFullScreen ? 'Exit full screen' : 'Full screen'}
@@ -3633,7 +3635,7 @@ const CustomizeFramePage = ({
                     <button
                         onClick={() => setIsArOpen(true)}
                         data-testid="visualizer-chrome"
-                        className={`group absolute bottom-1 left-3 sm:bottom-2 sm:left-6 z-30 w-10 h-10 flex items-center justify-center rounded-full border border-stone-200 shadow-sm hover:shadow-md transition-all ${CHROME_MOTION} bg-white/95 backdrop-blur text-stone-700 ${
+                        className={`group absolute bottom-3.5 left-3.5 sm:bottom-4 sm:left-6 z-30 w-10 h-10 flex items-center justify-center rounded-full border border-stone-200 shadow-sm hover:shadow-md transition-all ${CHROME_MOTION} bg-white/95 backdrop-blur text-stone-700 ${
                             ((isHovered && activeRoom) || isMaxZoom) ? 'opacity-0 scale-75 pointer-events-none' : 'opacity-100 scale-100'
                         }`}
                         aria-label="View this frame on your wall in AR"
@@ -3670,7 +3672,7 @@ const CustomizeFramePage = ({
                 {/* Premium Tint Overlay: Keeps the sidebar 90% white, letting 10% of the wall color bleed through */}
                 <div className="absolute inset-0 bg-white/90" />
                 
-                <div className={`flex-1 p-5 space-y-6 custom-scrollbar pb-24 relative z-10 ${isSideBySide ? 'overflow-y-auto' : ''}`}>
+                <div className={`flex-1 p-5 space-y-6 custom-scrollbar relative z-10 ${isSideBySide ? 'overflow-y-auto pb-12' : 'pb-[calc(12rem+env(safe-area-inset-bottom,0px))] sm:pb-[calc(13rem+env(safe-area-inset-bottom,0px))]'}`}>
                     
                     {/* Header */}
                     <div>
@@ -4092,7 +4094,7 @@ const CustomizeFramePage = ({
                                 </h2>
                                 <div className="space-y-2">
                                     {[
-                                        { id: 'standard', name: 'Standard Acrylic', desc: 'Clear, lightweight protection.', price: 0 },
+                                        { id: 'standard', name: 'Shatterproof Perspex', desc: 'Clear, lightweight protection.', price: 0 },
                                         { id: 'non-glare', name: 'Non-Glare Acrylic', desc: 'Reduces reflections in bright rooms.', price: 100 },
                                         { id: 'museum', name: 'Museum Glass', desc: '99% UV protection, zero reflection.', price: 200 },
                                         { id: 'canvas-traditional', name: 'Traditional Canvas', desc: "Frame's inner lip overlaps the canvas edges", price: 350 },
@@ -4162,10 +4164,14 @@ const CustomizeFramePage = ({
                         <div className="flex flex-col">
                             {selectedFrame?.prodigiProduct && !hasOrderableProdigiProduct ? (
                                 <span className="max-w-56 text-[10px] leading-4 text-amber-800">Preview ready · this finish is not currently available to order.</span>
-                            ) : selectedFrame?.prodigiProduct && prodigiSelection?.quoteTotalGbp ? (
+                            ) : selectedFrame?.prodigiProduct && (prodigiSelection?.quoteItemsGbp || prodigiSelection?.quoteTotalGbp) ? (
                                 <div className="flex flex-col items-start leading-none">
-                                    <Price amount={prodigiSelection.quoteTotalGbp} currency="GBP" className="text-lg font-bold text-stone-900 tracking-tight" />
-                                    <span className="mt-0.5 text-[10px] leading-none text-stone-500">Live delivery and tax included</span>
+                                    <Price amount={prodigiSelection.quoteItemsGbp || prodigiSelection.quoteTotalGbp} currency="GBP" className="text-lg font-bold text-stone-900 tracking-tight" />
+                                    <span className="mt-0.5 text-[10px] leading-none text-stone-500">Delivery & tax calculated at checkout</span>
+                                </div>
+                            ) : selectedFrame?.prodigiProduct ? (
+                                <div className="flex flex-col items-start leading-none">
+                                    <span className="text-xs text-stone-400 font-medium animate-pulse">Calculating price…</span>
                                 </div>
                             ) : !selectedFrame?.prodigiProduct ? <Price
                                 amount={
@@ -4178,9 +4184,11 @@ const CustomizeFramePage = ({
                                 }
                                 className="text-lg font-bold text-stone-900 tracking-tight"
                             /> : null}
-                            {!selectedFrame?.prodigiProduct && <span className="text-[8px] text-stone-500 whitespace-nowrap">
-                                {isCloudUploadPending ? 'Finishing image upload…' : 'Shipping fee paid upon delivery'}
-                            </span>}
+                            {isCloudUploadPending && (
+                                <span className="text-[8px] text-stone-500 whitespace-nowrap">
+                                    Finishing image upload…
+                                </span>
+                            )}
                         </div>
                         <div className={`flex w-full mt-1 ${isSideBySide ? 'gap-1.5' : 'gap-2 max-w-[300px]'}`}>
                             <button
@@ -4188,8 +4196,8 @@ const CustomizeFramePage = ({
                                 disabled={!hasImage || isCloudUploadPending || loadingAction !== null || Boolean(selectedFrame?.prodigiProduct && !prodigiSelection?.quoteTotalGbp)}
                                 className={`flex-1 bg-white border rounded-full text-[10px] font-bold uppercase tracking-widest transition-colors flex items-center justify-center gap-1.5 shadow-sm ${isSideBySide ? 'py-1.5' : 'py-2.5'} ${!hasImage || isCloudUploadPending || loadingAction !== null || (selectedFrame?.prodigiProduct && !prodigiSelection?.quoteTotalGbp) ? 'opacity-50 cursor-not-allowed border-stone-200 text-stone-400 bg-stone-50' : 'text-stone-900 border-stone-200 hover:bg-stone-50'}`}
                             >
-                                {loadingAction === 'cart' && <Loader size={12} className="animate-spin" />}
-                                {loadingAction === 'cart' ? 'Adding…' : (wasAddedToCart ? 'Added' : 'Add to Cart')}
+                                {(loadingAction === 'cart' || (isCloudUploadPending && !loadingAction)) && <Loader size={12} className="animate-spin" />}
+                                {loadingAction === 'cart' ? 'Adding…' : isCloudUploadPending ? 'Uploading…' : (wasAddedToCart ? 'Added' : 'Add to Cart')}
                             </button>
                             <button
                                 onClick={() => {
@@ -4207,7 +4215,7 @@ const CustomizeFramePage = ({
                                 className={`flex-1 border rounded-full text-[10px] font-bold uppercase tracking-widest transition-colors flex items-center justify-center gap-1.5 shadow-sm ${isSideBySide ? 'py-1.5' : 'py-2.5'} ${!hasImage || isCloudUploadPending || loadingAction !== null || (selectedFrame?.prodigiProduct && !prodigiSelection?.quoteTotalGbp) ? 'opacity-50 cursor-not-allowed border-stone-200 text-stone-400 bg-stone-50' : 'bg-[#c9a84c] border-[#c9a84c] text-[#0a0a0a] hover:bg-[#d4b55c]'}`}
                             >
                                 {loadingAction === 'pay' && <Loader size={12} className="animate-spin" />}
-                                {loadingAction === 'pay' ? 'Preparing…' : 'Pay Now'}
+                                {loadingAction === 'pay' ? 'Preparing…' : isCloudUploadPending ? 'Uploading…' : 'Pay Now'}
                             </button>
                         </div>
                     </div>

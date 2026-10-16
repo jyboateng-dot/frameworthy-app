@@ -18,7 +18,7 @@ export default function MetArtSelectionModal({ isOpen, onClose, onSelect }) {
                 >
                     <X size={18} />
                 </button>
-                <div className="flex-1 overflow-y-auto">
+                <div className="flex-1 overflow-y-auto overscroll-y-contain">
                     <MetArtPage isSubPage={true} onSelect={onSelect} navigate={navigate} />
                 </div>
             </div>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { usePaystackPayment } from 'react-paystack';
 import { httpsCallable } from 'firebase/functions';
@@ -8,10 +8,17 @@ import { useAuth } from '../../context/AuthContext';
 import { createOrder, getUserDeliveryAddresses } from '../../services/db';
 import { functions } from '../../services/firebase';
 import { CreditCard, Ticket, ShieldCheck, Loader, X, Smartphone, Copy, Check, Hammer, Truck } from 'lucide-react';
-import { generateItemDescription, formatDimensionWithOrientation } from '../../utils/itemFormatters';
+import { getItemTitle, getItemSubtitle, generateItemDescription, formatDimensionWithOrientation, getItemCustomizerSpecs } from '../../utils/itemFormatters';
 import { formatDimensions } from '../../data/constants';
 import { useUnit } from '../../context/UnitContext';
-import { calculateSubtotal, resolvePromoCode, calculatePromoDiscount, calculateFinalTotal } from '../../utils/pricing';
+import {
+    calculateSubtotal,
+    resolvePromoCode,
+    calculatePromoDiscount,
+    calculateFinalTotal,
+    computeOrderCostBreakdown,
+    computeItemCostBreakdown,
+} from '../../utils/pricing';
 import Price from '../../components/common/Price';
 import { getThumbnailUrl } from '../../services/storage';
 import DeliveryAddressSection from '../../components/checkout/DeliveryAddressSection';
@@ -71,13 +78,18 @@ const CheckoutPage = () => {
     }, [checkoutItems, navigate]);
 
     const subtotal = calculateSubtotal(checkoutItems);
+    const costBreakdown = useMemo(() => {
+        return computeOrderCostBreakdown(checkoutItems, checkoutCurrency);
+    }, [checkoutItems, checkoutCurrency]);
 
     const [promoInput, setPromoInput] = useState('');
     const [appliedPromo, setAppliedPromo] = useState(null);
     const [promoError, setPromoError] = useState('');
 
     const promoDiscount = checkoutCurrency === 'GHS' ? calculatePromoDiscount(subtotal, appliedPromo) : 0;
-    const finalTotal = calculateFinalTotal(subtotal, promoDiscount);
+    const finalTotal = isGbpProdigiCheckout || costBreakdown.hasItemizedQuote
+        ? Math.max(0, (costBreakdown.totalCost ?? (costBreakdown.itemsSubtotal + costBreakdown.deliveryCost + costBreakdown.taxCost)) - promoDiscount)
+        : calculateFinalTotal(subtotal, promoDiscount);
 
     const handleApplyPromo = () => {
         if (!promoInput.trim()) return;
@@ -591,25 +603,53 @@ const CheckoutPage = () => {
                             {checkoutItems.length === 1 ? 'Review Order' : 'Review Orders'}
                         </h3>
                         {checkoutItems.map((item, index) => {
+                            const itemTitle = getItemTitle(item);
+                            const itemSubtitle = getItemSubtitle(item);
                             const fullDescription = generateItemDescription(item);
+                            const specs = getItemCustomizerSpecs(item);
                             
                             const variantText = item.isPreset && item.presetDims ? item.presetDims : item.selectedSize?.label || 'Custom Size';
                             
                             return (
                                 <div key={`${item.id}-${index}`} className="flex gap-3">
-                                    <div className="w-16 h-16 bg-stone-100 rounded border border-stone-200 overflow-hidden flex-shrink-0">
-                                        <img src={getThumbnailUrl(item.visualizerImage || item.productionImage || item.uploadedImage || item.presetImage, 150)} alt={fullDescription} className="w-full h-full object-cover" />
+                                    <div className="w-20 h-20 bg-stone-100 rounded-lg border border-stone-200 overflow-hidden flex-shrink-0">
+                                        <img src={getThumbnailUrl(item.visualizerImage || item.productionImage || item.uploadedImage || item.presetImage, 180)} alt={fullDescription} className="w-full h-full object-cover" />
                                     </div>
-                                    <div className="flex-1 min-w-0">
-                                        <h3 className="text-sm text-stone-800 leading-normal" title={fullDescription}>
-                                            {fullDescription}
-                                            <span className="inline-flex items-center text-xs text-stone-500 bg-stone-50 px-1.5 py-0.5 rounded border border-stone-200 ml-2 align-middle">
-                                                {formatDimensionWithOrientation(variantText, item.orientation, unit)}
-                                            </span>
-                                        </h3>
+                                    <div className="flex-1 min-w-0 flex flex-col justify-between">
+                                        <div>
+                                            <div className="flex items-center gap-2 flex-wrap">
+                                                <h3 className="text-sm font-bold text-stone-900 leading-snug">
+                                                    {itemTitle}
+                                                </h3>
+                                                <span className="inline-flex items-center text-[11px] font-medium text-stone-600 bg-stone-100 px-2 py-0.5 rounded border border-stone-200">
+                                                    <span className="truncate max-w-[160px]">{formatDimensionWithOrientation(variantText, item.orientation, unit)}</span>
+                                                </span>
+                                            </div>
+
+                                            {itemSubtitle && (
+                                                <p className="text-xs font-medium text-stone-700 mt-0.5">
+                                                    {itemSubtitle}
+                                                </p>
+                                            )}
+
+                                            {specs.length > 0 && (
+                                                <div className="mt-1.5 flex flex-wrap gap-1">
+                                                    {specs.map((spec, sIdx) => (
+                                                        <span
+                                                            key={sIdx}
+                                                            className="inline-flex items-center text-[10px] px-1.5 py-0.5 rounded bg-stone-100 text-stone-600 font-medium"
+                                                        >
+                                                            <span className="text-stone-400 mr-1">{spec.label}:</span>
+                                                            <span className="text-stone-700">{spec.value}</span>
+                                                        </span>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
+
                                         <div className="mt-2 flex items-center justify-between">
-                                            <Price amount={item.totalPrice} currency={item.currency || 'GHS'} className="font-bold text-sm text-stone-900" />
-                                            <span className="text-sm text-stone-500">x{item.quantity || 1}</span>
+                                            <Price amount={item.prodigi?.quoteItemsGbp || item.totalPrice} currency={item.currency || 'GBP'} className="font-bold text-sm text-stone-900" />
+                                            <span className="text-xs font-medium text-stone-500 bg-stone-100 px-2 py-0.5 rounded">Qty: {item.quantity || 1}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -662,22 +702,91 @@ const CheckoutPage = () => {
                 </div>}
 
                 {/* Summary */}
-                <div className="bg-white rounded-xl shadow-sm p-4 space-y-2 text-sm">
-                    <div className="flex justify-between text-stone-600">
-                        <span>{hasProdigiItems ? 'Items, delivery & tax' : 'Subtotal'}</span>
-                        <Price amount={subtotal} currency={checkoutCurrency} />
+                <div className="bg-white rounded-xl shadow-sm p-4 space-y-3 text-sm">
+                    <div className="flex justify-between items-center pb-2 border-b border-stone-100">
+                        <span className="font-bold text-stone-900 text-xs tracking-wider uppercase">Order Summary</span>
+                        <span className="text-xs text-stone-500 font-medium">{checkoutItems.reduce((count, item) => count + (item.quantity || 1), 0)} item(s)</span>
                     </div>
+
+                    {/* Items Subtotal */}
+                    <div className="flex justify-between text-stone-600">
+                        <span className="text-stone-700">Items Subtotal</span>
+                        <Price amount={costBreakdown.itemsSubtotal} currency={checkoutCurrency} className="font-medium text-stone-800" />
+                    </div>
+
+                    {/* Delivery & Shipping */}
+                    <div className="flex justify-between items-start text-stone-600">
+                        <div className="pr-2">
+                            <div className="flex items-center gap-1.5">
+                                <span className="text-stone-700">{hasProdigiItems ? 'Tracked Delivery' : 'Delivery'}</span>
+                                {costBreakdown.deliveryCost === 0 && (
+                                    <span className="text-[10px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded bg-stone-100 text-stone-600">
+                                        {costBreakdown.isPayOnDelivery ? 'Pay on delivery' : 'Included'}
+                                    </span>
+                                )}
+                            </div>
+                            <p className="text-[11px] text-stone-500 mt-0.5">
+                                {hasProdigiItems
+                                    ? 'Tracked protective packaging & courier delivery'
+                                    : 'Doorstep courier delivery · paid directly upon arrival'}
+                            </p>
+                        </div>
+                        <div className="font-medium text-stone-800 shrink-0">
+                            {costBreakdown.deliveryCost > 0 ? (
+                                <Price amount={costBreakdown.deliveryCost} currency={checkoutCurrency} />
+                            ) : (
+                                <span className="text-xs text-stone-600 font-semibold">
+                                    {costBreakdown.isPayOnDelivery ? 'Pay on arrival' : 'Included'}
+                                </span>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Tax / VAT */}
+                    <div className="flex justify-between items-start text-stone-600">
+                        <div className="pr-2">
+                            <div className="flex items-center gap-1.5">
+                                <span className="text-stone-700">{hasProdigiItems ? 'VAT / Sales Tax' : 'Tax (VAT)'}</span>
+                                {costBreakdown.taxCost === 0 && (
+                                    <span className="text-[10px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded bg-stone-100 text-stone-600">
+                                        Included
+                                    </span>
+                                )}
+                            </div>
+                            <p className="text-[11px] text-stone-500 mt-0.5">
+                                {hasProdigiItems
+                                    ? 'Standard destination tax'
+                                    : 'All applicable local taxes are included'}
+                            </p>
+                        </div>
+                        <div className="font-medium text-stone-800 shrink-0">
+                            {costBreakdown.taxCost > 0 ? (
+                                <Price amount={costBreakdown.taxCost} currency={checkoutCurrency} />
+                            ) : (
+                                <span className="text-xs text-stone-600 font-semibold">Included</span>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Promo Discount if applied */}
                     {appliedPromo && (
-                        <div className="flex justify-between text-stone-600">
-                            <span>Promo ({appliedPromo.code})</span>
-                            <Price amount={promoDiscount} currency={checkoutCurrency} prefix="- " className="text-[#c9a84c]" />
+                        <div className="flex justify-between text-stone-600 pt-2 border-t border-stone-100">
+                            <span className="text-stone-700 font-medium">Promo ({appliedPromo.code})</span>
+                            <Price amount={promoDiscount} currency={checkoutCurrency} prefix="- " className="text-[#c9a84c] font-bold" />
                         </div>
                     )}
-                    <div className="flex justify-between font-bold text-stone-900 pt-2 border-t border-stone-100 mt-2">
-                        <span>Total{checkoutCurrency === 'GBP' ? ' (GBP)' : ''}</span>
-                        <Price amount={finalTotal} currency={checkoutCurrency} />
+
+                    {/* Total */}
+                    <div className="flex justify-between font-bold text-stone-900 pt-2.5 border-t border-stone-100">
+                        <span className="text-base">Total{checkoutCurrency === 'GBP' ? ' (GBP)' : ''}</span>
+                        <Price amount={finalTotal} currency={checkoutCurrency} className="text-base font-bold" />
                     </div>
-                    <p className="text-xs text-stone-600 pt-1">{hasProdigiItems ? 'Delivery and tax are included in the quoted product total.' : 'Shipping fee paid upon delivery.'}</p>
+
+                    <p className="text-xs text-stone-500 pt-0.5">
+                        {hasProdigiItems
+                            ? 'Tracked delivery and destination tax are itemized above in your verified quote.'
+                            : 'Delivery fee is paid directly to the courier upon arrival.'}
+                    </p>
                 </div>
 
                 {/* Trust reassurance, right before the customer commits to paying */}

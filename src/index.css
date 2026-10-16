@@ -8,7 +8,6 @@
   }
   body {
     @apply bg-cream text-charcoal antialiased;
-    overscroll-behavior-y: none;
   }
 }
 
