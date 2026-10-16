@@ -2315,7 +2315,7 @@ const CustomizeFramePage = ({
     if (!selectedSize || !selectedFrame) return <div className="min-h-screen bg-[#faf9f8]" />;
 
     return (
-        <div className={`flex ${isSideBySide ? 'flex-row h-[calc(100dvh-47px)] overflow-hidden' : 'flex-col min-h-[calc(100dvh-47px)]'} bg-[#faf9f8]`}>
+        <div className={`flex ${isSideBySide ? 'flex-row h-[calc(100dvh-47px-env(safe-area-inset-top,0px))] overflow-hidden' : 'flex-col min-h-[calc(100dvh-47px-env(safe-area-inset-top,0px))]'} bg-[#faf9f8]`}>
             <PageMeta
                 title="Design Your Custom Frame"
                 description="Upload a photo or choose art, pick a frame style, mat, and size, and see it rendered on your wall in real time."
@@ -3666,7 +3666,7 @@ const CustomizeFramePage = ({
                 hard-pop back in the instant it remounts after a full-screen
                 exit. */}
             {!isFullScreen && (
-            <div className={`flex flex-col relative shadow-[-10px_0_30px_rgba(0,0,0,0.02)] z-10 transition-all duration-300 ${paneVisible ? 'opacity-100' : 'opacity-0'} ${isSideBySide ? 'w-[30%] flex-none h-[calc(100dvh-47px)] overflow-hidden' : 'w-full flex-1 h-auto'}`} style={{ backgroundColor: wallColor.hex }}>
+            <div className={`flex flex-col relative shadow-[-10px_0_30px_rgba(0,0,0,0.02)] z-10 transition-all duration-300 ${paneVisible ? 'opacity-100' : 'opacity-0'} ${isSideBySide ? 'w-[30%] flex-none h-[calc(100dvh-47px-env(safe-area-inset-top,0px))] overflow-hidden' : 'w-full flex-1 h-auto'}`} style={{ backgroundColor: wallColor.hex }}>
                 {/* Premium Tint Overlay: Keeps the sidebar 90% white, letting 10% of the wall color bleed through */}
                 <div className="absolute inset-0 bg-white/90" />
                 
@@ -4152,7 +4152,7 @@ const CustomizeFramePage = ({
                 </div>
 
                 {/* Sticky Checkout Footer */}
-                <div className={`bottom-0 z-20 backdrop-blur-md border-t border-stone-200 shadow-[0_-10px_40px_rgba(0,0,0,0.03)] ${isSideBySide ? 'relative bg-white/85 py-1.5 px-3' : 'sticky bg-white/95 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom,0px))] px-5'}`}>
+                <div className={`bottom-0 z-20 backdrop-blur-md border-t border-stone-200 shadow-[0_-10px_40px_rgba(0,0,0,0.03)] ${isSideBySide ? 'relative bg-white/85 pt-1.5 pb-[calc(0.375rem+env(safe-area-inset-bottom,0px))] px-3' : 'sticky bg-white/95 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom,0px))] px-5'}`}>
                     {fitError && (
                         <div className="w-full text-[11px] font-medium text-rose-700 bg-rose-50 border border-rose-200 rounded-lg px-2.5 py-1.5 mb-2 text-center">
                             {fitError}
