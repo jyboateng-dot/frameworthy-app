@@ -102,25 +102,20 @@ describe('frame catalogue browsing', () => {
         expect(activeFrameOrDefault({ id: 'frame-8446' })).toBe(DEFAULT_PRODIGI_FRAME);
     });
 
-    it('indicates starting prices for each frame style with retail markup applied', () => {
+    it('indicates starting prices for each frame style', () => {
         const classic = framesForCategory('Prodigi Classic Frames')[0];
         const box = framesForCategory('Prodigi Box Frames')[0];
         const alu = framesForCategory('Prodigi Aluminium Frames')[0];
         const stretched = framesForCategory('Prodigi Stretched Canvas')[0];
 
-        // 40% default markup on wholesale entry (£16 -> £22, £19 -> £27, £12 -> £17, £14 -> £20)
-        expect(frameStartingPrice(classic)).toBe(22);
-        expect(frameStartingPriceDisplay(classic)).toBe('From £22');
-        expect(frameStartingPrice(box)).toBe(27);
-        expect(frameStartingPriceDisplay(box)).toBe('From £27');
-        expect(frameStartingPrice(alu)).toBe(17);
-        expect(frameStartingPriceDisplay(alu)).toBe('From £17');
-        expect(frameStartingPrice(stretched)).toBe(20);
-        expect(frameStartingPriceDisplay(stretched)).toBe('From £20');
-
-        // Dynamically updates when markup percentage changes
-        expect(frameStartingPrice(classic, 0)).toBe(16); // 0% markup = wholesale
-        expect(frameStartingPrice(classic, 50)).toBe(24); // 50% markup = £24
+        expect(frameStartingPrice(classic)).toBe(16);
+        expect(frameStartingPriceDisplay(classic)).toBe('From £16');
+        expect(frameStartingPrice(box)).toBe(19);
+        expect(frameStartingPriceDisplay(box)).toBe('From £19');
+        expect(frameStartingPrice(alu)).toBe(12);
+        expect(frameStartingPriceDisplay(alu)).toBe('From £12');
+        expect(frameStartingPrice(stretched)).toBe(14);
+        expect(frameStartingPriceDisplay(stretched)).toBe('From £14');
     });
 
     it('provides descriptive summaries for each frame category pill', () => {
