@@ -2530,10 +2530,10 @@ const CustomizeFramePage = ({
                     <button
                         onClick={() => setIsWallPickerOpen(!isWallPickerOpen)}
                         className="flex h-[30px] items-center gap-1 sm:gap-1.5 px-2 sm:px-3 rounded-full border border-stone-200 shadow-sm hover:shadow-md transition-all bg-white/95 backdrop-blur text-stone-700 font-bold text-xs ml-auto"
-                        title="Change Wall Colour"
+                        title="Change Wall Color"
                     >
                         <div className="w-4 h-4 rounded-full border border-stone-200 shrink-0" style={{ backgroundColor: wallColor.hex, boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.1)' }} />
-                        <span className="hidden sm:inline">wall colour</span>
+                        <span className="hidden sm:inline">wall color</span>
                         <ChevronDown size={14} className={`transition-transform text-stone-400 ${isWallPickerOpen ? 'rotate-180' : ''}`} />
                     </button>
 
@@ -2550,7 +2550,7 @@ const CustomizeFramePage = ({
                                 : 'scale(0.95)'
                         }}
                     >
-                        <p className="text-[10px] font-bold tracking-wider text-stone-500 mb-2 text-center w-full whitespace-nowrap sm:hidden [font-variant:small-caps]">wall colour</p>
+                        <p className="text-[10px] font-bold tracking-wider text-stone-500 mb-2 text-center w-full whitespace-nowrap sm:hidden [font-variant:small-caps]">wall color</p>
                         <div className="grid grid-cols-2 gap-1.5 place-items-center">
                             {WALL_COLORS.map(color => (
                                 <button
@@ -3446,7 +3446,7 @@ const CustomizeFramePage = ({
                                                         bottom: `${mouldingPctH}%`,
                                                         left: `${mouldingPctW}%`,
                                                         right: `${mouldingPctW}%`,
-                                                        backgroundColor: (!isCanvasGlazing && matWidth !== 'none') ? (matColor?.hex || '#fff') : (effectiveCanvasMountStyle === 'floater' ? '#78716c' : '#fff')
+                                                        backgroundColor: (!isCanvasGlazing && matWidth !== 'none') ? matColor.hex : (effectiveCanvasMountStyle === 'floater' ? '#78716c' : '#fff')
                                                     }}
                                                 >
                                                     {/* Outer Mat Bevel (where mat meets frame) */}
@@ -3505,7 +3505,7 @@ const CustomizeFramePage = ({
                                             bottom: isCanvasOnly || isPreset ? '0%' : isCanvasGlazing ? (effectiveCanvasMountStyle === 'floater' ? `${mouldingPctH + floaterGapPctH}%` : `${Math.max(0, mouldingPctH - traditionalOverlapPctH)}%`) : `${mouldingPctH + matPctBottom}%`,
                                             left: isCanvasOnly || isPreset ? '0%' : isCanvasGlazing ? (effectiveCanvasMountStyle === 'floater' ? `${mouldingPctW + floaterGapPctW}%` : `${Math.max(0, mouldingPctW - traditionalOverlapPctW)}%`) : `${mouldingPctW + matPctW}%`,
                                             right: isCanvasOnly || isPreset ? '0%' : isCanvasGlazing ? (effectiveCanvasMountStyle === 'floater' ? `${mouldingPctW + floaterGapPctW}%` : `${Math.max(0, mouldingPctW - traditionalOverlapPctW)}%`) : `${mouldingPctW + matPctW}%`,
-                                            backgroundColor: (!isCanvasOnly && !isCanvasGlazing && matWidth !== 'none' && !isPreset) ? (matColor?.hex || '#fff') : 'transparent'
+                                            backgroundColor: (!isCanvasOnly && !isCanvasGlazing && matWidth !== 'none' && !isPreset) ? matColor.hex : 'transparent'
                                         }}
                                     >
                                         {/* Inner Mat Bevel (where mat meets artwork) */}
@@ -3523,7 +3523,7 @@ const CustomizeFramePage = ({
                                                     transform: 'translateZ(0)',
                                                     backfaceVisibility: 'hidden',
                                                     ...(fitEnabled ? cropStyle(imageNaturalSize, fitCrop) : {}),
-                                                    backgroundColor: (selectedFrame?.id !== 'frame-canvas' && !isCanvasGlazing && matWidth !== 'none' && !isPreset) ? (matColor?.hex || '#fff') : 'transparent'
+                                                    backgroundColor: (selectedFrame?.id !== 'frame-canvas' && !isCanvasGlazing && matWidth !== 'none' && !isPreset) ? matColor.hex : 'transparent'
                                                 }}
                                                 // If the browser already has this image cached (e.g. it was
                                                 // just shown in an Inspiration grid moments ago), `complete`
@@ -3944,7 +3944,7 @@ const CustomizeFramePage = ({
                     {/* 4. Orientation */}
                     {fitEnabled && <FrameFitPanel step={stepImagePosition} image={uploadedImage} natural={imageNaturalSize}
                         size={selectedSize} orientation={orientation} mat={matWidth} rail={railWidthIn}
-                        frame={selectedFrame} matColor={matColor?.hex || '#ffffff'} matPrice={matColor?.price || 75}
+                        frame={selectedFrame} matColor={matColor.hex} matPrice={matColor.price || 75}
                         unit={unit} price={buildCartItem(null).totalPrice} position={fitPosition} onPosition={setFitPosition}
                         availableSizes={isProdigiFrame ? prodigiSizes : FRAME_SIZES}
                         prodigiConfiguration={prodigiConfiguration}
@@ -4024,7 +4024,7 @@ const CustomizeFramePage = ({
                                         const sizeMaxSliderIndex = matWidthToSliderIndex(sizeMaxMatWidthIn);
                                         const isNoMat = matWidth === 'none';
                                         const widthLabel = isNoMat
-                                            ? 'No Mount'
+                                            ? 'No Mat'
                                             : unit === 'cm'
                                                 ? `${(Number(matWidth) * 2.54).toFixed(1)} cm`
                                                 : `${Number(matWidth).toFixed(2)} in`;
@@ -4034,8 +4034,8 @@ const CustomizeFramePage = ({
                                                     <span className="flex min-w-0 items-center gap-2">
                                                         <span className="bg-stone-100 text-stone-500 w-5 h-5 rounded-full flex shrink-0 items-center justify-center text-[10px]">{stepMatting}</span>
                                                         <span>
-                                                            Mount Width
-                                                            <InfoTooltip text="Drag to the far left for no mount. The first step right is a 1 inch mount; each step after adds a quarter inch, up to 8 inches (less on smaller prints, so the mount never overwhelms the artwork)." />
+                                                            Mat Width
+                                                            <InfoTooltip text="Drag to the far left for no mat. The first step right is a 1 inch mat; each step after adds a quarter inch, up to 8 inches (less on smaller prints, so the mat never overwhelms the artwork)." />
                                                         </span>
                                                     </span>
                                                     <span className="shrink-0 text-xs font-bold text-stone-900 tabular-nums normal-case">
@@ -4053,7 +4053,7 @@ const CustomizeFramePage = ({
                                                         setIsOptimized(false);
                                                     }}
                                                     className="w-full h-1.5 accent-fw-gold cursor-pointer"
-                                                    aria-label="Mount width"
+                                                    aria-label="Mat width"
                                                 />
                                             </>
                                         );
@@ -4063,7 +4063,7 @@ const CustomizeFramePage = ({
                                 {matWidth !== 'none' && (
                                     <section>
                                         <h2 className="text-xs font-bold uppercase tracking-wider text-stone-900 mb-3 flex items-center gap-2">
-                                            <span>Mount Colour</span>
+                                            <span>Mat Color</span>
                                         </h2>
                                         <div className="grid grid-cols-5 gap-2">
                                             {MAT_COLORS.map(color => (

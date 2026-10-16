@@ -2,7 +2,7 @@ export const CAROUSEL_SLIDES = [
     {
         img: '/hero_hanging_frame.jpg',
         title: "Welcome to FrameWorthy",
-        text: "Turn meaningful photographs and remarkable art into made-to-order framed pieces, with the proportions, mount, and finish chosen for your space."
+        text: "Turn meaningful photographs and remarkable art into made-to-order framed pieces, with the proportions, matting, and finish chosen for your space."
     },
     {
         img: '/landing_carousel/slide-1.webp',
@@ -12,12 +12,12 @@ export const CAROUSEL_SLIDES = [
     {
         img: '/landing_carousel/frameworthy-customizer.webp',
         title: "Make Every Detail Yours",
-        text: "Use the customizer to choose your frame style, dimensions, mount colour, and mount width, with every selection reflected in your design as you create it."
+        text: "Use the customizer to choose your frame style, dimensions, mat color, and mat width, with every selection reflected in your design as you create it."
     },
     {
         img: '/landing_carousel/frameworthy-visualizer.webp',
         title: "See It in Your Space",
-        text: "Use the visualizer to preview your finished frame at scale across realistic room scenes, compare wall colours, and choose a size that feels right at home."
+        text: "Use the visualizer to preview your finished frame at scale across realistic room scenes, compare wall colors, and choose a size that feels right at home."
     },
     {
         img: '/landing_carousel/frameworthy-3d-ar.webp',
@@ -32,12 +32,12 @@ export const CAROUSEL_SLIDES = [
     {
         img: '/hero_slide_1.jpg',
         title: "Endless Possibilities",
-        text: "Explore more than 300 moulding profiles, colours, materials, and finishes—from quiet contemporary edges to richly detailed statement frames."
+        text: "Explore more than 300 moulding profiles, colors, materials, and finishes—from quiet contemporary edges to richly detailed statement frames."
     },
     {
         img: '/living_room_banner.jpg',
         title: "Elevate Your Living Space",
-        text: "Build a focal point that feels intentional by previewing your artwork, frame, mount, and scale together before the finished piece reaches your wall."
+        text: "Build a focal point that feels intentional by previewing your artwork, frame, mat, and scale together before the finished piece reaches your wall."
     },
     {
         img: '/landing_carousel/slide-4.webp',

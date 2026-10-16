@@ -90,7 +90,7 @@ const ItemFulfillmentCard = ({ item }) => {
                         </>}
                         <SpecRow label="Glazing">{GLASS_LABELS[item.glassType] || item.glassType || '—'}</SpecRow>
                         <SpecRow label="Hardware">{HARDWARE_LABELS[item.hardwareType] || item.hardwareType || '—'}</SpecRow>
-                        <SpecRow label="Mount">
+                        <SpecRow label="Mat">
                             {hasMat ? (
                                 <span className="flex items-center gap-1.5">
                                     <span
@@ -101,7 +101,7 @@ const ItemFulfillmentCard = ({ item }) => {
                                     {item.matColor.name} ({matWidthLabel(item.matWidth)})
                                 </span>
                             ) : (
-                                <span className="text-gray-400">No Mount</span>
+                                <span className="text-gray-400">No Mat</span>
                             )}
                         </SpecRow>
                     </div>

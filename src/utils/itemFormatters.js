@@ -29,7 +29,7 @@ export const HARDWARE_LABELS = {
     'french-cleat': 'French Cleat',
     easel: 'Tabletop Easel',
 };
-export const MAT_WIDTH_LABELS = { none: 'No Mount', narrow: 'Narrow Mount', standard: 'Standard Mount', wide: 'Wide Mount' };
+export const MAT_WIDTH_LABELS = { none: 'No Mat', narrow: 'Narrow Mat', standard: 'Standard Mat', wide: 'Wide Mat' };
 
 // matWidth used to be one of the three fixed presets above; orders placed
 // since the mat-width slider replaced them (see CustomizeFramePage.jsx and
@@ -37,10 +37,10 @@ export const MAT_WIDTH_LABELS = { none: 'No Mount', narrow: 'Narrow Mount', stan
 // This formats either shape, so order history from before the change keeps
 // reading correctly forever alongside new orders.
 export const matWidthLabel = (matWidth) => {
-    if (matWidth == null || matWidth === 'none') return 'No Mount';
+    if (matWidth == null || matWidth === 'none') return 'No Mat';
     if (MAT_WIDTH_LABELS[matWidth]) return MAT_WIDTH_LABELS[matWidth];
     const inches = Number(matWidth);
-    return Number.isFinite(inches) ? `${inches}" Mount` : `${matWidth} Mount`;
+    return Number.isFinite(inches) ? `${inches}" Mat` : `${matWidth} Mat`;
 };
 
 /**
@@ -138,7 +138,7 @@ export const generateItemDescription = (item) => {
         specs.push(wrapLabels[item.prodigi.attributes.wrap] || `${item.prodigi.attributes.wrap} Wrap`);
     }
 
-    // Mount (combine width and colour into one string e.g. "Narrow Polar White Mount" or "2\" Snow white Mount")
+    // Matting (combine width and color into one string e.g. "Narrow Polar White Mat" or "2\" Snow white Mount")
     const isProdigiMounted = Boolean(item.prodigi?.attributes?.mount && !/^no mount/i.test(item.prodigi.attributes.mount));
     if (isProdigiMounted && !isCanvas) {
         const mountColor = item.prodigi.attributes.mountColor || item.matColor?.name || 'Snow white';
@@ -147,17 +147,15 @@ export const generateItemDescription = (item) => {
         specs.push(`${widthStr ? `${widthStr} ` : ''}${mountColor} Mount`.trim());
     } else if (item.matWidth && item.matWidth !== 'none' && !isCanvas) {
         let widthStr = matWidthLabel(item.matWidth);
-        // Strip " Mount" or " Mat" suffix if present so we can inject the colour before it
-        if (widthStr.endsWith(' Mount')) {
-            widthStr = widthStr.substring(0, widthStr.length - 6);
-        } else if (widthStr.endsWith(' Mat')) {
+        // Strip " Mat" suffix if present so we can inject the color before it
+        if (widthStr.endsWith(' Mat')) {
             widthStr = widthStr.substring(0, widthStr.length - 4);
         }
         
         if (item.matColor?.name) {
-            specs.push(`${widthStr} ${item.matColor.name} Mount`);
+            specs.push(`${widthStr} ${item.matColor.name} Mat`);
         } else {
-            specs.push(`${widthStr} Mount`);
+            specs.push(`${widthStr} Mat`);
         }
     }
 
@@ -202,7 +200,7 @@ export const getItemCustomizerSpecs = (item, options = {}) => {
         specs.push({ label: 'Frame', value: item.selectedFrame.name });
     }
 
-    // 2. Mount (only for framed prints, never canvas)
+    // 2. Mount / Mat (only for framed prints, never canvas)
     if (!isCanvas) {
         const isProdigiMounted = Boolean(item.prodigi?.attributes?.mount && !/^no mount/i.test(item.prodigi.attributes.mount));
         if (isProdigiMounted) {
@@ -212,7 +210,7 @@ export const getItemCustomizerSpecs = (item, options = {}) => {
         } else if (item.matWidth && item.matWidth !== 'none') {
             const width = matWidthLabel(item.matWidth);
             const color = item.matColor?.name ? ` (${item.matColor.name})` : '';
-            specs.push({ label: 'Mount', value: `${width}${color}` });
+            specs.push({ label: 'Mat', value: `${width}${color}` });
         } else if (isProdigi) {
             specs.push({ label: 'Mount', value: 'No mount' });
         }
@@ -328,9 +326,9 @@ export const formatOrdersForSharing = (orders) => {
             
             const matDesc = item.matWidth !== 'none' && item.matColor
                 ? `${item.matColor.name} (${matWidthLabel(item.matWidth)})`
-                : 'No Mount';
+                : 'No Mat';
                 
-            orderText += `Qty: ${item.quantity}                 Mount: ${matDesc}\n\n`;
+            orderText += `Qty: ${item.quantity}                 Mat: ${matDesc}\n\n`;
             if (item.productionSpec?.version === 1 || item.productionSpec?.version === 2) {
                 const spec = item.productionSpec;
                 const unit = spec.units === 'cm' ? 'cm' : 'in';

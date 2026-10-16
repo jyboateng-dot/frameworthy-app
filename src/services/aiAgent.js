@@ -40,9 +40,9 @@ export function getLocalAiResponse(userMessage) {
         return "Applicable print frames use the glazing shown in the customizer, including Perspex and selected anti-reflective options. Canvas styles do not use glazing.";
     }
 
-    // 3. Mount Options
-    if (matchAny(text, ['mount', 'mounts', 'mountboard', 'mountboards', 'mat', 'mats', 'matboard', 'matboards', 'border', 'margin', 'ivory', 'navy', 'cream', 'terracotta', 'burgundy', 'white mount', 'black mount', 'white mat', 'black mat'])) {
-        return "Classic and Box frames can be ordered without a mount or with Snow White, Off-white, or Black mounts where the selected size supports it. Mount width is set automatically for the chosen product size.";
+    // 3. Matboard Options
+    if (matchAny(text, ['mat', 'mats', 'matboard', 'matboards', 'border', 'margin', 'ivory', 'navy', 'cream', 'terracotta', 'burgundy', 'white mat', 'black mat'])) {
+        return "Classic and Box frames can be ordered without matting or with Snow White, Off-white, or Black matting where the selected size supports it. Mat width is set automatically for the chosen product size.";
     }
 
     // 4. Custom Sizes, Dimensions & Pricing
@@ -106,7 +106,7 @@ export function getLocalAiResponse(userMessage) {
     }
 
     // Contextual Fallback
-    return "Thank you for reaching out to FrameWorthy! I can help with frame styles, available sizes, live GBP prices, mounts, glazing, delivery to the United Kingdom or Jersey, and checkout.";
+    return "Thank you for reaching out to FrameWorthy! I can help with frame styles, available sizes, live GBP prices, matting, glazing, delivery to the United Kingdom or Jersey, and checkout.";
 }
 
 // Helper to check if string contains any keyword from list
