@@ -94,11 +94,24 @@ describe('frame mesh', () => {
             canvasOnly: true,
             matReveal: NO_MAT,
         });
-        expect(mesh.parts.map((part) => part.material)).toEqual(['art', 'canvasTop', 'canvasBottom', 'canvasLeft', 'canvasRight', 'backing']);
+        expect(mesh.parts.map((part) => part.material)).toEqual(['art', 'canvasTop', 'canvasBottom', 'canvasLeft', 'canvasRight', 'stretcherBar', 'backing']);
         expect(mesh.parts.map((part) => part.material)).not.toContain('rail');
         expect(mesh.outerWidthM).toBeCloseTo(16 * IN_TO_M, 6);
         expect(mesh.outerHeightM).toBeCloseTo(20 * IN_TO_M, 6);
         expect(mesh.depthM).toBeCloseTo((38 / 25.4) * IN_TO_M, 6);
+
+        const stretcherPart = mesh.parts.find((p) => p.material === 'stretcherBar');
+        const backingPart = mesh.parts.find((p) => p.material === 'backing');
+        expect(stretcherPart).toBeDefined();
+        expect(backingPart).toBeDefined();
+
+        // Stretcher bar rear face touches wall at z=0
+        const stretcherZs = stretcherPart.positions.filter((_, i) => i % 3 === 2);
+        expect(Math.min(...stretcherZs)).toBeCloseTo(0, 6);
+
+        // Canvas backing is recessed inside the frame chamber (z > 0)
+        const backingZs = backingPart.positions.filter((_, i) => i % 3 === 2);
+        expect(Math.min(...backingZs)).toBeGreaterThan(0.01);
     });
 
     it('emits mat geometry only when a mat is configured', () => {

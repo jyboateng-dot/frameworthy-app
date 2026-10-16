@@ -263,6 +263,7 @@ export function buildFrameMesh({
         const halfW = widthM / 2;
         const halfH = heightM / 2;
         const front = new MeshPart('art');
+        const stretcherBar = new MeshPart('stretcherBar');
         const back = new MeshPart('backing');
 
         front.addQuad(
@@ -270,9 +271,39 @@ export function buildFrameMesh({
             [halfW, halfH, canvasDepthM], [-halfW, halfH, canvasDepthM],
             [0, 1], [1, 1], [1, 0], [0, 0], [0, 0, 1]
         );
-        back.addQuad([-halfW, -halfH, 0], [halfW, -halfH, 0], [halfW, halfH, 0], [-halfW, halfH, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0, -1]);
 
-        return { parts: [front, ...buildCanvasSides(halfW, halfH, 0, canvasDepthM), back], outerWidthM: widthM, outerHeightM: heightM, depthM: canvasDepthM };
+        // Prodigi 38mm gallery wrap stretcher bars: knotless European kiln-dried
+        // pine bars (~45mm wide) forming a perimeter frame on the back face (z=0),
+        // with an inner hollow recess showing the raw cotton canvas.
+        const barW = Math.min(0.045, halfW * 0.35, halfH * 0.35);
+        const inW = halfW - barW;
+        const inH = halfH - barW;
+        const recessZ = Math.min(0.028, canvasDepthM * 0.75);
+
+        // 4 rear stretcher bars at z=0 (facing wall, -Z)
+        // Top bar
+        stretcherBar.addQuad([-halfW, halfH - barW, 0], [halfW, halfH - barW, 0], [halfW, halfH, 0], [-halfW, halfH, 0], [0, 0], [1, 0], [1, 1], [0, 1], [0, 0, -1]);
+        // Bottom bar
+        stretcherBar.addQuad([-halfW, -halfH, 0], [halfW, -halfH, 0], [halfW, -halfH + barW, 0], [-halfW, -halfH + barW, 0], [0, 0], [1, 0], [1, 1], [0, 1], [0, 0, -1]);
+        // Left bar
+        stretcherBar.addQuad([-halfW, -halfH + barW, 0], [-inW, -halfH + barW, 0], [-inW, halfH - barW, 0], [-halfW, halfH - barW, 0], [0, 0], [1, 0], [1, 1], [0, 1], [0, 0, -1]);
+        // Right bar
+        stretcherBar.addQuad([inW, -halfH + barW, 0], [halfW, -halfH + barW, 0], [halfW, halfH - barW, 0], [inW, halfH - barW, 0], [0, 0], [1, 0], [1, 1], [0, 1], [0, 0, -1]);
+
+        // 4 inner drop walls into the hollow cavity
+        // Top inner wall
+        stretcherBar.addQuad([-inW, inH, 0], [inW, inH, 0], [inW, inH, recessZ], [-inW, inH, recessZ], [0, 0], [1, 0], [1, 1], [0, 1], [0, -1, 0]);
+        // Bottom inner wall
+        stretcherBar.addQuad([inW, -inH, 0], [-inW, -inH, 0], [-inW, -inH, recessZ], [inW, -inH, recessZ], [0, 0], [1, 0], [1, 1], [0, 1], [0, 1, 0]);
+        // Left inner wall
+        stretcherBar.addQuad([-inW, -inH, 0], [-inW, inH, 0], [-inW, inH, recessZ], [-inW, -inH, recessZ], [0, 0], [1, 0], [1, 1], [0, 1], [1, 0, 0]);
+        // Right inner wall
+        stretcherBar.addQuad([inW, inH, 0], [inW, -inH, 0], [inW, -inH, recessZ], [inW, inH, recessZ], [0, 0], [1, 0], [1, 1], [0, 1], [-1, 0, 0]);
+
+        // Recessed unprimed raw cotton canvas backing at z=recessZ
+        back.addQuad([-inW, -inH, recessZ], [inW, -inH, recessZ], [inW, inH, recessZ], [-inW, inH, recessZ], [0, 0], [1, 0], [1, 1], [0, 1], [0, 0, -1]);
+
+        return { parts: [front, ...buildCanvasSides(halfW, halfH, 0, canvasDepthM), stretcherBar, back], outerWidthM: widthM, outerHeightM: heightM, depthM: canvasDepthM };
     }
 
     const section = crossSection || buildCrossSection(profile);
@@ -293,6 +324,8 @@ export function buildFrameMesh({
     const sidePart = new MeshPart('railSide');
     const innerPart = new MeshPart('railInner');
     const cornerPart = new MeshPart('railCorner');
+    const railBackPart = new MeshPart('railBack');
+    const backPart = new MeshPart('backing');
 
     // A real photographed corner shot is one specific mitre, not a
     // repeating pattern, so it is draped once over a block this wide
@@ -381,15 +414,53 @@ export function buildFrameMesh({
                 ? (length, lat, z) => [length, lat, z]
                 : (length, lat, z) => [lat, length, z];
 
+            const isOuterSide = Math.abs(a.s) < 1e-6 && Math.abs(b.s) < 1e-6;
+            const isBack = Math.abs(a.z) < 1e-6 && Math.abs(b.z) < 1e-6;
+            const isInnerSurface = (a.s >= 1 - 1e-6 && b.s >= 1 - 1e-6) && !isBack && !isOuterSide;
+
+            const sideRepeatV = depthM / Math.max(railWidthM, 1e-4);
+
             if (!hasCorner) {
-                const surfacePart = splitRailSurfaces && Math.abs(ds) < 1e-9 && a.s === 1
-                    ? innerPart
-                    : splitRailSurfaces && (Math.min(a.z, b.z) < 0.75 || Math.abs(ds) < 1e-9)
-                        ? sidePart : railPart;
-                surfacePart.addQuad(
+                if (splitRailSurfaces && isOuterSide) {
+                    const vA = (1 - a.z) * sideRepeatV;
+                    const vB = (1 - b.z) * sideRepeatV;
+                    sidePart.addQuad(
+                        makePoint(-halfLenA, latA, zA), makePoint(halfLenA, latA, zA),
+                        makePoint(halfLenB, latB, zB), makePoint(-halfLenB, latB, zB),
+                        [0, vA], [repeat, vA], [repeat, vB], [0, vB],
+                        outward
+                    );
+                    continue;
+                }
+
+                if (splitRailSurfaces && isBack) {
+                    railBackPart.addQuad(
+                        makePoint(-halfLenA, latA, zA), makePoint(halfLenA, latA, zA),
+                        makePoint(halfLenB, latB, zB), makePoint(-halfLenB, latB, zB),
+                        [0, a.s], [repeat, a.s], [repeat, b.s], [0, b.s],
+                        outward
+                    );
+                    continue;
+                }
+
+                if (splitRailSurfaces && isInnerSurface) {
+                    const uvA = Math.abs(ds) < 1e-9 ? (1 - a.z) * sideRepeatV : a.s;
+                    const uvB = Math.abs(ds) < 1e-9 ? (1 - b.z) * sideRepeatV : b.s;
+                    innerPart.addQuad(
+                        makePoint(-halfLenA, latA, zA), makePoint(halfLenA, latA, zA),
+                        makePoint(halfLenB, latB, zB), makePoint(-halfLenB, latB, zB),
+                        [0, uvA], [repeat, uvA], [repeat, uvB], [0, uvB],
+                        outward
+                    );
+                    continue;
+                }
+
+                const uvA = isOuterSide ? (1 - a.z) * sideRepeatV : a.s;
+                const uvB = isOuterSide ? (1 - b.z) * sideRepeatV : b.s;
+                railPart.addQuad(
                     makePoint(-halfLenA, latA, zA), makePoint(halfLenA, latA, zA),
                     makePoint(halfLenB, latB, zB), makePoint(-halfLenB, latB, zB),
-                    [0, a.s], [repeat, a.s], [repeat, b.s], [0, b.s],
+                    [0, uvA], [repeat, uvA], [repeat, uvB], [0, uvB],
                     outward
                 );
                 continue;
@@ -443,7 +514,7 @@ export function buildFrameMesh({
     const artWidthM = artworkWidthIn * IN_TO_M;
     const artHeightM = artworkHeightIn * IN_TO_M;
 
-    const parts = [railPart, cornerPart, sidePart, innerPart];
+    const parts = [railPart, cornerPart, sidePart, innerPart, railBackPart, backPart];
 
     if (showCornerSeams) {
         const seamPart = new MeshPart('railSeam');
@@ -528,7 +599,6 @@ export function buildFrameMesh({
     // Backing board closing the opening. Without it the frame is a hole
     // when viewed from behind or steeply from the side, which AR makes
     // easy to do by simply walking past the wall.
-    const backPart = new MeshPart('backing');
     const bw = sightWidthM / 2;
     const bh = sightHeightM / 2;
     backPart.addQuad(
@@ -536,7 +606,6 @@ export function buildFrameMesh({
         [0, 0], [0, 0], [0, 0], [0, 0],
         [0, 0, -1]
     );
-    parts.push(backPart);
 
     return {
         parts: parts.filter((p) => !p.isEmpty),

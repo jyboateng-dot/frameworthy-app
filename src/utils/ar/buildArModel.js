@@ -141,8 +141,11 @@ export async function buildArModel({ frame, widthIn, heightIn, matReveal, matCol
 
     // Hanging hardware mounts to the back, so it needs the frame's
     // finished outer size rather than the artwork's — a D-ring sits a
-    // third down the frame, not a third down the picture.
-    mesh.parts.push(...buildHardwareParts(hardwareType, mesh));
+    // third down the frame, not a third down the picture. Stretched canvas
+    // hangs directly from its stretcher bar, so hardware is omitted.
+    if (!renderProfile.isCanvasOnly && hardwareType && hardwareType !== 'none') {
+        mesh.parts.push(...buildHardwareParts(hardwareType, mesh));
+    }
 
     const canvasEdges = renderProfile.canvasThicknessIn > 0
         ? await renderCanvasEdgeTextures(artTexture, widthIn, heightIn, renderProfile.canvasThicknessIn, canvasWrap)
@@ -166,24 +169,49 @@ export async function buildArModel({ frame, widthIn, heightIn, matReveal, matCol
             roughness: 1,
         },
         ...Object.fromEntries(Object.entries(canvasEdges).map(([name, texture]) => [name, {
-            texture, unlit: true, metallic: 0, roughness: 1,
+            texture,
+            metallic: 0,
+            roughness: 0.9,
         }])),
-        railSide: { baseColor: [...hexToRgb(frame?.baseColor), 1],
+        railSide: {
+            ...(railTexture ? { texture: railTexture.bytes } : {}),
+            baseColor: [...hexToRgb(frame?.baseColor), 1],
             metallic: frame?.prodigiProduct === 'aluminium' ? 0.85 : renderProfile.finish === 'metallic' ? 0.55 : 0,
-            roughness: frame?.prodigiProduct === 'aluminium' ? 0.35 : renderProfile.finish === 'metallic' ? 0.48 : 0.8 },
+            roughness: frame?.prodigiProduct === 'aluminium' ? 0.35 : renderProfile.finish === 'metallic' ? 0.48 : 0.8,
+        },
         railInner: { baseColor: [...hexToRgb(frame?.canvasGapMm && frame?.prodigiColor === 'natural' ? '#202022' : frame?.baseColor), 1],
             metallic: frame?.prodigiProduct === 'aluminium' ? 0.85 : 0,
             roughness: frame?.prodigiProduct === 'aluminium' ? 0.35 : 0.9 },
+        railBack: {
+            baseColor: frame?.prodigiProduct === 'aluminium'
+                ? [...hexToRgb(frame?.baseColor), 1]
+                : [...hexToRgb('#9e815a'), 1], // kraft framer's sealing tape
+            metallic: frame?.prodigiProduct === 'aluminium' ? 0.85 : 0,
+            roughness: frame?.prodigiProduct === 'aluminium' ? 0.35 : 0.92,
+        },
+        stretcherBar: {
+            baseColor: [...hexToRgb('#d2b896'), 1], // natural kiln-dried European pine
+            metallic: 0,
+            roughness: 0.88,
+        },
         shadowGap: { baseColor: [...hexToRgb('#24211e'), 1], metallic: 0, roughness: 1 },
         // Mat board is uncoated stock — flat, and never shiny.
         mat: { baseColor: [...hexToRgb(matColorHex || '#ffffff'), 1], unlit: true, metallic: 0, roughness: 0.94 },
         // The bevel is the board's own cut core, which is near-white on
         // conservation stock whatever the surface colour is.
         matBevel: { baseColor: [...hexToRgb('#f7f4ee'), 1], unlit: true, metallic: 0, roughness: 0.88 },
-        backing: { baseColor: [...hexToRgb('#2e2a26'), 1], unlit: true, metallic: 0, roughness: 1 },
-        // Plated steel fittings — bright enough to separate from the
-        // dark backing board behind them, but not mirror-polished.
-        hardware: { baseColor: [...hexToRgb('#9a9ea3'), 1], unlit: true, metallic: 0.9, roughness: 0.34 },
+        // Warm natural kraft MDF backing board for frames, or unprimed raw cotton canvas for stretched canvas
+        backing: {
+            baseColor: [...hexToRgb(renderProfile.isCanvasOnly ? '#ebe4d6' : '#c5ab86'), 1],
+            metallic: 0,
+            roughness: 0.94,
+        },
+        // Plated steel fittings — catches backFill light with metallic sheen
+        hardware: {
+            baseColor: [...hexToRgb('#2c2c2e'), 1],
+            metallic: 0.85,
+            roughness: 0.32,
+        },
         railSeam: { baseColor: [...hexToRgb('#9b9b9b'), 1], unlit: true, metallic: 0, roughness: 0.9 },
     };
 

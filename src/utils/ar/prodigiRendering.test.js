@@ -74,4 +74,64 @@ describe('Prodigi rendering integration', () => {
         const mesh = meshFor(frames[0], { totalDepthIn: null });
         expect(mesh.depthM).toBeCloseTo((17 / 25.4 + 0.1875) * 0.0254, 6);
     });
+
+    it('generates non-degenerate isotropic UVs on railSide matching physical depth-to-width ratio', () => {
+        for (const frame of frames.filter(f => !f.canvasOnly)) {
+            const p = getFrameRenderProfile(frame);
+            const mesh = meshFor(frame);
+            const side = mesh.parts.find(part => part.material === 'railSide');
+            expect(side, `railSide should exist for ${frame.id}`).toBeDefined();
+            expect(side.uvs.length).toBeGreaterThan(0);
+
+            const vs = side.uvs.filter((_, i) => i % 2 === 1);
+            const maxV = Math.max(...vs);
+            const minV = Math.min(...vs);
+            const depthM = p.totalDepthIn * 0.0254;
+            const widthM = p.mouldingWidthIn * 0.0254;
+            const expectedV = depthM / widthM;
+
+            expect(maxV, `max V for ${frame.id}`).toBeCloseTo(expectedV, 4);
+            expect(minV, `min V for ${frame.id}`).toBeLessThan(0.05 * expectedV);
+        }
+    });
+
+    it('deduplicates texture image buffers in GLB when rail and railSide share texture bytes', () => {
+        const frame = frames.find(f => !f.canvasOnly);
+        const mesh = meshFor(frame);
+        const sharedBytes = new Uint8Array([137, 80, 78, 71, 13, 10, 26, 10]);
+        const materials = {
+            rail: { texture: sharedBytes, unlit: true },
+            railSide: { texture: sharedBytes, metallic: 0, roughness: 0.8 },
+            railInner: { baseColor: [0.1, 0.1, 0.1, 1] },
+            backing: { baseColor: [0.18, 0.16, 0.15, 1] },
+            art: { baseColor: [1, 1, 1, 1] },
+        };
+        const glb = buildGlb({ parts: mesh.parts, materials });
+        const view = new DataView(glb.buffer, glb.byteOffset, glb.byteLength);
+        const jsonLength = view.getUint32(12, true);
+        const jsonText = new TextDecoder().decode(new Uint8Array(glb.buffer, glb.byteOffset + 20, jsonLength));
+        const gltf = JSON.parse(jsonText);
+
+        expect(gltf.images.length).toBe(1);
+        expect(gltf.textures.length).toBe(1);
+        const railMat = gltf.materials.find(m => m.name === 'rail');
+        const sideMat = gltf.materials.find(m => m.name === 'railSide');
+        expect(railMat.pbrMetallicRoughness.baseColorTexture.index).toBe(0);
+        expect(sideMat.pbrMetallicRoughness.baseColorTexture.index).toBe(0);
+    });
+
+    it('generates railBack for framed finishes and stretcherBar for stretched canvas', () => {
+        // Framed finishes with split rail surfaces emit railBack for perimeter sealing/extrusion
+        const classic = frames.find(f => f.prodigiProduct === 'classic');
+        const classicMesh = meshFor(classic);
+        expect(classicMesh.parts.find(p => p.material === 'railBack')).toBeDefined();
+        expect(classicMesh.parts.find(p => p.material === 'backing')).toBeDefined();
+
+        // Stretched canvas emits pine stretcher bars and recessed raw canvas back
+        const stretched = frames.find(f => f.canvasOnly);
+        const canvasMesh = meshFor(stretched);
+        expect(canvasMesh.parts.find(p => p.material === 'stretcherBar')).toBeDefined();
+        expect(canvasMesh.parts.find(p => p.material === 'backing')).toBeDefined();
+        expect(canvasMesh.parts.find(p => p.material === 'railBack')).toBeUndefined();
+    });
 });

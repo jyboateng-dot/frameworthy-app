@@ -4251,9 +4251,11 @@ const CustomizeFramePage = ({
                 matColorHex={matColor?.hex}
                 glassType={glassType}
                 artworkUrl={productionImage || uploadedImage}
-                hardwareType={selectedFrame?.prodigiProduct
-                    ? prodigiHangingHardware(selectedFrame, selectedSize).id
-                    : hardwareType}
+                hardwareType={selectedFrame?.canvasOnly
+                    ? 'none'
+                    : selectedFrame?.prodigiProduct
+                        ? prodigiHangingHardware(selectedFrame, selectedSize).id
+                        : hardwareType}
                 canvasWrap={canvasWrap}
             />
         </div>

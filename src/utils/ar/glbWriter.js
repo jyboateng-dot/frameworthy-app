@@ -102,11 +102,17 @@ export function buildGlb({ parts, materials }) {
     const materialIndex = new Map();
     let hasUnlitMaterial = false;
 
+    const textureIndexByBytes = new Map();
     const packTexture = (bytes) => {
+        if (textureIndexByBytes.has(bytes)) {
+            return textureIndexByBytes.get(bytes);
+        }
         const viewIndex = packer.add(bytes);
         images.push({ bufferView: viewIndex, mimeType: 'image/png' });
         textures.push({ source: images.length - 1, sampler: 0 });
-        return textures.length - 1;
+        const textureIndex = textures.length - 1;
+        textureIndexByBytes.set(bytes, textureIndex);
+        return textureIndex;
     };
 
     const pushAccessor = (accessor) => {

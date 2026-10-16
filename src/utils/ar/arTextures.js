@@ -201,12 +201,13 @@ export async function renderCanvasEdgeTextures(artBytes, widthIn, heightIn, dept
         const w = image.naturalWidth, h = image.naturalHeight;
         const dx = Math.max(1, Math.round(w * Math.min(0.25, depthIn / widthIn)));
         const dy = Math.max(1, Math.round(h * Math.min(0.25, depthIn / heightIn)));
-        const mirror = wrap === 'MirrorWrap';
+        const sampleH = dy;
+        const sampleW = dx;
         const regions = {
-            Top: [0, 0, w, mirror ? dy : 1],
-            Bottom: [0, h - (mirror ? dy : 1), w, mirror ? dy : 1],
-            Left: [0, 0, mirror ? dx : 1, h],
-            Right: [w - (mirror ? dx : 1), 0, mirror ? dx : 1, h],
+            Top: [0, 0, w, sampleH],
+            Bottom: [0, h - sampleH, w, sampleH],
+            Left: [0, 0, sampleW, h],
+            Right: [w - sampleW, 0, sampleW, h],
         };
         const entries = await Promise.all(Object.entries(regions).map(async ([side, rect]) => {
             const canvas = document.createElement('canvas');
