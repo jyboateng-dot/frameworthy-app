@@ -48,6 +48,52 @@ describe('Prodigi API integration', () => {
         expect(payload.items[0].assets[0]).toMatchObject({ printArea: 'default', sizing: 'fillPrintArea' });
     });
 
+    it('translates full user customization into Prodigi order payload accurately', () => {
+        const customizedItem = {
+            sku: 'GLOBAL-CFPM-16X20',
+            copies: 1,
+            attributes: {
+                frame: 'Classic',
+                color: 'natural',
+                glaze: 'Float glass',
+                mount: '2.4mm',
+                mountColor: 'Snow white',
+                paperType: 'EMA',
+                substrateWeight: '200gsm',
+            },
+            assetUrl: 'https://storage.googleapis.com/bucket/frame-print.jpg',
+            sizing: 'fillPrintArea',
+        };
+        const payload = buildOrderPayload({
+            merchantReference: 'order-cust-456',
+            shippingMethod: 'Standard',
+            recipient: {
+                name: 'Jeremy Boateng', email: 'jeremy@example.com', phoneNumber: '+447797789598',
+                address: { line1: 'Liberty Wharf Apartments', line2: 'Esplanade', postalOrZipCode: 'JE2 3AS', countryCode: 'JE', townOrCity: 'Jersey' },
+            },
+            items: [customizedItem],
+        });
+        expect(payload.items[0]).toEqual({
+            sku: 'GLOBAL-CFPM-16X20',
+            copies: 1,
+            attributes: {
+                frame: 'Classic',
+                color: 'natural',
+                glaze: 'Float glass',
+                mount: '2.4mm',
+                mountColor: 'Snow white',
+                paperType: 'EMA',
+                substrateWeight: '200gsm',
+            },
+            assets: [{
+                printArea: 'default',
+                url: 'https://storage.googleapis.com/bucket/frame-print.jpg',
+                sizing: 'fillPrintArea',
+            }],
+        });
+        expect(payload.recipient.address.countryCode).toBe('JE');
+    });
+
     it('signs retail GHS totals and rejects token tampering', () => {
         const retail = createRetailQuote({
             quote: { shipmentMethod: 'Standard', costSummary: { totalCost: { amount: '10.00', currency: 'GBP' } } },
