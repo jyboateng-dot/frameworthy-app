@@ -89,6 +89,7 @@ export default function ProdigiConfigurationPanel({
     const product = useMemo(() => resolveProdigiProduct(frame, size, configuration), [frame, size, configuration]);
     const hangingHardware = useMemo(() => prodigiHangingHardware(frame, size), [frame, size]);
     const mountWidthIn = activeMounted ? prodigiMountWidthInForSize(size, product) : null;
+    const mountWidthLabel = mountWidthIn ? `${mountWidthIn}″ (${(mountWidthIn * 2.54).toFixed(1)} cm)` : 'Set by size';
     const hasImportedProducts = prodigiProductsForFrame(frame).length > 0;
 
     useEffect(() => {
@@ -212,16 +213,16 @@ export default function ProdigiConfigurationPanel({
                         <h2 className="mb-3 flex items-center justify-between gap-3 text-xs font-bold uppercase tracking-wider text-stone-900">
                             <span className="flex min-w-0 items-center gap-2">
                                 <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-stone-100 text-[10px] text-stone-500">{step}</span>
-                                Matting
+                                Mount
                             </span>
                             <span className="shrink-0 text-xs font-bold normal-case tabular-nums text-stone-900">
-                                {activeMounted ? mountWidthLabel : 'No Mat'}
+                                {activeMounted ? mountWidthLabel : 'No Mount'}
                             </span>
                         </h2>
                         {isConfigurablePrintFrame ? <div className="flex rounded-xl bg-stone-100 p-1">
                             {[
-                                { mounted: false, label: 'No Mat' },
-                                { mounted: true, label: 'Add Mat' },
+                                { mounted: false, label: 'No Mount' },
+                                { mounted: true, label: 'Add Mount' },
                             ].map((option) => {
                                     const available = isProdigiConfigurationAvailable(frame, size, { mounted: option.mounted, mountColor: activeMountColor, glaze: activeGlaze, destinationCountryCode: destination });
                                 const selected = activeMounted === option.mounted;
@@ -233,17 +234,17 @@ export default function ProdigiConfigurationPanel({
                                     </button>
                                 );
                             })}
-                        </div> : <FixedSelectionCard label="No Mat" />}
+                        </div> : <FixedSelectionCard label="No Mount" />}
                         {activeMounted && (
                             <p className="mt-2 text-[10px] leading-4 text-stone-500">
-                                Mat width is set automatically for this frame size.
+                                Mount width is set automatically for this frame size.
                             </p>
                         )}
             </section>
 
                     {isConfigurablePrintFrame && activeMounted && (
                         <section>
-                            <h2 className="mb-3 text-xs font-bold uppercase tracking-wider text-stone-900">Mat Color</h2>
+                            <h2 className="mb-3 text-xs font-bold uppercase tracking-wider text-stone-900">Mount Colour</h2>
                             <div className="grid grid-cols-3 gap-2">
                                 {PRODIGI_MOUNT_COLORS.map((option) => {
                                     const selected = activeMountColor === option.value;
@@ -335,7 +336,7 @@ export default function ProdigiConfigurationPanel({
                     {(selection?.quoteItemsGbp || selection?.quoteTotalGbp) && (
                         <div className="mt-3 flex items-center justify-between rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs text-emerald-900" aria-live="polite">
                             <div className="flex flex-col">
-                                <span className="flex items-center gap-1.5 font-semibold"><Check size={13} /> Item price</span>
+                                <span className="flex items-center gap-1.5 font-semibold"><Check size={13} /> Live Item Price</span>
                                 <span className="text-[10px] text-emerald-700">Delivery & tax calculated at checkout</span>
                             </div>
                             <span className="font-bold text-sm">£{Number(selection.quoteItemsGbp || selection.quoteTotalGbp).toFixed(2)}</span>

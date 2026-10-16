@@ -376,7 +376,7 @@ const ShareOrdersModal = ({ orders, onClose }) => {
 
                         {(order.items || []).map((item, index) => {
                             const sizeLabel = item.selectedSize?.label || item.size || 'Unknown Size';
-                            const matDesc = item.matWidth !== 'none' && item.matColor ? `${item.matColor.name} (${matWidthLabel(item.matWidth)})` : 'No Mat';
+                            const matDesc = item.matWidth !== 'none' && item.matColor ? `${item.matColor.name} (${matWidthLabel(item.matWidth)})` : 'No Mount';
                             const printUrl = getPrintQualityJpegUrl(item.image, item);
 
                             return (
@@ -422,7 +422,7 @@ const ShareOrdersModal = ({ orders, onClose }) => {
                                                 {item.hardwareType && (
                                                     <tr><td style={{ color: '#666', paddingRight: '10px' }}>Hardware:</td><td>{HARDWARE_LABELS[item.hardwareType] || item.hardwareType}</td></tr>
                                                 )}
-                                                <tr><td style={{ color: '#666', paddingRight: '10px' }}>Mat:</td><td>{matDesc}</td></tr>
+                                                <tr><td style={{ color: '#666', paddingRight: '10px' }}>Mount:</td><td>{matDesc}</td></tr>
                                                 <tr><td style={{ color: '#666', paddingRight: '10px' }}>Qty:</td><td>{item.quantity}</td></tr>
                                             </tbody>
                                         </table>

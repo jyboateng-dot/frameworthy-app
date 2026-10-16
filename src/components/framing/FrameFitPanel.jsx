@@ -130,16 +130,16 @@ export default function FrameFitPanel({ image, natural, size, orientation, mat, 
                     <button type="button" aria-label="Close best fit options" onClick={() => setCompare(false)}><X size={20} /></button></div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
                     <div className="space-y-3">{preview(geometry)}<p className="text-sm font-semibold">Current Frame</p>
-                        <p className="text-xs">{formatDimensions(size.label, unit, orientation)} · {geometry.width === geometry.height ? 'Square' : orientation === 'landscape' ? 'Landscape' : 'Portrait'} · {mat === 'none' ? 'No Mat' : `${(Number(mat) * (unit === 'cm' ? 2.54 : 1)).toFixed(1)} ${unit} mat`}</p>
+                        <p className="text-xs">{formatDimensions(size.label, unit, orientation)} · {geometry.width === geometry.height ? 'Square' : orientation === 'landscape' ? 'Landscape' : 'Portrait'} · {mat === 'none' ? 'No Mount' : `${(Number(mat) * (unit === 'cm' ? 2.54 : 1)).toFixed(1)} ${unit} mount`}</p>
                         <Price amount={price} currency={currency} />
                         <p className="text-xs">{Math.floor((imageCrop(natural, geometry, position)?.retained || 0) * 100)}% of image visible</p>
                     </div>
                     {options.map((option, i) => <div key={i} className="space-y-3">
                         <button type="button" className="block w-full cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-stone-900 hover:opacity-90"
-                            aria-label={`Apply ${formatDimensions(option.size.label, unit, option.orientation)}, ${option.mat === 'none' ? 'no mat' : 'with mat'}`}
+                            aria-label={`Apply ${formatDimensions(option.size.label, unit, option.orientation)}, ${option.mat === 'none' ? 'no mount' : 'with mount'}`}
                             onClick={() => applyOption(option)}>{preview(option.geometry, DEFAULT_POSITION)}</button>
                         <p className="text-sm font-semibold">{formatDimensions(option.size.label, unit, option.orientation)} · {option.geometry.width === option.geometry.height ? 'Square' : option.orientation === 'landscape' ? 'Landscape' : 'Portrait'}</p>
-                        <p className="text-xs">{Math.floor(option.retained * 100)}% of image visible · {option.mat === 'none' ? 'No Mat' : `${(Number(option.mat) * (unit === 'cm' ? 2.54 : 1)).toFixed(1)} ${unit} mat`}</p>
+                        <p className="text-xs">{Math.floor(option.retained * 100)}% of image visible · {option.mat === 'none' ? 'No Mount' : `${(Number(option.mat) * (unit === 'cm' ? 2.54 : 1)).toFixed(1)} ${unit} mount`}</p>
                         {option.price !== null ? (
                             <Price amount={option.price} currency={currency} />
                         ) : (

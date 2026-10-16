@@ -57,7 +57,8 @@ exports.getProdigiQuote = onCall({
             environment: prodigiEnvironment(),
             input,
         });
-        const summaries = prodigi.summariseQuotes(result);
+        const markupPercent = Number(process.env.PRODIGI_RETAIL_MARKUP_PERCENT || 40);
+        const summaries = prodigi.summariseQuotes(result, { markupPercent });
         const rawQuotes = Array.isArray(result.quotes) ? result.quotes : [];
         const exchangeRates = {
             GBP: Number(process.env.PRODIGI_GHS_PER_GBP),
@@ -71,7 +72,7 @@ exports.getProdigiQuote = onCall({
                 ...summary,
                 retail: prodigi.createRetailQuote({
                     quote: rawQuotes[index], input, signingKey: prodigiApiKey.value(), exchangeRates,
-                    markupPercent: Number(process.env.PRODIGI_RETAIL_MARKUP_PERCENT || 35),
+                    markupPercent,
                 }),
             })),
         };

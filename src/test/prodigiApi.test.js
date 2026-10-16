@@ -8,6 +8,7 @@ const {
     createQuote,
     createRetailQuote,
     verifyRetailQuoteToken,
+    summariseQuotes,
 } = require('../../functions/prodigi.js');
 
 const item = { sku: 'GLOBAL-CAN-10X10', copies: 1, attributes: { wrap: 'ImageWrap' } };
@@ -103,5 +104,59 @@ describe('Prodigi API integration', () => {
         expect(retail.totalGhs).toBe(250);
         expect(verifyRetailQuoteToken(retail.token, 'test-secret')).toMatchObject({ sku: item.sku, retailTotalGhs: 250 });
         expect(() => verifyRetailQuoteToken(`${retail.token}x`, 'test-secret')).toThrow(/signature/i);
+    });
+
+    it('applies hidden 40% margin markup to frame/print only and keeps shipping at carrier cost', () => {
+        const rawResult = {
+            outcome: 'Created',
+            quotes: [
+                {
+                    shipmentMethod: 'Standard',
+                    costSummary: {
+                        items: { amount: '50.00', currency: 'GBP' },
+                        shipping: { amount: '7.00', currency: 'GBP' },
+                        totalTax: { amount: '10.00', currency: 'GBP' },
+                        totalCost: { amount: '67.00', currency: 'GBP' },
+                    },
+                    shipments: [{ carrier: { name: 'Royal Mail', service: 'Tracked 48' }, fulfillmentLocation: { countryCode: 'GB' } }],
+                },
+            ],
+        };
+
+        const summaries = summariseQuotes(rawResult); // uses default 40% markup
+        expect(summaries).toHaveLength(1);
+        const quote = summaries[0];
+
+        // 50.00 * 1.40 = 70.00
+        expect(quote.items).toEqual({ amount: 70, currency: 'GBP' });
+        // Shipping is untouched at carrier cost
+        expect(quote.shipping).toEqual({ amount: 7, currency: 'GBP' });
+        // Tax is untouched
+        expect(quote.tax).toEqual({ amount: 10, currency: 'GBP' });
+        // Total is recomputed: 70 + 7 + 10 = 87
+        expect(quote.total).toEqual({ amount: 87, currency: 'GBP' });
+    });
+
+    it('rounds marked-up prices to exact pence without floating-point artifacts', () => {
+        const rawResult = {
+            quotes: [
+                {
+                    shipmentMethod: 'Standard',
+                    costSummary: {
+                        items: { amount: '47.33', currency: 'GBP' },
+                        shipping: { amount: '6.45', currency: 'GBP' },
+                        totalTax: { amount: '0.00', currency: 'GBP' },
+                        totalCost: { amount: '53.78', currency: 'GBP' },
+                    },
+                },
+            ],
+        };
+
+        // 47.33 * 1.40 = 66.262 -> 66.26
+        // Total = 66.26 + 6.45 = 72.71
+        const summaries = summariseQuotes(rawResult, { markupPercent: 40 });
+        expect(summaries[0].items.amount).toBe(66.26);
+        expect(summaries[0].shipping.amount).toBe(6.45);
+        expect(summaries[0].total.amount).toBe(72.71);
     });
 });

@@ -36,7 +36,7 @@ describe('generateItemDescription', () => {
         expect(generateItemDescription({ presetTitle: 'Sunset Canvas' })).toBe('Sunset Canvas');
     });
 
-    it('appends frame, mat, glazing, and hardware specs in order', () => {
+    it('appends frame, mount, glazing, and hardware specs in order', () => {
         const item = {
             presetTitle: 'Sunset Canvas',
             selectedFrame: { name: 'Oak' },
@@ -46,18 +46,18 @@ describe('generateItemDescription', () => {
             hardwareType: 'wire',
         };
         expect(generateItemDescription(item)).toBe(
-            'Sunset Canvas - Oak Frame, Standard Polar White Mat, Museum Glass Glazing, Wire Hanging Hardware'
+            'Sunset Canvas - Oak Frame, Standard Polar White Mount, Museum Glass Glazing, Wire Hanging Hardware'
         );
     });
 
-    it('omits the mat spec entirely when matWidth is "none"', () => {
+    it('omits the mount spec entirely when matWidth is "none"', () => {
         const item = { presetTitle: 'X', matWidth: 'none', matColor: { name: 'Black' } };
         expect(generateItemDescription(item)).toBe('X');
     });
 
-    it('falls back to a generic "{width} Mat" label without a mat color', () => {
+    it('falls back to a generic "{width} Mount" label without a mat color', () => {
         const item = { presetTitle: 'X', matWidth: 'wide' };
-        expect(generateItemDescription(item)).toBe('X - Wide Mat');
+        expect(generateItemDescription(item)).toBe('X - Wide Mount');
     });
 
     it('falls back to the raw value for unknown glass/hardware/mat-width codes', () => {
@@ -334,24 +334,24 @@ describe('label maps stay in sync with the values used elsewhere in the app', ()
 });
 
 describe('matWidthLabel', () => {
-    it('labels "none" and a missing value both as "No Mat"', () => {
-        expect(matWidthLabel('none')).toBe('No Mat');
-        expect(matWidthLabel(null)).toBe('No Mat');
-        expect(matWidthLabel(undefined)).toBe('No Mat');
+    it('labels "none" and a missing value both as "No Mount"', () => {
+        expect(matWidthLabel('none')).toBe('No Mount');
+        expect(matWidthLabel(null)).toBe('No Mount');
+        expect(matWidthLabel(undefined)).toBe('No Mount');
     });
 
     it('still labels the three legacy presets from before the mat-width slider', () => {
-        expect(matWidthLabel('narrow')).toBe('Narrow Mat');
-        expect(matWidthLabel('standard')).toBe('Standard Mat');
-        expect(matWidthLabel('wide')).toBe('Wide Mat');
+        expect(matWidthLabel('narrow')).toBe('Narrow Mount');
+        expect(matWidthLabel('standard')).toBe('Standard Mount');
+        expect(matWidthLabel('wide')).toBe('Wide Mount');
     });
 
     it('labels a numeric width (the current, slider-set shape) with its inch value', () => {
-        expect(matWidthLabel(2)).toBe('2" Mat');
-        expect(matWidthLabel(2.5)).toBe('2.5" Mat');
+        expect(matWidthLabel(2)).toBe('2" Mount');
+        expect(matWidthLabel(2.5)).toBe('2.5" Mount');
     });
 
     it('labels a numeric-string width the same as a number (Firestore round-trips can store either)', () => {
-        expect(matWidthLabel('2.5')).toBe('2.5" Mat');
+        expect(matWidthLabel('2.5')).toBe('2.5" Mount');
     });
 });

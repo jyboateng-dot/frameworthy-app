@@ -135,34 +135,73 @@ const createOrder = ({ apiKey, environment, input, fetchImpl }) => prodigiReques
     apiKey, environment, path: 'orders', method: 'POST', body: buildOrderPayload(input), fetchImpl,
 });
 
+const DEFAULT_MARKUP_PERCENT = 40;
+
 const moneyValue = (cost) => {
     const amount = Number(cost?.amount);
     const currency = String(cost?.currency || '').toUpperCase();
     return Number.isFinite(amount) && /^[A-Z]{3}$/.test(currency) ? { amount, currency } : null;
 };
 
-const summariseQuotes = (result) => (Array.isArray(result?.quotes) ? result.quotes : []).map((quote) => ({
-    shippingMethod: quote.shipmentMethod,
-    items: moneyValue(quote.costSummary?.items),
-    shipping: moneyValue(quote.costSummary?.shipping),
-    tax: moneyValue(quote.costSummary?.totalTax),
-    total: moneyValue(quote.costSummary?.totalCost),
-    shipments: (quote.shipments || []).map((shipment) => ({
-        carrier: shipment.carrier?.name || shipment.carrier?.service || null,
-        service: shipment.carrier?.service || null,
-        fulfilmentCountry: shipment.fulfillmentLocation?.countryCode || null,
-    })),
-}));
+const summariseQuotes = (result, { markupPercent = DEFAULT_MARKUP_PERCENT } = {}) => (Array.isArray(result?.quotes) ? result.quotes : []).map((quote) => {
+    const rawItems = moneyValue(quote.costSummary?.items);
+    const shipping = moneyValue(quote.costSummary?.shipping);
+    const tax = moneyValue(quote.costSummary?.totalTax);
+    const rawTotal = moneyValue(quote.costSummary?.totalCost);
+
+    let items = rawItems;
+    let total = rawTotal;
+
+    if (rawItems && Number.isFinite(rawItems.amount) && markupPercent > 0) {
+        // Apply hidden margin markup to the frame/print only (exact pence rounding)
+        const markedUpAmount = Math.round(rawItems.amount * (1 + Number(markupPercent) / 100) * 100) / 100;
+        items = { amount: markedUpAmount, currency: rawItems.currency };
+
+        // Shipping is passed through at carrier cost; customer total is recomputed
+        const shippingAmount = shipping?.amount || 0;
+        const taxAmount = tax?.amount || 0;
+        const newTotalAmount = Math.round((markedUpAmount + shippingAmount + taxAmount) * 100) / 100;
+        total = { amount: newTotalAmount, currency: rawTotal?.currency || rawItems.currency };
+    }
+
+    return {
+        shippingMethod: quote.shipmentMethod,
+        items,
+        shipping,
+        tax,
+        total,
+        shipments: (quote.shipments || []).map((shipment) => ({
+            carrier: shipment.carrier?.name || shipment.carrier?.service || null,
+            service: shipment.carrier?.service || null,
+            fulfilmentCountry: shipment.fulfillmentLocation?.countryCode || null,
+        })),
+    };
+});
 
 const base64Url = (value) => Buffer.from(value).toString('base64url');
 
-const createRetailQuote = ({ quote, input, signingKey, exchangeRates = {}, markupPercent = 35, ttlSeconds = 86400 }) => {
+const createRetailQuote = ({ quote, input, signingKey, exchangeRates = {}, markupPercent = DEFAULT_MARKUP_PERCENT, ttlSeconds = 86400 }) => {
     const total = moneyValue(quote?.costSummary?.totalCost);
+    const rawItems = moneyValue(quote?.costSummary?.items) || total;
     if (!total) return null;
+
+    // Item markup in native currency (e.g. GBP)
+    const markedUpItemsAmount = rawItems && Number.isFinite(rawItems.amount)
+        ? Math.round(rawItems.amount * (1 + Number(markupPercent || 0) / 100) * 100) / 100
+        : null;
+    const shippingAmount = Number(quote?.costSummary?.shipping?.amount || 0);
+    const taxAmount = Number(quote?.costSummary?.totalTax?.amount || 0);
+    const retailTotalGbp = markedUpItemsAmount !== null
+        ? Math.round((markedUpItemsAmount + shippingAmount + taxAmount) * 100) / 100
+        : null;
+
     const rate = Number(exchangeRates[total.currency]);
-    if (!Number.isFinite(rate) || rate <= 0) return null;
-    const supplierGhs = total.amount * rate;
-    const retailTotalGhs = Math.ceil(supplierGhs * (1 + Number(markupPercent || 0) / 100));
+    const hasExchangeRate = Number.isFinite(rate) && rate > 0;
+    const supplierGhs = hasExchangeRate ? total.amount * rate : null;
+    const retailTotalGhs = hasExchangeRate
+        ? Math.ceil(((markedUpItemsAmount || total.amount) * rate) + (shippingAmount * rate) + (taxAmount * rate))
+        : null;
+
     const payload = {
         v: 1,
         exp: Math.floor(Date.now() / 1000) + ttlSeconds,
@@ -173,13 +212,16 @@ const createRetailQuote = ({ quote, input, signingKey, exchangeRates = {}, marku
         shippingMethod: quote.shipmentMethod,
         supplierTotal: total,
         retailTotalGhs,
+        retailTotalGbp,
+        retailItemGbp: markedUpItemsAmount,
     };
     const encoded = base64Url(JSON.stringify(payload));
     const signature = crypto.createHmac('sha256', signingKey).update(encoded).digest('base64url');
     return {
-        supplierGhs: Math.round(supplierGhs * 100) / 100,
+        supplierGhs: supplierGhs ? Math.round(supplierGhs * 100) / 100 : null,
         markupPercent: Number(markupPercent || 0),
         totalGhs: retailTotalGhs,
+        totalGbp: retailTotalGbp,
         expiresAt: new Date(payload.exp * 1000).toISOString(),
         token: `${encoded}.${signature}`,
     };
@@ -197,7 +239,9 @@ const verifyRetailQuoteToken = (token, signingKey) => {
     let payload;
     try { payload = JSON.parse(Buffer.from(encoded, 'base64url').toString('utf8')); }
     catch { throw new Error('Invalid Prodigi quote payload'); }
-    if (payload.v !== 1 || !payload.sku || !Number.isFinite(payload.retailTotalGhs)) throw new Error('Invalid Prodigi quote payload');
+    if (payload.v !== 1 || !payload.sku || (!Number.isFinite(payload.retailTotalGhs) && !Number.isFinite(payload.retailTotalGbp))) {
+        throw new Error('Invalid Prodigi quote payload');
+    }
     if (payload.exp < Math.floor(Date.now() / 1000)) throw new Error('Prodigi quote has expired');
     return payload;
 };
