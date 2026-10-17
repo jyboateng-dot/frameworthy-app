@@ -58,34 +58,36 @@ export default function LandingPage({ onStartFraming, navigate, setSelectedFrame
 
             
             {/* Hero Carousel Section */}
-            <section className="relative pt-16 pb-4 lg:pt-20 lg:pb-8 w-full flex items-center bg-[#faf9f8] overflow-hidden">
+            <section className="relative pt-6 pb-4 sm:pt-10 lg:pt-20 lg:pb-8 w-full flex items-center bg-[#faf9f8] overflow-hidden">
                 <div className="max-w-[2560px] mx-auto px-6 lg:px-12 w-full grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6 items-start">
                     
                     {/* Left: Anchored Typography */}
                     <div className="lg:col-span-5 relative z-10 flex flex-col lg:self-stretch">
-                        <div className="text-stone-400 font-bold tracking-widest text-xs uppercase mb-6 flex items-center gap-4 shrink-0">
+                        <div className="text-stone-400 font-bold tracking-widest text-xs uppercase mb-3 sm:mb-6 flex items-center gap-4 shrink-0">
                             <span className="w-8 h-[1px] bg-stone-300"></span>
                             {String(currentSlide + 1).padStart(2, '0')} &mdash; {String(CAROUSEL_SLIDES.length).padStart(2, '0')}
                         </div>
-                        <div className="relative">
+                        <div className="grid grid-cols-1 grid-rows-1 relative">
                             {CAROUSEL_SLIDES.map((slide, index) => (
                                 <div
                                     key={index}
                                     aria-hidden={currentSlide !== index}
                                     inert={currentSlide !== index}
-                                    className={`transition-all duration-700 ease-[cubic-bezier(0.25,1,0.5,1)] ${
+                                    className={`col-start-1 row-start-1 flex flex-col justify-between transition-all duration-700 ease-[cubic-bezier(0.25,1,0.5,1)] ${
                                         currentSlide === index
-                                            ? 'relative opacity-100 translate-y-0 pointer-events-auto z-10'
-                                            : 'absolute inset-x-0 top-0 opacity-0 translate-y-8 pointer-events-none z-0'
+                                            ? 'opacity-100 translate-y-0 pointer-events-auto z-10'
+                                            : 'opacity-0 translate-y-4 pointer-events-none z-0'
                                     }`}
                                 >
-                                    <h1 className="text-5xl lg:text-7xl font-bold tracking-tighter leading-[1.05] mb-6 text-stone-900">
-                                        {slide.title}
-                                    </h1>
-                                    <p className="text-lg lg:text-xl text-stone-600 max-w-lg leading-relaxed">
-                                        {slide.text}
-                                    </p>
-                                    <div className="mt-4">
+                                    <div>
+                                        <h1 className="text-3xl sm:text-4xl lg:text-7xl font-bold tracking-tighter leading-[1.08] mb-3 sm:mb-4 lg:mb-6 text-stone-900">
+                                            {slide.title}
+                                        </h1>
+                                        <p className="text-sm sm:text-base lg:text-xl text-stone-600 max-w-lg leading-relaxed">
+                                            {slide.text}
+                                        </p>
+                                    </div>
+                                    <div className="mt-4 sm:mt-6">
                                         <button
                                             onClick={(e) => handleStartAction(e, slide)}
                                             className="group flex items-center gap-4 text-sm font-bold tracking-wide uppercase text-stone-900 hover:text-stone-600 transition-colors"
