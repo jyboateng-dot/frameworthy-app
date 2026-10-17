@@ -6,6 +6,7 @@ import {
     prodigiConfigurationFromSelection,
     prodigiHangingHardware,
     prodigiMountWidthInForSize,
+    prodigiBaseProductForProduct,
     resolveProdigiProduct,
 } from './prodigiFlow';
 
@@ -46,6 +47,7 @@ describe('Prodigi Frame Studio flow', () => {
 
         expect(noMount).toMatchObject({ family: 'classic-motheye', sku: 'GLOBAL-CFP-MOTH-8X10' });
         expect(mounted).toMatchObject({ family: 'classic-mounted-motheye', sku: 'GLOBAL-CFPM-MOTH-8X10' });
+        expect(prodigiBaseProductForProduct(mounted, 'GB')).toMatchObject({ family: 'classic', sku: 'GLOBAL-CFP-8X10' });
     });
 
     it('resolves real GB/JE float-glass SKUs for Classic and Box frames', () => {
@@ -61,7 +63,17 @@ describe('Prodigi Frame Studio flow', () => {
                 .toMatchObject({ sku: item.unmountedSku, options: { glaze: 'Float glass' } });
             expect(resolveProdigiProduct(item.frame, size, { mounted: true, mountColor: 'Black', glaze: 'Float glass' }))
                 .toMatchObject({ sku: item.mountedSku, options: { glaze: 'Float glass', mountColor: 'Black' } });
+            expect(prodigiBaseProductForProduct(resolveProdigiProduct(item.frame, size, { mounted: true, glaze: 'Float glass' }), 'GB'))
+                .toMatchObject({ family: item.frame === classic ? 'classic' : 'box', options: { glaze: 'Acrylic / Perspex', mount: 'No mount / Mat' } });
         }
+    });
+
+    it('maps centimetre-labelled glass products to the equivalent base frame size', () => {
+        const size = prodigiAvailableSizes(classic, { mounted: false, glaze: 'Float glass' })
+            .find((candidate) => candidate.prodigiSizeCm === '29x42cm');
+        const glassProduct = resolveProdigiProduct(classic, size, { mounted: false, glaze: 'Float glass' });
+        expect(glassProduct.sku).toBe('FRA-CLA-EMA-NM-GLA-29x42');
+        expect(prodigiBaseProductForProduct(glassProduct, 'GB').sku).toBe('GLOBAL-CFP-A3');
     });
 
     it('uses each Classic and Box mounted SKU with every supported mountColor attribute', () => {

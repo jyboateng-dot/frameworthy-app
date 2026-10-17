@@ -1,5 +1,6 @@
 import { FRAME_STYLES, CATEGORIES } from './constants';
 import { PRODIGI_PRESENTATION } from './prodigiProductPresentation';
+import { frameRetailPrice } from '../utils/retailPricing';
 
 export const PRODIGI_FRAME_CATEGORIES = CATEGORIES.filter(category => category.startsWith('Prodigi '));
 export const PRODIGI_FRAME_STYLES = FRAME_STYLES.filter(frame => frame.prodigiProduct);
@@ -70,7 +71,7 @@ export const FRAME_STARTING_PRICES_GBP = {
 
 export function frameStartingPrice(frame) {
     if (!frame) return 0;
-    return FRAME_STARTING_PRICES_GBP[frame.prodigiProduct] || 16;
+    return Math.ceil(frameRetailPrice(FRAME_STARTING_PRICES_GBP[frame.prodigiProduct] || 16));
 }
 
 export function frameStartingPriceDisplay(frame) {

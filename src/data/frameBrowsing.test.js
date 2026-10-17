@@ -108,14 +108,14 @@ describe('frame catalogue browsing', () => {
         const alu = framesForCategory('Prodigi Aluminium Frames')[0];
         const stretched = framesForCategory('Prodigi Stretched Canvas')[0];
 
-        expect(frameStartingPrice(classic)).toBe(16);
-        expect(frameStartingPriceDisplay(classic)).toBe('From £16');
-        expect(frameStartingPrice(box)).toBe(19);
-        expect(frameStartingPriceDisplay(box)).toBe('From £19');
-        expect(frameStartingPrice(alu)).toBe(12);
-        expect(frameStartingPriceDisplay(alu)).toBe('From £12');
-        expect(frameStartingPrice(stretched)).toBe(14);
-        expect(frameStartingPriceDisplay(stretched)).toBe('From £14');
+        expect(frameStartingPrice(classic)).toBe(32);
+        expect(frameStartingPriceDisplay(classic)).toBe('From £32');
+        expect(frameStartingPrice(box)).toBe(38);
+        expect(frameStartingPriceDisplay(box)).toBe('From £38');
+        expect(frameStartingPrice(alu)).toBe(24);
+        expect(frameStartingPriceDisplay(alu)).toBe('From £24');
+        expect(frameStartingPrice(stretched)).toBe(28);
+        expect(frameStartingPriceDisplay(stretched)).toBe('From £28');
     });
 
     it('provides descriptive summaries for each frame category pill', () => {

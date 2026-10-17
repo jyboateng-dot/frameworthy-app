@@ -10,7 +10,7 @@ export const prodigiAttributesForProduct = (product) => ({
     ...(product?.options?.paper ? { paperType: product.options.paper } : {}),
 });
 
-export const getProdigiQuote = async ({ product, destinationCountryCode, shippingMethod = 'Standard' }) => {
+export const getProdigiQuote = async ({ product, baseProduct = product, destinationCountryCode, shippingMethod = 'Standard' }) => {
     // Lazy imports keep catalogue rendering and its unit tests independent of
     // Firebase configuration until the customer actually asks for a live quote.
     const [{ httpsCallable }, { functions }] = await Promise.all([
@@ -26,6 +26,11 @@ export const getProdigiQuote = async ({ product, destinationCountryCode, shippin
             copies: 1,
             attributes: prodigiAttributesForProduct(product),
         }],
+        baseItem: {
+            sku: baseProduct.sku,
+            copies: 1,
+            attributes: prodigiAttributesForProduct(baseProduct),
+        },
     });
     return response.data;
 };

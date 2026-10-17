@@ -26,7 +26,7 @@ describe('ProdigiCataloguePage', () => {
 
         expect(screen.getByRole('heading', { name: 'Frame & canvas catalogue' })).toBeInTheDocument();
         expect(screen.getAllByRole('heading', { name: 'Box frame · no mount' })).toHaveLength(2);
-        expect(screen.getByText('Supplier subtotal*')).toBeInTheDocument();
+        expect(screen.getByText('Estimated total*')).toBeInTheDocument();
         expect(screen.getByText(/Standard shipping: .* days, tracked/i)).toBeInTheDocument();
 
         await user.selectOptions(screen.getByLabelText('Shipping to'), 'GB');
@@ -84,6 +84,6 @@ describe('ProdigiCataloguePage', () => {
         expect(screen.getByRole('link', { name: /product sheet \(PDF\)/i })).toBeInTheDocument();
         expect(screen.getByText('Stretcher material')).toBeInTheDocument();
         expect(screen.getByText('European kiln-dried knotless pine')).toBeInTheDocument();
-        expect(screen.getByText('Supplier subtotal*')).toBeInTheDocument();
+        expect(screen.getByText('Estimated total*')).toBeInTheDocument();
     });
 });

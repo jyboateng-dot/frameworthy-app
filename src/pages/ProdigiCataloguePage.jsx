@@ -5,6 +5,8 @@ import prodigiCatalog from '../data/prodigiCatalog.json';
 import { PRODIGI_PRESENTATION } from '../data/prodigiProductPresentation';
 import { FRAME_STYLES, parseCustomSize } from '../data/constants';
 import { getProdigiQuote, prodigiAttributesForProduct } from '../services/prodigi';
+import { prodigiBaseProductForProduct } from '../utils/prodigiFlow';
+import { configuredItemRetailPrice } from '../utils/retailPricing';
 
 const FAMILY_OPTIONS = [
     { id: 'classic', label: 'Classic frame · no mount', group: 'Classic frames', presentation: 'classic', description: 'Satin-laminated wood frame with clear acrylic / Perspex glaze.' },
@@ -107,6 +109,8 @@ export default function ProdigiCataloguePage() {
     const activeView = presentation.views.find((view) => view.id === activePreview);
     const visualizerImage = activePreview === 'finish' ? selectedColorAsset : (activeView?.src || presentation.thumbnail);
     const selectedMarket = selected?.markets[destination];
+    const baseProduct = prodigiBaseProductForProduct(selected, destination);
+    const baseMarket = baseProduct?.markets?.[destination];
     const resetQuote = () => {
         setLiveQuote(null);
         setQuoteError('');
@@ -137,8 +141,11 @@ export default function ProdigiCataloguePage() {
         setActivePreview(defaultPreviewForFamily(family));
     };
 
+    const catalogueItemPrice = selectedMarket && baseMarket && selectedMarket.productCurrency === baseMarket.productCurrency
+        ? configuredItemRetailPrice({ baseFrameCost: baseMarket.productPrice, configuredItemCost: selectedMarket.productPrice })
+        : null;
     const lineTotal = selectedMarket
-        ? (selectedMarket.productPrice || 0) + (selectedMarket.shippingPrice || 0)
+        ? (catalogueItemPrice || 0) + (selectedMarket.shippingPrice || 0)
         : 0;
 
     const requestLiveQuote = async () => {
@@ -146,7 +153,7 @@ export default function ProdigiCataloguePage() {
         setIsQuoting(true);
         setQuoteError('');
         try {
-            const result = await getProdigiQuote({ product: selected, destinationCountryCode: destination });
+            const result = await getProdigiQuote({ product: selected, baseProduct, destinationCountryCode: destination });
             const quote = result.quotes?.find((item) => item.shippingMethod?.toLowerCase() === 'standard') || result.quotes?.[0];
             if (!quote) throw new Error('No delivery option is currently available.');
             setLiveQuote({ ...quote, environment: result.environment });
@@ -175,6 +182,12 @@ export default function ProdigiCataloguePage() {
                     destinationCountryCode: destination,
                     shippingMethod: liveQuote?.shippingMethod || 'Standard',
                     quoteTotalGbp: liveQuote?.total?.currency === 'GBP' ? Number(liveQuote.total.amount) : null,
+                    quoteItemsGbp: liveQuote?.items?.currency === 'GBP' ? Number(liveQuote.items.amount) : null,
+                    quoteFrameGbp: liveQuote?.retail?.frame?.currency === 'GBP' ? Number(liveQuote.retail.frame.amount) : null,
+                    quoteCustomizationsGbp: liveQuote?.retail?.customizations?.currency === 'GBP' ? Number(liveQuote.retail.customizations.amount) : 0,
+                    quoteShippingGbp: liveQuote?.shipping?.currency === 'GBP' ? Number(liveQuote.shipping.amount) : null,
+                    quoteTaxGbp: liveQuote?.tax?.currency === 'GBP' ? Number(liveQuote.tax.amount) : null,
+                    quoteToken: liveQuote?.retail?.token || null,
                     quoteCurrency: liveQuote?.total?.currency || null,
                 },
             },
@@ -332,10 +345,10 @@ export default function ProdigiCataloguePage() {
                             </div>
 
                             <div className="space-y-3 border-y border-stone-100 py-4 text-sm">
-                                <div className="flex justify-between gap-3 text-stone-600"><span>Item price</span><span className="font-semibold text-stone-900">{money(selectedMarket.productPrice, selectedMarket.productCurrency)}</span></div>
+                                <div className="flex justify-between gap-3 text-stone-600"><span>Frame price</span><span className="font-semibold text-stone-900">{catalogueItemPrice === null ? 'Check live price' : money(catalogueItemPrice, selectedMarket.productCurrency)}</span></div>
                                 <div className="flex justify-between gap-3 text-stone-600"><span>Standard delivery · {destination === 'JE' ? 'Jersey' : 'UK'}</span><span className="font-semibold text-stone-900">{money(selectedMarket.shippingPrice, selectedMarket.shippingCurrency)}</span></div>
                                 {selectedMarket.additionalItemShipping > 0 && <div className="flex justify-between gap-3 text-stone-500"><span>Each additional item · delivery</span><span>{money(selectedMarket.additionalItemShipping, selectedMarket.shippingCurrency)}</span></div>}
-                                <div className="flex justify-between gap-3 border-t border-stone-100 pt-3 font-bold text-stone-950"><span>Supplier subtotal*</span><span>{money(lineTotal, selectedMarket.productCurrency)}</span></div>
+                                <div className="flex justify-between gap-3 border-t border-stone-100 pt-3 font-bold text-stone-950"><span>Estimated total*</span><span>{money(lineTotal, selectedMarket.productCurrency)}</span></div>
                             </div>
                             {liveQuote && (
                                 <div className="mt-4 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm" aria-live="polite">

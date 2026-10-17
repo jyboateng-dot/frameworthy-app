@@ -9,6 +9,7 @@ import {
     prodigiMountWidthInForSize,
     prodigiProductsForFrame,
     prodigiWrapsForSelection,
+    prodigiBaseProductForProduct,
     resolveProdigiProduct,
 } from '../../utils/prodigiFlow';
 
@@ -87,6 +88,7 @@ export default function ProdigiConfigurationPanel({
     const activeWrap = wraps.includes(wrap) ? wrap : (wraps.includes('ImageWrap') ? 'ImageWrap' : wraps[0] || '');
     const configuration = useMemo(() => ({ mounted: activeMounted, mountColor: activeMountColor, glaze: activeGlaze, wrap: activeWrap, destinationCountryCode: destination }), [activeMounted, activeMountColor, activeGlaze, activeWrap, destination]);
     const product = useMemo(() => resolveProdigiProduct(frame, size, configuration), [frame, size, configuration]);
+    const baseProduct = useMemo(() => prodigiBaseProductForProduct(product, destination), [product, destination]);
     const hangingHardware = useMemo(() => prodigiHangingHardware(frame, size), [frame, size]);
     const mountWidthIn = activeMounted ? prodigiMountWidthInForSize(size, product) : null;
     const mountWidthLabel = mountWidthIn ? `${mountWidthIn}" (${Math.round(mountWidthIn * 25.4)} mm)` : 'Custom';
@@ -119,6 +121,8 @@ export default function ProdigiConfigurationPanel({
             next.retailTotalGhs = selection.retailTotalGhs || null;
             next.quoteTotalGbp = selection.quoteTotalGbp || null;
             next.quoteItemsGbp = selection.quoteItemsGbp || null;
+            next.quoteFrameGbp = selection.quoteFrameGbp || null;
+            next.quoteCustomizationsGbp = selection.quoteCustomizationsGbp || null;
             next.quoteShippingGbp = selection.quoteShippingGbp || null;
             next.quoteTaxGbp = selection.quoteTaxGbp || null;
             next.quoteCurrency = selection.quoteCurrency || null;
@@ -158,7 +162,7 @@ export default function ProdigiConfigurationPanel({
             setIsQuoting(true);
             setQuoteError('');
             try {
-                const result = await getProdigiQuote({ product, destinationCountryCode: destination });
+                const result = await getProdigiQuote({ product, baseProduct, destinationCountryCode: destination });
                 const quote = result.quotes?.find((item) => item.shippingMethod?.toLowerCase() === 'standard') || result.quotes?.[0];
                 if (!quote) throw new Error('No delivery option is currently available.');
                 if (quote.total?.currency !== 'GBP') throw new Error('A GBP quote is not available for this configuration.');
@@ -177,6 +181,8 @@ export default function ProdigiConfigurationPanel({
                     retailTotalGhs: quote.retail?.totalGhs || null,
                     quoteTotalGbp: Number(quote.total.amount),
                     quoteItemsGbp: Number(quote.items?.amount) || null,
+                    quoteFrameGbp: Number(quote.retail?.frame?.amount) || null,
+                    quoteCustomizationsGbp: Number(quote.retail?.customizations?.amount) || 0,
                     quoteShippingGbp: Number(quote.shipping?.amount) || null,
                     quoteTaxGbp: Number(quote.tax?.amount) || null,
                     quoteCurrency: 'GBP',
@@ -193,7 +199,7 @@ export default function ProdigiConfigurationPanel({
             cancelled = true;
             window.clearTimeout(timer);
         };
-    }, [product, destination, selection, onSelectionChange]);
+    }, [product, baseProduct, destination, selection, onSelectionChange]);
 
     if (!hasImportedProducts) {
         return (

@@ -4,6 +4,7 @@ import { describe, expect, it, vi } from 'vitest';
 const require = createRequire(import.meta.url);
 const {
     buildQuotePayload,
+    buildBaseQuotePayload,
     buildOrderPayload,
     createQuote,
     createRetailQuote,
@@ -94,14 +95,54 @@ describe('Prodigi API integration', () => {
         expect(payload.recipient.address.countryCode).toBe('JE');
     });
 
-    it('signs retail GHS totals and rejects token tampering', () => {
+    it('puts a 50% gross margin on the base frame and passes upgrades, delivery and tax through', () => {
         const retail = createRetailQuote({
-            quote: { shipmentMethod: 'Standard', costSummary: { totalCost: { amount: '10.00', currency: 'GBP' } } },
+            quote: { shipmentMethod: 'Standard', costSummary: {
+                items: { amount: '24.00', currency: 'GBP' },
+                shipping: { amount: '7.85', currency: 'GBP' },
+                totalTax: { amount: '5.97', currency: 'GBP' },
+                totalCost: { amount: '37.82', currency: 'GBP' },
+            } },
+            baseQuote: { shipmentMethod: 'Standard', costSummary: { items: { amount: '22.00', currency: 'GBP' } } },
             input: { destinationCountryCode: 'GB', items: [item] },
-            signingKey: 'test-secret', exchangeRates: { GBP: 20 }, markupPercent: 25,
+            signingKey: 'test-secret', exchangeRates: { GBP: 20 },
         });
-        expect(retail.totalGhs).toBe(250);
-        expect(verifyRetailQuoteToken(retail.token, 'test-secret')).toMatchObject({ sku: item.sku, retailTotalGhs: 250 });
+        expect(retail).toMatchObject({
+            grossMarginPercent: 50,
+            frame: { amount: 44, currency: 'GBP' },
+            customizations: { amount: 2, currency: 'GBP' },
+            items: { amount: 46, currency: 'GBP' },
+            total: { amount: 59.82, currency: 'GBP' },
+            totalGhs: 1197,
+        });
+        expect(verifyRetailQuoteToken(retail.token, 'test-secret')).toMatchObject({ sku: item.sku, retailTotalGbp: 59.82 });
         expect(() => verifyRetailQuoteToken(`${retail.token}x`, 'test-secret')).toThrow(/signature/i);
+    });
+
+    it('accepts only the matching uncustomized base SKU for a configurable frame', () => {
+        const selected = buildQuotePayload({
+            destinationCountryCode: 'GB',
+            items: [{ sku: 'GLOBAL-CFPM-MOTH-8X10', copies: 1, attributes: { color: 'black', glaze: 'Motheye', mount: '2.4mm' } }],
+        });
+        expect(buildBaseQuotePayload({
+            destinationCountryCode: 'GB',
+            baseItem: { sku: 'GLOBAL-CFP-8X10', copies: 1, attributes: { color: 'black', glaze: 'Acrylic / Perspex', mount: 'No mount / Mat' } },
+        }, selected).items[0].sku).toBe('GLOBAL-CFP-8X10');
+        expect(() => buildBaseQuotePayload({
+            destinationCountryCode: 'GB',
+            baseItem: { sku: 'GLOBAL-CFP-A5', copies: 1, attributes: { color: 'black', glaze: 'Acrylic / Perspex', mount: 'No mount / Mat' } },
+        }, selected)).toThrow(/base frame/i);
+    });
+
+    it('allows the standard image wrap as the base for other canvas edge finishes', () => {
+        const selected = buildQuotePayload({
+            destinationCountryCode: 'GB',
+            items: [{ sku: 'GLOBAL-CAN-8X10', copies: 1, attributes: { wrap: 'MirrorWrap' } }],
+        });
+        const base = buildBaseQuotePayload({
+            destinationCountryCode: 'GB',
+            baseItem: { sku: 'GLOBAL-CAN-8X10', copies: 1, attributes: { wrap: 'ImageWrap' } },
+        }, selected);
+        expect(base.items[0].attributes.wrap).toBe('ImageWrap');
     });
 });

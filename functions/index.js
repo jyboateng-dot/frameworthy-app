@@ -52,13 +52,17 @@ exports.getProdigiQuote = onCall({
 }, async (request) => {
     try {
         const input = prodigi.buildQuotePayload(request.data);
-        const result = await prodigi.createQuote({
-            apiKey: prodigiApiKey.value(),
-            environment: prodigiEnvironment(),
-            input,
-        });
+        const baseInput = prodigi.buildBaseQuotePayload(request.data, input);
+        const quoteArgs = { apiKey: prodigiApiKey.value(), environment: prodigiEnvironment() };
+        const selectedQuotePromise = prodigi.createQuote({ ...quoteArgs, input });
+        const sameAsBase = JSON.stringify(input.items) === JSON.stringify(baseInput.items);
+        const [result, baseResult] = await Promise.all([
+            selectedQuotePromise,
+            sameAsBase ? selectedQuotePromise : prodigi.createQuote({ ...quoteArgs, input: baseInput }),
+        ]);
         const summaries = prodigi.summariseQuotes(result);
         const rawQuotes = Array.isArray(result.quotes) ? result.quotes : [];
+        const rawBaseQuotes = Array.isArray(baseResult.quotes) ? baseResult.quotes : [];
         const exchangeRates = {
             GBP: Number(process.env.PRODIGI_GHS_PER_GBP),
             EUR: Number(process.env.PRODIGI_GHS_PER_EUR),
@@ -67,13 +71,15 @@ exports.getProdigiQuote = onCall({
         return {
             environment: prodigiEnvironment(),
             outcome: result.outcome,
-            quotes: summaries.map((summary, index) => ({
-                ...summary,
-                retail: prodigi.createRetailQuote({
-                    quote: rawQuotes[index], input, signingKey: prodigiApiKey.value(), exchangeRates,
-                    markupPercent: Number(process.env.PRODIGI_RETAIL_MARKUP_PERCENT || 35),
-                }),
-            })),
+            quotes: summaries.map((summary, index) => {
+                const rawQuote = rawQuotes[index];
+                const baseQuote = rawBaseQuotes.find((candidate) => candidate.shipmentMethod === rawQuote?.shipmentMethod) || rawBaseQuotes[0];
+                const retail = prodigi.createRetailQuote({
+                    quote: rawQuote, baseQuote, input, signingKey: prodigiApiKey.value(), exchangeRates,
+                });
+                if (!retail) throw new Error('Could not calculate the customer price');
+                return { ...summary, items: retail.items, total: retail.total, retail };
+            }),
         };
     } catch (error) {
         logger.warn('Prodigi quote failed', { message: error.message, status: error.status });

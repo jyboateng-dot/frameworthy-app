@@ -1,7 +1,7 @@
 import { getProdigiQuote } from './prodigi';
-import { prodigiConfigurationFromSelection, resolveProdigiProduct } from '../utils/prodigiFlow';
+import { prodigiBaseProductForProduct, prodigiConfigurationFromSelection, resolveProdigiProduct } from '../utils/prodigiFlow';
 
-export async function quoteCheckoutDestination(items, countryCode, { quoteProduct = getProdigiQuote, resolveProduct = resolveProdigiProduct } = {}) {
+export async function quoteCheckoutDestination(items, countryCode, { quoteProduct = getProdigiQuote, resolveProduct = resolveProdigiProduct, resolveBaseProduct = prodigiBaseProductForProduct } = {}) {
     if (!['GB', 'JE'].includes(countryCode)) throw new Error('Choose United Kingdom or Jersey for delivery.');
     const products = items.map(item => {
         const product = resolveProduct(item.selectedFrame, item.selectedSize, {
@@ -12,7 +12,8 @@ export async function quoteCheckoutDestination(items, countryCode, { quoteProduc
         return product;
     });
     return Promise.all(items.map(async (item, index) => {
-        const result = await quoteProduct({ product: products[index], destinationCountryCode: countryCode, shippingMethod: item.prodigi.shippingMethod || 'Standard' });
+        const baseProduct = resolveBaseProduct(products[index], countryCode);
+        const result = await quoteProduct({ product: products[index], baseProduct, destinationCountryCode: countryCode, shippingMethod: item.prodigi.shippingMethod || 'Standard' });
         const quote = result.quotes?.find(option => option.shippingMethod?.toLowerCase() === (item.prodigi.shippingMethod || 'Standard').toLowerCase()) || result.quotes?.[0];
         const amount = Number(quote?.total?.amount);
         if (quote?.total?.currency !== 'GBP' || !Number.isFinite(amount) || amount <= 0) throw new Error('Delivery pricing is unavailable. Your previous destination and quote are unchanged.');
@@ -27,6 +28,8 @@ export async function quoteCheckoutDestination(items, countryCode, { quoteProduc
                 retailTotalGhs: quote.retail?.totalGhs || null,
                 quoteTotalGbp: amount,
                 quoteItemsGbp: Number(quote?.items?.amount) || null,
+                quoteFrameGbp: Number(quote?.retail?.frame?.amount) || null,
+                quoteCustomizationsGbp: Number(quote?.retail?.customizations?.amount) || 0,
                 quoteShippingGbp: Number(quote?.shipping?.amount) || null,
                 quoteTaxGbp: Number(quote?.tax?.amount) || null,
                 quoteCurrency: 'GBP',

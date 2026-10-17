@@ -143,6 +143,91 @@ export const resolveProdigiProduct = (frame, size, configuration = {}) => {
     return product;
 };
 
+const normalisedSizeLabel = (value) => String(value || '').replace(/\s+/g, '').toLowerCase();
+
+const FLOAT_SIZE_TO_BASE_SUFFIX = {
+    '20X20': '8X8', '20X30': '8X12', '25X50': '10X20', '28X35': '11X14',
+    '29X42': 'A3', '30X30': '12X12', '30X40': '12X16', '30X45': '12X18',
+    '40X40': '16X16', '40X50': '16X20', '40X60': '16X24', '40X80': '16X32',
+    '45X60': '18X24', '50X50': '20X20', A2: 'A2', A3: 'A3', A4: 'A4',
+};
+
+const expectedBaseSkuForProduct = (product) => {
+    const sku = String(product?.sku || '').toUpperCase();
+    const classic = sku.match(/^GLOBAL-CFPM?-MOTH-(.+)$/) || sku.match(/^GLOBAL-CFPM-(.+)$/) || sku.match(/^GLOBAL-CFP-(.+)$/);
+    if (classic) return `GLOBAL-CFP-${classic[1]}`;
+    const boxMounted = sku.match(/^GLOBAL-BOXM-MOTH-(.+)$/) || sku.match(/^GLOBAL-BOXM-(.+)$/);
+    if (boxMounted) {
+        const metricSize = boxMounted[1].match(/^(\d{3,})X(\d{3,})$/);
+        const suffix = metricSize
+            ? metricSize.slice(1).map((part) => Math.round(Number(part) / 25.4)).join('X')
+            : boxMounted[1];
+        return `GLOBAL-BOX-${suffix}`;
+    }
+    const box = sku.match(/^GLOBAL-BOX-MOTH-(.+)$/) || sku.match(/^GLOBAL-BOX-(.+)$/);
+    if (box) return `GLOBAL-BOX-${box[1]}`;
+    const classicFloat = sku.match(/^FRA-CLA-EMA-(?:NM|MOUNT2)-GLA-(.+)$/);
+    if (classicFloat) return `GLOBAL-CFP-${FLOAT_SIZE_TO_BASE_SUFFIX[classicFloat[1]] || classicFloat[1]}`;
+    const boxFloat = sku.match(/^FRA-BOX-EMA-(?:NM|MOUNT2)-GLA-(.+)$/);
+    if (boxFloat) return `GLOBAL-BOX-${FLOAT_SIZE_TO_BASE_SUFFIX[boxFloat[1]] || boxFloat[1]}`;
+    return sku;
+};
+
+const hasEquivalentPhysicalSize = (candidate, product) => {
+    if (normalisedSizeLabel(candidate?.sizeInches) === normalisedSizeLabel(product?.sizeInches)) return true;
+    const candidateSize = parseCustomSize(candidate?.sizeCm);
+    const productSize = parseCustomSize(product?.sizeCm);
+    if (!candidateSize || !productSize) return false;
+    const [candidateShort, candidateLong] = sortedDimensions(candidateSize);
+    const [productShort, productLong] = sortedDimensions(productSize);
+    return Math.abs(candidateShort - productShort) <= 0.35 && Math.abs(candidateLong - productLong) <= 0.35;
+};
+
+export const prodigiBaseProductForProduct = (product, destinationCountryCode = 'GB') => {
+    if (!product) return null;
+    const baseFamily = CLASSIC_FAMILIES.includes(product.family)
+        ? 'classic'
+        : BOX_FAMILIES.includes(product.family) ? 'box' : product.family;
+    const isStandardPrintFrame = product.family === baseFamily
+        && String(product.options?.glaze || '').toLowerCase() === 'acrylic / perspex'
+        && /^no mount/i.test(product.options?.mount || '')
+        && product.options?.paper === 'EMA';
+    const isStandardCanvas = product.family === baseFamily && product.options?.wrap === 'ImageWrap';
+    if (isStandardPrintFrame || isStandardCanvas) return product;
+    const expectedBaseSku = expectedBaseSkuForProduct(product);
+    const exactSkuCandidates = prodigiCatalog.products.filter((candidate) =>
+        candidate.sku === expectedBaseSku
+        && candidate.family === baseFamily
+        && (!product.options?.color || candidate.options?.color === product.options.color)
+        && Boolean(candidate.markets?.[destinationCountryCode]));
+    const exactSkuCandidate = exactSkuCandidates.find((candidate) =>
+        baseFamily === 'classic' || baseFamily === 'box'
+            ? String(candidate.options?.glaze || '').toLowerCase() === 'acrylic / perspex'
+                && /^no mount/i.test(candidate.options?.mount || '')
+            : candidate.options?.wrap === 'ImageWrap') || exactSkuCandidates[0];
+    if (exactSkuCandidate) return exactSkuCandidate;
+    const candidates = prodigiCatalog.products.filter((candidate) =>
+        candidate.family === baseFamily
+        && candidate.sku
+        && hasEquivalentPhysicalSize(candidate, product)
+        && (!product.options?.color || candidate.options?.color === product.options.color)
+        && Boolean(candidate.markets?.[destinationCountryCode]));
+    const exactCandidates = candidates.filter((candidate) =>
+        normalisedSizeLabel(candidate.sizeInches) === normalisedSizeLabel(product.sizeInches));
+    const preferredCandidates = exactCandidates.length ? exactCandidates : candidates;
+    return preferredCandidates.find((candidate) => String(candidate.options?.glaze || '').toLowerCase() === 'acrylic / perspex'
+            && /^no mount/i.test(candidate.options?.mount || '')
+            && candidate.options?.paper === 'EMA')
+        || preferredCandidates.find((candidate) => candidate.options?.wrap === 'ImageWrap')
+        || preferredCandidates[0]
+        || product;
+};
+
+export const resolveProdigiBaseProduct = (frame, size, configuration = {}) => {
+    const product = resolveProdigiProduct(frame, size, configuration);
+    return prodigiBaseProductForProduct(product, configuration.destinationCountryCode || 'GB');
+};
+
 export const prodigiConfigurationFromSelection = (selection) => ({
     mounted: Boolean(selection?.attributes?.mount && !/^no mount/i.test(selection.attributes.mount)),
     mountColor: normaliseProdigiMountColor(selection?.attributes?.mountColor),

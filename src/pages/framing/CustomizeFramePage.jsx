@@ -316,10 +316,6 @@ const CustomizeFramePage = ({
     // sits first in that order, so it slides too instead of just cutting.
     const [roomSlideDirection, setRoomSlideDirection] = useState(1);
     const [mobileRoomReturnSceneId, setMobileRoomReturnSceneId] = useState(null);
-    // Bumped only when the scene-discovery hint is accepted. ScenePicker
-    // watches this counter so the hint can open the existing picker without
-    // adding a second mobile-only flow.
-    const [sceneAutoOpenTick, setSceneAutoOpenTick] = useState(0);
     // The invitation is reset for every fresh artwork. Auto-dismisses after
     // a recommended 6 seconds so it doesn't obstruct the visualizer indefinitely.
     const [showSceneHint, setShowSceneHint] = useState(true);
@@ -1257,8 +1253,9 @@ const CustomizeFramePage = ({
     };
 
     const openScenePickerFromHint = () => {
-        dismissSceneHint();
-        setSceneAutoOpenTick(t => t + 1);
+        const sceneOrder = [null, ...ROOM_SCENES.map((scene) => scene.id)];
+        const currentIndex = Math.max(0, sceneOrder.indexOf(roomSceneId));
+        selectRoomScene(sceneOrder[(currentIndex + 1) % sceneOrder.length]);
     };
 
     const preloadRoomScene = (sceneId) => {
@@ -2419,44 +2416,46 @@ const CustomizeFramePage = ({
                         }}
                         className="relative z-20 flex w-[min(18.5rem,calc(100vw-1rem))] items-center gap-1.5 rounded-2xl border border-stone-200/90 bg-white/95 p-1.5 pr-2 font-sans shadow-lg shadow-stone-900/10 backdrop-blur transition-all duration-300"
                     >
-                        <div className="relative h-11 w-[4.125rem] shrink-0 overflow-hidden rounded-lg bg-stone-100 sm:h-[3.25rem] sm:w-[5.125rem]" style={{ containerType: 'inline-size' }}>
-                            <img
-                                src={sceneHintPreview?.image}
-                                alt=""
-                                aria-hidden="true"
-                                className="absolute inset-0 h-full w-full object-cover object-center"
-                            />
-                            {uploadedImage && (
-                                <div
-                                    data-testid="hint-frame-preview"
-                                    className="absolute -translate-x-1/2 -translate-y-1/2 rounded-[1px] shadow-[1px_2px_4px_rgba(0,0,0,0.4)]"
-                                    style={{
-                                        left: `${sceneHintPreview?.hang?.x ?? 50}%`,
-                                        top: `min(${sceneHintPreview?.hang?.y ?? 50}%, calc(60% - ${hintFrameHalfHeightCqw}cqw))`,
-                                        width: `${hintFrameWidthPct}%`,
-                                        aspectRatio: `${outerFrameWidthCm} / ${outerFrameHeightCm}`,
-                                        backgroundColor: selectedFrame?.baseColor || '#24211f'
-                                    }}
-                                >
-                                    <div className="absolute inset-[1px]" style={{ backgroundColor: matWidth !== 'none' ? (matColor?.hex || '#fff') : '#fff' }}>
-                                        <div className="absolute inset-[2px] bg-cover bg-center" style={{ backgroundImage: `url(${uploadedImage})` }} />
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-                        <div className="min-w-0 flex-1 py-0.5">
-                            <p className="font-serif font-light tracking-tight text-[13.5px] leading-4 text-stone-900 sm:text-[14.5px]">
-                                See your frame in context
-                            </p>
-                            <button
-                                type="button"
-                                onClick={openScenePickerFromHint}
-                                className="mt-1 flex items-center gap-1 text-[11.5px] font-semibold tracking-tight text-stone-700 transition-colors hover:text-stone-950"
-                            >
-                                Try a room scene
-                                <span aria-hidden="true" className="text-sm leading-none">→</span>
-                            </button>
-                        </div>
+                        <button
+                            type="button"
+                            onClick={openScenePickerFromHint}
+                            className="flex min-w-0 flex-1 items-center gap-1.5 rounded-xl text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-stone-700"
+                        >
+                            <span className="relative h-11 w-[4.125rem] shrink-0 overflow-hidden rounded-lg bg-stone-100 sm:h-[3.25rem] sm:w-[5.125rem]" style={{ containerType: 'inline-size' }}>
+                                <img
+                                    src={sceneHintPreview?.image}
+                                    alt=""
+                                    aria-hidden="true"
+                                    className="absolute inset-0 h-full w-full object-cover object-center"
+                                />
+                                {uploadedImage && (
+                                    <span
+                                        data-testid="hint-frame-preview"
+                                        className="absolute -translate-x-1/2 -translate-y-1/2 rounded-[1px] shadow-[1px_2px_4px_rgba(0,0,0,0.4)]"
+                                        style={{
+                                            left: `${sceneHintPreview?.hang?.x ?? 50}%`,
+                                            top: `min(${sceneHintPreview?.hang?.y ?? 50}%, calc(60% - ${hintFrameHalfHeightCqw}cqw))`,
+                                            width: `${hintFrameWidthPct}%`,
+                                            aspectRatio: `${outerFrameWidthCm} / ${outerFrameHeightCm}`,
+                                            backgroundColor: selectedFrame?.baseColor || '#24211f'
+                                        }}
+                                    >
+                                        <span className="absolute inset-[1px]" style={{ backgroundColor: matWidth !== 'none' ? (matColor?.hex || '#fff') : '#fff' }}>
+                                            <span className="absolute inset-[2px] bg-cover bg-center" style={{ backgroundImage: `url(${uploadedImage})` }} />
+                                        </span>
+                                    </span>
+                                )}
+                            </span>
+                            <span className="min-w-0 flex-1 py-0.5">
+                                <span className="block font-serif font-light tracking-tight text-[13.5px] leading-4 text-stone-900 sm:text-[14.5px]">
+                                    See your frame in context
+                                </span>
+                                <span className="mt-1 flex items-center gap-1 text-[11.5px] font-semibold tracking-tight text-stone-700 transition-colors hover:text-stone-950">
+                                    Try a room scene
+                                    <span aria-hidden="true" className="text-sm leading-none">→</span>
+                                </span>
+                            </span>
+                        </button>
                         <button
                             type="button"
                             onClick={dismissSceneHint}
@@ -2474,7 +2473,6 @@ const CustomizeFramePage = ({
                     <SceneDotThumb
                         activeId={roomSceneId}
                         onSelect={selectRoomScene}
-                        autoOpenSignal={sceneAutoOpenTick}
                         // Deliberately NOT roomPlacement's own leftPct/topPct/
                         // widthPct — those are each room's true physical hang
                         // point and size relative to ITS OWN wall span, so
