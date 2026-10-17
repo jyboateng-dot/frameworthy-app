@@ -1,0 +1,290 @@
+{
+  "artworks": [
+    {
+      "id": "0f366234-cbf3-493f-b580-c5121b9bf3a5",
+      "title": "Un solitaire tout nu",
+      "artist": "Paris Musées",
+      "image": "https://apicollections.parismusees.paris.fr/sites/default/files/styles/thumbnail/collections/atoms/images/ZDK/3z04405.jpg?itok=TXKkDZHg",
+      "fullRes": "https://apicollections.parismusees.paris.fr/sites/default/files/styles/thumbnail/collections/atoms/images/ZDK/3z04405.jpg?itok=TXKkDZHg",
+      "sourceUrl": "https://www.parismuseescollections.paris.fr/node/310090",
+      "rights": "Paris Musées API record; verify item-level rights",
+      "description": null,
+      "objectType": "Dessin",
+      "metadata": {
+        "lrefAdlib": 120000364,
+        "copyright": null
+      }
+    },
+    {
+      "id": "8b5fa6b0-90e7-4150-b116-6b70c7c29b42",
+      "title": "Couple sur fond vert",
+      "artist": "Paris Musées",
+      "image": "https://apicollections.parismusees.paris.fr/sites/default/files/styles/thumbnail/collections/atoms/images/ZDK/3z04417.jpg?itok=p-7WX_3r",
+      "fullRes": "https://apicollections.parismusees.paris.fr/sites/default/files/styles/thumbnail/collections/atoms/images/ZDK/3z04417.jpg?itok=p-7WX_3r",
+      "sourceUrl": "https://www.parismuseescollections.paris.fr/node/310093",
+      "rights": "Paris Musées API record; verify item-level rights",
+      "description": null,
+      "objectType": "Dessin",
+      "metadata": {
+        "lrefAdlib": 120000365,
+        "copyright": null
+      }
+    },
+    {
+      "id": "37402dac-78a4-45c7-8a11-9d78462c8a5e",
+      "title": "Formes féminines",
+      "artist": "Paris Musées",
+      "image": "https://apicollections.parismusees.paris.fr/sites/default/files/styles/thumbnail/collections/atoms/images/ZDK/3z04439.jpg?itok=-ggg5pls",
+      "fullRes": "https://apicollections.parismusees.paris.fr/sites/default/files/styles/thumbnail/collections/atoms/images/ZDK/3z04439.jpg?itok=-ggg5pls",
+      "sourceUrl": "https://www.parismuseescollections.paris.fr/node/310096",
+      "rights": "Paris Musées API record; verify item-level rights",
+      "description": null,
+      "objectType": "Dessin",
+      "metadata": {
+        "lrefAdlib": 120000366,
+        "copyright": null
+      }
+    },
+    {
+      "id": "914c65aa-1bbf-4449-9538-fb98a276ef2e",
+      "title": "Forme humaine ou l'infirme",
+      "artist": "Paris Musées",
+      "image": "https://apicollections.parismusees.paris.fr/sites/default/files/styles/thumbnail/collections/atoms/images/ZDK/3z04440.jpg?itok=o3Sa34X8",
+      "fullRes": "https://apicollections.parismusees.paris.fr/sites/default/files/styles/thumbnail/collections/atoms/images/ZDK/3z04440.jpg?itok=o3Sa34X8",
+      "sourceUrl": "https://www.parismuseescollections.paris.fr/node/310102",
+      "rights": "Paris Musées API record; verify item-level rights",
+      "description": null,
+      "objectType": "Dessin",
+      "metadata": {
+        "lrefAdlib": 120000368,
+        "copyright": null
+      }
+    },
+    {
+      "id": "32f472a0-139f-47b8-8a11-46dba74daf06",
+      "title": "Le jongleur",
+      "artist": "Paris Musées",
+      "image": "https://apicollections.parismusees.paris.fr/sites/default/files/styles/thumbnail/collections/atoms/images/ZDK/3z04442.jpg?itok=ttRrMy_y",
+      "fullRes": "https://apicollections.parismusees.paris.fr/sites/default/files/styles/thumbnail/collections/atoms/images/ZDK/3z04442.jpg?itok=ttRrMy_y",
+      "sourceUrl": "https://www.parismuseescollections.paris.fr/node/310108",
+      "rights": "Paris Musées API record; verify item-level rights",
+      "description": null,
+      "objectType": "Dessin",
+      "metadata": {
+        "lrefAdlib": 120000370,
+        "copyright": null
+      }
+    },
+    {
+      "id": "30d338b9-bfe8-42ec-8cda-722342b6dbe7",
+      "title": "Le clochard",
+      "artist": "Paris Musées",
+      "image": "https://apicollections.parismusees.paris.fr/sites/default/files/styles/thumbnail/collections/atoms/images/ZDK/3z04443.jpg?itok=CpD0vxLU",
+      "fullRes": "https://apicollections.parismusees.paris.fr/sites/default/files/styles/thumbnail/collections/atoms/images/ZDK/3z04443.jpg?itok=CpD0vxLU",
+      "sourceUrl": "https://www.parismuseescollections.paris.fr/node/310111",
+      "rights": "Paris Musées API record; verify item-level rights",
+      "description": null,
+      "objectType": "Dessin",
+      "metadata": {
+        "lrefAdlib": 120000371,
+        "copyright": null
+      }
+    },
+    {
+      "id": "443bcac5-c167-41fb-ad30-18e6d22027b0",
+      "title": "Le couple",
+      "artist": "Paris Musées",
+      "image": "https://apicollections.parismusees.paris.fr/sites/default/files/styles/thumbnail/collections/atoms/images/ZDK/3z04444.jpg?itok=QJ7GNQ_1",
+      "fullRes": "https://apicollections.parismusees.paris.fr/sites/default/files/styles/thumbnail/collections/atoms/images/ZDK/3z04444.jpg?itok=QJ7GNQ_1",
+      "sourceUrl": "https://www.parismuseescollections.paris.fr/node/310114",
+      "rights": "Paris Musées API record; verify item-level rights",
+      "description": null,
+      "objectType": "Dessin",
+      "metadata": {
+        "lrefAdlib": 120000372,
+        "copyright": null
+      }
+    },
+    {
+      "id": "d75647de-4006-4340-b3a0-5028238058aa",
+      "title": "Tête d'homme sur fond bleu",
+      "artist": "Paris Musées",
+      "image": "https://apicollections.parismusees.paris.fr/sites/default/files/styles/thumbnail/collections/atoms/images/ZDK/3z04445.jpg?itok=hGxjhTa3",
+      "fullRes": "https://apicollections.parismusees.paris.fr/sites/default/files/styles/thumbnail/collections/atoms/images/ZDK/3z04445.jpg?itok=hGxjhTa3",
+      "sourceUrl": "https://www.parismuseescollections.paris.fr/node/310117",
+      "rights": "Paris Musées API record; verify item-level rights",
+      "description": null,
+      "objectType": "Dessin",
+      "metadata": {
+        "lrefAdlib": 120000373,
+        "copyright": null
+      }
+    },
+    {
+      "id": "9ceb4c5b-5c9b-4765-83c8-c3a283678a16",
+      "title": "Personnage à l'oiseau",
+      "artist": "Paris Musées",
+      "image": "https://apicollections.parismusees.paris.fr/sites/default/files/styles/thumbnail/collections/atoms/images/ZDK/3z04446.jpg?itok=OIjFAbTM",
+      "fullRes": "https://apicollections.parismusees.paris.fr/sites/default/files/styles/thumbnail/collections/atoms/images/ZDK/3z04446.jpg?itok=OIjFAbTM",
+      "sourceUrl": "https://www.parismuseescollections.paris.fr/node/310120",
+      "rights": "Paris Musées API record; verify item-level rights",
+      "description": null,
+      "objectType": "Dessin",
+      "metadata": {
+        "lrefAdlib": 120000374,
+        "copyright": null
+      }
+    },
+    {
+      "id": "37a0be8d-578f-477a-801d-351dcfede17f",
+      "title": "Le guignon",
+      "artist": "Paris Musées",
+      "image": "https://apicollections.parismusees.paris.fr/sites/default/files/styles/thumbnail/collections/atoms/images/ZDK/3z04447.jpg?itok=ZgICYdBt",
+      "fullRes": "https://apicollections.parismusees.paris.fr/sites/default/files/styles/thumbnail/collections/atoms/images/ZDK/3z04447.jpg?itok=ZgICYdBt",
+      "sourceUrl": "https://www.parismuseescollections.paris.fr/node/310123",
+      "rights": "Paris Musées API record; verify item-level rights",
+      "description": null,
+      "objectType": "Dessin",
+      "metadata": {
+        "lrefAdlib": 120000375,
+        "copyright": null
+      }
+    },
+    {
+      "id": "19b712d8-6b61-4b1a-a337-d2a3a9c1e467",
+      "title": "Personnage debout",
+      "artist": "Paris Musées",
+      "image": "https://apicollections.parismusees.paris.fr/sites/default/files/styles/thumbnail/collections/atoms/images/ZDK/3z04448.jpg?itok=_o3922qB",
+      "fullRes": "https://apicollections.parismusees.paris.fr/sites/default/files/styles/thumbnail/collections/atoms/images/ZDK/3z04448.jpg?itok=_o3922qB",
+      "sourceUrl": "https://www.parismuseescollections.paris.fr/node/310126",
+      "rights": "Paris Musées API record; verify item-level rights",
+      "description": null,
+      "objectType": "Dessin",
+      "metadata": {
+        "lrefAdlib": 120000376,
+        "copyright": null
+      }
+    },
+    {
+      "id": "8e04d38d-4b69-46ee-8a72-9ad1c2321e00",
+      "title": "L'étreinte",
+      "artist": "Paris Musées",
+      "image": "https://apicollections.parismusees.paris.fr/sites/default/files/styles/thumbnail/collections/atoms/images/ZDK/3z04449.jpg?itok=4POpj_Ji",
+      "fullRes": "https://apicollections.parismusees.paris.fr/sites/default/files/styles/thumbnail/collections/atoms/images/ZDK/3z04449.jpg?itok=4POpj_Ji",
+      "sourceUrl": "https://www.parismuseescollections.paris.fr/node/310129",
+      "rights": "Paris Musées API record; verify item-level rights",
+      "description": null,
+      "objectType": "Dessin",
+      "metadata": {
+        "lrefAdlib": 120000377,
+        "copyright": null
+      }
+    },
+    {
+      "id": "0d28ce1f-b452-49b6-853b-f266bfc4b4f1",
+      "title": "Personnages",
+      "artist": "Paris Musées",
+      "image": "https://apicollections.parismusees.paris.fr/sites/default/files/styles/thumbnail/collections/atoms/images/ZDK/3z04450.jpg?itok=b75IJS6_",
+      "fullRes": "https://apicollections.parismusees.paris.fr/sites/default/files/styles/thumbnail/collections/atoms/images/ZDK/3z04450.jpg?itok=b75IJS6_",
+      "sourceUrl": "https://www.parismuseescollections.paris.fr/node/310132",
+      "rights": "Paris Musées API record; verify item-level rights",
+      "description": null,
+      "objectType": "Dessin",
+      "metadata": {
+        "lrefAdlib": 120000378,
+        "copyright": null
+      }
+    },
+    {
+      "id": "c60eb812-abcb-48e8-a050-4439a21a5b23",
+      "title": "Couple enlacé",
+      "artist": "Paris Musées",
+      "image": "https://apicollections.parismusees.paris.fr/sites/default/files/styles/thumbnail/collections/atoms/images/ZDK/3z04451.jpg?itok=_KvecRnP",
+      "fullRes": "https://apicollections.parismusees.paris.fr/sites/default/files/styles/thumbnail/collections/atoms/images/ZDK/3z04451.jpg?itok=_KvecRnP",
+      "sourceUrl": "https://www.parismuseescollections.paris.fr/node/310135",
+      "rights": "Paris Musées API record; verify item-level rights",
+      "description": null,
+      "objectType": "Dessin",
+      "metadata": {
+        "lrefAdlib": 120000379,
+        "copyright": null
+      }
+    },
+    {
+      "id": "eb9d744e-8e16-40c9-8391-6286c9650ea6",
+      "title": "Hérodiade",
+      "artist": "Paris Musées",
+      "image": "https://apicollections.parismusees.paris.fr/sites/default/files/styles/thumbnail/collections/atoms/images/ZDK/3z04452.jpg?itok=7a-Xxs_j",
+      "fullRes": "https://apicollections.parismusees.paris.fr/sites/default/files/styles/thumbnail/collections/atoms/images/ZDK/3z04452.jpg?itok=7a-Xxs_j",
+      "sourceUrl": "https://www.parismuseescollections.paris.fr/node/310138",
+      "rights": "Paris Musées API record; verify item-level rights",
+      "description": null,
+      "objectType": "Dessin",
+      "metadata": {
+        "lrefAdlib": 120000380,
+        "copyright": null
+      }
+    },
+    {
+      "id": "f1663c92-c5ca-4dcd-b810-a3a4dead2a69",
+      "title": "Rencontre amoureuse",
+      "artist": "Paris Musées",
+      "image": "https://apicollections.parismusees.paris.fr/sites/default/files/styles/thumbnail/collections/atoms/images/ZDK/3z04454.jpg?itok=GCm76Mff",
+      "fullRes": "https://apicollections.parismusees.paris.fr/sites/default/files/styles/thumbnail/collections/atoms/images/ZDK/3z04454.jpg?itok=GCm76Mff",
+      "sourceUrl": "https://www.parismuseescollections.paris.fr/node/310141",
+      "rights": "Paris Musées API record; verify item-level rights",
+      "description": null,
+      "objectType": "Dessin",
+      "metadata": {
+        "lrefAdlib": 120000381,
+        "copyright": null
+      }
+    },
+    {
+      "id": "e9094b45-6dba-4b06-b416-17c44597220c",
+      "title": "Le grand départ",
+      "artist": "Paris Musées",
+      "image": "https://apicollections.parismusees.paris.fr/sites/default/files/styles/thumbnail/collections/atoms/images/ZDK/3z04458.jpg?itok=K8aGhSaE",
+      "fullRes": "https://apicollections.parismusees.paris.fr/sites/default/files/styles/thumbnail/collections/atoms/images/ZDK/3z04458.jpg?itok=K8aGhSaE",
+      "sourceUrl": "https://www.parismuseescollections.paris.fr/node/310144",
+      "rights": "Paris Musées API record; verify item-level rights",
+      "description": null,
+      "objectType": "Dessin",
+      "metadata": {
+        "lrefAdlib": 120000382,
+        "copyright": null
+      }
+    },
+    {
+      "id": "0ae78dd4-9770-410a-8887-9c96cc9e60c5",
+      "title": "L'estropié",
+      "artist": "Paris Musées",
+      "image": "https://apicollections.parismusees.paris.fr/sites/default/files/styles/thumbnail/collections/atoms/images/ZDK/3z04459.jpg?itok=IehRQfcJ",
+      "fullRes": "https://apicollections.parismusees.paris.fr/sites/default/files/styles/thumbnail/collections/atoms/images/ZDK/3z04459.jpg?itok=IehRQfcJ",
+      "sourceUrl": "https://www.parismuseescollections.paris.fr/node/310147",
+      "rights": "Paris Musées API record; verify item-level rights",
+      "description": null,
+      "objectType": "Estampe",
+      "metadata": {
+        "lrefAdlib": 120000383,
+        "copyright": null
+      }
+    },
+    {
+      "id": "043650fa-a8c4-4f00-9280-f26843c9da57",
+      "title": "La ligne continue",
+      "artist": "Paris Musées",
+      "image": "https://apicollections.parismusees.paris.fr/sites/default/files/styles/thumbnail/collections/atoms/images/ZDK/3z04676.jpg?itok=YHAUNbLH",
+      "fullRes": "https://apicollections.parismusees.paris.fr/sites/default/files/styles/thumbnail/collections/atoms/images/ZDK/3z04676.jpg?itok=YHAUNbLH",
+      "sourceUrl": "https://www.parismuseescollections.paris.fr/node/310150",
+      "rights": "Paris Musées API record; verify item-level rights",
+      "description": null,
+      "objectType": "Dessin",
+      "metadata": {
+        "lrefAdlib": 120000384,
+        "copyright": null
+      }
+    }
+  ],
+  "total": 185548
+}

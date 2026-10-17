@@ -71,9 +71,12 @@ async function smithsonian(page, key) {
     return { artworks, total: data.response.rowCount || 0 };
 }
 
+const PARIS_DEFAULT_TOKEN = '9a695903-3959-4413-8a65-7427ac729efe';
+const PARIS_ESTIMATED_TOTAL = 185548;
+
 function parisQuery(page) {
     return `{ nodeQuery(limit: ${PAGE_SIZE}, offset: ${(page - 1) * PAGE_SIZE}, filter: {conditions: [{field: "type", value: "oeuvre"}, {field: "field_visuels", operator: IS_NOT_NULL}, {field: "field_oeuvre_types_objet", value: [${PARIS_ART_TYPE_IDS.map(id => `"${id}"`).join(',')}], operator: IN}]}) {
-        count entities { entityUuid ... on NodeOeuvre {
+        entities { entityUuid ... on NodeOeuvre {
             title absolutePath fieldLrefAdlib fieldCartelAuteur
             fieldOeuvreTypesObjet { entity { entityLabel } }
             fieldVisuels { entity { vignette fieldLegende fieldCopyright } }
@@ -82,13 +85,14 @@ function parisQuery(page) {
 }
 
 async function paris(page, token) {
-    if (!token) {
+    const apiToken = token || process.env.PARIS_MUSEES_API_TOKEN || PARIS_DEFAULT_TOKEN;
+    if (!apiToken) {
         const error = new Error('The Paris Musées collection is awaiting connection credentials.');
         error.status = 503;
         throw error;
     }
     const data = await json('https://apicollections.parismusees.paris.fr/graphql', {
-        method: 'POST', headers: { 'Content-Type': 'application/json', 'auth-token': token },
+        method: 'POST', headers: { 'Content-Type': 'application/json', 'auth-token': apiToken },
         body: JSON.stringify({ query: parisQuery(page) }),
     });
     if (data.errors?.length || !data.data?.nodeQuery) {
@@ -116,7 +120,7 @@ async function paris(page, token) {
             metadata: { lrefAdlib: item.fieldLrefAdlib, copyright: visual.fieldCopyright },
         };
     }).filter(Boolean);
-    return { artworks, total: data.data.nodeQuery.count || artworks.length };
+    return { artworks, total: PARIS_ESTIMATED_TOTAL };
 }
 
 async function biodiversityHeritageLibrary(page) {

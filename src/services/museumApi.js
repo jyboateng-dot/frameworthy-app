@@ -127,12 +127,65 @@ async function fetchLibraryOfCongress(page) {
 async function fetchNasa(page) {
     return fetchServerCollection('nasa-open-media', page);
 }
+
+const PARIS_ART_TYPE_IDS = [
+    166168, 166238, 330934, 167938, 167983, 330958, 213549, 214341,
+    214461, 214484, 214499, 25, 130627, 130658, 349077, 307019,
+    307699, 358254, 350951, 430913,
+];
+const PARIS_PUBLIC_TOKEN = '9a695903-3959-4413-8a65-7427ac729efe';
+
+async function fetchParis(page) {
+    try {
+        return await fetchServerCollection('paris-musees', page);
+    } catch (serverErr) {
+        // Fall back directly to the open GraphQL API (CORS enabled) if server function is unreachable
+        const query = `{ nodeQuery(limit: ${PAGE_SIZE}, offset: ${(page - 1) * PAGE_SIZE}, filter: {conditions: [{field: "type", value: "oeuvre"}, {field: "field_visuels", operator: IS_NOT_NULL}, {field: "field_oeuvre_types_objet", value: [${PARIS_ART_TYPE_IDS.map(id => `"${id}"`).join(',')}], operator: IN}]}) {
+            entities { entityUuid ... on NodeOeuvre {
+                title absolutePath fieldLrefAdlib fieldCartelAuteur
+                fieldOeuvreTypesObjet { entity { entityLabel } }
+                fieldVisuels { entity { vignette fieldLegende fieldCopyright } }
+            } }
+        } }`;
+        const res = await fetch('https://apicollections.parismusees.paris.fr/graphql', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'auth-token': PARIS_PUBLIC_TOKEN },
+            body: JSON.stringify({ query }),
+        });
+        if (!res.ok) throw serverErr;
+        const data = await res.json();
+        const entities = data.data?.nodeQuery?.entities || [];
+        const source = sourceById('paris-musees');
+        const artworks = entities.map(item => {
+            if (!item) return null;
+            const objectType = item.fieldOeuvreTypesObjet?.map(type => type.entity?.entityLabel).filter(Boolean).join(', ') || '';
+            const visual = item.fieldVisuels?.[0]?.entity || {};
+            const vignette = visual.vignette;
+            if (!vignette) return null;
+            const image = /^https?:\/\//i.test(vignette) ? vignette : `https://parismuseescollections.paris.fr${vignette}`;
+            return normalizeMuseumArtwork({
+                id: String(item.entityUuid || item.entityId),
+                title: item.title || 'Paris Musées Artwork',
+                artist: item.fieldCartelAuteur || 'Paris Musées',
+                image,
+                fullRes: image,
+                sourceUrl: item.absolutePath || `https://www.parismuseescollections.paris.fr/fr/node/${item.entityId}`,
+                rights: visual.fieldCopyright || 'Paris Musées API record; verify item-level rights',
+                description: visual.fieldLegende,
+                objectType,
+                metadata: { lrefAdlib: item.fieldLrefAdlib, copyright: visual.fieldCopyright },
+            }, source);
+        }).filter(record => record && isFramableMuseumArtwork('paris-musees', record));
+        return { artworks, total: 185548 };
+    }
+}
+
 const LOADERS = {
     'art-institute-of-chicago': fetchArtInstitute,
     'cleveland-museum-of-art': fetchCleveland,
     rijksmuseum: fetchRijks,
     'smithsonian-open-access': page => fetchServerCollection('smithsonian-open-access', page),
-    'paris-musees': page => fetchServerCollection('paris-musees', page),
+    'paris-musees': fetchParis,
     'national-gallery-of-art': fetchNga,
     'library-of-congress': fetchLibraryOfCongress,
     'nasa-open-media': fetchNasa,

@@ -94,4 +94,71 @@ describe('museum snapshot prefetching', () => {
         expect(fetch.mock.calls[0][0]).toBe('/museum-data/nasa-open-media/1.json');
         expect(result.artworks[0]).toMatchObject({ title: 'Nebula', sourceId: 'nasa-open-media' });
     });
+
+    it('loads Paris Musées through snapshot prefetching and normalizes artworks', async () => {
+        const fetch = vi.fn().mockResolvedValue({
+            ok: true,
+            json: async () => ({
+                artworks: [{
+                    id: 'paris-1',
+                    title: 'Femme au bouquet',
+                    artist: 'Edgar Degas',
+                    image: 'https://apicollections.parismusees.paris.fr/sites/default/files/styles/thumbnail/art.jpg',
+                    objectType: 'Peinture',
+                }],
+                total: 185548,
+            }),
+        });
+        vi.stubGlobal('fetch', fetch);
+        const { fetchMuseumArtworks, prefetchMuseumSnapshot } = await import('./museumApi.js');
+
+        await prefetchMuseumSnapshot('paris-musees');
+        const result = await fetchMuseumArtworks('paris-musees');
+
+        expect(fetch).toHaveBeenCalledTimes(1);
+        expect(fetch.mock.calls[0][0]).toBe('/museum-data/paris-musees/1.json');
+        expect(result.artworks[0]).toMatchObject({
+            id: 'paris-musees:paris-1',
+            title: 'Femme au bouquet',
+            artist: 'Edgar Degas',
+            sourceId: 'paris-musees',
+        });
+    });
+
+    it('falls through to Paris GraphQL direct query when server endpoint is unavailable', async () => {
+        const fetch = vi.fn()
+            .mockResolvedValueOnce({ ok: false }) // Snapshot not found
+            .mockResolvedValueOnce({ ok: false, status: 502, json: async () => ({ error: 'Server unavailable' }) }) // /api/museum-artworks failed
+            .mockResolvedValueOnce({
+                ok: true,
+                json: async () => ({
+                    data: {
+                        nodeQuery: {
+                            entities: [{
+                                entityUuid: 'direct-paris-1',
+                                title: 'Vue de Paris',
+                                fieldCartelAuteur: 'Camille Pissarro',
+                                fieldOeuvreTypesObjet: [{ entity: { entityLabel: 'Peinture' } }],
+                                fieldVisuels: [{ entity: { vignette: '/sites/default/files/paris.jpg' } }],
+                            }],
+                        },
+                    },
+                }),
+            }); // Direct GraphQL call
+        vi.stubGlobal('fetch', fetch);
+        const { fetchMuseumArtworks } = await import('./museumApi.js');
+
+        const result = await fetchMuseumArtworks('paris-musees', 4);
+
+        expect(fetch).toHaveBeenCalledTimes(3);
+        expect(fetch.mock.calls[1][0]).toContain('/api/museum-artworks?source=paris-musees&page=4');
+        expect(fetch.mock.calls[2][0]).toBe('https://apicollections.parismusees.paris.fr/graphql');
+        expect(result.artworks).toHaveLength(1);
+        expect(result.artworks[0]).toMatchObject({
+            id: 'paris-musees:direct-paris-1',
+            title: 'Vue de Paris',
+            artist: 'Camille Pissarro',
+            sourceId: 'paris-musees',
+        });
+    });
 });

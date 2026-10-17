@@ -241,6 +241,7 @@ const InspirationPage = ({ setProductMode, setSelectedFrame, setSelectedSize, na
                                 <button
                                     onClick={() => {
                                         setCurrentSection(s.id);
+                                        sessionStorage.setItem('fw_insp_section', s.id);
                                         setPage(1);
                                         setActiveSeries('all');
                                         sessionStorage.setItem('fw_insp_page_scroll', '0');
