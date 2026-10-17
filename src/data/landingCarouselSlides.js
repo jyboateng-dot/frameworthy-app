@@ -45,7 +45,7 @@ export const CAROUSEL_SLIDES = [
         text: "Compare familiar standard sizes or enter custom dimensions, then preview the true proportions against furniture and room references before making your choice."
     },
     {
-        img: '/landing_carousel/slide-5.webp',
+        img: '/landing_carousel/slide-curated-collections.jpg',
         title: "Curated Collections",
         text: "Discover original work and open-access museum and archival collections selected for framing, complete with artist details and recommended frame sizes."
     },
@@ -61,12 +61,12 @@ export const CAROUSEL_SLIDES = [
         text: "Check out as a guest with no account required, review your order before placing it, and complete your payment securely through Paystack."
     },
     {
-        img: '/landing_carousel/slide-7.webp',
+        img: '/landing_carousel/slide-delivered-door.jpg',
         title: "Delivered to Your Door",
         text: "Once your design is set, we prepare the artwork, build the frame to your specifications, and securely deliver the finished piece to your door."
     },
     {
-        img: '/hero_slide_6.jpg',
+        img: '/landing_carousel/slide-gallery-wall.jpg',
         title: "Create Your Gallery",
         text: "Bring photographs and artworks into one considered story, using consistent framing, scale, and placement to create a gallery wall that feels connected."
     },
