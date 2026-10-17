@@ -44,8 +44,8 @@ export default function FrameSelectionModal({ isOpen, onClose, selectedFrame, on
             <div className="mx-auto w-full max-w-6xl px-5 pt-[calc(1rem+env(safe-area-inset-top,0px))] pb-4 shrink-0">
                 <div className="flex items-start justify-between gap-4">
                     <div>
-                        <h2 className="text-2xl font-bold tracking-tight text-stone-900 sm:text-3xl">Curated Frame Collection</h2>
-                        <p className="mt-2 max-w-xl text-sm leading-5 text-stone-500">Browse our frame collection, organized by design and material.</p>
+                        <h2 className="text-2xl font-bold tracking-tight text-stone-900 sm:text-3xl">Frame Catalogue</h2>
+                        <p className="mt-2 max-w-xl text-sm leading-5 text-stone-500">Browse our frame catalogue, organized by design and material.</p>
                     </div>
                     <button onClick={onClose} className="mt-1 p-2 bg-gray-50 hover:bg-gray-100 rounded-full text-gray-500 transition-colors" aria-label="Close">
                     ✕

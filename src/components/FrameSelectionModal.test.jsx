@@ -37,7 +37,7 @@ it('presents fulfilment finishes as selectable cards in the shared curated colle
     const onClose = vi.fn();
     render(<FrameSelectionModal isOpen onSelect={onSelect} onClose={onClose} selectedFrame={{ id: 'frame-8446' }} />);
 
-    expect(screen.getByRole('heading', { name: 'Curated Frame Collection' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Frame Catalogue' })).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Classic Frames' }));
     expect(screen.getByText(/Solid, satin-laminated wood paired with a premium fine-art print/)).toBeInTheDocument();
     const classicBlack = screen.getByRole('button', { name: /Black/ });
