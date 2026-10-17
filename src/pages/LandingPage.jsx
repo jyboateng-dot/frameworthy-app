@@ -9,6 +9,7 @@ export default function LandingPage({ onStartFraming, navigate, setSelectedFrame
     const [activeCategory, setActiveCategory] = useState(PRODIGI_FRAME_CATEGORIES[0]);
     const [currentPage, setCurrentPage] = useState(1);
     const [currentSlide, setCurrentSlide] = useState(0);
+    const [loadedSlides, setLoadedSlides] = useState(() => new Set([0, 1]));
 
     const nextSlide = () => {
         setCurrentSlide(s => (s + 1) % CAROUSEL_SLIDES.length);
@@ -17,6 +18,17 @@ export default function LandingPage({ onStartFraming, navigate, setSelectedFrame
     const prevSlide = () => {
         setCurrentSlide(s => (s - 1 + CAROUSEL_SLIDES.length) % CAROUSEL_SLIDES.length);
     };
+
+    useEffect(() => {
+        setLoadedSlides(prev => {
+            const next = new Set(prev);
+            const count = CAROUSEL_SLIDES.length;
+            next.add(currentSlide);
+            next.add((currentSlide + 1) % count);
+            next.add((currentSlide - 1 + count) % count);
+            return next;
+        });
+    }, [currentSlide]);
 
     useEffect(() => {
         const timer = setInterval(() => setCurrentSlide(s => (s + 1) % CAROUSEL_SLIDES.length), 5000);
@@ -108,17 +120,29 @@ export default function LandingPage({ onStartFraming, navigate, setSelectedFrame
                         <div className="absolute top-8 -right-8 w-full h-full bg-stone-200/50 hidden lg:block" />
                         
                         <div className="relative w-full h-full overflow-hidden shadow-2xl bg-stone-100">
-                            {CAROUSEL_SLIDES.map((slide, index) => (
-                                <div 
-                                    key={index}
-                                    className={`absolute inset-0 w-full h-full transition-all duration-1000 ease-[cubic-bezier(0.25,1,0.5,1)] ${
-                                        currentSlide === index ? 'opacity-100 scale-100 z-10' : 'opacity-0 scale-105 z-0'
-                                    }`}
-                                >
-                                    <div className="absolute inset-0 bg-stone-900 transition-opacity duration-1000" style={{opacity: currentSlide === index ? 0 : 0.3}} />
-                                    <img src={slide.img} alt={slide.title} className="w-full h-full object-cover" />
-                                </div>
-                            ))}
+                            {CAROUSEL_SLIDES.map((slide, index) => {
+                                const isLoaded = loadedSlides.has(index);
+                                return (
+                                    <div 
+                                        key={index}
+                                        className={`absolute inset-0 w-full h-full transition-all duration-1000 ease-[cubic-bezier(0.25,1,0.5,1)] ${
+                                            currentSlide === index ? 'opacity-100 scale-100 z-10' : 'opacity-0 scale-105 z-0'
+                                        }`}
+                                    >
+                                        <div className="absolute inset-0 bg-stone-900 transition-opacity duration-1000" style={{opacity: currentSlide === index ? 0 : 0.3}} />
+                                        {isLoaded && (
+                                            <img 
+                                                src={slide.img} 
+                                                alt={slide.title} 
+                                                loading={index === 0 ? "eager" : "lazy"}
+                                                fetchPriority={index === 0 ? "high" : "low"}
+                                                decoding={index === 0 ? "sync" : "async"}
+                                                className="w-full h-full object-cover" 
+                                            />
+                                        )}
+                                    </div>
+                                );
+                            })}
                         </div>
 
                         {/* Minimalist Controls Overlayed on Image — flush against the
