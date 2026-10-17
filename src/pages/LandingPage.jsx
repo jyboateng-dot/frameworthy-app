@@ -174,7 +174,7 @@ export default function LandingPage({ onStartFraming, navigate, setSelectedFrame
                 <div className="max-w-[2560px] mx-auto px-6 lg:px-12">
                     <div className="flex flex-col md:flex-row justify-between items-end mb-12">
                         <div>
-                            <h2 className="text-3xl lg:text-4xl font-bold tracking-tight text-stone-900 mb-4">Curated Frame Collection</h2>
+                            <h2 className="text-3xl lg:text-4xl font-bold tracking-tight text-stone-900 mb-4">Frame Catalogue</h2>
                             <p className="text-stone-500 max-w-2xl leading-relaxed">
                                 Explore made-to-order frames and canvases across classic wood, deep box, slim aluminium, traditional canvas, floating canvas, recycled canvas and stretched canvas styles.
                             </p>
