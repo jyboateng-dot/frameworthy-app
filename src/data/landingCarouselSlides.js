@@ -31,8 +31,8 @@ export const CAROUSEL_SLIDES = [
     },
     {
         img: '/landing_carousel/slide-frame-materials.jpg',
-        title: "Endless Possibilities",
-        text: "Explore more than 300 moulding profiles, colors, materials, and finishes—from quiet contemporary edges to richly detailed statement frames."
+        title: "Curated Styles & Finishes",
+        text: "Explore curated solid wood mouldings, slim aluminium, and canvas floaters—each paired with archival bevel-cut matting and premium glazing for a timeless finish."
     },
     {
         img: '/landing_carousel/slide-living-space.jpg',

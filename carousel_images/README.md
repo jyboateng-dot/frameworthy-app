@@ -12,13 +12,13 @@ High-resolution 16:9 widescreen editorial imagery specifically tailored to Frame
 - `04-room-visualizer.jpg` (`slide-room-visualizer.jpg`): Edwardian living room with heritage sage green walls, ornate cornicing, and large framed landscape print.
 - `05-3d-ar.jpg` (`slide-3d-ar.jpg`): First-person perspective holding an iPhone in a UK apartment, using Augmented Reality to preview a framed piece on the wall in real time.
 - `06-curate-hallways.jpg` (`slide-hallway.jpg`): British Georgian hallway gallery wall with alternating sleek black and natural oak frames on herringbone parquet.
-- `07-frame-materials.jpg` (`slide-frame-materials.jpg`): Studio flat-lay of 300+ moulding chevrons, canvas stretchers, and conservation mount boards on natural linen.
+- `07-frame-materials.jpg` (`slide-frame-materials.jpg`): Studio flat-lay of curated solid wood moulding chevrons, canvas stretchers, brushed aluminium, and conservation mount boards on natural linen.
 - `08-living-space.jpg` (`slide-living-space.jpg`): Modern coastal living room with a panoramic oak-framed print of St Ouen's Bay in Jersey.
 - `09-perfectly-sized.jpg` (`slide-perfect-sizing.jpg`): Multi-scale British interior wall with an oversized 24×36" statement frame and a picture ledge with 8×10" and 5×7" frames.
 - `10-curated-collections.jpg` (`slide-curated-collections.jpg`): Warm British art collector's study in Jersey with antique map of Jersey, Channel Islands coastal charts, and botanical prints on heritage-green wall beside floor-to-ceiling bookshelves.
 - `11-museum-masterpieces.jpg` (`slide-museum-masterpieces.jpg`): Turner-style seascape in an ornate antique gilded gold frame above a grand stone fireplace mantelpiece.
-- `12-secure-checkout.jpg` (`slide-secure-checkout.jpg`): Premium unboxed packaging with protective corner guards, linen care envelope, and iPhone with Apple Pay.
-- `13-delivered-door.jpg` (`slide-delivered-door.jpg`): La Chaumière, an authentic Jersey pink-granite and white-stucco coastal cottage entrance with climbing hydrangeas and a freshly delivered FrameWorthy parcel in reinforced packaging with corner protectors.
+- `12-secure-checkout.webp` (`frameworthy-checkout.webp` / `slide-secure-checkout.jpg`): Woman seated at warm sunlit study desk with open laptop showing order confirmation, holding a credit card, with framed print behind the screen.
+- `13-delivered-door.jpg` (`slide-delivered-door.jpg`): Friendly delivery courier safely handing over a reinforced picture-framing package labeled "FRAGILE - ARTWORK HANDLE WITH CARE" to a smiling homeowner at her door, with delivery van in the background.
 - `14-create-gallery.jpg` (`slide-gallery-wall.jpg`): Harmonious salon gallery wall in a bright Jersey coastal living room featuring Channel Island seascapes and castle prints in coordinated oak and black frames.
 - `15-showcase-milestone.jpg` (`slide-showcase-milestone.jpg`): Double-height British architectural room with dramatic Corbière Lighthouse, Jersey panoramic statement frame.
 
