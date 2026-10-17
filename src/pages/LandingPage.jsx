@@ -115,7 +115,7 @@ export default function LandingPage({ onStartFraming, navigate, setSelectedFrame
                     </div>
 
                     {/* Right: Asymmetric Image Composition */}
-                    <div className="lg:col-span-7 relative h-[50vh] lg:h-[75vh] w-full">
+                    <div className="lg:col-span-7 relative w-full aspect-[4/3] sm:aspect-[16/10] lg:aspect-auto lg:h-[75vh]">
                         {/* Decorative background box offset */}
                         <div className="absolute top-8 -right-8 w-full h-full bg-stone-200/50 hidden lg:block" />
                         
