@@ -9,7 +9,7 @@ High-resolution 16:9 widescreen editorial imagery specifically tailored to Frame
 - `01-welcome-jersey.jpg` (`slide-welcome-jersey.jpg`): Coastal living room in Jersey with exposed pink granite, sash windows overlooking the sea, and large custom black wood framed seascape.
 - `02-upload-anywhere.jpg` (`slide-upload.jpg`): Sunlit British townhouse desk with morning tea, iPad showing photo roll, and natural light oak framed photograph.
 - `03-detail-craftsmanship.jpg` (`slide-craftsmanship.jpg`): Artisan framing workbench with solid natural oak, walnut, and satin black mouldings, archival bevel-cut mount boards, and brass framer's tools.
-- `04-room-visualizer.jpg` (`slide-room-visualizer.jpg`): Edwardian living room with heritage sage green walls, ornate cornicing, and large framed landscape print.
+- `04-room-visualizer.jpg` (`slide-room-visualizer.jpg`): Sunlit British coastal living room with Georgian sash windows, woman holding iPad running the FrameWorthy Room Visualizer previewing custom-framed print and wall swatches above credenza.
 - `05-3d-ar.jpg` (`slide-3d-ar.jpg`): First-person perspective holding an iPhone in a UK apartment, using Augmented Reality to preview a framed piece on the wall in real time.
 - `06-curate-hallways.jpg` (`slide-hallway.jpg`): British Georgian hallway gallery wall with alternating sleek black and natural oak frames on herringbone parquet.
 - `07-frame-materials.jpg` (`slide-frame-materials.jpg`): Studio flat-lay of curated solid wood moulding chevrons, canvas stretchers, brushed aluminium, and conservation mount boards on natural linen.

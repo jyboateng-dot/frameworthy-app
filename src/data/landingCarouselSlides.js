@@ -16,13 +16,13 @@ export const CAROUSEL_SLIDES = [
     },
     {
         img: '/landing_carousel/slide-room-visualizer.jpg',
-        title: "See It in Your Space",
-        text: "Use the visualizer to preview your finished frame at scale across realistic room scenes, compare wall colors, and choose a size that feels right at home."
+        title: "See Your Frame as You Build It",
+        text: "Watch your frame take shape in real time with our interactive visualizer—preview custom mouldings and mats, compare wall paint colours, and zoom in on every fine detail as you design."
     },
     {
         img: '/landing_carousel/slide-3d-ar.jpg',
-        title: "See It in 3D and AR",
-        text: "Rotate your exact design in interactive 3D to inspect its moulding depth and finish, then place it on your own wall in AR at true physical scale."
+        title: "See How Your Frame Will Look in Your Space",
+        text: "Step into Augmented Reality to project your finished piece onto your own walls at true physical scale, or explore calibrated room scenes to find the perfect fit for your home."
     },
     {
         img: '/landing_carousel/slide-hallway.jpg',
