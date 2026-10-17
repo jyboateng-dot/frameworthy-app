@@ -52,7 +52,7 @@ export const CAROUSEL_SLIDES = [
     {
         img: '/landing_carousel/slide-museum-masterpieces.jpg',
         title: "Masterpieces at Home",
-        text: "Explore public-domain masterpieces from The Met, review their artwork details, and carry your chosen piece directly into the custom framing studio.",
+        text: "Explore and frame public-domain masterpieces from The Met, review their artwork details, and carry your chosen piece directly into the custom framing studio.",
         triggersMetArt: true
     },
     {
