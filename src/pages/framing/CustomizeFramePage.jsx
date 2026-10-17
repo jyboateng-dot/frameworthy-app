@@ -3059,19 +3059,17 @@ const CustomizeFramePage = ({
                                 mouldingPctW = railWidthIn / (outerFrameWidthCm / 2.54) * 100;
                                 mouldingPctH = railWidthIn / (outerFrameHeightCm / 2.54) * 100;
                             }
-                            // Mat insets are derived from the true physical mat-to-frame ratio,
-                            // ensuring exact physical scale alignment across Plain View (Close-Up),
-                            // calibrated Room Scenes, 3D AR models, and thumbnail captures.
-                            const outerWidthIn = selectedFrame?.prodigiProduct
-                                ? (outerFrameWidthCm / 2.54)
-                                : (fitGeometry ? fitGeometry.outerWidth : (wInch + 2 * railWidthIn));
-                            const outerHeightIn = selectedFrame?.prodigiProduct
-                                ? (outerFrameHeightCm / 2.54)
-                                : (fitGeometry ? fitGeometry.outerHeight : (hInch + 2 * railWidthIn));
-
-                            const rawMatPctW = (matReveal.sideIn / outerWidthIn) * 100;
-                            const rawMatPctTop = (matReveal.topIn / outerHeightIn) * 100;
-                            const rawMatPctBottom = (matReveal.bottomIn / outerHeightIn) * 100;
+                            // Close-Up deliberately enlarges the frame for presentation.
+                            // Counter that visual-only scale there so a chosen physical mat
+                            // width stays equally thick across all frame sizes. Room scenes,
+                            // including their hover zoom, must keep the mat as the same
+                            // proportion of the frame: the frame and mat then grow together
+                            // and the reveal looks unchanged when entering or leaving hover.
+                            const previewScale = adjustedDisplayedFrameWidthPct / Math.max(frameWidthPct, 0.001);
+                            const matPresentationScale = activeRoom ? 1 : previewScale;
+                            const rawMatPctW = (matReveal.sideIn / (wInch + 2 * railWidthIn)) * 100 / matPresentationScale;
+                            const rawMatPctTop = (matReveal.topIn / (hInch + 2 * railWidthIn)) * 100 / matPresentationScale;
+                            const rawMatPctBottom = (matReveal.bottomIn / (hInch + 2 * railWidthIn)) * 100 / matPresentationScale;
                             const matPctW = Math.max(0, Math.min(rawMatPctW, MAT_RENDER_MAX_PCT - mouldingPctW));
                             const matPctTop = Math.max(0, Math.min(rawMatPctTop, MAT_RENDER_MAX_PCT - mouldingPctH));
                             const matPctBottom = Math.max(0, Math.min(rawMatPctBottom, MAT_RENDER_MAX_PCT - mouldingPctH));
@@ -3447,13 +3445,15 @@ const CustomizeFramePage = ({
                                                         bottom: `${mouldingPctH}%`,
                                                         left: `${mouldingPctW}%`,
                                                         right: `${mouldingPctW}%`,
-                                                        backgroundColor: (!isCanvasGlazing && matWidth !== 'none') ? matColor.hex : (effectiveCanvasMountStyle === 'floater' ? '#78716c' : '#fff'),
-                                                        backgroundImage: (!isCanvasGlazing && matWidth !== 'none') ? 'linear-gradient(135deg, rgba(255,255,255,0.03) 0%, rgba(0,0,0,0.02) 100%)' : 'none'
+                                                        backgroundColor: (!isCanvasGlazing && matWidth !== 'none') ? matColor.hex : (effectiveCanvasMountStyle === 'floater' ? '#78716c' : '#fff')
                                                     }}
                                                 >
-                                                    {/* Shadow cast by the frame moulding lip onto the mount board */}
+                                                    {/* Outer Mat Bevel (where mat meets frame) */}
                                                     {!isCanvasGlazing && matWidth !== 'none' && (
-                                                        <div className="absolute inset-0 shadow-[inset_0_1.5px_3px_rgba(0,0,0,0.18)] pointer-events-none z-10" />
+                                                        <>
+                                                            <div className="absolute inset-0 shadow-[inset_0_1px_2px_rgba(0,0,0,0.12)] pointer-events-none z-10" />
+                                                            <div className="absolute -inset-[1px] border border-white/60 pointer-events-none z-10 shadow-[0_1px_1px_rgba(0,0,0,0.1)]" />
+                                                        </>
                                                     )}
                                                 </div>
 
@@ -3507,18 +3507,9 @@ const CustomizeFramePage = ({
                                             backgroundColor: (!isCanvasOnly && !isCanvasGlazing && matWidth !== 'none' && !isPreset) ? matColor.hex : 'transparent'
                                         }}
                                     >
-                                        {/* Inner Mat Bevel (precision 45-degree bevel cut exposing archival white core #f7f4ee matching 3D matBevel) */}
+                                        {/* Inner Mat Bevel (where mat meets artwork) */}
                                         {selectedFrame?.id !== 'frame-canvas' && !isCanvasGlazing && matWidth !== 'none' && !isPreset && (
-                                            <>
-                                                {/* Soft shadow cast by 4-ply board onto print */}
-                                                <div className="absolute inset-0 shadow-[inset_0_2px_4px_rgba(0,0,0,0.22),_inset_0_0_1px_rgba(0,0,0,0.15)] pointer-events-none z-30" />
-                                                {/* Crisp white-core bevel edge */}
-                                                <div className="absolute inset-0 border border-[#f7f4ee]/85 pointer-events-none z-30" />
-                                                {/* Light catch on top & left cut facets */}
-                                                <div className="absolute inset-0 border-t border-l border-white/60 pointer-events-none z-30" />
-                                                {/* Subtle shade on bottom & right cut facets */}
-                                                <div className="absolute inset-0 border-b border-r border-black/10 pointer-events-none z-30" />
-                                            </>
+                                            <div className="absolute inset-0 shadow-[0_1px_3px_rgba(0,0,0,0.2)] pointer-events-none z-30" />
                                         )}
 
                                         {uploadedImage ? (
