@@ -1,6 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { X, RotateCcw } from 'lucide-react';
-import ArLoadingScreen from './ArLoadingScreen';
+import { X, Loader, RotateCcw } from 'lucide-react';
 import { buildArModel } from '../../utils/ar/buildArModel';
 import {
     AR_MODE,
@@ -252,18 +251,43 @@ export default function ArViewer({
     // mean flashing up the exact screen this is meant to skip.
     if (mode === null || HANDOFF_MODES.has(mode)) {
         return (
-            <ArLoadingScreen
-                onClose={onClose}
-                frame={frame}
-                widthIn={widthIn}
-                heightIn={heightIn}
-                matReveal={matReveal}
-                matColorHex={matColorHex}
-                artworkUrl={artworkUrl}
-                status={status}
-                onRetry={() => setAttempt((n) => n + 1)}
-                isViewerOnly={false}
-            />
+            <div className="fixed inset-0 z-[100] bg-stone-950 flex flex-col items-center justify-center gap-5 px-8">
+                {status === 'error' ? (
+                    <>
+                        <p className="text-center text-xs text-stone-300 max-w-xs">
+                            AR couldn&apos;t be opened. Your frame settings are unaffected.
+                        </p>
+                        <div className="flex items-center gap-2">
+                            <button
+                                type="button"
+                                onClick={() => setAttempt((n) => n + 1)}
+                                className="px-6 py-3 rounded-full bg-white text-stone-900 text-xs font-bold uppercase tracking-wider"
+                            >
+                                Try again
+                            </button>
+                            <button
+                                type="button"
+                                onClick={onClose}
+                                className="px-6 py-3 rounded-full bg-white/15 text-white text-xs font-bold uppercase tracking-wider"
+                            >
+                                Close
+                            </button>
+                        </div>
+                    </>
+                ) : (
+                    <>
+                        <Loader size={24} className="animate-spin text-stone-300" />
+                        <p className="text-xs text-stone-300">Opening AR…</p>
+                        <button
+                            type="button"
+                            onClick={onClose}
+                            className="text-[11px] text-stone-500 underline underline-offset-4"
+                        >
+                            Cancel
+                        </button>
+                    </>
+                )}
+            </div>
         );
     }
 
@@ -299,33 +323,19 @@ export default function ArViewer({
                 />
 
                 {status === 'loading' && (
-                    <ArLoadingScreen
-                        onClose={onClose}
-                        frame={frame}
-                        widthIn={widthIn}
-                        heightIn={heightIn}
-                        matReveal={matReveal}
-                        matColorHex={matColorHex}
-                        artworkUrl={artworkUrl}
-                        status={status}
-                        onRetry={() => setAttempt((n) => n + 1)}
-                        isViewerOnly={isViewerOnly}
-                    />
+                    <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-stone-300">
+                        <Loader size={22} className="animate-spin" />
+                        <p className="text-xs">Building your frame…</p>
+                    </div>
                 )}
 
                 {status === 'error' && (
-                    <ArLoadingScreen
-                        onClose={onClose}
-                        frame={frame}
-                        widthIn={widthIn}
-                        heightIn={heightIn}
-                        matReveal={matReveal}
-                        matColorHex={matColorHex}
-                        artworkUrl={artworkUrl}
-                        status="error"
-                        onRetry={() => setAttempt((n) => n + 1)}
-                        isViewerOnly={isViewerOnly}
-                    />
+                    <div className="absolute inset-0 flex items-center justify-center px-8">
+                        <p className="text-center text-xs text-stone-300 max-w-xs">
+                            This preview couldn&apos;t be built. Your frame settings are unaffected —
+                            close this and carry on customizing.
+                        </p>
+                    </div>
                 )}
 
                 {/* Lives inside the XR dom-overlay while a session runs, which
