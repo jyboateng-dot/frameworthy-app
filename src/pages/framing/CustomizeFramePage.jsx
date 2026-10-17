@@ -991,7 +991,6 @@ const CustomizeFramePage = ({
         applyInspirationSelection({
             presetImage: art.image,
             presetTitle: art.title,
-            initialSize: sizeObj || null,
             orientation: art.orientation || sizeObj?.orientation
         });
         setIsMetModalOpen(false);

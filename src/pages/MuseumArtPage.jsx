@@ -149,17 +149,12 @@ const MuseumArtPage = ({ setProductMode, setSelectedSize, navigate, isSubPage = 
 
     const handleGetThis = (product) => {
         setProductMode('frame');
-        const dims = '40 x 50 cm';
-
-        const sizeObj = findSizeByDimension(dims) || FRAME_SIZES.find(s => s.id === '16x20') || FRAME_SIZES[0];
-        if (sizeObj) setSelectedSize(sizeObj);
 
         navigate('/frame/customize', {
             state: {
                 presetImage: product.image,
                 presetTitle: product.artist ? `${product.title} — ${product.artist}` : product.title,
-                initialSize: sizeObj || null,
-                orientation: product.orientation || sizeObj?.orientation || 'portrait'
+                orientation: product.orientation || 'portrait'
             }
         });
     };

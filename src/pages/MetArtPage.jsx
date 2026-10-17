@@ -129,13 +129,11 @@ const MetArtPage = ({ setProductMode, setSelectedSize, navigate, isSubPage = fal
         }
         setProductMode('frame');
         const sizeObj = getMetRecommendedSize(product);
-        if (sizeObj) setSelectedSize(sizeObj);
 
         navigate('/frame/customize', {
             state: {
                 presetImage: product.image,
                 presetTitle: product.title,
-                initialSize: sizeObj || null,
                 orientation: product.orientation || sizeObj?.orientation
             }
         });

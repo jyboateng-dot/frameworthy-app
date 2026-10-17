@@ -335,34 +335,21 @@ const SearchPage = ({ setProductMode, setSelectedSize, navigate, isSubPage = fal
             }
             case 'met': {
                 const p = result.raw;
-                const filename = p.image.split('/').pop();
-                const dims = WEB_MET_DIMS[filename] || '40 x 50 cm';
-                const sizeObj = resolveSizeFromDims(dims) || FRAME_SIZES.find(s => s.id === '16x20') || FRAME_SIZES[0];
-                if (sizeObj) setSelectedSize(sizeObj);
                 navigate('/frame/customize', {
                     state: {
                         presetImage: p.image,
-                        initialSize: sizeObj || null,
-                        orientation: p.orientation || sizeObj?.orientation
+                        orientation: p.orientation || 'portrait'
                     }
                 });
                 return;
             }
             case 'museum': {
                 const p = result.raw;
-                // Matches MuseumArtPage's own handleGetThis — Museum Art
-                // products don't carry per-item dimensions (scraped from
-                // bymuseum.com's generic product photos), so this is the
-                // same fixed default that page uses.
-                const dims = '40 x 50 cm';
-                const sizeObj = resolveSizeFromDims(dims) || FRAME_SIZES.find(s => s.id === '16x20') || FRAME_SIZES[0];
-                if (sizeObj) setSelectedSize(sizeObj);
                 navigate('/frame/customize', {
                     state: {
                         presetImage: p.image,
                         presetTitle: p.artist ? `${p.title} — ${p.artist}` : p.title,
-                        initialSize: sizeObj || null,
-                        orientation: sizeObj?.orientation || 'portrait'
+                        orientation: p.orientation || 'portrait'
                     }
                 });
                 return;
