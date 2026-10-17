@@ -21,7 +21,7 @@ export const CAROUSEL_SLIDES = [
     },
     {
         img: '/landing_carousel/slide-3d-ar.jpg',
-        title: "See How Your Frame Will Look in Your Space",
+        title: "Preview Your Frame in Your Space",
         text: "Step into Augmented Reality to project your finished piece onto your own walls at true physical scale, or explore calibrated room scenes to find the perfect fit for your home."
     },
     {
