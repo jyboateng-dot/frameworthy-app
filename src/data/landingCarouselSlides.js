@@ -2,7 +2,7 @@ export const CAROUSEL_SLIDES = [
     {
         img: '/landing_carousel/slide-welcome-jersey.jpg',
         title: "Welcome to FrameWorthy",
-        text: "Turn meaningful photographs and remarkable art into made-to-order framed pieces, with the proportions, matting, and finish chosen for your space."
+        text: "Turn meaningful photographs and remarkable art into made-to-order framed pieces, with the proportions, mount, and finish chosen for your space."
     },
     {
         img: '/landing_carousel/slide-upload.jpg',
@@ -12,12 +12,12 @@ export const CAROUSEL_SLIDES = [
     {
         img: '/landing_carousel/slide-craftsmanship.jpg',
         title: "Make Every Detail Yours",
-        text: "Use the customizer to choose your frame style, dimensions, mat color, and mat width, with every selection reflected in your design as you create it."
+        text: "Use the customizer to choose your frame style, dimensions, mount colour, and mount width, with every selection reflected in your design as you create it."
     },
     {
         img: '/landing_carousel/slide-room-visualizer.jpg',
         title: "See Your Frame as You Build It",
-        text: "Watch your frame take shape in real time with our interactive visualizer—preview custom mouldings and mats, compare wall paint colours, and zoom in on every fine detail as you design."
+        text: "Watch your frame take shape in real time with our interactive visualizer—preview custom mouldings and mounts, compare wall paint colours, and zoom in on every fine detail as you design."
     },
     {
         img: '/landing_carousel/slide-3d-ar.jpg',
@@ -32,12 +32,12 @@ export const CAROUSEL_SLIDES = [
     {
         img: '/landing_carousel/slide-frame-materials.jpg',
         title: "Curated Styles & Finishes",
-        text: "Explore curated solid wood mouldings, slim aluminium, and canvas floaters—with archival bevel-cut matting and protective glazing available for a timeless finish."
+        text: "Explore curated solid wood mouldings, slim aluminium, and canvas floaters—with archival bevel-cut mounts and protective glazing available for a timeless finish."
     },
     {
         img: '/landing_carousel/slide-living-space.jpg',
         title: "Elevate Your Living Space",
-        text: "Build a focal point that feels intentional by previewing your artwork, frame, mat, and scale together before the finished piece reaches your wall."
+        text: "Build a focal point that feels intentional by previewing your artwork, frame, mount, and scale together before the finished piece reaches your wall."
     },
     {
         img: '/landing_carousel/slide-perfect-sizing.jpg',
