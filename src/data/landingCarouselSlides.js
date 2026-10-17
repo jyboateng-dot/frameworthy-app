@@ -32,7 +32,7 @@ export const CAROUSEL_SLIDES = [
     {
         img: '/landing_carousel/slide-frame-materials.jpg',
         title: "Curated Styles & Finishes",
-        text: "Explore curated solid wood mouldings, slim aluminium, and canvas floaters—each paired with archival bevel-cut matting and premium glazing for a timeless finish."
+        text: "Explore curated solid wood mouldings, slim aluminium, and canvas floaters—with archival bevel-cut matting and protective glazing available for a timeless finish."
     },
     {
         img: '/landing_carousel/slide-living-space.jpg',
@@ -42,7 +42,7 @@ export const CAROUSEL_SLIDES = [
     {
         img: '/landing_carousel/slide-perfect-sizing.jpg',
         title: "Perfectly Sized",
-        text: "Compare familiar standard sizes or enter custom dimensions, then preview the true proportions against furniture and room references before making your choice."
+        text: "Explore a curated range of standard and statement sizes—from tabletop prints to large-scale wall frames—and preview the true proportions against furniture and room references before making your choice."
     },
     {
         img: '/landing_carousel/slide-curated-collections.jpg',
