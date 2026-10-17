@@ -245,6 +245,16 @@ describe('formatDimensionWithOrientation', () => {
         expect(formatDimensionWithOrientation('8x10', 'landscape')).toBe('8x10, Landscape');
     });
 
+    it('correctly formats compound Prodigi labels in cm without confusing inches for cm', () => {
+        expect(formatDimensionWithOrientation('11x14" · 28x35cm', 'landscape', 'cm')).toBe('35 × 28 cm, Landscape');
+        expect(formatDimensionWithOrientation('11x14" · 28x35cm', 'portrait', 'cm')).toBe('28 × 35 cm, Portrait');
+    });
+
+    it('correctly formats compound Prodigi labels in inches', () => {
+        expect(formatDimensionWithOrientation('11x14" · 28x35cm', 'landscape', 'in')).toBe('14 × 11 in, Landscape');
+        expect(formatDimensionWithOrientation('11x14" · 28x35cm', 'portrait', 'in')).toBe('11 × 14 in, Portrait');
+    });
+
     it('returns just the dimension when orientation is missing', () => {
         expect(formatDimensionWithOrientation('8x10', '')).toBe('8x10');
     });

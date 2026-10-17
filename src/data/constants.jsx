@@ -83,15 +83,38 @@ export const FRAME_SIZES = [
 
 export const formatDimensions = (label, unit, orientation) => {
     if (!label) return label;
-    
-    // Extract base W and H from the label
+
+    // Check if the label is a compound dual-unit label (e.g., '11x14" · 28x35cm' or '11x14" / 28x35cm')
+    // containing both an inches component (with " or in) and a cm component (with cm).
+    const cmPartMatch = label.match(/(\d+(?:\.\d+)?)\s*(?:x|×|X)\s*(\d+(?:\.\d+)?)\s*cm/i);
+    const inPartMatch = label.match(/(\d+(?:\.\d+)?)\s*(?:x|×|X)\s*(\d+(?:\.\d+)?)\s*(?:"|in\b)/i);
+
     let wRaw = null, hRaw = null;
-    let isCm = label.toLowerCase().includes('cm');
-    
-    const dimsMatch = label.match(/(\d+(?:\.\d+)?)\s*(?:x|×|X)\s*(\d+(?:\.\d+)?)/i);
-    if (dimsMatch) {
-        wRaw = parseFloat(dimsMatch[1]);
-        hRaw = parseFloat(dimsMatch[2]);
+    let isCm = false;
+
+    if (cmPartMatch && inPartMatch) {
+        // Compound label with explicit measurements in both units — pick the exact matching one
+        if (unit === 'cm') {
+            wRaw = parseFloat(cmPartMatch[1]);
+            hRaw = parseFloat(cmPartMatch[2]);
+            isCm = true;
+        } else {
+            wRaw = parseFloat(inPartMatch[1]);
+            hRaw = parseFloat(inPartMatch[2]);
+            isCm = false;
+        }
+    } else if (cmPartMatch) {
+        wRaw = parseFloat(cmPartMatch[1]);
+        hRaw = parseFloat(cmPartMatch[2]);
+        isCm = true;
+    } else {
+        const dimsMatch = label.match(/(\d+(?:\.\d+)?)\s*(?:x|×|X)\s*(\d+(?:\.\d+)?)/i);
+        if (dimsMatch) {
+            wRaw = parseFloat(dimsMatch[1]);
+            hRaw = parseFloat(dimsMatch[2]);
+            // Only consider it cm if the string explicitly contains 'cm'
+            isCm = label.toLowerCase().includes('cm');
+        }
     }
 
     if (wRaw !== null && hRaw !== null) {
@@ -105,22 +128,20 @@ export const formatDimensions = (label, unit, orientation) => {
             wFinal = hRaw;
             hFinal = wRaw;
         }
-        
+
+        // Preserve alias tags (like (Lg-Land) or (A4))
+        const aliasMatch = label.match(/\((.*?)\)/);
+        const aliasTag = aliasMatch ? ` (${aliasMatch[1]})` : '';
+
         // Format to target unit
         if (unit === 'in') {
             const wIn = isCm ? Math.round(wFinal / 2.54) : wFinal;
             const hIn = isCm ? Math.round(hFinal / 2.54) : hFinal;
-            // Preserve alias tags (like (Lg-Land))
-            const aliasMatch = label.match(/\((.*?)\)/);
-            const aliasTag = aliasMatch ? ` (${aliasMatch[1]})` : '';
             return `${wIn} × ${hIn} in${aliasTag}`;
         } else {
             // Target unit is cm
             const wCm = isCm ? wFinal : Math.round(wFinal * 2.54);
             const hCm = isCm ? hFinal : Math.round(hFinal * 2.54);
-            // Preserve alias tags
-            const aliasMatch = label.match(/\((.*?)\)/);
-            const aliasTag = aliasMatch ? ` (${aliasMatch[1]})` : '';
             return `${wCm} × ${hCm} cm${aliasTag}`;
         }
     }
