@@ -6,7 +6,7 @@ This folder contains a comprehensive backup and reference archive of all carouse
 
 ### `set_2/` and `new/` (Current Live Production Set — Complete 15 Slides)
 High-resolution 16:9 widescreen editorial imagery specifically tailored to FrameWorthy's Jersey (Channel Islands) and UK audience:
-- `01-welcome-jersey.jpg` (`slide-welcome-jersey.jpg`): Coastal living room in Jersey with exposed pink granite, sash windows overlooking the sea, and large custom black wood framed seascape.
+- `01-welcome-jersey.jpg` (`slide-welcome-jersey.jpg`): Smiling mother and young daughter hanging a custom-framed fine art print together on a bright, curated living room gallery wall.
 - `02-upload-anywhere.jpg` (`slide-upload.jpg`): Sunlit British townhouse desk with morning tea, iPad showing photo roll, and natural light oak framed photograph.
 - `03-detail-craftsmanship.jpg` (`slide-craftsmanship.jpg`): Artisan framing workbench with solid natural oak, walnut, and satin black mouldings, archival bevel-cut mount boards, and brass framer's tools.
 - `04-room-visualizer.jpg` (`slide-room-visualizer.jpg`): Sunlit British coastal living room with Georgian sash windows, woman holding iPad running the FrameWorthy Room Visualizer previewing custom-framed print and wall swatches above credenza.
@@ -18,7 +18,7 @@ High-resolution 16:9 widescreen editorial imagery specifically tailored to Frame
 - `10-curated-collections.jpg` (`slide-curated-collections.jpg`): Warm British art collector's study in Jersey with antique map of Jersey, Channel Islands coastal charts, and botanical prints on heritage-green wall beside floor-to-ceiling bookshelves.
 - `11-museum-masterpieces.jpg` (`slide-museum-masterpieces.jpg`): Vincent van Gogh's iconic masterpiece 'Sunflowers' (1888) showcased in a contemporary FrameWorthy solid dark walnut moulding with an archival off-white mount, hanging in a bright British/Jersey coastal residence above an oak credenza.
 - `12-secure-checkout.webp` (`frameworthy-checkout.webp` / `slide-secure-checkout.jpg`): Woman seated at warm sunlit study desk with open laptop showing order confirmation, holding a credit card, with framed print behind the screen.
-- `13-delivered-door.jpg` (`slide-delivered-door.jpg`): Friendly delivery courier safely handing over a reinforced picture-framing package labeled "FRAGILE - ARTWORK HANDLE WITH CARE" to a smiling homeowner at her door, with delivery van in the background.
+- `13-delivered-door.jpg` (`slide-delivered-door.jpg`): Friendly delivery courier handing over a reinforced picture-framing package labeled "FRAGILE - ARTWORK HANDLE WITH CARE" to a smiling homeowner at her door, with a branded FrameWorthy delivery van in the background.
 - `14-create-gallery.jpg` (`slide-gallery-wall.jpg`): Harmonious salon gallery wall in a bright Jersey coastal living room featuring Channel Island seascapes and castle prints in coordinated oak and black frames.
 - `15-showcase-milestone.jpg` (`slide-showcase-milestone.jpg`): Double-height British architectural room with dramatic Corbière Lighthouse, Jersey panoramic statement frame.
 
