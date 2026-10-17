@@ -99,3 +99,48 @@
 .frame-grid-visible .frame-card:nth-child(12) { animation-delay: 0.82s; }
 .frame-grid-visible .frame-card:nth-child(13) { animation-delay: 0.89s; }
 .frame-grid-visible .frame-card:nth-child(14) { animation-delay: 0.96s; }
+
+/* ── AR Meta-Inspired Load Screen Animations ────────── */
+
+@keyframes arScan {
+  0%, 100% {
+    transform: translateY(-20%);
+    opacity: 0.2;
+  }
+  50% {
+    transform: translateY(160%);
+    opacity: 0.9;
+  }
+}
+
+@keyframes arShimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes arFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(3px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.ar-scan-beam {
+  animation: arScan 2.8s ease-in-out infinite;
+}
+
+.ar-shimmer {
+  animation: arShimmer 1.8s infinite;
+}
+
+.animate-fade-in {
+  animation: arFadeIn 0.3s ease-out forwards;
+}
