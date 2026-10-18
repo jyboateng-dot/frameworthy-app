@@ -30,8 +30,8 @@ function FrameSide({ side, frame, geometry }) {
     </div>;
 }
 
-export function FitPreview({ image, natural, geometry, position, frame, matColor }) {
-    const crop = imageCrop(natural, geometry, position);
+export function FitPreview({ image, natural, geometry, position, frame, matColor, minimumDpi }) {
+    const crop = imageCrop(natural, geometry, position, minimumDpi);
     const railPctX = geometry.rail / geometry.outerWidth * 100;
     const railPctY = geometry.rail / geometry.outerHeight * 100;
     const matPctX = (geometry.rail + geometry.mat) / geometry.outerWidth * 100;
@@ -71,7 +71,7 @@ export function FitPreview({ image, natural, geometry, position, frame, matColor
 
 export default function FrameFitPanel({ image, natural, size, orientation, mat, rail, frame, matColor,
     unit, position, onPosition, onApply, error, price, matPrice, step,
-    availableSizes = FRAME_SIZES, prodigiConfiguration = {}, currency = 'GHS' }) {
+    availableSizes = FRAME_SIZES, prodigiConfiguration = {}, currency = 'GHS', minimumDpi }) {
     const [compare, setCompare] = useState(false);
     const [undo, setUndo] = useState(null);
     const dialogRef = useRef(null);
@@ -83,7 +83,7 @@ export default function FrameFitPanel({ image, natural, size, orientation, mat, 
         return () => previous?.focus();
     }, [open]);
     const geometry = frameGeometry(size, orientation, mat, rail);
-    const maxZoom = maxZoomForMinDpi(natural, geometry);
+    const maxZoom = maxZoomForMinDpi(natural, geometry, minimumDpi);
     const options = useMemo(() => bestFitOptions({
         sizes: availableSizes,
         natural,
@@ -95,14 +95,15 @@ export default function FrameFitPanel({ image, natural, size, orientation, mat, 
         price,
         matPrice,
         prodigiConfiguration,
-    }), [availableSizes, natural, size, orientation, mat, rail, frame, price, matPrice, prodigiConfiguration]);
+        minimumDpi,
+    }), [availableSizes, natural, size, orientation, mat, rail, frame, price, matPrice, prodigiConfiguration, minimumDpi]);
     const applyOption = option => {
         setUndo({ size, orientation, mat, position });
         onApply({ ...option, position: DEFAULT_POSITION });
         setCompare(false);
     };
     const preview = (g, p = position) => <FitPreview image={image} natural={natural} geometry={g}
-        position={p} frame={frame} matColor={matColor} />;
+        position={p} frame={frame} matColor={matColor} minimumDpi={minimumDpi} />;
     return <section className="space-y-3 text-stone-900">
         <div className="flex flex-wrap items-center justify-between gap-2">
             <h2 className="text-xs font-bold uppercase tracking-wider flex items-center gap-2">
@@ -134,7 +135,7 @@ export default function FrameFitPanel({ image, natural, size, orientation, mat, 
                     <div className="space-y-3">{preview(geometry)}<p className="text-sm font-semibold">Current Frame</p>
                         <p className="text-xs">{formatDimensions(size.label, unit, orientation)} · {geometry.width === geometry.height ? 'Square' : orientation === 'landscape' ? 'Landscape' : 'Portrait'} · {mat === 'none' ? 'No Mat' : `${(Number(mat) * (unit === 'cm' ? 2.54 : 1)).toFixed(1)} ${unit} mat`}</p>
                         <Price amount={price} currency={currency} />
-                        <p className="text-xs">{Math.floor((imageCrop(natural, geometry, position)?.retained || 0) * 100)}% of image visible</p>
+                        <p className="text-xs">{Math.floor((imageCrop(natural, geometry, position, minimumDpi)?.retained || 0) * 100)}% of image visible</p>
                     </div>
                     {options.map((option, i) => <div key={i} className="space-y-3">
                         <button type="button" className="block w-full cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-stone-900 hover:opacity-90"

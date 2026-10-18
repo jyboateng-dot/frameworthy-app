@@ -1,6 +1,10 @@
 import { FRAME_SIZES } from '../data/constants';
 
-export const MIN_PRINT_DPI = 150;
+// Curated museum art enters the customizer as a paper print, so catalogue
+// recommendations must use the same floor as the order pipeline. Keeping this
+// at the former 150 DPI value could advertise a large size that disappeared as
+// soon as the customer opened the customizer.
+export const MIN_PRINT_DPI = 240;
 
 function normalizePixelPair(pixelSize) {
     if (!pixelSize) return null;

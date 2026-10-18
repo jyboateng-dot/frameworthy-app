@@ -6,10 +6,11 @@ import { isFramableMuseumArtwork } from '../utils/museumCollectionPolicy';
 const PAGE_SIZE = 24;
 const requestCache = new Map();
 const snapshotCache = new Map();
+const PUBLIC_SITE_ORIGIN = 'https://frameworthyco.com';
 
 
 const artInstituteImageUrl = (imageId, width = 843) =>
-    `/api/artic-image?id=${encodeURIComponent(imageId)}&width=${width}`;
+    `${PUBLIC_SITE_ORIGIN}/api/artic-image?id=${encodeURIComponent(imageId)}&width=${width}`;
 
 const sourceById = (sourceId) => [...MUSEUM_SOURCES, ...ARCHIVAL_SOURCES].find(source => source.id === sourceId);
 

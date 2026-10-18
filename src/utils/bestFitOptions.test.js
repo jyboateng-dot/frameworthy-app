@@ -108,11 +108,11 @@ describe('bestFitOptions', () => {
         }
     });
 
-    it('excludes any frame size that would generate less than 150 DPI for the image', () => {
+    it('excludes paper frame sizes that would generate less than 240 DPI for the image', () => {
         const frame = FRAME_STYLES.find(f => f.id === 'modern-black');
         const size = FRAME_SIZES.find(s => s.id === '5x7');
-        // 1300x1650 supports 5x7 (750x1050) and 8x10 (1200x1500), but NOT 11x14 (1650x2100) or larger
-        const midResNatural = { w: 1300, h: 1650 };
+        // Supports 5x7 and 8x10 at 240 DPI, but not 11x14 or larger.
+        const midResNatural = { w: 2400, h: 3360 };
         const options = bestFitOptions({
             sizes: FRAME_SIZES,
             natural: midResNatural,
@@ -129,8 +129,8 @@ describe('bestFitOptions', () => {
         for (const option of options) {
             const shortEdgeIn = Math.min(option.size.width, option.size.height);
             const longEdgeIn = Math.max(option.size.width, option.size.height);
-            expect(shortEdgeIn * 150).toBeLessThanOrEqual(1300);
-            expect(longEdgeIn * 150).toBeLessThanOrEqual(1650);
+            expect(shortEdgeIn * 240).toBeLessThanOrEqual(2400);
+            expect(longEdgeIn * 240).toBeLessThanOrEqual(3360);
         }
     });
 });

@@ -31,10 +31,10 @@ export function frameGeometry(size, orientation, mat = 'none', rail = 0) {
         apertureHeight: height - border * 2 };
 }
 
-export function imageCrop(image, geometry, position = DEFAULT_POSITION) {
+export function imageCrop(image, geometry, position = DEFAULT_POSITION, minDpi = MIN_CROP_DPI) {
     if (!image?.w || !image?.h || geometry.apertureWidth <= 0 || geometry.apertureHeight <= 0) return null;
     const aspect = geometry.apertureWidth / geometry.apertureHeight;
-    const maxZoom = maxZoomForMinDpi(image, geometry, MIN_CROP_DPI);
+    const maxZoom = maxZoomForMinDpi(image, geometry, minDpi);
     const requestedZoom = Number.isFinite(Number(position?.zoom)) ? Number(position.zoom) : 1;
     const zoom = Math.max(1, Math.min(maxZoom, requestedZoom));
     const w = Math.min(image.w, image.h * aspect) / zoom;

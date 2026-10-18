@@ -9,25 +9,25 @@ import {
 
 describe('museum artwork normalization', () => {
     it('recommends an aspect-ratio and resolution-aware frame size', () => {
-        const size = recommendFrameSize({ width: 2400, height: 3600 });
+        const size = recommendFrameSize({ width: 4800, height: 7200 });
         expect(size.orientation).toBe('portrait');
         expect(size.width / size.height).toBeCloseTo(2 / 3, 2);
     });
 
-    it('enforces a strict 150 DPI floor on recommended sizes and printability checks', () => {
-        expect(MIN_PRINT_DPI).toBe(150);
-        // 1500x2100 supports up to 10x14 at 150 DPI (1500/10 = 150, 2100/14 = 150), so 11x14 (needs 1650x2100) must be rejected
-        expect(doesSizeMeetMinDpi({ width: 8, height: 10 }, { width: 1500, height: 2100 })).toBe(true);
-        expect(doesSizeMeetMinDpi({ width: 11, height: 14 }, { width: 1500, height: 2100 })).toBe(false);
+    it('enforces the 240 DPI paper floor on recommended sizes and printability checks', () => {
+        expect(MIN_PRINT_DPI).toBe(240);
+        // 2400x3360 supports up to 10x14 at 240 DPI, so 11x14 must be rejected.
+        expect(doesSizeMeetMinDpi({ width: 8, height: 10 }, { width: 2400, height: 3360 })).toBe(true);
+        expect(doesSizeMeetMinDpi({ width: 11, height: 14 }, { width: 2400, height: 3360 })).toBe(false);
 
-        const rec = recommendFrameSize({ width: 1500, height: 2100 });
-        expect(Math.min(rec.width, rec.height) * 150).toBeLessThanOrEqual(1500);
-        expect(Math.max(rec.width, rec.height) * 150).toBeLessThanOrEqual(2100);
+        const rec = recommendFrameSize({ width: 2400, height: 3360 });
+        expect(Math.min(rec.width, rec.height) * 240).toBeLessThanOrEqual(2400);
+        expect(Math.max(rec.width, rec.height) * 240).toBeLessThanOrEqual(3360);
 
-        // Smallest 5x7 frame requires 750x1050 at 150 DPI
-        expect(isArtworkPrintableAtMinDpi({ width: 750, height: 1050 })).toBe(true);
-        expect(isArtworkPrintableAtMinDpi({ width: 749, height: 1050 })).toBe(false);
-        expect(isArtworkPrintableAtMinDpi({ width: 800, height: 1000 })).toBe(false);
+        // Smallest 5x7 frame requires 1200x1680 at 240 DPI.
+        expect(isArtworkPrintableAtMinDpi({ width: 1200, height: 1680 })).toBe(true);
+        expect(isArtworkPrintableAtMinDpi({ width: 1199, height: 1680 })).toBe(false);
+        expect(isArtworkPrintableAtMinDpi({ width: 1280, height: 1600 })).toBe(false);
     });
 
     it('preserves source metadata while normalizing display fields', () => {

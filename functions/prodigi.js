@@ -8,6 +8,8 @@ const PRODIGI_BASE_URLS = {
 
 const SHIPPING_METHODS = new Set(['Budget', 'Standard', 'StandardPlus', 'Express', 'Overnight']);
 const MAX_ITEMS = 25;
+const MIN_PAPER_PRINT_DPI = 240;
+const MIN_CANVAS_PRINT_DPI = 150;
 
 const cleanCode = (value, length, field) => {
     const code = String(value || '').trim().toUpperCase();
@@ -26,6 +28,44 @@ const cleanUrl = (value, field = 'asset URL') => {
     try { url = new URL(String(value || '')); } catch { throw new Error(`Invalid ${field}`); }
     if (url.protocol !== 'https:') throw new Error(`${field} must use HTTPS`);
     return url.toString();
+};
+
+const minimumDpiForSku = (sku) => (
+    /(?:^|-)CAN(?:-|$)|SLIMCAN/i.test(String(sku || ''))
+        ? MIN_CANVAS_PRINT_DPI
+        : MIN_PAPER_PRINT_DPI
+);
+
+const validatePrintQuality = (item) => {
+    const quality = item?.printQuality;
+    const requiredDpi = minimumDpiForSku(item?.prodigi?.sku || item?.sku);
+    const effectiveDpi = Number(quality?.effectiveDpi);
+    const assetUrl = item?.productionImage || item?.image;
+    if (!quality || quality.passed !== true || !Number.isFinite(effectiveDpi) || effectiveDpi < requiredDpi) {
+        throw new Error(`Print quality is below the required ${requiredDpi} DPI minimum`);
+    }
+    if (!(Number(quality.sourceWidthPx) > 0 && Number(quality.sourceHeightPx) > 0
+        && Number(quality.printWidthIn) > 0 && Number(quality.printHeightIn) > 0)) {
+        throw new Error('Print quality metadata is incomplete');
+    }
+    const cropWidthPx = Number(quality.crop?.w || quality.sourceWidthPx);
+    const cropHeightPx = Number(quality.crop?.h || quality.sourceHeightPx);
+    const outputWidthPx = Number(quality.outputWidthPx || cropWidthPx);
+    const outputHeightPx = Number(quality.outputHeightPx || cropHeightPx);
+    const calculatedDpi = Math.min(
+        cropWidthPx / Number(quality.printWidthIn),
+        cropHeightPx / Number(quality.printHeightIn),
+        outputWidthPx / Number(quality.printWidthIn),
+        outputHeightPx / Number(quality.printHeightIn)
+    );
+    if (!Number.isFinite(calculatedDpi) || calculatedDpi + 0.11 < requiredDpi
+        || Math.abs(calculatedDpi - effectiveDpi) > 0.11) {
+        throw new Error('Print quality metadata is inconsistent with the production dimensions');
+    }
+    if (!assetUrl || quality.assetUrl !== assetUrl) {
+        throw new Error('Print quality metadata does not match the production asset');
+    }
+    return quality;
 };
 
 const normaliseAttributes = (attributes = {}) => {
@@ -295,4 +335,6 @@ module.exports = {
     summariseQuotes,
     createRetailQuote,
     verifyRetailQuoteToken,
+    minimumDpiForSku,
+    validatePrintQuality,
 };

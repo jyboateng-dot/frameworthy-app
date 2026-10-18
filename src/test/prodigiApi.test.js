@@ -9,11 +9,50 @@ const {
     createQuote,
     createRetailQuote,
     verifyRetailQuoteToken,
+    minimumDpiForSku,
+    validatePrintQuality,
 } = require('../../functions/prodigi.js');
 
 const item = { sku: 'GLOBAL-CAN-10X10', copies: 1, attributes: { wrap: 'ImageWrap' } };
 
 describe('Prodigi API integration', () => {
+    it('enforces the paper and canvas quality floors before fulfilment', () => {
+        expect(minimumDpiForSku('GLOBAL-CFP-8X10')).toBe(240);
+        expect(minimumDpiForSku('GLOBAL-CAN-8X10')).toBe(150);
+        const productionImage = 'https://images.example.com/print.jpg';
+        const orderItem = {
+            prodigi: { sku: 'GLOBAL-CFP-8X10' },
+            productionImage,
+            printQuality: {
+                passed: true,
+                effectiveDpi: 240,
+                sourceWidthPx: 2400,
+                sourceHeightPx: 3000,
+                printWidthIn: 8,
+                printHeightIn: 10,
+                crop: { w: 1920, h: 2400 },
+                outputWidthPx: 1920,
+                outputHeightPx: 2400,
+                assetUrl: productionImage,
+            },
+        };
+        expect(validatePrintQuality(orderItem)).toBe(orderItem.printQuality);
+        expect(() => validatePrintQuality({
+            ...orderItem,
+            printQuality: { ...orderItem.printQuality, effectiveDpi: 239 },
+        })).toThrow(/240 DPI/);
+        expect(() => validatePrintQuality({
+            ...orderItem,
+            printQuality: { ...orderItem.printQuality, assetUrl: 'https://images.example.com/other.jpg' },
+        })).toThrow(/does not match/);
+        expect(() => validatePrintQuality({
+            ...orderItem,
+            printQuality: { ...orderItem.printQuality, effectiveDpi: 300 },
+        })).toThrow(/inconsistent/);
+        expect(minimumDpiForSku('GLOBAL-FRA-SLIMCAN-16X20')).toBe(150);
+        expect(minimumDpiForSku('ECO-FRA-CAN-16X20')).toBe(150);
+    });
+
     it('builds a constrained v4 quote request', () => {
         expect(buildQuotePayload({ destinationCountryCode: 'gb', shippingMethod: 'standard', items: [item] }))
             .toEqual({

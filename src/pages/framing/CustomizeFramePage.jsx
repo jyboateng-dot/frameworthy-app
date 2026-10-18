@@ -35,7 +35,8 @@ import {
     MAT_RENDER_MAX_PCT,
 } from '../../utils/matting';
 import { getMetRecommendedSize, getMetArtworkPixelSize } from '../../utils/metArtworkSizing';
-import { MIN_PRINT_DPI, doesSizeMeetMinDpi } from '../../utils/museumArtwork';
+import { doesSizeMeetMinDpi } from '../../utils/museumArtwork';
+import { buildPrintQualitySpec, minimumPrintDpiForFrame } from '../../utils/printQuality';
 import { useUnit } from '../../context/UnitContext';
 import { useCart } from '../../context/CartContext';
 import { uploadImageToCloud, getThumbnailUrl } from '../../services/storage';
@@ -577,6 +578,7 @@ const CustomizeFramePage = ({
             setImageNaturalSize(dims);
         } else {
             knownImageDimensionsRef.current = null;
+            setImageNaturalSize(null);
         }
         if (state.presetImage) {
             setUploadedImage(state.presetImage);
@@ -585,6 +587,8 @@ const CustomizeFramePage = ({
         }
         if (state.productionImage || state.presetImage) {
             setProductionImage(state.productionImage || state.presetImage);
+        } else if (state.isAlbumPoster || state.isMoviePosterPrint) {
+            setProductionImage(null);
         }
         // Framed Prints is the one category that locks the frame as a fixed
         // part of the product (see isPresetFramedPrint below, which greys out
@@ -672,17 +676,16 @@ const CustomizeFramePage = ({
         if ((isAlbumPoster || isMoviePosterPrint) && posterData && selectedSize) {
             setIsImageLoading(true);
             setIsRendering(true);
+            setIsCloudUploadPending(true);
             // Use standard 300 DPI print resolution for crisp text in both the visualizer and
             // the final production print — but cap the resulting canvas's total pixel area,
             // since mobile Safari/WebView impose a hard ceiling around 16.7M px (roughly
             // 4096x4096) and silently produce a blank canvas past it. A flat 300 DPI already
             // blows past that for common poster sizes (24x36in @ 300 DPI = 7200x10800 =
             // 77.76M px), so DPI must scale down with physical size, not stay fixed. This is
-            // safe for the final print too: getPrintQualityJpegUrl always requests the true
-            // 300 DPI print target dimensions from Cloudinary regardless of this canvas's
-            // resolution, so this only affects the on-screen preview / local-render fallback —
-            // actual print sharpness is a catalogue-level DPI-floor concern (and the print
-            // house's own upscaling), not something this render path controls.
+            // This render is also the production asset. The quality check below uses its
+            // actual pixel dimensions and only exposes sizes that remain above the active
+            // paper/canvas minimum after the mobile or desktop canvas cap is applied.
             //
             // The 16M cap only exists to protect the memory-constrained mobile case — on a
             // real desktop browser there's no such ceiling, and capping there too was leaving
@@ -702,6 +705,10 @@ const CustomizeFramePage = ({
                 .then(dataUrl => {
                     if (!isMounted) return;
                     setUploadedImage(dataUrl);
+                    setImageNaturalSize({
+                        w: Math.round(physW * previewDPI),
+                        h: Math.round(physH * previewDPI),
+                    });
                     setIsRendering(false);
 
                     fetch(dataUrl)
@@ -712,11 +719,16 @@ const CustomizeFramePage = ({
                         })
                         .catch(err => {
                             console.warn('Background poster cloud upload failed, using local render:', err);
-                        });
+                            if (isMounted) setFitError('The print file upload did not finish. Please try this poster again.');
+                        })
+                        .finally(() => { if (isMounted) setIsCloudUploadPending(false); });
                 })
                 .catch(err => {
                     console.error('Failed to render poster:', err);
-                    if (isMounted) setIsRendering(false);
+                    if (isMounted) {
+                        setIsRendering(false);
+                        setIsCloudUploadPending(false);
+                    }
                 });
         }
         return () => { isMounted = false; };
@@ -1050,6 +1062,7 @@ const CustomizeFramePage = ({
     const isSquareFrame = Boolean(wInch && hInch && Math.abs(wInch - hInch) < 0.01);
     const railWidthIn = getMouldingWidthIn(selectedFrame);
     const isCanvasOnly = selectedFrame?.canvasOnly || selectedFrame?.id === 'frame-canvas';
+    const minimumPrintDpi = minimumPrintDpiForFrame(selectedFrame);
     const canvasWrap = prodigiSelection?.attributes?.wrap || 'ImageWrap';
     const physicalGapIn = Math.max(0, Number(selectedFrame?.canvasGapMm) || 0) / 25.4;
     // The most the mat-width slider can offer for this print size + frame
@@ -1069,7 +1082,7 @@ const CustomizeFramePage = ({
         && glassType !== 'canvas-traditional' && glassType !== 'canvas-floater'
         && imageNaturalSize?.w > 0 && !(collageImages?.length > 0);
     const fitGeometry = selectedSize ? frameGeometry(selectedSize, orientation, matWidth, railWidthIn) : null;
-    const fitCrop = fitEnabled ? imageCrop(imageNaturalSize, fitGeometry, fitPosition) : null;
+    const fitCrop = fitEnabled ? imageCrop(imageNaturalSize, fitGeometry, fitPosition, minimumPrintDpi) : null;
     useEffect(() => { setWasAddedToCart(false); }, [fitPosition]);
 
     // If switching size/orientation/frame drops sizeMaxMatWidthIn below the
@@ -1569,6 +1582,7 @@ const CustomizeFramePage = ({
                 })
                 .catch(error => {
                     console.warn('Background cloud upload failed, falling back to local preview:', error);
+                    setFitError('The print file upload did not finish. Please choose the image again.');
                 })
                 .finally(() => setIsCloudUploadPending(false));
         } catch (error) {
@@ -1829,10 +1843,24 @@ const CustomizeFramePage = ({
                 (selectedFrame?.id !== 'frame-canvas' && glassType === 'canvas-traditional' ? 350 : 0) +
                 (hardwareType === 'french-cleat' ? 50 : 0));
 
+        const assetUrl = productionImage || uploadedImage;
+        const printQuality = activeImagePixelSize && fitGeometry
+            ? buildPrintQualitySpec({
+                sourceSize: activeImagePixelSize,
+                geometry: fitGeometry,
+                position: fitEnabled ? fitPosition : DEFAULT_POSITION,
+                frame: selectedFrame,
+                minimumDpi: minimumPrintDpi,
+                assetUrl,
+                assetKind: 'original',
+            })
+            : null;
+
         return {
             productMode: 'frame',
             uploadedImage,
             productionImage,
+            printQuality,
             visualizerImage,
             selectedFrame,
             selectedSize,
@@ -1914,15 +1942,18 @@ const CustomizeFramePage = ({
             .catch(() => {});
     };
 
-    const activeImagePixelSize = (!isPlaceholder && !isAlbumPoster && !isMoviePosterPrint && imageNaturalSize?.w > 0 && imageNaturalSize?.h > 0)
-        ? imageNaturalSize
+    const activeImageWidth = !isPlaceholder ? Number(imageNaturalSize?.w) : 0;
+    const activeImageHeight = !isPlaceholder ? Number(imageNaturalSize?.h) : 0;
+    const activeImagePixelSize = (activeImageWidth > 0 && activeImageHeight > 0)
+        ? { w: activeImageWidth, h: activeImageHeight }
         : null;
     const isProdigiFrame = Boolean(selectedFrame?.prodigiProduct);
     const prodigiConfiguration = useMemo(() => prodigiConfigurationFromSelection(prodigiSelection), [prodigiSelection]);
     const prodigiSizes = useMemo(
         () => prodigiAvailableSizes(selectedFrame, prodigiConfiguration)
-            .filter((size) => !activeImagePixelSize || doesSizeMeetMinDpi(size, activeImagePixelSize, MIN_PRINT_DPI)),
-        [selectedFrame, prodigiConfiguration, activeImagePixelSize]
+            .filter((size) => !(activeImageWidth > 0 && activeImageHeight > 0)
+                || doesSizeMeetMinDpi(size, { w: activeImageWidth, h: activeImageHeight }, minimumPrintDpiForFrame(selectedFrame))),
+        [selectedFrame, prodigiConfiguration, activeImageWidth, activeImageHeight]
     );
     const hasOrderableProdigiProduct = Boolean(isProdigiFrame && prodigiSizes.length);
 
@@ -1942,7 +1973,8 @@ const CustomizeFramePage = ({
         const sizeSeen = new Set();
         const baseSizes = isProdigiFrame
             ? prodigiSizes
-            : FRAME_SIZES.filter((size) => !activeImagePixelSize || doesSizeMeetMinDpi(size, activeImagePixelSize, MIN_PRINT_DPI));
+            : FRAME_SIZES.filter((size) => !(activeImageWidth > 0 && activeImageHeight > 0)
+                || doesSizeMeetMinDpi(size, { w: activeImageWidth, h: activeImageHeight }, minimumPrintDpiForFrame(selectedFrame)));
         const sortedSizes = [...baseSizes].sort((a, b) => {
             const aMax = Math.max(a.width, a.height), aMin = Math.min(a.width, a.height);
             const bMax = Math.max(b.width, b.height), bMin = Math.min(b.width, b.height);
@@ -2001,23 +2033,37 @@ const CustomizeFramePage = ({
         const rightColumnCollapsed = isProdigiFrame ? compactProdigiSizes.slice(6, 12) : findPopular(popularLargeIds);
 
         return { finalSizesList, leftColumnCollapsed, rightColumnCollapsed };
-    }, [isAlbumArt, isAlbumPoster, isMoviePoster, isMoviePosterPrint, isProdigiFrame, prodigiSizes, selectedSize, activeImagePixelSize]);
+    }, [isAlbumPoster, isMoviePoster, isMoviePosterPrint, isProdigiFrame, prodigiSizes, selectedSize, activeImageWidth, activeImageHeight, selectedFrame]);
 
     const isImageBelowMinDpi = Boolean(activeImagePixelSize && finalSizesList.length === 0);
+    const productionAssetUrl = productionImage || uploadedImage;
+    const hasSecureProductionAsset = /^https:\/\//i.test(String(productionAssetUrl || ''));
+    const isPrintQualityPending = Boolean(hasImage && isProdigiFrame && (!activeImagePixelSize || !hasSecureProductionAsset));
 
-    // Ensure non-Prodigi selectedSize also stays within the 150 DPI floor
+    // Keep non-Prodigi selections within the active paper/canvas quality floor.
     useEffect(() => {
-        if (isProdigiFrame || !activeImagePixelSize || !selectedSize) return;
-        if (doesSizeMeetMinDpi(selectedSize, activeImagePixelSize, MIN_PRINT_DPI)) return;
+        const pixelSize = activeImageWidth > 0 && activeImageHeight > 0
+            ? { w: activeImageWidth, h: activeImageHeight }
+            : null;
+        if (isProdigiFrame || !pixelSize || !selectedSize) return;
+        if (doesSizeMeetMinDpi(selectedSize, pixelSize, minimumPrintDpi)) return;
         if (finalSizesList.length > 0) {
             const nearest = nearestProdigiSize(finalSizesList, selectedSize) || finalSizesList[finalSizesList.length - 1];
             if (nearest) setSelectedSize(nearest);
         }
-    }, [isProdigiFrame, activeImagePixelSize, selectedSize, finalSizesList, setSelectedSize]);
+    }, [isProdigiFrame, activeImageWidth, activeImageHeight, selectedSize, finalSizesList, minimumPrintDpi, setSelectedSize]);
 
     const completeCheckoutAction = async (action) => {
         if (isImageBelowMinDpi) {
-            setFitError(`This image's resolution is below our ${MIN_PRINT_DPI} DPI print minimum. Please upload a higher-resolution image.`);
+            setFitError(`This image's resolution is below our ${minimumPrintDpi} DPI print minimum. Please upload a higher-resolution image.`);
+            return;
+        }
+        if (selectedFrame?.prodigiProduct && !activeImagePixelSize) {
+            setFitError('We are still checking this image’s print resolution. Please wait a moment and try again.');
+            return;
+        }
+        if (selectedFrame?.prodigiProduct && !hasSecureProductionAsset) {
+            setFitError('The print-quality image upload has not finished. Please choose the image again if this message remains.');
             return;
         }
         if (selectedFrame?.prodigiProduct && !prodigiSelection?.quoteTotalGbp) {
@@ -2041,18 +2087,21 @@ const CustomizeFramePage = ({
                 // Give Pay Now ample time (25s) to upload high-res print + thumbnail
                 const timeoutMs = action === 'pay' ? 25000 : 12000;
                 const result = await prepareFrameOutputWithTimeout(productionImage || uploadedImage, fitGeometry,
-                    fitPosition, selectedFrame.baseColor, matColor.hex, { deferThumbnail: thumbnailInBackground }, timeoutMs);
+                    fitPosition, selectedFrame.baseColor, matColor.hex, {
+                        deferThumbnail: thumbnailInBackground,
+                        frame: selectedFrame,
+                        minimumDpi: minimumPrintDpi,
+                    }, timeoutMs);
                 if (action === 'pay') toggleAllSelection(false);
                 if (result) {
                     // thumbnailUpload is a promise, not cart data — keep it out of the item.
                     const { thumbnailUpload, ...output } = result;
                     const cartItemId = addToCart({ ...buildCartItem(output.visualizerImage), ...output });
                     attachThumbnailWhenReady(cartItemId, thumbnailUpload);
-                } else if (action === 'pay') {
-                    // Pay Now must never navigate to checkout with missing production specs
-                    throw new Error('Preparing your high-resolution print timed out. Please check your connection and try again.');
                 } else {
-                    addToCart(buildCartItem(null));
+                    // A raw-master fallback would discard the customer's adjusted crop.
+                    // Keep the item out of the cart and let them retry instead.
+                    throw new Error('Preparing your high-resolution print timed out. Please check your connection and try again.');
                 }
             } else if (thumbnailInBackground) {
                 const cartItemId = addToCart(buildCartItem(null));
@@ -2084,7 +2133,7 @@ const CustomizeFramePage = ({
     // print floor for the current image.
     const showCustomEntry = !isProdigiFrame
         && customSizeEntry
-        && (!activeImagePixelSize || doesSizeMeetMinDpi(customSizeEntry, activeImagePixelSize, MIN_PRINT_DPI))
+        && (!activeImagePixelSize || doesSizeMeetMinDpi(customSizeEntry, activeImagePixelSize, minimumPrintDpi))
         && !finalSizesList.some(s => s.width === customSizeEntry.width && s.height === customSizeEntry.height);
 
     // Total catalog sizes actually visible in the collapsed view, used to
@@ -2172,15 +2221,15 @@ const CustomizeFramePage = ({
             setCustomSizeError('Could not create that size.');
             return;
         }
-        if (activeImagePixelSize && !doesSizeMeetMinDpi(customSize, activeImagePixelSize, MIN_PRINT_DPI)) {
-            const maxShortIn = (Math.min(activeImagePixelSize.w, activeImagePixelSize.h) / MIN_PRINT_DPI).toFixed(1);
-            const maxLongIn = (Math.max(activeImagePixelSize.w, activeImagePixelSize.h) / MIN_PRINT_DPI).toFixed(1);
+        if (activeImagePixelSize && !doesSizeMeetMinDpi(customSize, activeImagePixelSize, minimumPrintDpi)) {
+            const maxShortIn = (Math.min(activeImagePixelSize.w, activeImagePixelSize.h) / minimumPrintDpi).toFixed(1);
+            const maxLongIn = (Math.max(activeImagePixelSize.w, activeImagePixelSize.h) / minimumPrintDpi).toFixed(1);
             const maxShortCm = Math.floor(Number(maxShortIn) * 2.54);
             const maxLongCm = Math.floor(Number(maxLongIn) * 2.54);
             setCustomSizeError(
                 unit === 'cm'
-                    ? `Image resolution supports up to ${maxShortCm} × ${maxLongCm} cm at ${MIN_PRINT_DPI} DPI.`
-                    : `Image resolution supports up to ${maxShortIn} × ${maxLongIn} in at ${MIN_PRINT_DPI} DPI.`
+                    ? `Image resolution supports up to ${maxShortCm} × ${maxLongCm} cm at ${minimumPrintDpi} DPI.`
+                    : `Image resolution supports up to ${maxShortIn} × ${maxLongIn} in at ${minimumPrintDpi} DPI.`
             );
             return;
         }
@@ -3901,6 +3950,7 @@ const CustomizeFramePage = ({
                                 currentSize={selectedSize}
                                 orientation={orientation}
                                 imageNaturalSize={activeImagePixelSize}
+                                minimumDpi={minimumPrintDpi}
                                 onSelect={(entry) => { setSelectedSize(entry); }}
                                 unit={unit}
                                 onClose={() => setIsSizeGuideOpen(false)}
@@ -3909,7 +3959,7 @@ const CustomizeFramePage = ({
                         <div className="grid grid-cols-2 gap-2">
                             {isImageBelowMinDpi ? (
                                 <div className="col-span-2 rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs leading-5 text-rose-900" role="alert">
-                                    This image ({activeImagePixelSize.w} × {activeImagePixelSize.h} px) is below our {MIN_PRINT_DPI} DPI print quality minimum for the smallest frame size (5 × 7 in requires at least 750 × 1050 px). Please upload a higher-resolution image.
+                                    This image ({activeImagePixelSize.w} × {activeImagePixelSize.h} px) is below our {minimumPrintDpi} DPI print quality minimum for the available sizes. Please upload a higher-resolution image.
                                 </div>
                             ) : isProdigiFrame && finalSizesList.length === 0 ? (
                                 <div className="col-span-2 rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs leading-5 text-amber-900" role="status">
@@ -4038,6 +4088,7 @@ const CustomizeFramePage = ({
                     {fitEnabled && <FrameFitPanel step={stepImagePosition} image={uploadedImage} natural={imageNaturalSize}
                         size={selectedSize} orientation={orientation} mat={matWidth} rail={railWidthIn}
                         frame={selectedFrame} matColor={matColor.hex} matPrice={matColor.price || 75}
+                        minimumDpi={minimumPrintDpi}
                         unit={unit} price={buildCartItem(null).totalPrice} position={fitPosition} onPosition={setFitPosition}
                         availableSizes={isProdigiFrame ? prodigiSizes : finalSizesList}
                         prodigiConfiguration={prodigiConfiguration}
@@ -4256,7 +4307,9 @@ const CustomizeFramePage = ({
                     <div className={`flex ${isSideBySide ? 'flex-col gap-0 items-start' : 'items-center justify-between gap-4'}`}>
                         <div className="flex flex-col">
                             {isImageBelowMinDpi ? (
-                                <span className="max-w-56 text-[10px] leading-4 text-rose-800">Image resolution is below {MIN_PRINT_DPI} DPI minimum.</span>
+                                <span className="max-w-56 text-[10px] leading-4 text-rose-800">Image resolution is below {minimumPrintDpi} DPI minimum.</span>
+                            ) : isPrintQualityPending ? (
+                                <span className="max-w-56 text-[10px] leading-4 text-stone-500">Checking print resolution…</span>
                             ) : selectedFrame?.prodigiProduct && !hasOrderableProdigiProduct ? (
                                 <span className="max-w-56 text-[10px] leading-4 text-amber-800">Preview ready · this finish is not currently available to order.</span>
                             ) : selectedFrame?.prodigiProduct && (prodigiSelection?.quoteItemsGbp || prodigiSelection?.quoteTotalGbp) ? (
@@ -4288,8 +4341,8 @@ const CustomizeFramePage = ({
                         <div className={`flex w-full mt-1 ${isSideBySide ? 'gap-1.5' : 'gap-2 max-w-[300px]'}`}>
                             <button
                                 onClick={() => completeCheckoutAction('cart')}
-                                disabled={!hasImage || isImageBelowMinDpi || isCloudUploadPending || loadingAction !== null || Boolean(selectedFrame?.prodigiProduct && !prodigiSelection?.quoteTotalGbp)}
-                                className={`flex-1 bg-white border rounded-full text-[10px] font-bold uppercase tracking-widest transition-colors flex items-center justify-center gap-1.5 shadow-sm ${isSideBySide ? 'py-1.5' : 'py-2.5'} ${!hasImage || isImageBelowMinDpi || isCloudUploadPending || loadingAction !== null || (selectedFrame?.prodigiProduct && !prodigiSelection?.quoteTotalGbp) ? 'opacity-50 cursor-not-allowed border-stone-200 text-stone-400 bg-stone-50' : 'text-stone-900 border-stone-200 hover:bg-stone-50'}`}
+                                disabled={!hasImage || isImageBelowMinDpi || isPrintQualityPending || isCloudUploadPending || loadingAction !== null || Boolean(selectedFrame?.prodigiProduct && !prodigiSelection?.quoteTotalGbp)}
+                                className={`flex-1 bg-white border rounded-full text-[10px] font-bold uppercase tracking-widest transition-colors flex items-center justify-center gap-1.5 shadow-sm ${isSideBySide ? 'py-1.5' : 'py-2.5'} ${!hasImage || isImageBelowMinDpi || isPrintQualityPending || isCloudUploadPending || loadingAction !== null || (selectedFrame?.prodigiProduct && !prodigiSelection?.quoteTotalGbp) ? 'opacity-50 cursor-not-allowed border-stone-200 text-stone-400 bg-stone-50' : 'text-stone-900 border-stone-200 hover:bg-stone-50'}`}
                             >
                                 {(loadingAction === 'cart' || (isCloudUploadPending && !loadingAction)) && <Loader size={12} className="animate-spin" />}
                                 {loadingAction === 'cart' ? 'Adding…' : isCloudUploadPending ? 'Uploading…' : (wasAddedToCart ? 'Added' : 'Add to Cart')}
@@ -4306,8 +4359,8 @@ const CustomizeFramePage = ({
                                     }
                                     completeCheckoutAction('pay');
                                 }}
-                                disabled={!hasImage || isImageBelowMinDpi || isCloudUploadPending || loadingAction !== null || Boolean(selectedFrame?.prodigiProduct && !prodigiSelection?.quoteTotalGbp)}
-                                className={`flex-1 border rounded-full text-[10px] font-bold uppercase tracking-widest transition-colors flex items-center justify-center gap-1.5 shadow-sm ${isSideBySide ? 'py-1.5' : 'py-2.5'} ${!hasImage || isImageBelowMinDpi || isCloudUploadPending || loadingAction !== null || (selectedFrame?.prodigiProduct && !prodigiSelection?.quoteTotalGbp) ? 'opacity-50 cursor-not-allowed border-stone-200 text-stone-400 bg-stone-50' : 'bg-[#c9a84c] border-[#c9a84c] text-[#0a0a0a] hover:bg-[#d4b55c]'}`}
+                                disabled={!hasImage || isImageBelowMinDpi || isPrintQualityPending || isCloudUploadPending || loadingAction !== null || Boolean(selectedFrame?.prodigiProduct && !prodigiSelection?.quoteTotalGbp)}
+                                className={`flex-1 border rounded-full text-[10px] font-bold uppercase tracking-widest transition-colors flex items-center justify-center gap-1.5 shadow-sm ${isSideBySide ? 'py-1.5' : 'py-2.5'} ${!hasImage || isImageBelowMinDpi || isPrintQualityPending || isCloudUploadPending || loadingAction !== null || (selectedFrame?.prodigiProduct && !prodigiSelection?.quoteTotalGbp) ? 'opacity-50 cursor-not-allowed border-stone-200 text-stone-400 bg-stone-50' : 'bg-[#c9a84c] border-[#c9a84c] text-[#0a0a0a] hover:bg-[#d4b55c]'}`}
                             >
                                 {loadingAction === 'pay' && <Loader size={12} className="animate-spin" />}
                                 {loadingAction === 'pay' ? 'Preparing…' : isCloudUploadPending ? 'Uploading…' : 'Pay Now'}

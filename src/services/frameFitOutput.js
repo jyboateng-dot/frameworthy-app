@@ -2,6 +2,7 @@ import { Capacitor } from '@capacitor/core';
 import { imageCrop } from '../utils/frameFit';
 import { loadImageCached } from '../utils/imageCache';
 import { uploadImageToCloud } from './storage';
+import { buildPrintQualitySpec, TARGET_PRINT_DPI } from '../utils/printQuality';
 
 const IN_TO_CM = 2.54;
 const MOBILE_MAX_CANVAS_PIXELS = 16_000_000;
@@ -31,9 +32,14 @@ const toCentimetres = (geometry) => Object.fromEntries(
  * URL, or null if it failed (callers fall back to the artwork image). That
  * property is not part of the cart item and must not be spread into it.
  */
-export async function prepareFrameOutput(source, geometry, position, frameColor, matColor, { deferThumbnail = false, isMobile } = {}) {
+export async function prepareFrameOutput(source, geometry, position, frameColor, matColor, {
+    deferThumbnail = false,
+    isMobile,
+    frame = null,
+    minimumDpi,
+} = {}) {
     const image = await loadImageCached(source);
-    const crop = imageCrop({ w: image.naturalWidth, h: image.naturalHeight }, geometry, position);
+    const crop = imageCrop({ w: image.naturalWidth, h: image.naturalHeight }, geometry, position, minimumDpi);
     if (!crop) throw new Error('The frame opening is too small. Adjust the mat width.');
     const print = document.createElement('canvas');
     const maxFrameEdgeIn = Math.max(
@@ -42,7 +48,7 @@ export async function prepareFrameOutput(source, geometry, position, frameColor,
         geometry.width || 0,
         geometry.height || 0
     );
-    const maxPrintPx = Math.min(16000, Math.max(6000, Math.ceil(maxFrameEdgeIn * 300)));
+    const maxPrintPx = Math.min(16000, Math.max(6000, Math.ceil(maxFrameEdgeIn * TARGET_PRINT_DPI)));
     const isMobilePlatform = typeof isMobile === 'boolean'
         ? isMobile
         : (Capacitor.isNativePlatform()
@@ -56,6 +62,19 @@ export async function prepareFrameOutput(source, geometry, position, frameColor,
     const scale = Math.min(1, edgeScale, areaScale);
     print.width = Math.max(1, Math.round(crop.w * scale));
     print.height = Math.max(1, Math.round(crop.h * scale));
+    const printQuality = buildPrintQualitySpec({
+        sourceSize: { w: image.naturalWidth, h: image.naturalHeight },
+        geometry,
+        position,
+        frame,
+        minimumDpi,
+        outputSize: { w: print.width, h: print.height },
+        assetKind: 'browser-rendered',
+    });
+    if (!printQuality?.passed) {
+        const effective = Math.floor(printQuality?.effectiveDpi || 0);
+        throw new Error(`This adjusted crop would produce about ${effective} DPI. Reset the image position or choose a smaller size.`);
+    }
     const ctx = print.getContext('2d');
     ctx.fillStyle = '#fff';
     ctx.fillRect(0, 0, print.width, print.height);
@@ -101,6 +120,7 @@ export async function prepareFrameOutput(source, geometry, position, frameColor,
     return {
         productionImage,
         visualizerImage,
+        printQuality: { ...printQuality, assetUrl: productionImage },
         ...(deferThumbnail ? { thumbnailUpload: deferredThumbnail } : {}),
         productionSpec: {
             version: 2,

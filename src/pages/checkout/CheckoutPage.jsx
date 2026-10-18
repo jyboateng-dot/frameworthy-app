@@ -353,6 +353,7 @@ const CheckoutPage = () => {
                 image: item.productionImage || item.uploadedImage,
                 productionImage: item.productionImage || null,
                 productionSpec: item.productionSpec || null,
+                printQuality: item.printQuality || null,
                 // A fair representation of artwork+mat+frame-color as seen in
                 // the visualizer — used as the thumbnail everywhere an order
                 // is previewed (cart, checkout, admin list, admin fulfillment

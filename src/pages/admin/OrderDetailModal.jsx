@@ -83,6 +83,11 @@ const ItemFulfillmentCard = ({ item }) => {
                         <SpecRow label="Frame">{item.selectedFrame?.name || item.frame || '—'} {item.selectedFrame?.category && <span className="text-gray-400 font-normal">({item.selectedFrame.category})</span>}</SpecRow>
                         <SpecRow label="Size">{item.selectedSize?.label || item.size || '—'}</SpecRow>
                         <SpecRow label="Orientation"><span className="capitalize">{item.orientation || '—'}</span></SpecRow>
+                        {item.printQuality?.effectiveDpi && (
+                            <SpecRow label="Print quality">
+                                {Math.floor(item.printQuality.effectiveDpi)} DPI · {item.printQuality.productClass === 'canvas' ? 'Canvas' : 'Fine-art paper'}
+                            </SpecRow>
+                        )}
                         {(item.productionSpec?.version === 1 || item.productionSpec?.version === 2) && <>
                             <SpecRow label="Print aperture">{item.productionSpec.apertureWidth.toFixed(item.productionSpec.units === 'cm' ? 2 : 3)} x {item.productionSpec.apertureHeight.toFixed(item.productionSpec.units === 'cm' ? 2 : 3)} {item.productionSpec.units || 'in'}</SpecRow>
                             <SpecRow label="Mat edges (T/B/L/R)">{['top', 'bottom', 'left', 'right'].map(edge => item.productionSpec[edge].toFixed(item.productionSpec.units === 'cm' ? 2 : 3)).join(' / ')} {item.productionSpec.units || 'in'}</SpecRow>

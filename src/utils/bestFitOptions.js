@@ -1,6 +1,7 @@
 import { frameGeometry, imageCrop } from './frameFit';
 import { maxMatWidthForSize } from './matting';
-import { MIN_PRINT_DPI, doesSizeMeetMinDpi } from './museumArtwork';
+import { doesSizeMeetMinDpi } from './museumArtwork';
+import { minimumPrintDpiForFrame } from './printQuality';
 import {
     isProdigiConfigurationAvailable,
     prodigiMountWidthInForSize,
@@ -18,6 +19,7 @@ export function bestFitOptions({
     price,
     matPrice,
     prodigiConfiguration = {},
+    minimumDpi = minimumPrintDpiForFrame(frame),
 }) {
     const isProdigi = Boolean(frame?.prodigiProduct);
     const candidateSizes = isProdigi
@@ -29,7 +31,7 @@ export function bestFitOptions({
     const seen = new Set();
 
     for (const candidate of candidateSizes) {
-        if (!doesSizeMeetMinDpi(candidate, natural, MIN_PRINT_DPI)) continue;
+        if (!doesSizeMeetMinDpi(candidate, natural, minimumDpi)) continue;
         for (const direction of ['portrait', 'landscape']) {
             if (candidate.width === candidate.height && direction === 'landscape') continue;
 
@@ -70,7 +72,7 @@ export function bestFitOptions({
                         - (mat !== 'none' && border === 'none' ? matPrice : 0);
                 }
 
-                const crop = imageCrop(natural, geometry);
+                const crop = imageCrop(natural, geometry, undefined, minimumDpi);
                 if (!crop) continue;
 
                 const distance = Math.abs(Math.log((candidate.width * candidate.height) / (size.width * size.height)));

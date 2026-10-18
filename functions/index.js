@@ -1310,6 +1310,17 @@ exports.submitPaidProdigiOrder = onDocumentUpdated({
     if (items.length === 0) return;
     if (after.prodigi?.orderId) return;
 
+    try {
+        items.forEach((item) => prodigi.validatePrintQuality(item));
+    } catch (error) {
+        await event.data.after.ref.update({
+            'prodigi.status': 'blocked',
+            'prodigi.error': error.message || 'Print quality validation failed.',
+            'prodigi.updatedAt': admin.firestore.FieldValue.serverTimestamp(),
+        });
+        return;
+    }
+
     const orderId = event.params.orderId;
     const address = after.shippingAddress || {};
     const missingAddress = !address.countryCode || !address.postalOrZipCode || !address.address || !address.city;

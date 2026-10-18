@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 import { SIZE_GUIDE_ENTRIES, SCALE_REFERENCES } from '../../data/sizeGuide';
 import { formatDimensions } from '../../data/constants';
-import { MIN_PRINT_DPI, doesSizeMeetMinDpi } from '../../utils/museumArtwork';
+import { doesSizeMeetMinDpi } from '../../utils/museumArtwork';
 import womanFigure from '../../assets/scaleFigures/woman.png';
 import manFigure from '../../assets/scaleFigures/man.png';
 
@@ -184,7 +184,7 @@ const Scene = ({ selectedSize, reference, orientation }) => {
     );
 };
 
-const SizeGuidePanel = ({ currentSize, orientation, imageNaturalSize = null, onSelect, unit, onClose }) => {
+const SizeGuidePanel = ({ currentSize, orientation, imageNaturalSize = null, minimumDpi = 240, onSelect, unit, onClose }) => {
     const [reference, setReference] = useState('woman');
     const [customWidthCm, setCustomWidthCm] = useState('');
     const [customHeightCm, setCustomHeightCm] = useState('');
@@ -194,7 +194,7 @@ const SizeGuidePanel = ({ currentSize, orientation, imageNaturalSize = null, onS
     const closeButtonRef = useRef(null);
 
     const availableEntries = SIZE_GUIDE_ENTRIES.filter(
-        (entry) => !imageNaturalSize || doesSizeMeetMinDpi(entry, imageNaturalSize, MIN_PRINT_DPI)
+        (entry) => !imageNaturalSize || doesSizeMeetMinDpi(entry, imageNaturalSize, minimumDpi)
     );
     const sameSize = (a, b) => a && b && a.width === b.width && a.height === b.height;
     const selectedEntry = currentSize ? availableEntries.find(e => sameSize(e, currentSize)) : null;
@@ -265,7 +265,7 @@ const SizeGuidePanel = ({ currentSize, orientation, imageNaturalSize = null, onS
             ? 'square'
             : (parsedCustomWidth > parsedCustomHeight ? 'landscape' : 'portrait'),
     } : null;
-    const customMeetsDpi = !customCandidate || !imageNaturalSize || doesSizeMeetMinDpi(customCandidate, imageNaturalSize, MIN_PRINT_DPI);
+    const customMeetsDpi = !customCandidate || !imageNaturalSize || doesSizeMeetMinDpi(customCandidate, imageNaturalSize, minimumDpi);
     const customSizeIsValid = customSizeInBounds && customMeetsDpi;
     const customPreview = customSizeIsValid ? customCandidate : null;
     const previewSize = customPreview || currentSize;
@@ -426,7 +426,7 @@ const SizeGuidePanel = ({ currentSize, orientation, imageNaturalSize = null, onS
                                 </label>
                             </div>
                             {((customWidthCm || customHeightCm) && !customSizeInBounds) && <p className="m-0 mt-2 text-[11px] text-red-700" role="alert">Enter both dimensions from 13 to 180 cm.</p>}
-                            {(customSizeInBounds && !customMeetsDpi) && <p className="m-0 mt-2 text-[11px] text-red-700" role="alert">This image's resolution cannot support that size at {MIN_PRINT_DPI} DPI.</p>}
+                            {(customSizeInBounds && !customMeetsDpi) && <p className="m-0 mt-2 text-[11px] text-red-700" role="alert">This image's resolution cannot support that size at {minimumDpi} DPI.</p>}
                             {customPreview && <button type="button" onClick={() => onSelect(customPreview)} className="mt-3 w-full cursor-pointer rounded-lg bg-stone-900 px-3 py-2.5 text-xs font-semibold text-white transition-colors hover:bg-stone-700">Use this custom size</button>}
                         </div>
                         <p className="text-[12.5px] text-stone-500 m-0 mb-2">All sizes for this piece</p>

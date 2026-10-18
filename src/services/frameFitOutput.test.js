@@ -63,7 +63,7 @@ describe('prepareFrameOutput', () => {
         expect(preview).toMatchObject({ type: 'image/jpeg', quality: 0.85 });
     });
 
-    it('preserves >6000px 300 DPI print dimensions on desktop and caps at 16MP on mobile', async () => {
+    it('preserves >6000px 300 DPI print dimensions on desktop and permits a 150 DPI canvas under the mobile cap', async () => {
         uploadImageToCloud.mockResolvedValue('https://cdn/x');
         loadImageCached.mockResolvedValue({ naturalWidth: 9000, naturalHeight: 6000 });
         imageCrop.mockImplementation(() => ({ x: 0, y: 0, w: 9000, h: 6000 }));
@@ -77,9 +77,27 @@ describe('prepareFrameOutput', () => {
         expect(desktopOut.productionSpec.printWidthPx).toBe(9000);
         expect(desktopOut.productionSpec.printHeightPx).toBe(6000);
 
-        const mobileOut = await prepareFrameOutput('art.jpg', largeGeometry, { x: 0, y: 0 }, '#000', '#fff', { isMobile: true });
+        const mobileOut = await prepareFrameOutput('art.jpg', largeGeometry, { x: 0, y: 0 }, '#000', '#fff', {
+            isMobile: true,
+            frame: { isCanvas: true },
+            minimumDpi: 150,
+        });
         expect(mobileOut.productionSpec.printWidthPx * mobileOut.productionSpec.printHeightPx).toBeLessThanOrEqual(16_010_000);
         expect(mobileOut.productionSpec.printWidthPx).toBeGreaterThan(4800);
+    });
+
+    it('rejects a mobile paper crop when the canvas cap would lower it below 240 DPI', async () => {
+        loadImageCached.mockResolvedValue({ naturalWidth: 9000, naturalHeight: 6000 });
+        imageCrop.mockImplementation(() => ({ x: 0, y: 0, w: 9000, h: 6000 }));
+        const largeGeometry = {
+            width: 30, height: 20, mat: 0, rail: 0.8, outerWidth: 31.6, outerHeight: 21.6,
+            apertureWidth: 30, apertureHeight: 20,
+        };
+        await expect(prepareFrameOutput('art.jpg', largeGeometry, { x: 0, y: 0 }, '#000', '#fff', {
+            isMobile: true,
+            minimumDpi: 240,
+        })).rejects.toThrow('adjusted crop');
+        expect(uploadImageToCloud).not.toHaveBeenCalled();
     });
 
     it('with deferThumbnail resolves on the print upload alone and hands back the preview as a promise', async () => {

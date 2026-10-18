@@ -191,7 +191,7 @@ describe('museum snapshot prefetching', () => {
             id: 'art-institute-of-chicago:28560',
             imageWidth: 12614,
             imageHeight: 9875,
-            fullRes: '/api/artic-image?id=6644829f-f292-c5c4-a73c-0356a6fdbf0d&width=12614',
+            fullRes: 'https://frameworthyco.com/api/artic-image?id=6644829f-f292-c5c4-a73c-0356a6fdbf0d&width=12614',
         });
     });
 });
