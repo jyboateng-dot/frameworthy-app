@@ -7,6 +7,7 @@ import { MET_LOCAL_COLLECTIONS } from '../data/metLocal';
 import { getThumbnailUrl } from '../services/storage';
 import CollectionPagination from '../components/common/CollectionPagination';
 import { getMetArtworkPixelSize, getMetRecommendedSize, isMetArtworkPrintable } from '../utils/metArtworkSizing';
+import { maxFramePrintSize } from '../utils/maxFramePrintSize';
 
 const PRIMARY_COLLECTIONS_ORDER = [
     'Classic Masterpieces',
@@ -29,7 +30,7 @@ const MetProductCard = ({ product, onGetThis }) => {
     const liked = isInWishlist(product.id);
     const [hovered, setHovered] = useState(false);
 
-    const recommendedSize = getMetRecommendedSize(product);
+    const maxSize = useMemo(() => maxFramePrintSize(getMetArtworkPixelSize(product)), [product]);
 
     return (
         <div 
@@ -64,7 +65,9 @@ const MetProductCard = ({ product, onGetThis }) => {
             <div className="flex flex-col gap-1 px-1">
                 <h3 className="text-sm text-stone-900 font-medium leading-tight truncate" title={product.title}>{product.title}</h3>
                 <p className="text-xs text-stone-500 truncate">{product.artist}</p>
-                <p className="text-[10px] text-stone-500 font-light leading-snug">Recommended {formatDimensions(recommendedSize.label, unit, recommendedSize.orientation)}</p>
+                {maxSize && (
+                    <p className="text-[10px] text-stone-500 font-light leading-snug">Max frame size {formatDimensions(maxSize.label, unit, maxSize.orientation)}</p>
+                )}
                 <div className="flex items-center gap-2 text-[10px] uppercase tracking-wider mt-1">
                     <button onClick={() => onGetThis(product)} className="text-stone-900 hover:text-stone-700 font-bold transition-colors duration-150">Get This</button>
                 </div>

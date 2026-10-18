@@ -8,6 +8,7 @@ import { fetchMuseumArtworks } from '../services/museumApi';
 import { MUSEUM_SOURCES } from '../data/museumSources';
 import { ARCHIVAL_SOURCES } from '../data/archivalSources';
 import CollectionPagination from '../components/common/CollectionPagination';
+import { maxFramePrintSize } from '../utils/maxFramePrintSize';
 
 // In-memory session cache for 0ms tab switching
 const sourceArtCache = new Map();
@@ -131,7 +132,7 @@ const MuseumArtworkCard = ({ artwork, unit, onGetThis, prioritizeImage, fetchPri
     const [hovered, setHovered] = useState(false);
     const [imageLoaded, setImageLoaded] = useState(false);
     const liked = isInWishlist(artwork.id);
-    const size = artwork.recommendedSize;
+    const maxSize = maxFramePrintSize({ w: artwork.imageWidth, h: artwork.imageHeight });
 
     return (
         <article className="group relative flex flex-col gap-3" onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}>
@@ -156,7 +157,9 @@ const MuseumArtworkCard = ({ artwork, unit, onGetThis, prioritizeImage, fetchPri
             <div className="flex flex-col gap-1 px-1">
                 <h3 className="text-sm text-stone-900 font-medium leading-tight truncate" title={artwork.title}>{artwork.title}</h3>
                 <p className="text-xs text-stone-500 truncate" title={artwork.artist}>{artwork.artist}</p>
-                <p className="text-[10px] text-stone-500 font-light leading-snug">Recommended {size ? formatDimensions(size.label, unit, size.orientation) : 'standard size'}</p>
+                {maxSize && (
+                    <p className="text-[10px] text-stone-500 font-light leading-snug">Max frame size {formatDimensions(maxSize.label, unit, maxSize.orientation)}</p>
+                )}
                 <button type="button" onClick={() => onGetThis(artwork)} className="text-left text-[10px] uppercase tracking-wider mt-1 text-stone-900 hover:text-stone-700 font-bold">Get This</button>
             </div>
         </article>
