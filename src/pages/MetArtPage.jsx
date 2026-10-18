@@ -6,7 +6,7 @@ import { useWishlist } from '../context/WishlistContext';
 import { MET_LOCAL_COLLECTIONS } from '../data/metLocal';
 import { getThumbnailUrl } from '../services/storage';
 import CollectionPagination from '../components/common/CollectionPagination';
-import { getMetRecommendedSize } from '../utils/metArtworkSizing';
+import { getMetArtworkPixelSize, getMetRecommendedSize, isMetArtworkPrintable } from '../utils/metArtworkSizing';
 
 const PRIMARY_COLLECTIONS_ORDER = [
     'Classic Masterpieces',
@@ -80,10 +80,10 @@ const MetArtPage = ({ setProductMode, setSelectedSize, navigate, isSubPage = fal
     // where window IS the real scroll container).
     const scrollToTop = () => { if (!disableWindowScroll) window.scrollTo({ top: 0, behavior: 'smooth' }); };
 
-    // Get all collections that have at least 1 downloaded file
+    // Get all collections that have at least 1 downloaded file meeting >= 150 DPI
     const availableCollections = useMemo(() => {
         return Object.keys(MET_LOCAL_COLLECTIONS).filter(
-            key => MET_LOCAL_COLLECTIONS[key] && MET_LOCAL_COLLECTIONS[key].length > 0
+            key => MET_LOCAL_COLLECTIONS[key] && MET_LOCAL_COLLECTIONS[key].some(isMetArtworkPrintable)
         );
     }, []);
 
@@ -93,7 +93,7 @@ const MetArtPage = ({ setProductMode, setSelectedSize, navigate, isSubPage = fal
             
     const secondary = useMemo(() => {
         return Object.keys(MET_LOCAL_COLLECTIONS).filter(
-            c => !PRIMARY_COLLECTIONS_ORDER.includes(c) && MET_LOCAL_COLLECTIONS[c] && MET_LOCAL_COLLECTIONS[c].length > 0
+            c => !PRIMARY_COLLECTIONS_ORDER.includes(c) && MET_LOCAL_COLLECTIONS[c] && MET_LOCAL_COLLECTIONS[c].some(isMetArtworkPrintable)
         );
     }, [availableCollections]);
 
@@ -111,7 +111,7 @@ const MetArtPage = ({ setProductMode, setSelectedSize, navigate, isSubPage = fal
 
     const currentArtworks = useMemo(() => {
         if (!activeCategory || !MET_LOCAL_COLLECTIONS[activeCategory]) return [];
-        return MET_LOCAL_COLLECTIONS[activeCategory];
+        return MET_LOCAL_COLLECTIONS[activeCategory].filter(isMetArtworkPrintable);
     }, [activeCategory]);
 
     const handleCategoryChange = (cat, isSecondary = false) => {
@@ -129,11 +129,16 @@ const MetArtPage = ({ setProductMode, setSelectedSize, navigate, isSubPage = fal
         }
         setProductMode('frame');
         const sizeObj = getMetRecommendedSize(product);
+        const pixelSize = getMetArtworkPixelSize(product);
+        if (sizeObj && setSelectedSize) setSelectedSize(sizeObj);
 
         navigate('/frame/customize', {
             state: {
                 presetImage: product.image,
                 presetTitle: product.title,
+                initialSize: sizeObj || null,
+                imageWidth: pixelSize?.w || null,
+                imageHeight: pixelSize?.h || null,
                 orientation: product.orientation || sizeObj?.orientation
             }
         });

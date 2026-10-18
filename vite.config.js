@@ -58,7 +58,7 @@ export default defineConfig({
         server.middlewares.use('/api/artic-image', async (req, res) => {
           const params = new URL(req.url || '/', 'http://localhost').searchParams;
           const imageId = params.get('id');
-          const width = Math.min(2400, Math.max(240, Number(params.get('width') || 843)));
+          const width = Math.min(16000, Math.max(240, Number(params.get('width') || 843)));
           if (!/^[a-f0-9-]{20,}$/i.test(imageId || '')) {
             res.statusCode = 400;
             res.end('Invalid Art Institute image id');
@@ -75,6 +75,41 @@ export default defineConfig({
           } catch {
             res.statusCode = 502;
             res.end('Art Institute image fetch failed');
+          }
+        });
+        server.middlewares.use('/api/proxy-artwork', async (req, res) => {
+          const params = new URL(req.url || '/', 'http://localhost').searchParams;
+          const target = params.get('url');
+          const allowedHosts = new Set([
+            'bymuseum.com',
+            'www.bymuseum.com',
+            'openaccess-cdn.clevelandart.org',
+            'parismuseescollections.paris.fr',
+            'www.parismuseescollections.paris.fr',
+          ]);
+          let parsed;
+          try {
+            parsed = new URL(target || '');
+          } catch {
+            res.statusCode = 400;
+            res.end('Invalid url parameter');
+            return;
+          }
+          if (parsed.protocol !== 'https:' || !allowedHosts.has(parsed.hostname)) {
+            res.statusCode = 403;
+            res.end('Host not allowed');
+            return;
+          }
+          try {
+            const upstream = await fetch(parsed.toString());
+            res.statusCode = upstream.status;
+            res.setHeader('Access-Control-Allow-Origin', '*');
+            res.setHeader('Content-Type', upstream.headers.get('content-type') || 'image/jpeg');
+            res.setHeader('Cache-Control', 'public, max-age=86400');
+            res.end(Buffer.from(await upstream.arrayBuffer()));
+          } catch {
+            res.statusCode = 502;
+            res.end('Upstream fetch failed');
           }
         });
       },

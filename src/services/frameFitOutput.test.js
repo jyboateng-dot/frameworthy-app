@@ -10,6 +10,8 @@ vi.mock('../utils/frameFit', () => ({
 
 import { prepareFrameOutput } from './frameFitOutput';
 import { uploadImageToCloud } from './storage';
+import { loadImageCached } from '../utils/imageCache';
+import { imageCrop } from '../utils/frameFit';
 
 const geometry = {
     width: 10, height: 8, mat: 1, rail: 0.5, outerWidth: 11, outerHeight: 9,
@@ -27,10 +29,12 @@ beforeEach(() => {
         fillRect: vi.fn(), drawImage: vi.fn(), set fillStyle(value) { this._fill = value; },
     });
     vi.spyOn(HTMLCanvasElement.prototype, 'toBlob').mockImplementation(function toBlob(callback, type, quality) {
-        encodings.push({ type, quality, width: this.width });
+        encodings.push({ type, quality, width: this.width, height: this.height });
         callback(new Blob(['x'], { type }));
     });
     uploadImageToCloud.mockReset();
+    loadImageCached.mockResolvedValue({ naturalWidth: 4000, naturalHeight: 3000 });
+    imageCrop.mockImplementation(() => ({ x: 0, y: 0, w: 4000, h: 3000 }));
 });
 afterEach(() => vi.restoreAllMocks());
 
@@ -57,6 +61,25 @@ describe('prepareFrameOutput', () => {
         const preview = encodings.find((e) => e.width === 1200);
         expect(print).toMatchObject({ type: 'image/jpeg', quality: 0.98 });
         expect(preview).toMatchObject({ type: 'image/jpeg', quality: 0.85 });
+    });
+
+    it('preserves >6000px 300 DPI print dimensions on desktop and caps at 16MP on mobile', async () => {
+        uploadImageToCloud.mockResolvedValue('https://cdn/x');
+        loadImageCached.mockResolvedValue({ naturalWidth: 9000, naturalHeight: 6000 });
+        imageCrop.mockImplementation(() => ({ x: 0, y: 0, w: 9000, h: 6000 }));
+
+        const largeGeometry = {
+            width: 30, height: 20, mat: 0, rail: 0.8, outerWidth: 31.6, outerHeight: 21.6,
+            apertureWidth: 30, apertureHeight: 20,
+        };
+
+        const desktopOut = await prepareFrameOutput('art.jpg', largeGeometry, { x: 0, y: 0 }, '#000', '#fff', { isMobile: false });
+        expect(desktopOut.productionSpec.printWidthPx).toBe(9000);
+        expect(desktopOut.productionSpec.printHeightPx).toBe(6000);
+
+        const mobileOut = await prepareFrameOutput('art.jpg', largeGeometry, { x: 0, y: 0 }, '#000', '#fff', { isMobile: true });
+        expect(mobileOut.productionSpec.printWidthPx * mobileOut.productionSpec.printHeightPx).toBeLessThanOrEqual(16_010_000);
+        expect(mobileOut.productionSpec.printWidthPx).toBeGreaterThan(4800);
     });
 
     it('with deferThumbnail resolves on the print upload alone and hands back the preview as a promise', async () => {
@@ -104,3 +127,4 @@ describe('prepareFrameOutput', () => {
         await expect(run()).rejects.toThrow('preview failed');
     });
 });
+

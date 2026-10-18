@@ -34,7 +34,8 @@ import {
     maxMatWidthForSize,
     MAT_RENDER_MAX_PCT,
 } from '../../utils/matting';
-import { getMetRecommendedSize } from '../../utils/metArtworkSizing';
+import { getMetRecommendedSize, getMetArtworkPixelSize } from '../../utils/metArtworkSizing';
+import { MIN_PRINT_DPI, doesSizeMeetMinDpi } from '../../utils/museumArtwork';
 import { useUnit } from '../../context/UnitContext';
 import { useCart } from '../../context/CartContext';
 import { uploadImageToCloud, getThumbnailUrl } from '../../services/storage';
@@ -53,7 +54,7 @@ import AuthModal from '../../components/AuthModal';
 import Price from '../../components/common/Price';
 import FrameFitPanel from '../../components/framing/FrameFitPanel';
 import ProdigiConfigurationPanel from '../../components/framing/ProdigiConfigurationPanel';
-import { DEFAULT_POSITION, frameGeometry, imageCrop, cropStyle } from '../../utils/frameFit';
+import { DEFAULT_POSITION, frameGeometry, imageCrop, cropStyle, isDefaultFitPosition } from '../../utils/frameFit';
 import { prepareFrameOutput } from '../../services/frameFitOutput';
 import { loadImageCached } from '../../utils/imageCache';
 import { visualizerFullScreenState } from '../../utils/visualizerFullScreenState';
@@ -284,14 +285,6 @@ const CustomizeFramePage = ({
         || uploadedImage?.includes('images.unsplash.com/photo-1526045478516-99145907023c');
     const hasImage = Boolean((uploadedImage && !isPlaceholder) || productionImage || (collageImages && collageImages.length > 0));
 
-    // Warm the shared image cache while the customer is still configuring, so
-    // Add to Cart doesn't start by downloading and decoding the original.
-    // Best-effort: a failure here just means it loads on demand later.
-    useEffect(() => {
-        const source = productionImage || (!isPlaceholder ? uploadedImage : null);
-        if (source) loadImageCached(source).catch(() => {});
-    }, [productionImage, uploadedImage, isPlaceholder]);
-    
     // Core State
     const [isAlbumArt, setIsAlbumArt] = useState(false);
     const [isAlbumPoster, setIsAlbumPoster] = useState(false);
@@ -300,6 +293,32 @@ const CustomizeFramePage = ({
     const [posterData, setPosterData] = useState(null);
     const [prodigiSelection, setProdigiSelection] = useState(null);
     const [wallColor, setWallColor] = useState(WALL_COLORS[0]);
+    const knownImageDimensionsRef = useRef(null);
+
+    // Record true full-resolution pixel dimensions for the 150 DPI print floor
+    // when metadata did not already supply them (e.g. ImageKit Original Paintings),
+    // while avoiding eager 20-45MB master downloads for museum items whose
+    // dimensions are already known from snapshot metadata.
+    useEffect(() => {
+        const source = productionImage || (!isPlaceholder ? uploadedImage : null);
+        if (!source || isAlbumPoster || isMoviePosterPrint) return undefined;
+        const known = knownImageDimensionsRef.current;
+        if (known && (known.url === uploadedImage || known.url === source) && known.w > 0 && known.h > 0) {
+            return undefined;
+        }
+        let cancelled = false;
+        loadImageCached(source)
+            .then((fullImg) => {
+                if (cancelled) return;
+                if (fullImg?.naturalWidth > 0 && fullImg?.naturalHeight > 0) {
+                    const dims = { w: fullImg.naturalWidth, h: fullImg.naturalHeight };
+                    knownImageDimensionsRef.current = { url: uploadedImage || source, ...dims };
+                    setImageNaturalSize(dims);
+                }
+            })
+            .catch(() => {});
+        return () => { cancelled = true; };
+    }, [productionImage, uploadedImage, isPlaceholder, isAlbumPoster, isMoviePosterPrint]);
     // null = the plain wall-colour backdrop with the sofa scale cue. Set to a
     // ROOM_SCENES id to swap in a full room, where the artwork is sized
     // against the room's own real-world wall span instead of the sofa.
@@ -552,6 +571,13 @@ const CustomizeFramePage = ({
     const applyInspirationSelection = (state) => {
         if (!state) return;
 
+        if (Number(state.imageWidth) > 0 && Number(state.imageHeight) > 0) {
+            const dims = { w: Number(state.imageWidth), h: Number(state.imageHeight) };
+            knownImageDimensionsRef.current = { url: state.presetImage || state.productionImage, ...dims };
+            setImageNaturalSize(dims);
+        } else {
+            knownImageDimensionsRef.current = null;
+        }
         if (state.presetImage) {
             setUploadedImage(state.presetImage);
             initialPresetImageRef.current = state.presetImage;
@@ -983,11 +1009,15 @@ const CustomizeFramePage = ({
     // never resolved a frame/size for the newly-selected artwork at all.
     const handleMetArtSelect = (art) => {
         const sizeObj = getMetRecommendedSize(art);
+        const pixelSize = getMetArtworkPixelSize(art);
 
         applyInspirationSelection({
             presetImage: art.image,
             presetTitle: art.title,
-            orientation: art.orientation || sizeObj?.orientation
+            initialSize: sizeObj,
+            orientation: art.orientation || sizeObj?.orientation,
+            imageWidth: pixelSize?.w || art.imageWidth || null,
+            imageHeight: pixelSize?.h || art.imageHeight || null,
         });
         setIsMetModalOpen(false);
     };
@@ -1209,11 +1239,22 @@ const CustomizeFramePage = ({
         // preset image, not just the one loaded on mount as intended.
         const isPresetImage = uploadedImage === initialPresetImageRef.current;
         const effectImage = uploadedImage;
+        const thumbUrl = getThumbnailUrl(uploadedImage, 1400);
+        const isUntransformedUrl = thumbUrl === uploadedImage;
         let cancelled = false;
         const img = new Image();
         img.onload = () => {
             if (cancelled || effectImage !== latestUploadedImageRef.current) return;
-            setImageNaturalSize({ w: img.naturalWidth, h: img.naturalHeight });
+            const known = knownImageDimensionsRef.current;
+            if (known?.url === effectImage && known.w > 0 && known.h > 0) {
+                setImageNaturalSize({ w: known.w, h: known.h });
+            } else {
+                const measured = { w: img.naturalWidth, h: img.naturalHeight };
+                if (isUntransformedUrl) {
+                    knownImageDimensionsRef.current = { url: effectImage, ...measured };
+                }
+                setImageNaturalSize(measured);
+            }
             setIsImageLoading(false); // Hide spinner safely even if cached
             if (isPresetImage) return;
 
@@ -1242,7 +1283,7 @@ const CustomizeFramePage = ({
         // Previously this always downloaded the full-resolution original a
         // second time in the background just to measure it, which competed
         // with the visible thumbnail for bandwidth on slower connections.
-        img.src = getThumbnailUrl(uploadedImage, 1400);
+        img.src = thumbUrl;
         return () => {
             cancelled = true;
         };
@@ -1485,6 +1526,8 @@ const CustomizeFramePage = ({
         setIsMoviePoster(false);
         setIsMoviePosterPrint(false);
         setPosterData(null);
+        knownImageDimensionsRef.current = null;
+        if (setProductionImage) setProductionImage(null);
         // Canvas glazing (Traditional/Floater) hides matting entirely — a
         // real physical constraint for whichever photo it was chosen for,
         // but glassType lives above this page and survives a fresh upload,
@@ -1497,14 +1540,30 @@ const CustomizeFramePage = ({
         try {
             // Instantly generate local URL for immediate visual rendering in the frame studio
             const localUrl = URL.createObjectURL(file);
+            const localDimensionsPromise = loadImageCached(localUrl)
+                .then((img) => (
+                    img?.naturalWidth > 0 && img?.naturalHeight > 0
+                        ? { w: img.naturalWidth, h: img.naturalHeight }
+                        : null
+                ))
+                .catch(() => null);
             setUploadedImage(localUrl);
             setShowSceneHint(true);
             setIsUploading(false); // Stop spinner immediately once local preview is ready
 
             // Perform cloud upload asynchronously in the background so the UI is never blocked
             setIsCloudUploadPending(true);
-            uploadImageToCloud(file)
-                .then(cloudUrl => {
+            Promise.all([uploadImageToCloud(file), localDimensionsPromise])
+                .then(([cloudUrl, dims]) => {
+                    if (dims) {
+                        knownImageDimensionsRef.current = { url: cloudUrl, ...dims };
+                        setImageNaturalSize(dims);
+                    } else if (knownImageDimensionsRef.current?.url === localUrl) {
+                        knownImageDimensionsRef.current = {
+                            ...knownImageDimensionsRef.current,
+                            url: cloudUrl,
+                        };
+                    }
                     setUploadedImage(cloudUrl);
                     if (setProductionImage) setProductionImage(cloudUrl);
                 })
@@ -1623,7 +1682,8 @@ const CustomizeFramePage = ({
         if (!sourceImage) return null;
 
         try {
-            const img = await loadImageCached(sourceImage);
+            const previewSource = getThumbnailUrl(uploadedImage || sourceImage, 1400) || sourceImage;
+            const img = await loadImageCached(previewSource);
 
             if (selectedFrame?.prodigiProduct) {
                 const blob = await renderFrameOrderPreview({ frame: selectedFrame, image: img,
@@ -1854,75 +1914,15 @@ const CustomizeFramePage = ({
             .catch(() => {});
     };
 
-    const completeCheckoutAction = async (action) => {
-        if (selectedFrame?.prodigiProduct && !prodigiSelection?.quoteTotalGbp) {
-            setFitError(hasOrderableProdigiProduct
-                ? 'Please wait for the live GBP price before adding this item to your cart.'
-                : 'This preview finish is not currently available to order.');
-            return;
-        }
-        // "Buy now" keeps waiting for the thumbnail so the order that follows
-        // straight away is created with it; "Add to cart" doesn't need to.
-        const thumbnailInBackground = action === 'cart';
-        setLoadingAction(action);
-        setFitError('');
-        try {
-            if (fitEnabled) {
-                // Give Pay Now ample time (25s) to upload high-res print + thumbnail
-                const timeoutMs = action === 'pay' ? 25000 : 12000;
-                const result = await prepareFrameOutputWithTimeout(productionImage || uploadedImage, fitGeometry,
-                    fitPosition, selectedFrame.baseColor, matColor.hex, { deferThumbnail: thumbnailInBackground }, timeoutMs);
-                if (action === 'pay') toggleAllSelection(false);
-                if (result) {
-                    // thumbnailUpload is a promise, not cart data — keep it out of the item.
-                    const { thumbnailUpload, ...output } = result;
-                    const cartItemId = addToCart({ ...buildCartItem(output.visualizerImage), ...output });
-                    attachThumbnailWhenReady(cartItemId, thumbnailUpload);
-                } else if (action === 'pay') {
-                    // Pay Now must never navigate to checkout with missing production specs
-                    throw new Error('Preparing your high-resolution print timed out. Please check your connection and try again.');
-                } else {
-                    addToCart(buildCartItem(null));
-                }
-            } else if (thumbnailInBackground) {
-                const cartItemId = addToCart(buildCartItem(null));
-                attachThumbnailWhenReady(cartItemId, captureVisualizerImage());
-            } else {
-                const visualizerImage = await captureVisualizerImageWithTimeout(action === 'pay' ? 15000 : 8000);
-                if (action === 'pay') toggleAllSelection(false);
-                addToCart(buildCartItem(visualizerImage));
-            }
-
-            setWasAddedToCart(true);
-            if (action === 'pay') {
-                if (!user) setShowAuthModal(true);
-                else navigate('/checkout');
-            }
-        } catch (error) {
-            setFitError(error.message || 'Could not prepare your frame. Please try again.');
-        } finally {
-            setLoadingAction(null);
-        }
-    };
-
-    // Filter and sort sizes so more "popular" sizes — a small footprint and
-    // a close-to-square, standard-print ratio — surface first. Primary key
-    // is the longer side (the dimension that actually reads as "how big is
-    // this on my wall"), so a 10x60cm strip sorts alongside other ~60cm
-    // pieces rather than jumping the queue on its modest area; secondary key
-    // is the aspect ratio itself, so among same-footprint sizes the more
-    // square/standard one ranks first, ahead of an equally-tall but skinnier
-    // alternative; area is the final tiebreaker for genuine ties.
-    // This sort/filter/dedup runs over the entire FRAME_SIZES catalog, so it's
-    // memoized against just the flags/image data that actually change its
-    // output — without this it was recomputing from scratch on every render
-    // (every keystroke in the custom-size inputs, every unrelated state
-    // change), which is the single most render-heavy page in the app.
+    const activeImagePixelSize = (!isPlaceholder && !isAlbumPoster && !isMoviePosterPrint && imageNaturalSize?.w > 0 && imageNaturalSize?.h > 0)
+        ? imageNaturalSize
+        : null;
     const isProdigiFrame = Boolean(selectedFrame?.prodigiProduct);
     const prodigiConfiguration = useMemo(() => prodigiConfigurationFromSelection(prodigiSelection), [prodigiSelection]);
     const prodigiSizes = useMemo(
-        () => prodigiAvailableSizes(selectedFrame, prodigiConfiguration),
-        [selectedFrame, prodigiConfiguration]
+        () => prodigiAvailableSizes(selectedFrame, prodigiConfiguration)
+            .filter((size) => !activeImagePixelSize || doesSizeMeetMinDpi(size, activeImagePixelSize, MIN_PRINT_DPI)),
+        [selectedFrame, prodigiConfiguration, activeImagePixelSize]
     );
     const hasOrderableProdigiProduct = Boolean(isProdigiFrame && prodigiSizes.length);
 
@@ -1940,7 +1940,10 @@ const CustomizeFramePage = ({
     const { finalSizesList, leftColumnCollapsed, rightColumnCollapsed } = useMemo(() => {
         const uniqueSizes = [];
         const sizeSeen = new Set();
-        const sortedSizes = [...(isProdigiFrame ? prodigiSizes : FRAME_SIZES)].sort((a, b) => {
+        const baseSizes = isProdigiFrame
+            ? prodigiSizes
+            : FRAME_SIZES.filter((size) => !activeImagePixelSize || doesSizeMeetMinDpi(size, activeImagePixelSize, MIN_PRINT_DPI));
+        const sortedSizes = [...baseSizes].sort((a, b) => {
             const aMax = Math.max(a.width, a.height), aMin = Math.min(a.width, a.height);
             const bMax = Math.max(b.width, b.height), bMin = Math.min(b.width, b.height);
             if (aMax !== bMax) return aMax - bMax;
@@ -1998,15 +2001,91 @@ const CustomizeFramePage = ({
         const rightColumnCollapsed = isProdigiFrame ? compactProdigiSizes.slice(6, 12) : findPopular(popularLargeIds);
 
         return { finalSizesList, leftColumnCollapsed, rightColumnCollapsed };
-    }, [isAlbumArt, isAlbumPoster, isMoviePoster, isMoviePosterPrint, isProdigiFrame, prodigiSizes, selectedSize]);
+    }, [isAlbumArt, isAlbumPoster, isMoviePoster, isMoviePosterPrint, isProdigiFrame, prodigiSizes, selectedSize, activeImagePixelSize]);
+
+    const isImageBelowMinDpi = Boolean(activeImagePixelSize && finalSizesList.length === 0);
+
+    // Ensure non-Prodigi selectedSize also stays within the 150 DPI floor
+    useEffect(() => {
+        if (isProdigiFrame || !activeImagePixelSize || !selectedSize) return;
+        if (doesSizeMeetMinDpi(selectedSize, activeImagePixelSize, MIN_PRINT_DPI)) return;
+        if (finalSizesList.length > 0) {
+            const nearest = nearestProdigiSize(finalSizesList, selectedSize) || finalSizesList[finalSizesList.length - 1];
+            if (nearest) setSelectedSize(nearest);
+        }
+    }, [isProdigiFrame, activeImagePixelSize, selectedSize, finalSizesList, setSelectedSize]);
+
+    const completeCheckoutAction = async (action) => {
+        if (isImageBelowMinDpi) {
+            setFitError(`This image's resolution is below our ${MIN_PRINT_DPI} DPI print minimum. Please upload a higher-resolution image.`);
+            return;
+        }
+        if (selectedFrame?.prodigiProduct && !prodigiSelection?.quoteTotalGbp) {
+            setFitError(hasOrderableProdigiProduct
+                ? 'Please wait for the live GBP price before adding this item to your cart.'
+                : 'This preview finish is not currently available to order.');
+            return;
+        }
+        // "Buy now" keeps waiting for the thumbnail so the order that follows
+        // straight away is created with it; "Add to cart" doesn't need to.
+        const thumbnailInBackground = action === 'cart';
+        setLoadingAction(action);
+        setFitError('');
+        // For Prodigi frames at default center crop (x=0.5, y=0.5, zoom=1),
+        // pass the untouched master productionImage URL directly to Prodigi
+        // (sizing: 'fillPrintArea') instead of downloading 20-45MB master files
+        // and re-encoding them through a client-side browser canvas.
+        const needsCustomCropOutput = fitEnabled && (!isDefaultFitPosition(fitPosition) || !selectedFrame?.prodigiProduct);
+        try {
+            if (needsCustomCropOutput) {
+                // Give Pay Now ample time (25s) to upload high-res print + thumbnail
+                const timeoutMs = action === 'pay' ? 25000 : 12000;
+                const result = await prepareFrameOutputWithTimeout(productionImage || uploadedImage, fitGeometry,
+                    fitPosition, selectedFrame.baseColor, matColor.hex, { deferThumbnail: thumbnailInBackground }, timeoutMs);
+                if (action === 'pay') toggleAllSelection(false);
+                if (result) {
+                    // thumbnailUpload is a promise, not cart data — keep it out of the item.
+                    const { thumbnailUpload, ...output } = result;
+                    const cartItemId = addToCart({ ...buildCartItem(output.visualizerImage), ...output });
+                    attachThumbnailWhenReady(cartItemId, thumbnailUpload);
+                } else if (action === 'pay') {
+                    // Pay Now must never navigate to checkout with missing production specs
+                    throw new Error('Preparing your high-resolution print timed out. Please check your connection and try again.');
+                } else {
+                    addToCart(buildCartItem(null));
+                }
+            } else if (thumbnailInBackground) {
+                const cartItemId = addToCart(buildCartItem(null));
+                attachThumbnailWhenReady(cartItemId, captureVisualizerImage());
+            } else {
+                const visualizerImage = await captureVisualizerImageWithTimeout(action === 'pay' ? 15000 : 8000);
+                if (action === 'pay') toggleAllSelection(false);
+                addToCart(buildCartItem(visualizerImage));
+            }
+
+            setWasAddedToCart(true);
+            if (action === 'pay') {
+                if (!user) setShowAuthModal(true);
+                else navigate('/checkout');
+            }
+        } catch (error) {
+            setFitError(error.message || 'Could not prepare your frame. Please try again.');
+        } finally {
+            setLoadingAction(null);
+        }
+    };
 
     // A created custom size stays visible as the LAST option — same spot as
     // the "Custom Size" trigger button itself — even after the user selects
     // a different size, so it isn't lost the moment it's no longer active.
     // (It's tracked in its own customSizeEntry state rather than derived from
     // selectedSize for exactly this reason.) Skipped if it happens to
-    // duplicate a catalog size already in the list.
-    const showCustomEntry = !isProdigiFrame && customSizeEntry && !finalSizesList.some(s => s.width === customSizeEntry.width && s.height === customSizeEntry.height);
+    // duplicate a catalog size already in the list, or if it fails the 150 DPI
+    // print floor for the current image.
+    const showCustomEntry = !isProdigiFrame
+        && customSizeEntry
+        && (!activeImagePixelSize || doesSizeMeetMinDpi(customSizeEntry, activeImagePixelSize, MIN_PRINT_DPI))
+        && !finalSizesList.some(s => s.width === customSizeEntry.width && s.height === customSizeEntry.height);
 
     // Total catalog sizes actually visible in the collapsed view, used to
     // decide whether "+ more sizes" should appear at all and what count to
@@ -2091,6 +2170,18 @@ const CustomizeFramePage = ({
         const customSize = parseCustomSize(`${wCm} x ${hCm} cm`);
         if (!customSize) {
             setCustomSizeError('Could not create that size.');
+            return;
+        }
+        if (activeImagePixelSize && !doesSizeMeetMinDpi(customSize, activeImagePixelSize, MIN_PRINT_DPI)) {
+            const maxShortIn = (Math.min(activeImagePixelSize.w, activeImagePixelSize.h) / MIN_PRINT_DPI).toFixed(1);
+            const maxLongIn = (Math.max(activeImagePixelSize.w, activeImagePixelSize.h) / MIN_PRINT_DPI).toFixed(1);
+            const maxShortCm = Math.floor(Number(maxShortIn) * 2.54);
+            const maxLongCm = Math.floor(Number(maxLongIn) * 2.54);
+            setCustomSizeError(
+                unit === 'cm'
+                    ? `Image resolution supports up to ${maxShortCm} × ${maxLongCm} cm at ${MIN_PRINT_DPI} DPI.`
+                    : `Image resolution supports up to ${maxShortIn} × ${maxLongIn} in at ${MIN_PRINT_DPI} DPI.`
+            );
             return;
         }
         setSelectedSize(customSize);
@@ -3809,17 +3900,22 @@ const CustomizeFramePage = ({
                             <SizeGuidePanel
                                 currentSize={selectedSize}
                                 orientation={orientation}
+                                imageNaturalSize={activeImagePixelSize}
                                 onSelect={(entry) => { setSelectedSize(entry); }}
                                 unit={unit}
                                 onClose={() => setIsSizeGuideOpen(false)}
                             />
                         )}
                         <div className="grid grid-cols-2 gap-2">
-                            {isProdigiFrame && finalSizesList.length === 0 && (
+                            {isImageBelowMinDpi ? (
+                                <div className="col-span-2 rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs leading-5 text-rose-900" role="alert">
+                                    This image ({activeImagePixelSize.w} × {activeImagePixelSize.h} px) is below our {MIN_PRINT_DPI} DPI print quality minimum for the smallest frame size (5 × 7 in requires at least 750 × 1050 px). Please upload a higher-resolution image.
+                                </div>
+                            ) : isProdigiFrame && finalSizesList.length === 0 ? (
                                 <div className="col-span-2 rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs leading-5 text-amber-900" role="status">
                                     No orderable sizes are currently available for this frame finish.
                                 </div>
-                            )}
+                            ) : null}
                             {(!showAllSizes && finalSizesList.length > 6) ? (
                                 <>
                                     {/* Collapsed: curated, column-major — left
@@ -3835,7 +3931,7 @@ const CustomizeFramePage = ({
                                         left column. */}
                                     <div className="flex flex-col gap-2">
                                         {leftColumnCollapsed.map(renderSizeButton)}
-                                        {!isProdigiFrame && !showCustomSizeForm && (
+                                        {!isProdigiFrame && !isImageBelowMinDpi && !showCustomSizeForm && (
                                             <button
                                                 onClick={() => { setShowCustomSizeForm(true); setCustomSizeError(''); }}
                                                 className="py-2 px-3 rounded-xl border border-stone-200 hover:border-stone-400 text-stone-700 text-xs font-semibold transition-all text-center"
@@ -3858,7 +3954,7 @@ const CustomizeFramePage = ({
                                         split entirely. */}
                                     {finalSizesList.map(renderSizeButton)}
                                     {showCustomEntry && renderSizeButton(customSizeEntry)}
-                                    {!isProdigiFrame && !showCustomSizeForm && (
+                                    {!isProdigiFrame && !isImageBelowMinDpi && !showCustomSizeForm && (
                                         <button
                                             onClick={() => { setShowCustomSizeForm(true); setCustomSizeError(''); }}
                                             className="py-2 px-3 rounded-xl border border-stone-200 hover:border-stone-400 text-stone-700 text-xs font-semibold transition-all text-center"
@@ -3943,7 +4039,7 @@ const CustomizeFramePage = ({
                         size={selectedSize} orientation={orientation} mat={matWidth} rail={railWidthIn}
                         frame={selectedFrame} matColor={matColor.hex} matPrice={matColor.price || 75}
                         unit={unit} price={buildCartItem(null).totalPrice} position={fitPosition} onPosition={setFitPosition}
-                        availableSizes={isProdigiFrame ? prodigiSizes : FRAME_SIZES}
+                        availableSizes={isProdigiFrame ? prodigiSizes : finalSizesList}
                         prodigiConfiguration={prodigiConfiguration}
                         currency={isProdigiFrame ? 'GBP' : 'GHS'}
                         onApply={choice => { setIsOptimized(false); setSelectedSize(choice.size);
@@ -4159,7 +4255,9 @@ const CustomizeFramePage = ({
                     )}
                     <div className={`flex ${isSideBySide ? 'flex-col gap-0 items-start' : 'items-center justify-between gap-4'}`}>
                         <div className="flex flex-col">
-                            {selectedFrame?.prodigiProduct && !hasOrderableProdigiProduct ? (
+                            {isImageBelowMinDpi ? (
+                                <span className="max-w-56 text-[10px] leading-4 text-rose-800">Image resolution is below {MIN_PRINT_DPI} DPI minimum.</span>
+                            ) : selectedFrame?.prodigiProduct && !hasOrderableProdigiProduct ? (
                                 <span className="max-w-56 text-[10px] leading-4 text-amber-800">Preview ready · this finish is not currently available to order.</span>
                             ) : selectedFrame?.prodigiProduct && (prodigiSelection?.quoteItemsGbp || prodigiSelection?.quoteTotalGbp) ? (
                                 <div className="flex flex-col items-start leading-none">
@@ -4190,8 +4288,8 @@ const CustomizeFramePage = ({
                         <div className={`flex w-full mt-1 ${isSideBySide ? 'gap-1.5' : 'gap-2 max-w-[300px]'}`}>
                             <button
                                 onClick={() => completeCheckoutAction('cart')}
-                                disabled={!hasImage || isCloudUploadPending || loadingAction !== null || Boolean(selectedFrame?.prodigiProduct && !prodigiSelection?.quoteTotalGbp)}
-                                className={`flex-1 bg-white border rounded-full text-[10px] font-bold uppercase tracking-widest transition-colors flex items-center justify-center gap-1.5 shadow-sm ${isSideBySide ? 'py-1.5' : 'py-2.5'} ${!hasImage || isCloudUploadPending || loadingAction !== null || (selectedFrame?.prodigiProduct && !prodigiSelection?.quoteTotalGbp) ? 'opacity-50 cursor-not-allowed border-stone-200 text-stone-400 bg-stone-50' : 'text-stone-900 border-stone-200 hover:bg-stone-50'}`}
+                                disabled={!hasImage || isImageBelowMinDpi || isCloudUploadPending || loadingAction !== null || Boolean(selectedFrame?.prodigiProduct && !prodigiSelection?.quoteTotalGbp)}
+                                className={`flex-1 bg-white border rounded-full text-[10px] font-bold uppercase tracking-widest transition-colors flex items-center justify-center gap-1.5 shadow-sm ${isSideBySide ? 'py-1.5' : 'py-2.5'} ${!hasImage || isImageBelowMinDpi || isCloudUploadPending || loadingAction !== null || (selectedFrame?.prodigiProduct && !prodigiSelection?.quoteTotalGbp) ? 'opacity-50 cursor-not-allowed border-stone-200 text-stone-400 bg-stone-50' : 'text-stone-900 border-stone-200 hover:bg-stone-50'}`}
                             >
                                 {(loadingAction === 'cart' || (isCloudUploadPending && !loadingAction)) && <Loader size={12} className="animate-spin" />}
                                 {loadingAction === 'cart' ? 'Adding…' : isCloudUploadPending ? 'Uploading…' : (wasAddedToCart ? 'Added' : 'Add to Cart')}
@@ -4208,8 +4306,8 @@ const CustomizeFramePage = ({
                                     }
                                     completeCheckoutAction('pay');
                                 }}
-                                disabled={!hasImage || isCloudUploadPending || loadingAction !== null || Boolean(selectedFrame?.prodigiProduct && !prodigiSelection?.quoteTotalGbp)}
-                                className={`flex-1 border rounded-full text-[10px] font-bold uppercase tracking-widest transition-colors flex items-center justify-center gap-1.5 shadow-sm ${isSideBySide ? 'py-1.5' : 'py-2.5'} ${!hasImage || isCloudUploadPending || loadingAction !== null || (selectedFrame?.prodigiProduct && !prodigiSelection?.quoteTotalGbp) ? 'opacity-50 cursor-not-allowed border-stone-200 text-stone-400 bg-stone-50' : 'bg-[#c9a84c] border-[#c9a84c] text-[#0a0a0a] hover:bg-[#d4b55c]'}`}
+                                disabled={!hasImage || isImageBelowMinDpi || isCloudUploadPending || loadingAction !== null || Boolean(selectedFrame?.prodigiProduct && !prodigiSelection?.quoteTotalGbp)}
+                                className={`flex-1 border rounded-full text-[10px] font-bold uppercase tracking-widest transition-colors flex items-center justify-center gap-1.5 shadow-sm ${isSideBySide ? 'py-1.5' : 'py-2.5'} ${!hasImage || isImageBelowMinDpi || isCloudUploadPending || loadingAction !== null || (selectedFrame?.prodigiProduct && !prodigiSelection?.quoteTotalGbp) ? 'opacity-50 cursor-not-allowed border-stone-200 text-stone-400 bg-stone-50' : 'bg-[#c9a84c] border-[#c9a84c] text-[#0a0a0a] hover:bg-[#d4b55c]'}`}
                             >
                                 {loadingAction === 'pay' && <Loader size={12} className="animate-spin" />}
                                 {loadingAction === 'pay' ? 'Preparing…' : isCloudUploadPending ? 'Uploading…' : 'Pay Now'}

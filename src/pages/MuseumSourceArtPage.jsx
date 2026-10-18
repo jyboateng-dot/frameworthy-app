@@ -64,11 +64,16 @@ const MuseumSourceArtPage = ({ sourceId, setProductMode, setSelectedSize, naviga
 
     const handleGetThis = (artwork) => {
         setProductMode('frame');
-        const orientation = artwork.orientation || artwork.recommendedSize?.orientation || 'portrait';
+        const sizeObj = artwork.recommendedSize || null;
+        if (sizeObj && setSelectedSize) setSelectedSize(sizeObj);
+        const orientation = artwork.orientation || sizeObj?.orientation || 'portrait';
         navigate('/frame/customize', {
             state: {
                 presetImage: artwork.fullRes || artwork.image,
                 presetTitle: artwork.artist ? `${artwork.title} — ${artwork.artist}` : artwork.title,
+                initialSize: sizeObj,
+                imageWidth: artwork.imageWidth || null,
+                imageHeight: artwork.imageHeight || null,
                 orientation: orientation,
             },
         });

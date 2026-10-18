@@ -6,6 +6,37 @@
 // of MB, which matters on phones.
 const MAX_ENTRIES = 1;
 const cache = new Map();
+const PROXY_BASE = '/api/proxy-artwork';
+const NON_CORS_HOSTS = new Set([
+    'bymuseum.com',
+    'www.bymuseum.com',
+    'openaccess-cdn.clevelandart.org',
+    'parismuseescollections.paris.fr',
+    'www.parismuseescollections.paris.fr',
+]);
+
+function toCorsSafeUrl(src) {
+    if (typeof src !== 'string' || !/^https?:\/\//i.test(src)) return src;
+    try {
+        const parsed = new URL(src);
+        if (NON_CORS_HOSTS.has(parsed.hostname)) {
+            return `${PROXY_BASE}?url=${encodeURIComponent(src)}`;
+        }
+    } catch {
+        // Keep original src if URL parsing fails
+    }
+    return src;
+}
+
+function loadSingleImage(src) {
+    return new Promise((resolve, reject) => {
+        const image = new Image();
+        image.crossOrigin = 'anonymous';
+        image.onload = () => resolve(image);
+        image.onerror = () => reject(new Error('Could not load the original image. Please try again.'));
+        image.src = src;
+    });
+}
 
 /**
  * Loads an image for canvas use (CORS-enabled) and reuses the in-flight or
@@ -23,12 +54,12 @@ export function loadImageCached(src) {
         return cached;
     }
 
-    const promise = new Promise((resolve, reject) => {
-        const image = new Image();
-        image.crossOrigin = 'anonymous';
-        image.onload = () => resolve(image);
-        image.onerror = () => reject(new Error('Could not load the original image. Please try again.'));
-        image.src = src;
+    const effectiveSrc = toCorsSafeUrl(src);
+    const promise = loadSingleImage(effectiveSrc).catch((err) => {
+        if (effectiveSrc === src && typeof src === 'string' && /^https:\/\//i.test(src)) {
+            return loadSingleImage(`${PROXY_BASE}?url=${encodeURIComponent(src)}`);
+        }
+        throw err;
     });
     cache.set(src, promise);
     promise.catch(() => {
@@ -39,3 +70,4 @@ export function loadImageCached(src) {
 }
 
 export const clearImageCache = () => cache.clear();
+

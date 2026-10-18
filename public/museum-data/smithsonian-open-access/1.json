@@ -5,7 +5,7 @@
       "title": "Sun Bird",
       "artist": "Max Rosenthal, 23 Nov 1833 - 8 Aug 1918",
       "image": "https://ids.si.edu/ids/deliveryService?id=NPG-S_NPG_2001_58_6_ext",
-      "fullRes": "https://ids.si.edu/ids/deliveryService?id=NPG-S_NPG_2001_58_6_ext",
+      "fullRes": "https://ids.si.edu/ids/download?id=NPG-S_NPG_2001_58_6_ext.jpg",
       "rights": "CC0",
       "sourceUrl": "https://npg.si.edu/object/npg_S_NPG.2001.58.6",
       "metadata": {
@@ -205,14 +205,16 @@
             "access": "CC0"
           }
         }
-      }
+      },
+      "imageWidth": 4514,
+      "imageHeight": 6873
     },
     {
       "id": "ld1-1643399756728-1643399821305-1",
       "title": "Unidentified Woman",
       "artist": "Charles Balthazar Julien Févret de Saint-Mémin, 12 Mar 1770 - 23 Jun 1852",
       "image": "https://ids.si.edu/ids/deliveryService?id=NPG-S_NPG_74_39_16_48Unidentified-000001",
-      "fullRes": "https://ids.si.edu/ids/deliveryService?id=NPG-S_NPG_74_39_16_48Unidentified-000001",
+      "fullRes": "https://ids.si.edu/ids/download?id=NPG-S_NPG_74_39_16_48Unidentified-000001.jpg",
       "rights": "CC0",
       "sourceUrl": "https://npg.si.edu/object/npg_S_NPG.74.39.16.48",
       "metadata": {
@@ -367,14 +369,16 @@
             "access": "CC0"
           }
         }
-      }
+      },
+      "imageWidth": 2148,
+      "imageHeight": 2460
     },
     {
       "id": "ld1-1643399756728-1643399820960-0",
       "title": "John Reynolds",
       "artist": "Charles Balthazar Julien Févret de Saint-Mémin, 12 Mar 1770 - 23 Jun 1852",
       "image": "https://ids.si.edu/ids/deliveryService?id=NPG-S_NPG_74_39_4_40Reynolds-000001",
-      "fullRes": "https://ids.si.edu/ids/deliveryService?id=NPG-S_NPG_74_39_4_40Reynolds-000001",
+      "fullRes": "https://ids.si.edu/ids/download?id=NPG-S_NPG_74_39_4_40Reynolds-000001.jpg",
       "rights": "CC0",
       "sourceUrl": "https://npg.si.edu/object/npg_S_NPG.74.39.4.40",
       "metadata": {
@@ -536,14 +540,16 @@
             "access": "CC0"
           }
         }
-      }
+      },
+      "imageWidth": 2345,
+      "imageHeight": 2353
     },
     {
       "id": "ld1-1643399756728-1643399810910-0",
       "title": "1st Earl Charles Grey",
       "artist": "Robert Pollard, 1755 - 1838",
       "image": "https://ids.si.edu/ids/deliveryService?id=NPG-S_NPG_75_28_2_h",
-      "fullRes": "https://ids.si.edu/ids/deliveryService?id=NPG-S_NPG_75_28_2_h",
+      "fullRes": "https://ids.si.edu/ids/download?id=NPG-S_NPG_75_28_2_h.jpg",
       "rights": "CC0",
       "sourceUrl": "https://npg.si.edu/object/npg_S_NPG.75.28.2.h",
       "metadata": {
@@ -742,14 +748,16 @@
             "access": "CC0"
           }
         }
-      }
+      },
+      "imageWidth": 2290,
+      "imageHeight": 4000
     },
     {
       "id": "ld1-1643399756728-1643399826157-1",
       "title": "Frontispiece to \"A Narrative of the Adventures and Escape of Moses Roper, from American Slavery\"",
       "artist": "John Cochran, 1821 - 1865",
       "image": "https://ids.si.edu/ids/deliveryService?id=NPG-NPG_2016_149_ext",
-      "fullRes": "https://ids.si.edu/ids/deliveryService?id=NPG-NPG_2016_149_ext",
+      "fullRes": "https://ids.si.edu/ids/download?id=NPG-NPG_2016_149_ext.jpg",
       "rights": "CC0",
       "sourceUrl": "https://npg.si.edu/object/npg_NPG.2016.149",
       "metadata": {
@@ -948,14 +956,16 @@
             "access": "CC0"
           }
         }
-      }
+      },
+      "imageWidth": 3887,
+      "imageHeight": 6559
     },
     {
       "id": "ld1-1643399756728-1643399828277-0",
       "title": "Pungwuni",
       "artist": "John Warner Barber, 2 Feb 1798 - 22 Jun 1885",
       "image": "https://ids.si.edu/ids/deliveryService?id=NPG-S_NPG_2018_83_11_int",
-      "fullRes": "https://ids.si.edu/ids/deliveryService?id=NPG-S_NPG_2018_83_11_int",
+      "fullRes": "https://ids.si.edu/ids/download?id=NPG-S_NPG_2018_83_11_int.jpg",
       "rights": "CC0",
       "sourceUrl": "https://npg.si.edu/object/npg_S_NPG.2018.83.11",
       "metadata": {
@@ -1135,14 +1145,16 @@
             "access": "CC0"
           }
         }
-      }
+      },
+      "imageWidth": 2732,
+      "imageHeight": 3010
     },
     {
       "id": "ld1-1643399756728-1643399816050-0",
       "title": "David G. Farragut",
       "artist": "John Chester Buttre, 10 Jun 1821 - 2 Dec 1893",
       "image": "https://ids.si.edu/ids/deliveryService?id=NPG-NPG_2008_122Farragut-000002",
-      "fullRes": "https://ids.si.edu/ids/deliveryService?id=NPG-NPG_2008_122Farragut-000002",
+      "fullRes": "https://ids.si.edu/ids/download?id=NPG-NPG_2008_122Farragut-000002.jpg",
       "rights": "CC0",
       "sourceUrl": "https://npg.si.edu/object/npg_NPG.2008.122",
       "metadata": {
@@ -1342,14 +1354,16 @@
             "access": "CC0"
           }
         }
-      }
+      },
+      "imageWidth": 3138,
+      "imageHeight": 3970
     },
     {
       "id": "ld1-1643399756728-1643399821016-1",
       "title": "J. B. Loir",
       "artist": "Charles Balthazar Julien Févret de Saint-Mémin, 12 Mar 1770 - 23 Jun 1852",
       "image": "https://ids.si.edu/ids/deliveryService?id=NPG-S_NPG_74_39_6_46Loir-000001",
-      "fullRes": "https://ids.si.edu/ids/deliveryService?id=NPG-S_NPG_74_39_6_46Loir-000001",
+      "fullRes": "https://ids.si.edu/ids/download?id=NPG-S_NPG_74_39_6_46Loir-000001.jpg",
       "rights": "CC0",
       "sourceUrl": "https://npg.si.edu/object/npg_S_NPG.74.39.6.46",
       "metadata": {
@@ -1511,14 +1525,16 @@
             "access": "CC0"
           }
         }
-      }
+      },
+      "imageWidth": 2309,
+      "imageHeight": 2351
     },
     {
       "id": "ld1-1643399756728-1643399821042-1",
       "title": "Jean Marie Soulier",
       "artist": "Charles Balthazar Julien Févret de Saint-Mémin, 12 Mar 1770 - 23 Jun 1852",
       "image": "https://ids.si.edu/ids/deliveryService?id=NPG-S_NPG_74_39_7_48Soulier-000001",
-      "fullRes": "https://ids.si.edu/ids/deliveryService?id=NPG-S_NPG_74_39_7_48Soulier-000001",
+      "fullRes": "https://ids.si.edu/ids/download?id=NPG-S_NPG_74_39_7_48Soulier-000001.jpg",
       "rights": "CC0",
       "sourceUrl": "https://npg.si.edu/object/npg_S_NPG.74.39.7.48",
       "metadata": {
@@ -1680,7 +1696,9 @@
             "access": "CC0"
           }
         }
-      }
+      },
+      "imageWidth": 2363,
+      "imageHeight": 2351
     }
   ],
   "total": 28218

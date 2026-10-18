@@ -19,4 +19,20 @@ describe('museum collection policy', () => {
     it('requires a usable image', () => {
         expect(isFramableMuseumArtwork('national-gallery-of-art', { classification: 'Painting' })).toBe(false);
     });
+
+    it('rejects records whose known pixel dimensions cannot support 5x7 at 150 DPI (< 750x1050)', () => {
+        expect(isFramableMuseumArtwork('national-gallery-of-art', {
+            image,
+            classification: 'Painting',
+            width: 600,
+            height: 900,
+        })).toBe(false);
+        expect(isFramableMuseumArtwork('national-gallery-of-art', {
+            image,
+            classification: 'Painting',
+            width: 1200,
+            height: 1600,
+        })).toBe(true);
+    });
 });
+

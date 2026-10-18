@@ -1,364 +1,412 @@
 {
   "artworks": [
     {
-      "id": "136759e8-9b01-4131-9c0b-0b5d0279edba",
-      "title": "L'homme étonné",
+      "id": "73df91dd-cc2b-4c82-b1b6-e66476de72f2",
+      "title": "Portrait de l'architecte Grillon",
       "artist": "Paris Musées",
-      "image": "https://apicollections.parismusees.paris.fr/sites/default/files/styles/thumbnail/collections/atoms/images/ZDK/3z04487.jpg?itok=VymOYRu_",
-      "fullRes": "https://apicollections.parismusees.paris.fr/sites/default/files/styles/thumbnail/collections/atoms/images/ZDK/3z04487.jpg?itok=VymOYRu_",
-      "sourceUrl": "https://www.parismuseescollections.paris.fr/node/310228",
-      "rights": "Paris Musées API record; verify item-level rights",
+      "image": "https://apicollections.parismusees.paris.fr/sites/default/files/styles/thumbnail/collections/atoms/images/CAR/aze_card15548_001.jpg?itok=e5ANU4g9",
+      "fullRes": "https://www.parismuseescollections.paris.fr/sites/default/files/atoms/images/CAR/aze_card15548_001.jpg",
+      "sourceUrl": "https://www.parismuseescollections.paris.fr/node/114392",
+      "rights": "© Musée Carnavalet / Ville de Paris",
       "description": null,
-      "objectType": "Dessin",
+      "objectType": "Dessin, Arts graphiques",
       "metadata": {
-        "lrefAdlib": 120000410,
-        "copyright": null
-      }
+        "lrefAdlib": 320147357,
+        "copyright": "© Musée Carnavalet / Ville de Paris"
+      },
+      "imageWidth": 2060,
+      "imageHeight": 2557
     },
     {
-      "id": "73963023-ecbe-4120-835b-6df9a3beeec2",
-      "title": "Dessin pour portrait de l'oiseau?...",
+      "id": "09b89345-688c-45b5-a4e7-d576df2f9d5f",
+      "title": "Portrait de Madame Conquy",
       "artist": "Paris Musées",
-      "image": "https://apicollections.parismusees.paris.fr/sites/default/files/styles/thumbnail/collections/atoms/images/ZDK/3z04489.jpg?itok=imIjABpc",
-      "fullRes": "https://apicollections.parismusees.paris.fr/sites/default/files/styles/thumbnail/collections/atoms/images/ZDK/3z04489.jpg?itok=imIjABpc",
-      "sourceUrl": "https://www.parismuseescollections.paris.fr/node/310234",
-      "rights": "Paris Musées API record; verify item-level rights",
+      "image": "https://apicollections.parismusees.paris.fr/sites/default/files/styles/thumbnail/collections/atoms/images/CAR/aze_card15550_001.jpg?itok=ncbzvfbf",
+      "fullRes": "https://www.parismuseescollections.paris.fr/sites/default/files/atoms/images/CAR/aze_card15550_001.jpg",
+      "sourceUrl": "https://www.parismuseescollections.paris.fr/node/114394",
+      "rights": "© Musée Carnavalet / Ville de Paris",
       "description": null,
-      "objectType": "Dessin",
+      "objectType": "Dessin, Arts graphiques",
       "metadata": {
-        "lrefAdlib": 120000412,
-        "copyright": null
-      }
+        "lrefAdlib": 320147376,
+        "copyright": "© Musée Carnavalet / Ville de Paris"
+      },
+      "imageWidth": 1753,
+      "imageHeight": 2417
     },
     {
-      "id": "161d69d2-6379-4e02-9ace-96b5b0df39f9",
-      "title": "Guitariste",
+      "id": "2d4755d4-3acc-4119-bb3b-70bfe7b11657",
+      "title": "Portrait de l'architecte Jules Goury",
       "artist": "Paris Musées",
-      "image": "https://apicollections.parismusees.paris.fr/sites/default/files/styles/thumbnail/collections/atoms/images/ZDK/3z04490.jpg?itok=C-7h8s4y",
-      "fullRes": "https://apicollections.parismusees.paris.fr/sites/default/files/styles/thumbnail/collections/atoms/images/ZDK/3z04490.jpg?itok=C-7h8s4y",
-      "sourceUrl": "https://www.parismuseescollections.paris.fr/node/310237",
-      "rights": "Paris Musées API record; verify item-level rights",
+      "image": "https://apicollections.parismusees.paris.fr/sites/default/files/styles/thumbnail/collections/atoms/images/CAR/aze_card15551_001.jpg?itok=8TG6bPWv",
+      "fullRes": "https://www.parismuseescollections.paris.fr/sites/default/files/atoms/images/CAR/aze_card15551_001.jpg",
+      "sourceUrl": "https://www.parismuseescollections.paris.fr/node/114395",
+      "rights": "© Musée Carnavalet / Ville de Paris",
       "description": null,
-      "objectType": "Estampe",
+      "objectType": "Dessin, Arts graphiques",
       "metadata": {
-        "lrefAdlib": 120000413,
-        "copyright": null
-      }
+        "lrefAdlib": 320147378,
+        "copyright": "© Musée Carnavalet / Ville de Paris"
+      },
+      "imageWidth": 2297,
+      "imageHeight": 2284
     },
     {
-      "id": "e3123d72-0922-4a1b-974c-f7d1ae48e9dd",
-      "title": "Tête d'homme",
+      "id": "7a57b2f1-f876-4e49-8f87-b3603512524e",
+      "title": "Portrait de Gauthey",
       "artist": "Paris Musées",
-      "image": "https://apicollections.parismusees.paris.fr/sites/default/files/styles/thumbnail/collections/atoms/images/ZDK/3z04491.jpg?itok=Q-EGuyBJ",
-      "fullRes": "https://apicollections.parismusees.paris.fr/sites/default/files/styles/thumbnail/collections/atoms/images/ZDK/3z04491.jpg?itok=Q-EGuyBJ",
-      "sourceUrl": "https://www.parismuseescollections.paris.fr/node/310240",
-      "rights": "Paris Musées API record; verify item-level rights",
+      "image": "https://apicollections.parismusees.paris.fr/sites/default/files/styles/thumbnail/collections/atoms/images/CAR/aze_card15552_001.jpg?itok=A3qaKMCy",
+      "fullRes": "https://www.parismuseescollections.paris.fr/sites/default/files/atoms/images/CAR/aze_card15552_001.jpg",
+      "sourceUrl": "https://www.parismuseescollections.paris.fr/node/114396",
+      "rights": "© Musée Carnavalet / Ville de Paris",
       "description": null,
-      "objectType": "Dessin",
+      "objectType": "Dessin, Arts graphiques",
       "metadata": {
-        "lrefAdlib": 120000414,
-        "copyright": null
-      }
+        "lrefAdlib": 320147396,
+        "copyright": "© Musée Carnavalet / Ville de Paris"
+      },
+      "imageWidth": 1626,
+      "imageHeight": 2171
     },
     {
-      "id": "d87feb52-5fa7-46a0-b56a-4a336fec3815",
-      "title": "L'estropié ou l'infirme",
+      "id": "32fe6153-546c-4191-a605-ba31b54f204b",
+      "title": "Portrait de Haudebourg",
       "artist": "Paris Musées",
-      "image": "https://apicollections.parismusees.paris.fr/sites/default/files/styles/thumbnail/collections/atoms/images/ZDK/3z04492.jpg?itok=IXo4JOWa",
-      "fullRes": "https://apicollections.parismusees.paris.fr/sites/default/files/styles/thumbnail/collections/atoms/images/ZDK/3z04492.jpg?itok=IXo4JOWa",
-      "sourceUrl": "https://www.parismuseescollections.paris.fr/node/310243",
-      "rights": "Paris Musées API record; verify item-level rights",
+      "image": "https://apicollections.parismusees.paris.fr/sites/default/files/styles/thumbnail/collections/atoms/images/CAR/aze_card15553_001.jpg?itok=Ds90zSrG",
+      "fullRes": "https://www.parismuseescollections.paris.fr/sites/default/files/atoms/images/CAR/aze_card15553_001.jpg",
+      "sourceUrl": "https://www.parismuseescollections.paris.fr/node/114397",
+      "rights": "© Musée Carnavalet / Ville de Paris",
       "description": null,
-      "objectType": "Dessin",
+      "objectType": "Dessin, Arts graphiques",
       "metadata": {
-        "lrefAdlib": 120000415,
-        "copyright": null
-      }
+        "lrefAdlib": 320147426,
+        "copyright": "© Musée Carnavalet / Ville de Paris"
+      },
+      "imageWidth": 2678,
+      "imageHeight": 4048
     },
     {
-      "id": "2f7f5fd5-2a5e-4e7a-8be4-c5462a66905b",
-      "title": "Tête d'homme verte sur fond vert",
+      "id": "f532cf67-353a-4739-8c13-e60083601156",
+      "title": "Portrait de Heret, architecte du roi Stanislas",
       "artist": "Paris Musées",
-      "image": "https://apicollections.parismusees.paris.fr/sites/default/files/styles/thumbnail/collections/atoms/images/ZDK/3z04493.jpg?itok=q9YU72Vp",
-      "fullRes": "https://apicollections.parismusees.paris.fr/sites/default/files/styles/thumbnail/collections/atoms/images/ZDK/3z04493.jpg?itok=q9YU72Vp",
-      "sourceUrl": "https://www.parismuseescollections.paris.fr/node/310246",
-      "rights": "Paris Musées API record; verify item-level rights",
+      "image": "https://apicollections.parismusees.paris.fr/sites/default/files/styles/thumbnail/collections/atoms/images/CAR/aze_card15554_001.jpg?itok=3fenQs_u",
+      "fullRes": "https://www.parismuseescollections.paris.fr/sites/default/files/atoms/images/CAR/aze_card15554_001.jpg",
+      "sourceUrl": "https://www.parismuseescollections.paris.fr/node/114398",
+      "rights": "© Musée Carnavalet / Ville de Paris",
       "description": null,
-      "objectType": "Dessin",
+      "objectType": "Dessin, Arts graphiques",
       "metadata": {
-        "lrefAdlib": 120000416,
-        "copyright": null
-      }
+        "lrefAdlib": 320147431,
+        "copyright": "© Musée Carnavalet / Ville de Paris"
+      },
+      "imageWidth": 1850,
+      "imageHeight": 2394
     },
     {
-      "id": "84a5ff7f-325e-462a-aff2-05e2334ccd6e",
-      "title": "Tête d'homme",
+      "id": "a01ce8f7-a23d-47db-98ed-e4ccb8810866",
+      "title": "Portrait d'homme, profil à droite, la main sur le menton",
       "artist": "Paris Musées",
-      "image": "https://apicollections.parismusees.paris.fr/sites/default/files/styles/thumbnail/collections/atoms/images/ZDK/3z04494.jpg?itok=0qOV3yVV",
-      "fullRes": "https://apicollections.parismusees.paris.fr/sites/default/files/styles/thumbnail/collections/atoms/images/ZDK/3z04494.jpg?itok=0qOV3yVV",
-      "sourceUrl": "https://www.parismuseescollections.paris.fr/node/310249",
-      "rights": "Paris Musées API record; verify item-level rights",
+      "image": "https://apicollections.parismusees.paris.fr/sites/default/files/styles/thumbnail/collections/atoms/images/CAR/aze_card15555_001.jpg?itok=wm2BXQt9",
+      "fullRes": "https://www.parismuseescollections.paris.fr/sites/default/files/atoms/images/CAR/aze_card15555_001.jpg",
+      "sourceUrl": "https://www.parismuseescollections.paris.fr/node/114399",
+      "rights": "© Musée Carnavalet / Ville de Paris",
       "description": null,
-      "objectType": "Dessin",
+      "objectType": "Dessin, Arts graphiques",
       "metadata": {
-        "lrefAdlib": 120000417,
-        "copyright": null
-      }
+        "lrefAdlib": 320147441,
+        "copyright": "© Musée Carnavalet / Ville de Paris"
+      },
+      "imageWidth": 2684,
+      "imageHeight": 4131
     },
     {
-      "id": "41875cf0-3146-44be-819f-459dc658e2b7",
-      "title": "Guignon",
+      "id": "e47c5461-1192-4664-926a-56875fd3150e",
+      "title": "Portrait de l'architecte Huvé",
       "artist": "Paris Musées",
-      "image": "https://apicollections.parismusees.paris.fr/sites/default/files/styles/thumbnail/collections/atoms/images/ZDK/3z04495.jpg?itok=_JMfDRw-",
-      "fullRes": "https://apicollections.parismusees.paris.fr/sites/default/files/styles/thumbnail/collections/atoms/images/ZDK/3z04495.jpg?itok=_JMfDRw-",
-      "sourceUrl": "https://www.parismuseescollections.paris.fr/node/310252",
-      "rights": "Paris Musées API record; verify item-level rights",
+      "image": "https://apicollections.parismusees.paris.fr/sites/default/files/styles/thumbnail/collections/atoms/images/CAR/aze_card15556_001.jpg?itok=jZMmpBtS",
+      "fullRes": "https://www.parismuseescollections.paris.fr/sites/default/files/atoms/images/CAR/aze_card15556_001.jpg",
+      "sourceUrl": "https://www.parismuseescollections.paris.fr/node/114400",
+      "rights": "© Musée Carnavalet / Ville de Paris",
       "description": null,
-      "objectType": "Dessin",
+      "objectType": "Dessin, Arts graphiques",
       "metadata": {
-        "lrefAdlib": 120000418,
-        "copyright": null
-      }
+        "lrefAdlib": 320147448,
+        "copyright": "© Musée Carnavalet / Ville de Paris"
+      },
+      "imageWidth": 1645,
+      "imageHeight": 1633
     },
     {
-      "id": "b6e5e4a0-617e-440a-b92b-60502adac4b1",
-      "title": "Buste de femme",
+      "id": "13e701d9-b4ea-4fbc-9009-c6ff81821742",
+      "title": "Portrait de l'architecte Jacquot",
       "artist": "Paris Musées",
-      "image": "https://apicollections.parismusees.paris.fr/sites/default/files/styles/thumbnail/collections/atoms/images/ZDK/3z04496.jpg?itok=D5WKb1w8",
-      "fullRes": "https://apicollections.parismusees.paris.fr/sites/default/files/styles/thumbnail/collections/atoms/images/ZDK/3z04496.jpg?itok=D5WKb1w8",
-      "sourceUrl": "https://www.parismuseescollections.paris.fr/node/310255",
-      "rights": "Paris Musées API record; verify item-level rights",
+      "image": "https://apicollections.parismusees.paris.fr/sites/default/files/styles/thumbnail/collections/atoms/images/CAR/aze_card15557_001.jpg?itok=pE16ZHLo",
+      "fullRes": "https://www.parismuseescollections.paris.fr/sites/default/files/atoms/images/CAR/aze_card15557_001.jpg",
+      "sourceUrl": "https://www.parismuseescollections.paris.fr/node/114401",
+      "rights": "© Musée Carnavalet / Ville de Paris",
       "description": null,
-      "objectType": "Dessin",
+      "objectType": "Dessin, Arts graphiques",
       "metadata": {
-        "lrefAdlib": 120000419,
-        "copyright": null
-      }
+        "lrefAdlib": 320147476,
+        "copyright": "© Musée Carnavalet / Ville de Paris"
+      },
+      "imageWidth": 1681,
+      "imageHeight": 2232
     },
     {
-      "id": "5f0f100f-2172-4b7c-8d3b-12b16d3f7713",
-      "title": "Les amants",
+      "id": "1bac389a-055b-4030-93cf-de31378104e0",
+      "title": "Portrait de l'architecte Lecointe",
       "artist": "Paris Musées",
-      "image": "https://apicollections.parismusees.paris.fr/sites/default/files/styles/thumbnail/collections/atoms/images/ZDK/3z04497.jpg?itok=RGAwwhLD",
-      "fullRes": "https://apicollections.parismusees.paris.fr/sites/default/files/styles/thumbnail/collections/atoms/images/ZDK/3z04497.jpg?itok=RGAwwhLD",
-      "sourceUrl": "https://www.parismuseescollections.paris.fr/node/310258",
-      "rights": "Paris Musées API record; verify item-level rights",
+      "image": "https://apicollections.parismusees.paris.fr/sites/default/files/styles/thumbnail/collections/atoms/images/CAR/aze_card15559_001.jpg?itok=d4Gs0nib",
+      "fullRes": "https://www.parismuseescollections.paris.fr/sites/default/files/atoms/images/CAR/aze_card15559_001.jpg",
+      "sourceUrl": "https://www.parismuseescollections.paris.fr/node/114403",
+      "rights": "© Musée Carnavalet / Ville de Paris",
       "description": null,
-      "objectType": "Dessin",
+      "objectType": "Dessin, Arts graphiques",
       "metadata": {
-        "lrefAdlib": 120000420,
-        "copyright": null
-      }
+        "lrefAdlib": 320147555,
+        "copyright": "© Musée Carnavalet / Ville de Paris"
+      },
+      "imageWidth": 1797,
+      "imageHeight": 2135
     },
     {
-      "id": "ac490fbb-ed95-499d-b42c-7a4c77f1d83a",
-      "title": "Dessin pour Portrait de l'oiseau ?...",
+      "id": "81e17516-849c-4b55-b274-1544a3f99985",
+      "title": "Un vase d'ornement",
       "artist": "Paris Musées",
-      "image": "https://apicollections.parismusees.paris.fr/sites/default/files/styles/thumbnail/collections/atoms/images/ZDK/3z04498.jpg?itok=OsuraO5O",
-      "fullRes": "https://apicollections.parismusees.paris.fr/sites/default/files/styles/thumbnail/collections/atoms/images/ZDK/3z04498.jpg?itok=OsuraO5O",
-      "sourceUrl": "https://www.parismuseescollections.paris.fr/node/310261",
-      "rights": "Paris Musées API record; verify item-level rights",
+      "image": "https://apicollections.parismusees.paris.fr/sites/default/files/styles/thumbnail/collections/atoms/images/CAR/aze_card15560_001.jpg?itok=QvX08iIA",
+      "fullRes": "https://www.parismuseescollections.paris.fr/sites/default/files/atoms/images/CAR/aze_card15560_001.jpg",
+      "sourceUrl": "https://www.parismuseescollections.paris.fr/node/114404",
+      "rights": "© Musée Carnavalet / Ville de Paris",
       "description": null,
-      "objectType": "Dessin",
+      "objectType": "Dessin, Arts graphiques",
       "metadata": {
-        "lrefAdlib": 120000421,
-        "copyright": null
-      }
+        "lrefAdlib": 320147570,
+        "copyright": "© Musée Carnavalet / Ville de Paris"
+      },
+      "imageWidth": 1883,
+      "imageHeight": 2531
     },
     {
-      "id": "0a1a38d7-f289-4521-824f-2812f52727e5",
-      "title": "Madrépore",
+      "id": "227e6e5e-a627-4043-9473-91473d82393d",
+      "title": "Portrait de l'architecte Lecomte",
       "artist": "Paris Musées",
-      "image": "https://apicollections.parismusees.paris.fr/sites/default/files/styles/thumbnail/collections/atoms/images/ZDK/3z04499.jpg?itok=nAPq0bO3",
-      "fullRes": "https://apicollections.parismusees.paris.fr/sites/default/files/styles/thumbnail/collections/atoms/images/ZDK/3z04499.jpg?itok=nAPq0bO3",
-      "sourceUrl": "https://www.parismuseescollections.paris.fr/node/310264",
-      "rights": "Paris Musées API record; verify item-level rights",
+      "image": "https://apicollections.parismusees.paris.fr/sites/default/files/styles/thumbnail/collections/atoms/images/CAR/aze_card15561_001.jpg?itok=WFanfxeZ",
+      "fullRes": "https://www.parismuseescollections.paris.fr/sites/default/files/atoms/images/CAR/aze_card15561_001.jpg",
+      "sourceUrl": "https://www.parismuseescollections.paris.fr/node/114405",
+      "rights": "© Musée Carnavalet / Ville de Paris",
       "description": null,
-      "objectType": "Dessin",
+      "objectType": "Dessin, Arts graphiques",
       "metadata": {
-        "lrefAdlib": 120000422,
-        "copyright": null
-      }
+        "lrefAdlib": 320147576,
+        "copyright": "© Musée Carnavalet / Ville de Paris"
+      },
+      "imageWidth": 1675,
+      "imageHeight": 2167
     },
     {
-      "id": "54f89a2a-2c7a-402e-8b38-4994b34f1af6",
-      "title": "Cactus",
+      "id": "998d0a2d-88ed-474c-b9bb-d4d9629be1a6",
+      "title": "Projet de fontaine",
       "artist": "Paris Musées",
-      "image": "https://apicollections.parismusees.paris.fr/sites/default/files/styles/thumbnail/collections/atoms/images/ZDK/3z04500.jpg?itok=wUndosTu",
-      "fullRes": "https://apicollections.parismusees.paris.fr/sites/default/files/styles/thumbnail/collections/atoms/images/ZDK/3z04500.jpg?itok=wUndosTu",
-      "sourceUrl": "https://www.parismuseescollections.paris.fr/node/310267",
-      "rights": "Paris Musées API record; verify item-level rights",
+      "image": "https://apicollections.parismusees.paris.fr/sites/default/files/styles/thumbnail/collections/atoms/images/CAR/aze_card15562_001.jpg?itok=CCPZpGwo",
+      "fullRes": "https://www.parismuseescollections.paris.fr/sites/default/files/atoms/images/CAR/aze_card15562_001.jpg",
+      "sourceUrl": "https://www.parismuseescollections.paris.fr/node/114406",
+      "rights": "© Musée Carnavalet / Ville de Paris",
       "description": null,
-      "objectType": "Dessin",
+      "objectType": "Dessin, Arts graphiques",
       "metadata": {
-        "lrefAdlib": 120000423,
-        "copyright": null
-      }
+        "lrefAdlib": 320147580,
+        "copyright": "© Musée Carnavalet / Ville de Paris"
+      },
+      "imageWidth": 3501,
+      "imageHeight": 2381
     },
     {
-      "id": "97c51880-b4f1-4135-b96e-56c0f0dfebc9",
-      "title": "Le lien intime des lignes",
+      "id": "efa1b4fd-536c-4d74-9a34-49631564bf06",
+      "title": "Portrait de l'architecte Jean-Jacques Lequeux, 1792 (le père)",
       "artist": "Paris Musées",
-      "image": "https://apicollections.parismusees.paris.fr/sites/default/files/styles/thumbnail/collections/atoms/images/ZDK/3z04826.jpg?itok=-nT_Apl1",
-      "fullRes": "https://apicollections.parismusees.paris.fr/sites/default/files/styles/thumbnail/collections/atoms/images/ZDK/3z04826.jpg?itok=-nT_Apl1",
-      "sourceUrl": "https://www.parismuseescollections.paris.fr/node/310270",
-      "rights": "Paris Musées API record; verify item-level rights",
+      "image": "https://apicollections.parismusees.paris.fr/sites/default/files/styles/thumbnail/collections/atoms/images/CAR/aze_card15564_001.jpg?itok=LimDgHA_",
+      "fullRes": "https://www.parismuseescollections.paris.fr/sites/default/files/atoms/images/CAR/aze_card15564_001.jpg",
+      "sourceUrl": "https://www.parismuseescollections.paris.fr/node/114408",
+      "rights": "© Musée Carnavalet / Ville de Paris",
       "description": null,
-      "objectType": "Dessin",
+      "objectType": "Dessin, Arts graphiques",
       "metadata": {
-        "lrefAdlib": 120000424,
-        "copyright": null
-      }
+        "lrefAdlib": 320147639,
+        "copyright": "© Musée Carnavalet / Ville de Paris"
+      },
+      "imageWidth": 2248,
+      "imageHeight": 2872
     },
     {
-      "id": "1a172f01-f68d-41e6-b745-d73f4ea1ef40",
-      "title": "L'architecte",
+      "id": "4b67877d-6a1b-468e-abce-156a82831b44",
+      "title": "Portrait de l'architecte Jean-Jacques Lequeux, 1792 (le père)",
       "artist": "Paris Musées",
-      "image": "https://apicollections.parismusees.paris.fr/sites/default/files/styles/thumbnail/collections/atoms/images/ZDK/3z04501.jpg?itok=u4cgJwEf",
-      "fullRes": "https://apicollections.parismusees.paris.fr/sites/default/files/styles/thumbnail/collections/atoms/images/ZDK/3z04501.jpg?itok=u4cgJwEf",
-      "sourceUrl": "https://www.parismuseescollections.paris.fr/node/310273",
-      "rights": "Paris Musées API record; verify item-level rights",
+      "image": "https://apicollections.parismusees.paris.fr/sites/default/files/styles/thumbnail/collections/atoms/images/CAR/aze_card15565_001.jpg?itok=7fv_8enD",
+      "fullRes": "https://www.parismuseescollections.paris.fr/sites/default/files/atoms/images/CAR/aze_card15565_001.jpg",
+      "sourceUrl": "https://www.parismuseescollections.paris.fr/node/114409",
+      "rights": "© Musée Carnavalet / Ville de Paris",
       "description": null,
-      "objectType": "Dessin",
+      "objectType": "Dessin, Arts graphiques",
       "metadata": {
-        "lrefAdlib": 120000425,
-        "copyright": null
-      }
+        "lrefAdlib": 320147645,
+        "copyright": "© Musée Carnavalet / Ville de Paris"
+      },
+      "imageWidth": 1784,
+      "imageHeight": 2275
     },
     {
-      "id": "34250c45-6262-4343-88f9-68af79da1012",
-      "title": "Le jongleur",
+      "id": "39229a2f-429c-48a1-897e-082ef1eb5c27",
+      "title": "Portrait de l'architecte P. E. Lequeux (le fils)",
       "artist": "Paris Musées",
-      "image": "https://apicollections.parismusees.paris.fr/sites/default/files/styles/thumbnail/collections/atoms/images/ZDK/3z04502.jpg?itok=TViz9mMW",
-      "fullRes": "https://apicollections.parismusees.paris.fr/sites/default/files/styles/thumbnail/collections/atoms/images/ZDK/3z04502.jpg?itok=TViz9mMW",
-      "sourceUrl": "https://www.parismuseescollections.paris.fr/node/310276",
-      "rights": "Paris Musées API record; verify item-level rights",
+      "image": "https://apicollections.parismusees.paris.fr/sites/default/files/styles/thumbnail/collections/atoms/images/CAR/aze_card15567_001.jpg?itok=96p99n8Y",
+      "fullRes": "https://www.parismuseescollections.paris.fr/sites/default/files/atoms/images/CAR/aze_card15567_001.jpg",
+      "sourceUrl": "https://www.parismuseescollections.paris.fr/node/114411",
+      "rights": "© Musée Carnavalet / Ville de Paris",
       "description": null,
-      "objectType": "Dessin",
+      "objectType": "Dessin, Arts graphiques",
       "metadata": {
-        "lrefAdlib": 120000426,
-        "copyright": null
-      }
+        "lrefAdlib": 320147669,
+        "copyright": "© Musée Carnavalet / Ville de Paris"
+      },
+      "imageWidth": 1996,
+      "imageHeight": 2818
     },
     {
-      "id": "384bc8ab-a041-48f5-8bcf-4355137f98bf",
-      "title": "Tête de jeune homme",
+      "id": "6f5efcb9-524a-47f9-939c-582c9308b55a",
+      "title": "Portrait de l'architecte Auguste Malary",
       "artist": "Paris Musées",
-      "image": "https://apicollections.parismusees.paris.fr/sites/default/files/styles/thumbnail/collections/atoms/images/ZDK/3z04827.jpg?itok=UzzietrY",
-      "fullRes": "https://apicollections.parismusees.paris.fr/sites/default/files/styles/thumbnail/collections/atoms/images/ZDK/3z04827.jpg?itok=UzzietrY",
-      "sourceUrl": "https://www.parismuseescollections.paris.fr/node/310279",
-      "rights": "Paris Musées API record; verify item-level rights",
+      "image": "https://apicollections.parismusees.paris.fr/sites/default/files/styles/thumbnail/collections/atoms/images/CAR/aze_card15570_001.jpg?itok=I_7SxXT1",
+      "fullRes": "https://www.parismuseescollections.paris.fr/sites/default/files/atoms/images/CAR/aze_card15570_001.jpg",
+      "sourceUrl": "https://www.parismuseescollections.paris.fr/node/114414",
+      "rights": "© Musée Carnavalet / Ville de Paris",
       "description": null,
-      "objectType": "Dessin",
+      "objectType": "Dessin, Arts graphiques",
       "metadata": {
-        "lrefAdlib": 120000427,
-        "copyright": null
-      }
+        "lrefAdlib": 320147697,
+        "copyright": "© Musée Carnavalet / Ville de Paris"
+      },
+      "imageWidth": 2041,
+      "imageHeight": 2521
     },
     {
-      "id": "7d79046e-bb0a-4cc5-848a-946119d6ea33",
-      "title": "Gengi",
+      "id": "6b0b0a7f-305a-42fb-aa11-c33d4d5f36ca",
+      "title": "Perspective de l'observatoire proposé pour Brest, deuxième projet, 1801",
       "artist": "Paris Musées",
-      "image": "https://apicollections.parismusees.paris.fr/sites/default/files/styles/thumbnail/collections/atoms/images/ZDK/3z04503.jpg?itok=ejK3OgGJ",
-      "fullRes": "https://apicollections.parismusees.paris.fr/sites/default/files/styles/thumbnail/collections/atoms/images/ZDK/3z04503.jpg?itok=ejK3OgGJ",
-      "sourceUrl": "https://www.parismuseescollections.paris.fr/node/310282",
-      "rights": "Paris Musées API record; verify item-level rights",
+      "image": "https://apicollections.parismusees.paris.fr/sites/default/files/styles/thumbnail/collections/atoms/images/CAR/aze_card15573_001.jpg?itok=19JTuqR-",
+      "fullRes": "https://www.parismuseescollections.paris.fr/sites/default/files/atoms/images/CAR/aze_card15573_001.jpg",
+      "sourceUrl": "https://www.parismuseescollections.paris.fr/node/114417",
+      "rights": "© Musée Carnavalet / Ville de Paris",
       "description": null,
-      "objectType": "Dessin",
+      "objectType": "Dessin, Arts graphiques",
       "metadata": {
-        "lrefAdlib": 120000428,
-        "copyright": null
-      }
+        "lrefAdlib": 320147716,
+        "copyright": "© Musée Carnavalet / Ville de Paris"
+      },
+      "imageWidth": 4223,
+      "imageHeight": 2782
     },
     {
-      "id": "51df4540-0414-42d7-8177-d7c7385a8666",
-      "title": "Tête d'homme",
+      "id": "0e348c7b-a200-4ffc-b1af-a6759fc39beb",
+      "title": "Portrait de l'architecte Mulochot",
       "artist": "Paris Musées",
-      "image": "https://apicollections.parismusees.paris.fr/sites/default/files/styles/thumbnail/collections/atoms/images/ZDK/3z04504.jpg?itok=RWW8iVdv",
-      "fullRes": "https://apicollections.parismusees.paris.fr/sites/default/files/styles/thumbnail/collections/atoms/images/ZDK/3z04504.jpg?itok=RWW8iVdv",
-      "sourceUrl": "https://www.parismuseescollections.paris.fr/node/310285",
-      "rights": "Paris Musées API record; verify item-level rights",
+      "image": "https://apicollections.parismusees.paris.fr/sites/default/files/styles/thumbnail/collections/atoms/images/CAR/aze_card15576_001.jpg?itok=7epfCliL",
+      "fullRes": "https://www.parismuseescollections.paris.fr/sites/default/files/atoms/images/CAR/aze_card15576_001.jpg",
+      "sourceUrl": "https://www.parismuseescollections.paris.fr/node/114419",
+      "rights": "© Musée Carnavalet / Ville de Paris",
       "description": null,
-      "objectType": "Dessin",
+      "objectType": "Dessin, Arts graphiques",
       "metadata": {
-        "lrefAdlib": 120000429,
-        "copyright": null
-      }
+        "lrefAdlib": 320147784,
+        "copyright": "© Musée Carnavalet / Ville de Paris"
+      },
+      "imageWidth": 1932,
+      "imageHeight": 2681
     },
     {
-      "id": "814010c9-1837-47fd-97fe-17ddc43f5dc7",
-      "title": "Le noeud gordien",
+      "id": "6afcba7f-255b-49d3-bfa8-21d833fa9e08",
+      "title": "Autoportrait de l'architecte Pellechet",
       "artist": "Paris Musées",
-      "image": "https://apicollections.parismusees.paris.fr/sites/default/files/styles/thumbnail/collections/atoms/images/ZDK/3z04828.jpg?itok=hXZm0D4k",
-      "fullRes": "https://apicollections.parismusees.paris.fr/sites/default/files/styles/thumbnail/collections/atoms/images/ZDK/3z04828.jpg?itok=hXZm0D4k",
-      "sourceUrl": "https://www.parismuseescollections.paris.fr/node/310333",
-      "rights": "Paris Musées API record; verify item-level rights",
+      "image": "https://apicollections.parismusees.paris.fr/sites/default/files/styles/thumbnail/collections/atoms/images/CAR/aze_card15577_001.jpg?itok=cfIh6YjR",
+      "fullRes": "https://www.parismuseescollections.paris.fr/sites/default/files/atoms/images/CAR/aze_card15577_001.jpg",
+      "sourceUrl": "https://www.parismuseescollections.paris.fr/node/114420",
+      "rights": "© Musée Carnavalet / Ville de Paris",
       "description": null,
-      "objectType": "Dessin",
+      "objectType": "Dessin, Arts graphiques",
       "metadata": {
-        "lrefAdlib": 120000445,
-        "copyright": null
-      }
+        "lrefAdlib": 320147865,
+        "copyright": "© Musée Carnavalet / Ville de Paris"
+      },
+      "imageWidth": 1856,
+      "imageHeight": 2384
     },
     {
-      "id": "965e3dc4-b785-4289-9ec8-b748cbba0e15",
-      "title": "Demeures (ou Prisons)",
+      "id": "31b91c84-1583-4466-b8dd-1fc418666d2d",
+      "title": "Portrait de l'architecte Petin",
       "artist": "Paris Musées",
-      "image": "https://apicollections.parismusees.paris.fr/sites/default/files/styles/thumbnail/collections/atoms/images/ZDK/3z04829.jpg?itok=o1v3Yupu",
-      "fullRes": "https://apicollections.parismusees.paris.fr/sites/default/files/styles/thumbnail/collections/atoms/images/ZDK/3z04829.jpg?itok=o1v3Yupu",
-      "sourceUrl": "https://www.parismuseescollections.paris.fr/node/310336",
-      "rights": "Paris Musées API record; verify item-level rights",
+      "image": "https://apicollections.parismusees.paris.fr/sites/default/files/styles/thumbnail/collections/atoms/images/CAR/aze_card15578_001.jpg?itok=woz_aOHi",
+      "fullRes": "https://www.parismuseescollections.paris.fr/sites/default/files/atoms/images/CAR/aze_card15578_001.jpg",
+      "sourceUrl": "https://www.parismuseescollections.paris.fr/node/114421",
+      "rights": "© Musée Carnavalet / Ville de Paris",
       "description": null,
-      "objectType": "Dessin",
+      "objectType": "Dessin, Arts graphiques",
       "metadata": {
-        "lrefAdlib": 120000446,
-        "copyright": null
-      }
+        "lrefAdlib": 320147870,
+        "copyright": "© Musée Carnavalet / Ville de Paris"
+      },
+      "imageWidth": 1687,
+      "imageHeight": 2046
     },
     {
-      "id": "486e0cbb-b332-4551-95c0-3b53e453300f",
-      "title": "Femme à la guitare",
+      "id": "b1a9966c-852c-4f59-9370-49f829ddee53",
+      "title": "Portrait de l'architecte Polonceau",
       "artist": "Paris Musées",
-      "image": "https://apicollections.parismusees.paris.fr/sites/default/files/styles/thumbnail/collections/atoms/images/ZDK/3z04830.jpg?itok=pkes6O5q",
-      "fullRes": "https://apicollections.parismusees.paris.fr/sites/default/files/styles/thumbnail/collections/atoms/images/ZDK/3z04830.jpg?itok=pkes6O5q",
-      "sourceUrl": "https://www.parismuseescollections.paris.fr/node/310339",
-      "rights": "Paris Musées API record; verify item-level rights",
+      "image": "https://apicollections.parismusees.paris.fr/sites/default/files/styles/thumbnail/collections/atoms/images/CAR/aze_card15580_001.jpg?itok=umOe8ar1",
+      "fullRes": "https://www.parismuseescollections.paris.fr/sites/default/files/atoms/images/CAR/aze_card15580_001.jpg",
+      "sourceUrl": "https://www.parismuseescollections.paris.fr/node/114424",
+      "rights": "© Musée Carnavalet / Ville de Paris",
       "description": null,
-      "objectType": "Dessin",
+      "objectType": "Dessin, Arts graphiques",
       "metadata": {
-        "lrefAdlib": 120000447,
-        "copyright": null
-      }
+        "lrefAdlib": 320147889,
+        "copyright": "© Musée Carnavalet / Ville de Paris"
+      },
+      "imageWidth": 1911,
+      "imageHeight": 2316
     },
     {
-      "id": "231b030c-dbc4-404e-a52b-904c59d212b3",
-      "title": "Visage d'homme tourmenté",
+      "id": "9af00a2d-7b79-48dc-96b5-1963e5807a6c",
+      "title": "Portrait d'Antonio Benci de Pollaiuolo (ou Pollajuolo ou Pollagiolo), orfèvre, peintre, graveur et sculpteur",
       "artist": "Paris Musées",
-      "image": "https://apicollections.parismusees.paris.fr/sites/default/files/styles/thumbnail/collections/atoms/images/ZDK/3z04508.jpg?itok=Srv2WFZ0",
-      "fullRes": "https://apicollections.parismusees.paris.fr/sites/default/files/styles/thumbnail/collections/atoms/images/ZDK/3z04508.jpg?itok=Srv2WFZ0",
-      "sourceUrl": "https://www.parismuseescollections.paris.fr/node/310342",
-      "rights": "Paris Musées API record; verify item-level rights",
+      "image": "https://apicollections.parismusees.paris.fr/sites/default/files/styles/thumbnail/collections/atoms/images/CAR/aze_card15581_001.jpg?itok=YmxyedKX",
+      "fullRes": "https://www.parismuseescollections.paris.fr/sites/default/files/atoms/images/CAR/aze_card15581_001.jpg",
+      "sourceUrl": "https://www.parismuseescollections.paris.fr/node/114425",
+      "rights": "© Musée Carnavalet / Ville de Paris",
       "description": null,
-      "objectType": "Dessin",
+      "objectType": "Dessin, Arts graphiques",
       "metadata": {
-        "lrefAdlib": 120000448,
-        "copyright": null
-      }
+        "lrefAdlib": 320147896,
+        "copyright": "© Musée Carnavalet / Ville de Paris"
+      },
+      "imageWidth": 3409,
+      "imageHeight": 4572
     },
     {
-      "id": "03f55244-284f-492e-a95d-e691c8f7d093",
-      "title": "L'orateur",
+      "id": "f206b643-9233-462e-b825-ec86f7b8939d",
+      "title": "Portrait de l'architecte Quantinet",
       "artist": "Paris Musées",
-      "image": "https://apicollections.parismusees.paris.fr/sites/default/files/styles/thumbnail/collections/atoms/images/ZDK/3z04509.jpg?itok=yD3QUiYc",
-      "fullRes": "https://apicollections.parismusees.paris.fr/sites/default/files/styles/thumbnail/collections/atoms/images/ZDK/3z04509.jpg?itok=yD3QUiYc",
-      "sourceUrl": "https://www.parismuseescollections.paris.fr/node/310345",
-      "rights": "Paris Musées API record; verify item-level rights",
+      "image": "https://apicollections.parismusees.paris.fr/sites/default/files/styles/thumbnail/collections/atoms/images/CAR/aze_card15582_001.jpg?itok=jWathtOW",
+      "fullRes": "https://www.parismuseescollections.paris.fr/sites/default/files/atoms/images/CAR/aze_card15582_001.jpg",
+      "sourceUrl": "https://www.parismuseescollections.paris.fr/node/114426",
+      "rights": "© Musée Carnavalet / Ville de Paris",
       "description": null,
-      "objectType": "Dessin",
+      "objectType": "Dessin, Arts graphiques",
       "metadata": {
-        "lrefAdlib": 120000449,
-        "copyright": null
-      }
+        "lrefAdlib": 320147905,
+        "copyright": "© Musée Carnavalet / Ville de Paris"
+      },
+      "imageWidth": 1735,
+      "imageHeight": 2158
     }
   ],
   "total": 185548

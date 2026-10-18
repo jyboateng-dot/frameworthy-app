@@ -12,11 +12,9 @@ const DEFAULT_TAB = 'IMDB Top 200';
 const GENRES = Object.keys(MOVIES_LOCAL_COLLECTIONS).filter(k => k !== DEFAULT_TAB);
 const OMDB_API_KEY = 'trilogy';
 
-// Minimum acceptable print quality for large-format wall art viewed from a
-// normal distance (not held close) — sizes that would need upscaling past this
-// (source pixels / print inches) are deprioritized in favor of a smaller size
-// the poster's actual resolution can support cleanly.
-const MIN_PRINT_DPI = 120;
+// Minimum acceptable print quality for large-format wall art — sizes that
+// would drop below 150 DPI (source pixels / print inches) are excluded.
+const MIN_PRINT_DPI = 150;
 
 function loadImageNaturalSize(url) {
     return new Promise((resolve, reject) => {
@@ -228,14 +226,16 @@ const MoviePosterPage = ({ setProductMode, setSelectedSize, navigate, isSubPage 
         try {
             if (style === 'original') {
                 // Detect the poster's actual aspect ratio/resolution and pick
-                // the portrait size that best fits it, falling back to the
-                // standard "one sheet" 24x36 if the image can't be read.
+                // the portrait size that best fits it, falling back to a safe
+                // smaller size if the image can't be read.
                 let sizeObj;
+                let measuredDims = null;
                 try {
                     const { w, h } = await loadImageNaturalSize(movie.image);
+                    measuredDims = { w, h };
                     sizeObj = pickBestFrameSize(w, h);
                 } catch {
-                    sizeObj = FRAME_SIZES.find(s => s.id === '24x36') || FRAME_SIZES[0];
+                    sizeObj = FRAME_SIZES.find(s => s.id === '8x12') || FRAME_SIZES[0];
                 }
 
                 setSelectedProduct(null);
@@ -249,7 +249,9 @@ const MoviePosterPage = ({ setProductMode, setSelectedSize, navigate, isSubPage 
                         initialSize: sizeObj || null,
                         orientation: 'portrait',
                         initialMatWidth: 'narrow',
-                        isMoviePoster: true
+                        isMoviePoster: true,
+                        imageWidth: measuredDims?.w || null,
+                        imageHeight: measuredDims?.h || null,
                     }
                 });
                 return;

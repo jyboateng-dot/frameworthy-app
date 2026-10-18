@@ -1,5 +1,6 @@
 import { frameGeometry, imageCrop } from './frameFit';
 import { maxMatWidthForSize } from './matting';
+import { MIN_PRINT_DPI, doesSizeMeetMinDpi } from './museumArtwork';
 import {
     isProdigiConfigurationAvailable,
     prodigiMountWidthInForSize,
@@ -28,6 +29,7 @@ export function bestFitOptions({
     const seen = new Set();
 
     for (const candidate of candidateSizes) {
+        if (!doesSizeMeetMinDpi(candidate, natural, MIN_PRINT_DPI)) continue;
         for (const direction of ['portrait', 'landscape']) {
             if (candidate.width === candidate.height && direction === 'landscape') continue;
 

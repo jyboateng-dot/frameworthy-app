@@ -161,4 +161,37 @@ describe('museum snapshot prefetching', () => {
             sourceId: 'paris-musees',
         });
     });
+
+    it('uses the master IIIF width rather than a 2400px cap for Art Institute of Chicago', async () => {
+        const fetch = vi.fn()
+            .mockResolvedValueOnce({
+                ok: true,
+                json: async () => ({
+                    data: [{
+                        id: 28560,
+                        title: 'The Bedroom',
+                        artist_display: 'Vincent van Gogh',
+                        image_id: '6644829f-f292-c5c4-a73c-0356a6fdbf0d',
+                        thumbnail: { width: 12614, height: 9875 },
+                        artwork_type_title: 'Painting',
+                    }],
+                    pagination: { total: 1 },
+                }),
+            })
+            .mockResolvedValueOnce({
+                ok: true,
+                json: async () => ({ data: [], pagination: { total: 0 } }),
+            });
+        vi.stubGlobal('fetch', fetch);
+        const { fetchMuseumArtworks } = await import('./museumApi.js');
+
+        const result = await fetchMuseumArtworks('art-institute-of-chicago', 1);
+
+        expect(result.artworks[0]).toMatchObject({
+            id: 'art-institute-of-chicago:28560',
+            imageWidth: 12614,
+            imageHeight: 9875,
+            fullRes: '/api/artic-image?id=6644829f-f292-c5c4-a73c-0356a6fdbf0d&width=12614',
+        });
+    });
 });

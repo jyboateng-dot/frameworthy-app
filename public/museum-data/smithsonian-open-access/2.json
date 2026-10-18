@@ -5,7 +5,7 @@
       "title": "Miles King Jr.",
       "artist": "Charles Balthazar Julien Févret de Saint-Mémin, 12 Mar 1770 - 23 Jun 1852",
       "image": "https://ids.si.edu/ids/deliveryService?id=NPG-S_NPG_74_39_14_30Unidentified-000001",
-      "fullRes": "https://ids.si.edu/ids/deliveryService?id=NPG-S_NPG_74_39_14_30Unidentified-000001",
+      "fullRes": "https://ids.si.edu/ids/download?id=NPG-S_NPG_74_39_14_30Unidentified-000001.jpg",
       "rights": "CC0",
       "sourceUrl": "https://npg.si.edu/object/npg_S_NPG.74.39.14.30",
       "metadata": {
@@ -223,14 +223,16 @@
             "access": "CC0"
           }
         }
-      }
+      },
+      "imageWidth": 2242,
+      "imageHeight": 2255
     },
     {
       "id": "ld1-1643399756728-1643399821883-0",
       "title": "New Market",
       "artist": "William Russell Birch, 1755 - 1834",
       "image": "https://ids.si.edu/ids/deliveryService?id=NPG-AD_NPG_2013_5_2",
-      "fullRes": "https://ids.si.edu/ids/deliveryService?id=NPG-AD_NPG_2013_5_2",
+      "fullRes": "https://ids.si.edu/ids/download?id=NPG-AD_NPG_2013_5_2.jpg",
       "rights": "CC0",
       "sourceUrl": "https://npg.si.edu/object/npg_AD_NPG.2013.5.2",
       "metadata": {
@@ -372,14 +374,16 @@
             "access": "CC0"
           }
         }
-      }
+      },
+      "imageWidth": 4000,
+      "imageHeight": 3472
     },
     {
       "id": "ld1-1643399756728-1643399821084-1",
       "title": "Thomas Tingey",
       "artist": "Charles Balthazar Julien Févret de Saint-Mémin, 12 Mar 1770 - 23 Jun 1852",
       "image": "https://ids.si.edu/ids/deliveryService?id=NPG-S_NPG_74_39_9_19Tingey-000001",
-      "fullRes": "https://ids.si.edu/ids/deliveryService?id=NPG-S_NPG_74_39_9_19Tingey-000001",
+      "fullRes": "https://ids.si.edu/ids/download?id=NPG-S_NPG_74_39_9_19Tingey-000001.jpg",
       "rights": "CC0",
       "sourceUrl": "https://npg.si.edu/object/npg_S_NPG.74.39.9.19",
       "metadata": {
@@ -554,14 +558,16 @@
             "access": "CC0"
           }
         }
-      }
+      },
+      "imageWidth": 2264,
+      "imageHeight": 2338
     },
     {
       "id": "ld1-1643399756728-1643399820910-0",
       "title": "John Curzon Seton",
       "artist": "Charles Balthazar Julien Févret de Saint-Mémin, 12 Mar 1770 - 23 Jun 1852",
       "image": "https://ids.si.edu/ids/deliveryService?id=NPG-S_NPG_74_39_2_43Seton-000001",
-      "fullRes": "https://ids.si.edu/ids/deliveryService?id=NPG-S_NPG_74_39_2_43Seton-000001",
+      "fullRes": "https://ids.si.edu/ids/download?id=NPG-S_NPG_74_39_2_43Seton-000001.jpg",
       "rights": "CC0",
       "sourceUrl": "https://npg.si.edu/object/npg_S_NPG.74.39.2.43",
       "metadata": {
@@ -723,14 +729,16 @@
             "access": "CC0"
           }
         }
-      }
+      },
+      "imageWidth": 2322,
+      "imageHeight": 2547
     },
     {
       "id": "ld1-1643399756728-1643399821010-1",
       "title": "Dudrenec",
       "artist": "Charles Balthazar Julien Févret de Saint-Mémin, 12 Mar 1770 - 23 Jun 1852",
       "image": "https://ids.si.edu/ids/deliveryService?id=NPG-S_NPG_74_39_6_37Dudrenec-000002",
-      "fullRes": "https://ids.si.edu/ids/deliveryService?id=NPG-S_NPG_74_39_6_37Dudrenec-000002",
+      "fullRes": "https://ids.si.edu/ids/download?id=NPG-S_NPG_74_39_6_37Dudrenec-000002.jpg",
       "rights": "CC0",
       "sourceUrl": "https://npg.si.edu/object/npg_S_NPG.74.39.6.37",
       "metadata": {
@@ -892,14 +900,16 @@
             "access": "CC0"
           }
         }
-      }
+      },
+      "imageWidth": 2261,
+      "imageHeight": 2332
     },
     {
       "id": "ld1-1643399756728-1643399806197-0",
       "title": "Pamplet on \"How to Obtain a Patent\"",
       "artist": "Victor J. Evans & Co.",
       "image": "https://ids.si.edu/ids/deliveryService?id=NPG-NPG_POB98_a",
-      "fullRes": "https://ids.si.edu/ids/deliveryService?id=NPG-NPG_POB98_a",
+      "fullRes": "https://ids.si.edu/ids/download?id=NPG-NPG_POB98_a.jpg",
       "rights": "CC0",
       "sourceUrl": "https://npg.si.edu/object/npg_NPG.POB98",
       "metadata": {
@@ -1106,14 +1116,16 @@
             "access": "CC0"
           }
         }
-      }
+      },
+      "imageWidth": 2686,
+      "imageHeight": 4000
     },
     {
       "id": "ld1-1643399756728-1643399803280-0",
       "title": "John Samuel Sherburne",
       "artist": "Charles Balthazar Julien Févret de Saint-Mémin, 12 Mar 1770 - 23 Jun 1852",
       "image": "https://ids.si.edu/ids/deliveryService?id=NPG-s_npg_97_25Sherburne-000001",
-      "fullRes": "https://ids.si.edu/ids/deliveryService?id=NPG-s_npg_97_25Sherburne-000001",
+      "fullRes": "https://ids.si.edu/ids/download?id=NPG-s_npg_97_25Sherburne-000001.jpg",
       "rights": "CC0",
       "sourceUrl": "https://npg.si.edu/object/npg_S_NPG.97.25",
       "metadata": {
@@ -1354,14 +1366,16 @@
             "access": "CC0"
           }
         }
-      }
+      },
+      "imageWidth": 2706,
+      "imageHeight": 2728
     },
     {
       "id": "ld1-1643399756728-1643399821029-0",
       "title": "Eliza Barclay Livingston",
       "artist": "Charles Balthazar Julien Févret de Saint-Mémin, 12 Mar 1770 - 23 Jun 1852",
       "image": "https://ids.si.edu/ids/deliveryService?id=NPG-S_NPG_74_39_7_21Livingston-000001",
-      "fullRes": "https://ids.si.edu/ids/deliveryService?id=NPG-S_NPG_74_39_7_21Livingston-000001",
+      "fullRes": "https://ids.si.edu/ids/download?id=NPG-S_NPG_74_39_7_21Livingston-000001.jpg",
       "rights": "CC0",
       "sourceUrl": "https://npg.si.edu/object/npg_S_NPG.74.39.7.21",
       "metadata": {
@@ -1523,14 +1537,16 @@
             "access": "CC0"
           }
         }
-      }
+      },
+      "imageWidth": 2165,
+      "imageHeight": 2211
     },
     {
       "id": "ld1-1643399756728-1643399811160-0",
       "title": "James Madison",
       "artist": "Unidentified Artist, James Hardie",
       "image": "https://ids.si.edu/ids/deliveryService?id=NPG-NPG_80_184_1_c",
-      "fullRes": "https://ids.si.edu/ids/deliveryService?id=NPG-NPG_80_184_1_c",
+      "fullRes": "https://ids.si.edu/ids/download?id=NPG-NPG_80_184_1_c.jpg",
       "rights": "CC0",
       "sourceUrl": "https://npg.si.edu/object/npg_NPG.80.184.1.C",
       "metadata": {
@@ -1811,14 +1827,16 @@
             "access": "CC0"
           }
         }
-      }
+      },
+      "imageWidth": 2190,
+      "imageHeight": 4000
     },
     {
       "id": "ld1-1643399756728-1643399805852-0",
       "title": "Patent Office, Washington, D.C.",
       "artist": "Unidentified Artist",
       "image": "https://ids.si.edu/ids/deliveryService?id=NPG-NPG_POB75",
-      "fullRes": "https://ids.si.edu/ids/deliveryService?id=NPG-NPG_POB75",
+      "fullRes": "https://ids.si.edu/ids/download?id=NPG-NPG_POB75.jpg",
       "rights": "CC0",
       "sourceUrl": "https://npg.si.edu/object/npg_NPG.POB75",
       "metadata": {
@@ -2019,14 +2037,16 @@
             "access": "CC0"
           }
         }
-      }
+      },
+      "imageWidth": 4000,
+      "imageHeight": 2619
     },
     {
       "id": "ld1-1643399756728-1643399806023-0",
       "title": "U.S. Patent Office",
       "artist": "George D. Wakely, 1832 - 22 Apr 1922",
       "image": "https://ids.si.edu/ids/deliveryService?id=NPG-NPG_POB78-000001",
-      "fullRes": "https://ids.si.edu/ids/deliveryService?id=NPG-NPG_POB78-000001",
+      "fullRes": "https://ids.si.edu/ids/download?id=NPG-NPG_POB78-000001.jpg",
       "rights": "CC0",
       "sourceUrl": "https://npg.si.edu/object/npg_NPG.POB78",
       "metadata": {
@@ -2269,14 +2289,16 @@
             "access": "CC0"
           }
         }
-      }
+      },
+      "imageWidth": 4000,
+      "imageHeight": 3225
     },
     {
       "id": "ld1-1643399756728-1643399821090-0",
       "title": "William Lee",
       "artist": "Charles Balthazar Julien Févret de Saint-Mémin, 12 Mar 1770 - 23 Jun 1852",
       "image": "https://ids.si.edu/ids/deliveryService?id=NPG-S_NPG_74_39_9_29Lee-000001",
-      "fullRes": "https://ids.si.edu/ids/deliveryService?id=NPG-S_NPG_74_39_9_29Lee-000001",
+      "fullRes": "https://ids.si.edu/ids/download?id=NPG-S_NPG_74_39_9_29Lee-000001.jpg",
       "rights": "CC0",
       "sourceUrl": "https://npg.si.edu/object/npg_S_NPG.74.39.9.29",
       "metadata": {
@@ -2438,14 +2460,16 @@
             "access": "CC0"
           }
         }
-      }
+      },
+      "imageWidth": 2243,
+      "imageHeight": 2339
     },
     {
       "id": "ld1-1643399756728-1643399820883-0",
       "title": "Mrs. Brumaud",
       "artist": "Charles Balthazar Julien Févret de Saint-Mémin, 12 Mar 1770 - 23 Jun 1852",
       "image": "https://ids.si.edu/ids/deliveryService?id=NPG-S_NPG_74_39_1_36Brumaud-000001",
-      "fullRes": "https://ids.si.edu/ids/deliveryService?id=NPG-S_NPG_74_39_1_36Brumaud-000001",
+      "fullRes": "https://ids.si.edu/ids/download?id=NPG-S_NPG_74_39_1_36Brumaud-000001.jpg",
       "rights": "CC0",
       "sourceUrl": "https://npg.si.edu/object/npg_S_NPG.74.39.1.36",
       "metadata": {
@@ -2618,14 +2642,16 @@
             "access": "CC0"
           }
         }
-      }
+      },
+      "imageWidth": 2296,
+      "imageHeight": 2631
     },
     {
       "id": "ld1-1643399756728-1643399820932-0",
       "title": "James Latimer",
       "artist": "Charles Balthazar Julien Févret de Saint-Mémin, 12 Mar 1770 - 23 Jun 1852",
       "image": "https://ids.si.edu/ids/deliveryService?id=NPG-S_NPG_74_39_3_34Latimer-000001",
-      "fullRes": "https://ids.si.edu/ids/deliveryService?id=NPG-S_NPG_74_39_3_34Latimer-000001",
+      "fullRes": "https://ids.si.edu/ids/download?id=NPG-S_NPG_74_39_3_34Latimer-000001.jpg",
       "rights": "CC0",
       "sourceUrl": "https://npg.si.edu/object/npg_S_NPG.74.39.3.34",
       "metadata": {
@@ -2800,14 +2826,16 @@
             "access": "CC0"
           }
         }
-      }
+      },
+      "imageWidth": 2345,
+      "imageHeight": 2352
     },
     {
       "id": "ld1-1643399756728-1643399806305-1",
       "title": "Meta-koosega",
       "artist": "John T. Bowen, 1801 - c. 1856",
       "image": "https://ids.si.edu/ids/deliveryService?id=NPG-NPG_99_167_10Metakoosega-000001",
-      "fullRes": "https://ids.si.edu/ids/deliveryService?id=NPG-NPG_99_167_10Metakoosega-000001",
+      "fullRes": "https://ids.si.edu/ids/download?id=NPG-NPG_99_167_10Metakoosega-000001.jpg",
       "rights": "CC0",
       "sourceUrl": "https://npg.si.edu/object/npg_NPG.99.167.10",
       "metadata": {
@@ -3003,14 +3031,16 @@
             "access": "CC0"
           }
         }
-      }
+      },
+      "imageWidth": 2752,
+      "imageHeight": 4000
     },
     {
       "id": "ld1-1643399756728-1643399804437-0",
       "title": "Benjamin Harrison",
       "artist": "Unidentified Artist",
       "image": "https://ids.si.edu/ids/deliveryService?id=NPG-NPG_98_135",
-      "fullRes": "https://ids.si.edu/ids/deliveryService?id=NPG-NPG_98_135",
+      "fullRes": "https://ids.si.edu/ids/download?id=NPG-NPG_98_135.jpg",
       "rights": "CC0",
       "sourceUrl": "https://npg.si.edu/object/npg_NPG.98.135",
       "metadata": {
@@ -3263,14 +3293,16 @@
             "access": "CC0"
           }
         }
-      }
+      },
+      "imageWidth": 2884,
+      "imageHeight": 4000
     },
     {
       "id": "ld1-1643399756728-1643399813675-1",
       "title": "John Eillis Wool",
       "artist": "Mathew Brady Studio, active 1844 - 1894",
       "image": "https://ids.si.edu/ids/deliveryService?id=NPG-NPG_79_246_82WoolR-000003",
-      "fullRes": "https://ids.si.edu/ids/deliveryService?id=NPG-NPG_79_246_82WoolR-000003",
+      "fullRes": "https://ids.si.edu/ids/download?id=NPG-NPG_79_246_82WoolR-000003.jpg",
       "rights": "CC0",
       "sourceUrl": "https://npg.si.edu/object/npg_NPG.79.246.82",
       "metadata": {
@@ -3485,14 +3517,16 @@
             "access": "CC0"
           }
         }
-      }
+      },
+      "imageWidth": 2002,
+      "imageHeight": 2912
     },
     {
       "id": "ld1-1643399756728-1643399803920-1",
       "title": "The Herald of Relief from America",
       "artist": "Thomas Nast, 27 Sep 1840 - 7 Dec 1902",
       "image": "https://ids.si.edu/ids/deliveryService?id=NPG-AD-NPG_79_6",
-      "fullRes": "https://ids.si.edu/ids/deliveryService?id=NPG-AD-NPG_79_6",
+      "fullRes": "https://ids.si.edu/ids/download?id=NPG-AD-NPG_79_6.jpg",
       "rights": "CC0",
       "sourceUrl": "https://npg.si.edu/object/npg_AD_NPG.79.6",
       "metadata": {
@@ -3691,14 +3725,16 @@
             "access": "CC0"
           }
         }
-      }
+      },
+      "imageWidth": 2879,
+      "imageHeight": 4000
     },
     {
       "id": "ld1-1643399756728-1643399814586-0",
       "title": "John Brown",
       "artist": "Unidentified Artist",
       "image": "https://ids.si.edu/ids/deliveryService?id=NPG-NPG_83_7_u",
-      "fullRes": "https://ids.si.edu/ids/deliveryService?id=NPG-NPG_83_7_u",
+      "fullRes": "https://ids.si.edu/ids/download?id=NPG-NPG_83_7_u.jpg",
       "rights": "CC0",
       "sourceUrl": "https://npg.si.edu/object/npg_NPG.83.7.U",
       "metadata": {
@@ -3885,14 +3921,16 @@
             "access": "CC0"
           }
         }
-      }
+      },
+      "imageWidth": 1747,
+      "imageHeight": 2698
     },
     {
       "id": "ld1-1643399756728-1643399813242-0",
       "title": "George Rockwood",
       "artist": "George Gardner Rockwood, 12 Apr 1832 - 10 Jul 1911",
       "image": "https://ids.si.edu/ids/deliveryService?id=NPG-S-NPG_2007_100",
-      "fullRes": "https://ids.si.edu/ids/deliveryService?id=NPG-S-NPG_2007_100",
+      "fullRes": "https://ids.si.edu/ids/download?id=NPG-S-NPG_2007_100.jpg",
       "rights": "CC0",
       "sourceUrl": "https://npg.si.edu/object/npg_S_NPG.2007.100",
       "metadata": {
@@ -4080,14 +4118,16 @@
             "access": "CC0"
           }
         }
-      }
+      },
+      "imageWidth": 2544,
+      "imageHeight": 4000
     },
     {
       "id": "ld1-1643399756728-1643399803275-1",
       "title": "John Carmel Heenan",
       "artist": "Charles DeForest Fredricks, 11 Dec 1823 - 25 May 1894",
       "image": "https://ids.si.edu/ids/deliveryService?id=NPG-NPG_97_102-000002",
-      "fullRes": "https://ids.si.edu/ids/deliveryService?id=NPG-NPG_97_102-000002",
+      "fullRes": "https://ids.si.edu/ids/download?id=NPG-NPG_97_102-000002.jpg",
       "rights": "CC0",
       "sourceUrl": "https://npg.si.edu/object/npg_NPG.97.102",
       "metadata": {
@@ -4305,14 +4345,16 @@
             "access": "CC0"
           }
         }
-      }
+      },
+      "imageWidth": 3107,
+      "imageHeight": 4000
     },
     {
       "id": "ld1-1643399756728-1643399811092-0",
       "title": "Patent Office",
       "artist": "Unknown artist",
       "image": "https://ids.si.edu/ids/deliveryService?id=NPG-NPG_POB166",
-      "fullRes": "https://ids.si.edu/ids/deliveryService?id=NPG-NPG_POB166",
+      "fullRes": "https://ids.si.edu/ids/download?id=NPG-NPG_POB166.jpg",
       "rights": "CC0",
       "sourceUrl": "https://npg.si.edu/object/npg_NPG.POB166",
       "metadata": {
@@ -4522,14 +4564,16 @@
             "access": "CC0"
           }
         }
-      }
+      },
+      "imageWidth": 4000,
+      "imageHeight": 2578
     },
     {
       "id": "ld1-1643399756728-1643399822700-1",
       "title": "Sarah Childress Polk",
       "artist": "John Sartain, 24 Oct 1808 - 25 Oct 1897",
       "image": "https://ids.si.edu/ids/deliveryService?id=NPG-NPG_2013_109_ext",
-      "fullRes": "https://ids.si.edu/ids/deliveryService?id=NPG-NPG_2013_109_ext",
+      "fullRes": "https://ids.si.edu/ids/download?id=NPG-NPG_2013_109_ext.jpg",
       "rights": "CC0",
       "sourceUrl": "https://npg.si.edu/object/npg_NPG.2013.109",
       "metadata": {
@@ -4697,14 +4741,16 @@
             "access": "CC0"
           }
         }
-      }
+      },
+      "imageWidth": 2676,
+      "imageHeight": 4000
     },
     {
       "id": "ld1-1643399756728-1643399819862-0",
       "title": "Stonewall Jackson",
       "artist": "Unidentified Artist",
       "image": "https://ids.si.edu/ids/deliveryService?id=NPG-NPG_2012_6_4Jackson-000001",
-      "fullRes": "https://ids.si.edu/ids/deliveryService?id=NPG-NPG_2012_6_4Jackson-000001",
+      "fullRes": "https://ids.si.edu/ids/download?id=NPG-NPG_2012_6_4Jackson-000001.jpg",
       "rights": "CC0",
       "sourceUrl": "https://npg.si.edu/object/npg_NPG.2012.6.4",
       "metadata": {
@@ -4891,7 +4937,9 @@
             "access": "CC0"
           }
         }
-      }
+      },
+      "imageWidth": 3177,
+      "imageHeight": 4000
     }
   ],
   "total": 28218

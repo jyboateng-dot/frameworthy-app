@@ -7,7 +7,9 @@
       "image": "https://iiif.micr.io/mPymb/full/max/0/default.jpg",
       "fullRes": "https://iiif.micr.io/mPymb/full/max/0/default.jpg",
       "rights": "CC0 / Public Domain",
-      "sourceUrl": "https://id.rijksmuseum.nl/200100988"
+      "sourceUrl": "https://id.rijksmuseum.nl/200100988",
+      "imageWidth": 5862,
+      "imageHeight": 5197
     },
     {
       "id": "200105887",
@@ -16,7 +18,9 @@
       "image": "https://iiif.micr.io/YAxov/full/max/0/default.jpg",
       "fullRes": "https://iiif.micr.io/YAxov/full/max/0/default.jpg",
       "rights": "CC0 / Public Domain",
-      "sourceUrl": "https://id.rijksmuseum.nl/200105887"
+      "sourceUrl": "https://id.rijksmuseum.nl/200105887",
+      "imageWidth": 3720,
+      "imageHeight": 2696
     },
     {
       "id": "200105889",
@@ -25,7 +29,9 @@
       "image": "https://iiif.micr.io/PbGmB/full/max/0/default.jpg",
       "fullRes": "https://iiif.micr.io/PbGmB/full/max/0/default.jpg",
       "rights": "CC0 / Public Domain",
-      "sourceUrl": "https://id.rijksmuseum.nl/200105889"
+      "sourceUrl": "https://id.rijksmuseum.nl/200105889",
+      "imageWidth": 6372,
+      "imageHeight": 3135
     },
     {
       "id": "200105901",
@@ -34,7 +40,9 @@
       "image": "https://iiif.micr.io/JdGJx/full/max/0/default.jpg",
       "fullRes": "https://iiif.micr.io/JdGJx/full/max/0/default.jpg",
       "rights": "CC0 / Public Domain",
-      "sourceUrl": "https://id.rijksmuseum.nl/200105901"
+      "sourceUrl": "https://id.rijksmuseum.nl/200105901",
+      "imageWidth": 2786,
+      "imageHeight": 3688
     },
     {
       "id": "200105903",
@@ -43,7 +51,9 @@
       "image": "https://iiif.micr.io/eUtaz/full/max/0/default.jpg",
       "fullRes": "https://iiif.micr.io/eUtaz/full/max/0/default.jpg",
       "rights": "CC0 / Public Domain",
-      "sourceUrl": "https://id.rijksmuseum.nl/200105903"
+      "sourceUrl": "https://id.rijksmuseum.nl/200105903",
+      "imageWidth": 2956,
+      "imageHeight": 3484
     },
     {
       "id": "200105905",
@@ -52,7 +62,9 @@
       "image": "https://iiif.micr.io/WTgck/full/max/0/default.jpg",
       "fullRes": "https://iiif.micr.io/WTgck/full/max/0/default.jpg",
       "rights": "CC0 / Public Domain",
-      "sourceUrl": "https://id.rijksmuseum.nl/200105905"
+      "sourceUrl": "https://id.rijksmuseum.nl/200105905",
+      "imageWidth": 3360,
+      "imageHeight": 5100
     },
     {
       "id": "200105971",
@@ -61,7 +73,9 @@
       "image": "https://iiif.micr.io/QVEGH/full/max/0/default.jpg",
       "fullRes": "https://iiif.micr.io/QVEGH/full/max/0/default.jpg",
       "rights": "CC0 / Public Domain",
-      "sourceUrl": "https://id.rijksmuseum.nl/200105971"
+      "sourceUrl": "https://id.rijksmuseum.nl/200105971",
+      "imageWidth": 6740,
+      "imageHeight": 8089
     },
     {
       "id": "200106038",
@@ -70,7 +84,9 @@
       "image": "https://iiif.micr.io/hodeb/full/max/0/default.jpg",
       "fullRes": "https://iiif.micr.io/hodeb/full/max/0/default.jpg",
       "rights": "CC0 / Public Domain",
-      "sourceUrl": "https://id.rijksmuseum.nl/200106038"
+      "sourceUrl": "https://id.rijksmuseum.nl/200106038",
+      "imageWidth": 6108,
+      "imageHeight": 4301
     },
     {
       "id": "200106077",
@@ -79,7 +95,9 @@
       "image": "https://iiif.micr.io/LsoAQ/full/max/0/default.jpg",
       "fullRes": "https://iiif.micr.io/LsoAQ/full/max/0/default.jpg",
       "rights": "CC0 / Public Domain",
-      "sourceUrl": "https://id.rijksmuseum.nl/200106077"
+      "sourceUrl": "https://id.rijksmuseum.nl/200106077",
+      "imageWidth": 4678,
+      "imageHeight": 5422
     },
     {
       "id": "200106078",
@@ -88,7 +106,9 @@
       "image": "https://iiif.micr.io/vHCad/full/max/0/default.jpg",
       "fullRes": "https://iiif.micr.io/vHCad/full/max/0/default.jpg",
       "rights": "CC0 / Public Domain",
-      "sourceUrl": "https://id.rijksmuseum.nl/200106078"
+      "sourceUrl": "https://id.rijksmuseum.nl/200106078",
+      "imageWidth": 4194,
+      "imageHeight": 4931
     },
     {
       "id": "200106079",
@@ -97,7 +117,9 @@
       "image": "https://iiif.micr.io/pNXoS/full/max/0/default.jpg",
       "fullRes": "https://iiif.micr.io/pNXoS/full/max/0/default.jpg",
       "rights": "CC0 / Public Domain",
-      "sourceUrl": "https://id.rijksmuseum.nl/200106079"
+      "sourceUrl": "https://id.rijksmuseum.nl/200106079",
+      "imageWidth": 5048,
+      "imageHeight": 6397
     },
     {
       "id": "200106080",
@@ -106,7 +128,9 @@
       "image": "https://iiif.micr.io/HhzPC/full/max/0/default.jpg",
       "fullRes": "https://iiif.micr.io/HhzPC/full/max/0/default.jpg",
       "rights": "CC0 / Public Domain",
-      "sourceUrl": "https://id.rijksmuseum.nl/200106080"
+      "sourceUrl": "https://id.rijksmuseum.nl/200106080",
+      "imageWidth": 6188,
+      "imageHeight": 10753
     },
     {
       "id": "200106086",
@@ -115,7 +139,9 @@
       "image": "https://iiif.micr.io/nuhhV/full/max/0/default.jpg",
       "fullRes": "https://iiif.micr.io/nuhhV/full/max/0/default.jpg",
       "rights": "CC0 / Public Domain",
-      "sourceUrl": "https://id.rijksmuseum.nl/200106086"
+      "sourceUrl": "https://id.rijksmuseum.nl/200106086",
+      "imageWidth": 4649,
+      "imageHeight": 5561
     },
     {
       "id": "200106799",
@@ -124,7 +150,9 @@
       "image": "https://iiif.micr.io/tdAPv/full/max/0/default.jpg",
       "fullRes": "https://iiif.micr.io/tdAPv/full/max/0/default.jpg",
       "rights": "CC0 / Public Domain",
-      "sourceUrl": "https://id.rijksmuseum.nl/200106799"
+      "sourceUrl": "https://id.rijksmuseum.nl/200106799",
+      "imageWidth": 7907,
+      "imageHeight": 7763
     },
     {
       "id": "200106839",
@@ -133,7 +161,9 @@
       "image": "https://iiif.micr.io/ywbNv/full/max/0/default.jpg",
       "fullRes": "https://iiif.micr.io/ywbNv/full/max/0/default.jpg",
       "rights": "CC0 / Public Domain",
-      "sourceUrl": "https://id.rijksmuseum.nl/200106839"
+      "sourceUrl": "https://id.rijksmuseum.nl/200106839",
+      "imageWidth": 8046,
+      "imageHeight": 5598
     },
     {
       "id": "200106864",
@@ -142,7 +172,9 @@
       "image": "https://iiif.micr.io/Yvgrq/full/max/0/default.jpg",
       "fullRes": "https://iiif.micr.io/Yvgrq/full/max/0/default.jpg",
       "rights": "CC0 / Public Domain",
-      "sourceUrl": "https://id.rijksmuseum.nl/200106864"
+      "sourceUrl": "https://id.rijksmuseum.nl/200106864",
+      "imageWidth": 6434,
+      "imageHeight": 3340
     },
     {
       "id": "200106865",
@@ -151,7 +183,9 @@
       "image": "https://iiif.micr.io/VtGLU/full/max/0/default.jpg",
       "fullRes": "https://iiif.micr.io/VtGLU/full/max/0/default.jpg",
       "rights": "CC0 / Public Domain",
-      "sourceUrl": "https://id.rijksmuseum.nl/200106865"
+      "sourceUrl": "https://id.rijksmuseum.nl/200106865",
+      "imageWidth": 5351,
+      "imageHeight": 9868
     },
     {
       "id": "200107007",
@@ -160,7 +194,9 @@
       "image": "https://iiif.micr.io/PYMfr/full/max/0/default.jpg",
       "fullRes": "https://iiif.micr.io/PYMfr/full/max/0/default.jpg",
       "rights": "CC0 / Public Domain",
-      "sourceUrl": "https://id.rijksmuseum.nl/200107007"
+      "sourceUrl": "https://id.rijksmuseum.nl/200107007",
+      "imageWidth": 7004,
+      "imageHeight": 4192
     },
     {
       "id": "200107756",
@@ -169,7 +205,9 @@
       "image": "https://iiif.micr.io/hQYKU/full/max/0/default.jpg",
       "fullRes": "https://iiif.micr.io/hQYKU/full/max/0/default.jpg",
       "rights": "CC0 / Public Domain",
-      "sourceUrl": "https://id.rijksmuseum.nl/200107756"
+      "sourceUrl": "https://id.rijksmuseum.nl/200107756",
+      "imageWidth": 6015,
+      "imageHeight": 4657
     },
     {
       "id": "200107757",
@@ -178,7 +216,9 @@
       "image": "https://iiif.micr.io/cdqwm/full/max/0/default.jpg",
       "fullRes": "https://iiif.micr.io/cdqwm/full/max/0/default.jpg",
       "rights": "CC0 / Public Domain",
-      "sourceUrl": "https://id.rijksmuseum.nl/200107757"
+      "sourceUrl": "https://id.rijksmuseum.nl/200107757",
+      "imageWidth": 4341,
+      "imageHeight": 5031
     },
     {
       "id": "200107761",
@@ -187,7 +227,9 @@
       "image": "https://iiif.micr.io/NxFOh/full/max/0/default.jpg",
       "fullRes": "https://iiif.micr.io/NxFOh/full/max/0/default.jpg",
       "rights": "CC0 / Public Domain",
-      "sourceUrl": "https://id.rijksmuseum.nl/200107761"
+      "sourceUrl": "https://id.rijksmuseum.nl/200107761",
+      "imageWidth": 3898,
+      "imageHeight": 2604
     },
     {
       "id": "200107762",
@@ -196,7 +238,9 @@
       "image": "https://iiif.micr.io/ClOve/full/max/0/default.jpg",
       "fullRes": "https://iiif.micr.io/ClOve/full/max/0/default.jpg",
       "rights": "CC0 / Public Domain",
-      "sourceUrl": "https://id.rijksmuseum.nl/200107762"
+      "sourceUrl": "https://id.rijksmuseum.nl/200107762",
+      "imageWidth": 3090,
+      "imageHeight": 2760
     },
     {
       "id": "200107763",
@@ -205,7 +249,9 @@
       "image": "https://iiif.micr.io/PGbAW/full/max/0/default.jpg",
       "fullRes": "https://iiif.micr.io/PGbAW/full/max/0/default.jpg",
       "rights": "CC0 / Public Domain",
-      "sourceUrl": "https://id.rijksmuseum.nl/200107763"
+      "sourceUrl": "https://id.rijksmuseum.nl/200107763",
+      "imageWidth": 5186,
+      "imageHeight": 6726
     },
     {
       "id": "200107764",
@@ -214,7 +260,9 @@
       "image": "https://iiif.micr.io/VkLgO/full/max/0/default.jpg",
       "fullRes": "https://iiif.micr.io/VkLgO/full/max/0/default.jpg",
       "rights": "CC0 / Public Domain",
-      "sourceUrl": "https://id.rijksmuseum.nl/200107764"
+      "sourceUrl": "https://id.rijksmuseum.nl/200107764",
+      "imageWidth": 3431,
+      "imageHeight": 4712
     }
   ],
   "total": 4874

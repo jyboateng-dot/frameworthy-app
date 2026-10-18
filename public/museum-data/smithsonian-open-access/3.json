@@ -5,7 +5,7 @@
       "title": "Alexander Hesler",
       "artist": "Alexander Hesler, 12 Jul 1823 - 5 Jul 1895",
       "image": "https://ids.si.edu/ids/deliveryService?id=NPG-S-NPG_2007_76",
-      "fullRes": "https://ids.si.edu/ids/deliveryService?id=NPG-S-NPG_2007_76",
+      "fullRes": "https://ids.si.edu/ids/download?id=NPG-S-NPG_2007_76.jpg",
       "rights": "CC0",
       "sourceUrl": "https://npg.si.edu/object/npg_S_NPG.2007.76",
       "metadata": {
@@ -229,14 +229,16 @@
             "access": "CC0"
           }
         }
-      }
+      },
+      "imageWidth": 2431,
+      "imageHeight": 4000
     },
     {
       "id": "ld1-1643399756728-1643399821065-1",
       "title": "John Francis William Ghequiere",
       "artist": "Charles Balthazar Julien Févret de Saint-Mémin, 12 Mar 1770 - 23 Jun 1852",
       "image": "https://ids.si.edu/ids/deliveryService?id=NPG-S_NPG_74_39_8_39Ghequiere-000001",
-      "fullRes": "https://ids.si.edu/ids/deliveryService?id=NPG-S_NPG_74_39_8_39Ghequiere-000001",
+      "fullRes": "https://ids.si.edu/ids/download?id=NPG-S_NPG_74_39_8_39Ghequiere-000001.jpg",
       "rights": "CC0",
       "sourceUrl": "https://npg.si.edu/object/npg_S_NPG.74.39.8.39",
       "metadata": {
@@ -405,14 +407,16 @@
             "access": "CC0"
           }
         }
-      }
+      },
+      "imageWidth": 2223,
+      "imageHeight": 2353
     },
     {
       "id": "ld1-1643399756728-1643399821280-0",
       "title": "Miss Fitch",
       "artist": "Charles Balthazar Julien Févret de Saint-Mémin, 12 Mar 1770 - 23 Jun 1852",
       "image": "https://ids.si.edu/ids/deliveryService?id=NPG-S_NPG_74_39_16_5Fitch-000001",
-      "fullRes": "https://ids.si.edu/ids/deliveryService?id=NPG-S_NPG_74_39_16_5Fitch-000001",
+      "fullRes": "https://ids.si.edu/ids/download?id=NPG-S_NPG_74_39_16_5Fitch-000001.jpg",
       "rights": "CC0",
       "sourceUrl": "https://npg.si.edu/object/npg_S_NPG.74.39.16.5",
       "metadata": {
@@ -574,14 +578,16 @@
             "access": "CC0"
           }
         }
-      }
+      },
+      "imageWidth": 2217,
+      "imageHeight": 2400
     },
     {
       "id": "ld1-1643399756728-1643399803923-1",
       "title": "A Midsummer-Night's Dream Nomination",
       "artist": "Thomas Nast, 27 Sep 1840 - 7 Dec 1902",
       "image": "https://ids.si.edu/ids/deliveryService?id=NPG-AD-NPG_79_10",
-      "fullRes": "https://ids.si.edu/ids/deliveryService?id=NPG-AD-NPG_79_10",
+      "fullRes": "https://ids.si.edu/ids/download?id=NPG-AD-NPG_79_10.jpg",
       "rights": "CC0",
       "sourceUrl": "https://npg.si.edu/object/npg_AD_NPG.79.10",
       "metadata": {
@@ -823,14 +829,16 @@
             "access": "CC0"
           }
         }
-      }
+      },
+      "imageWidth": 2661,
+      "imageHeight": 4000
     },
     {
       "id": "ld1-1643399756728-1643399805794-1",
       "title": "Washington City and Vicinity",
       "artist": "T. W. Smillie, active late 19th century",
       "image": "https://ids.si.edu/ids/deliveryService?id=NPG-NPG_POB59",
-      "fullRes": "https://ids.si.edu/ids/deliveryService?id=NPG-NPG_POB59",
+      "fullRes": "https://ids.si.edu/ids/download?id=NPG-NPG_POB59.jpg",
       "rights": "CC0",
       "sourceUrl": "https://npg.si.edu/object/npg_NPG.POB59",
       "metadata": {
@@ -1034,14 +1042,16 @@
             "access": "CC0"
           }
         }
-      }
+      },
+      "imageWidth": 4000,
+      "imageHeight": 2001
     },
     {
       "id": "ld1-1643399756728-1643399828283-0",
       "title": "Bagna",
       "artist": "John Warner Barber, 2 Feb 1798 - 22 Jun 1885",
       "image": "https://ids.si.edu/ids/deliveryService?id=NPG-S_NPG_2018_83_20_int",
-      "fullRes": "https://ids.si.edu/ids/deliveryService?id=NPG-S_NPG_2018_83_20_int",
+      "fullRes": "https://ids.si.edu/ids/download?id=NPG-S_NPG_2018_83_20_int.jpg",
       "rights": "CC0",
       "sourceUrl": "https://npg.si.edu/object/npg_S_NPG.2018.83.20",
       "metadata": {
@@ -1221,14 +1231,16 @@
             "access": "CC0"
           }
         }
-      }
+      },
+      "imageWidth": 2803,
+      "imageHeight": 2961
     },
     {
       "id": "ld1-1643399756728-1643399820981-0",
       "title": "T. Chollet",
       "artist": "Charles Balthazar Julien Févret de Saint-Mémin, 12 Mar 1770 - 23 Jun 1852",
       "image": "https://ids.si.edu/ids/deliveryService?id=NPG-S_NPG_74_39_5_29Chollet",
-      "fullRes": "https://ids.si.edu/ids/deliveryService?id=NPG-S_NPG_74_39_5_29Chollet",
+      "fullRes": "https://ids.si.edu/ids/download?id=NPG-S_NPG_74_39_5_29Chollet.jpg",
       "rights": "CC0",
       "sourceUrl": "https://npg.si.edu/object/npg_S_NPG.74.39.5.29",
       "metadata": {
@@ -1390,14 +1402,16 @@
             "access": "CC0"
           }
         }
-      }
+      },
+      "imageWidth": 2268,
+      "imageHeight": 2410
     },
     {
       "id": "ld1-1643399756728-1643399811904-0",
       "title": "John Cabell Breckinridge",
       "artist": "William R. Phipps, active c. 1849 - c. 1867",
       "image": "https://ids.si.edu/ids/deliveryService?id=NPG-NPG_2005_110_det_Inex",
-      "fullRes": "https://ids.si.edu/ids/deliveryService?id=NPG-NPG_2005_110_det_Inex",
+      "fullRes": "https://ids.si.edu/ids/download?id=NPG-NPG_2005_110_det_Inex.jpg",
       "rights": "CC0",
       "sourceUrl": "https://npg.si.edu/object/npg_NPG.2005.110",
       "metadata": {
@@ -1673,14 +1687,16 @@
             "access": "CC0"
           }
         }
-      }
+      },
+      "imageWidth": 2530,
+      "imageHeight": 3000
     },
     {
       "id": "ld1-1643399756728-1643399811192-0",
       "title": "John Randolph",
       "artist": "E. B. & E. C. Kellogg Lithography Company, active c. 1842 - 1867",
       "image": "https://ids.si.edu/ids/deliveryService?id=NPG-8000638B_27_1",
-      "fullRes": "https://ids.si.edu/ids/deliveryService?id=NPG-8000638B_27_1",
+      "fullRes": "https://ids.si.edu/ids/download?id=NPG-8000638B_27_1.jpg",
       "rights": "CC0",
       "sourceUrl": "https://npg.si.edu/object/npg_NPG.80.276.AA",
       "metadata": {
@@ -1952,14 +1968,16 @@
             "access": "CC0"
           }
         }
-      }
+      },
+      "imageWidth": 2970,
+      "imageHeight": 4000
     },
     {
       "id": "ld1-1643399756728-1643399813264-0",
       "title": "J. S. Wooley studio",
       "artist": "Jesse Sumner Wooley, 1867 - 1940",
       "image": "https://ids.si.edu/ids/deliveryService?id=NPG-AD_NPG_2007_14",
-      "fullRes": "https://ids.si.edu/ids/deliveryService?id=NPG-AD_NPG_2007_14",
+      "fullRes": "https://ids.si.edu/ids/download?id=NPG-AD_NPG_2007_14.jpg",
       "rights": "CC0",
       "sourceUrl": "https://npg.si.edu/object/npg_AD_NPG.2007.14",
       "metadata": {
@@ -2132,14 +2150,16 @@
             "access": "CC0"
           }
         }
-      }
+      },
+      "imageWidth": 4000,
+      "imageHeight": 3237
     },
     {
       "id": "ld1-1643399756728-1643399806457-1",
       "title": "Stum-ma-nu - A Flathead Boy",
       "artist": "Unknown artist",
       "image": "https://ids.si.edu/ids/deliveryService?id=NPG-NPG_99_168_28Stumanu-000002",
-      "fullRes": "https://ids.si.edu/ids/deliveryService?id=NPG-NPG_99_168_28Stumanu-000002",
+      "fullRes": "https://ids.si.edu/ids/download?id=NPG-NPG_99_168_28Stumanu-000002.jpg",
       "rights": "CC0",
       "sourceUrl": "https://npg.si.edu/object/npg_NPG.99.168.28",
       "metadata": {
@@ -2328,14 +2348,16 @@
             "access": "CC0"
           }
         }
-      }
+      },
+      "imageWidth": 2472,
+      "imageHeight": 4000
     },
     {
       "id": "ld1-1643399756728-1643399806426-1",
       "title": "Wa-bish-kee-pe-nas - The White Pigeon",
       "artist": "Unknown artist",
       "image": "https://ids.si.edu/ids/deliveryService?id=NPG-NPG_99_167_41Wabishkeepenas-000001",
-      "fullRes": "https://ids.si.edu/ids/deliveryService?id=NPG-NPG_99_167_41Wabishkeepenas-000001",
+      "fullRes": "https://ids.si.edu/ids/download?id=NPG-NPG_99_167_41Wabishkeepenas-000001.jpg",
       "rights": "CC0",
       "sourceUrl": "https://npg.si.edu/object/npg_NPG.99.167.41",
       "metadata": {
@@ -2524,14 +2546,16 @@
             "access": "CC0"
           }
         }
-      }
+      },
+      "imageWidth": 2666,
+      "imageHeight": 4000
     },
     {
       "id": "ld1-1643399756728-1643399821174-1",
       "title": "Jacob Burnet",
       "artist": "Charles Balthazar Julien Févret de Saint-Mémin, 12 Mar 1770 - 23 Jun 1852",
       "image": "https://ids.si.edu/ids/deliveryService?id=NPG-S_NPG_74_39_12_29Burnet-000001",
-      "fullRes": "https://ids.si.edu/ids/deliveryService?id=NPG-S_NPG_74_39_12_29Burnet-000001",
+      "fullRes": "https://ids.si.edu/ids/download?id=NPG-S_NPG_74_39_12_29Burnet-000001.jpg",
       "rights": "CC0",
       "sourceUrl": "https://npg.si.edu/object/npg_S_NPG.74.39.12.29",
       "metadata": {
@@ -2745,14 +2769,16 @@
             "access": "CC0"
           }
         }
-      }
+      },
+      "imageWidth": 2205,
+      "imageHeight": 2446
     },
     {
       "id": "ld1-1643399756728-1643399810922-0",
       "title": "King Charles III of Spain",
       "artist": "Filippe Morghen, 1730 - c. 1807",
       "image": "https://ids.si.edu/ids/deliveryService?id=NPG-S_NPG_2004_115M-000001",
-      "fullRes": "https://ids.si.edu/ids/deliveryService?id=NPG-S_NPG_2004_115M-000001",
+      "fullRes": "https://ids.si.edu/ids/download?id=NPG-S_NPG_2004_115M-000001.jpg",
       "rights": "CC0",
       "sourceUrl": "https://npg.si.edu/object/npg_S_NPG.2004.115",
       "metadata": {
@@ -2978,14 +3004,16 @@
             "access": "CC0"
           }
         }
-      }
+      },
+      "imageWidth": 2690,
+      "imageHeight": 4000
     },
     {
       "id": "ld1-1643399756728-1643399827889-1",
       "title": "Unidentified Boy",
       "artist": "George Linen, 29 Apr 1802 - 27 Sep 1888",
       "image": "https://ids.si.edu/ids/deliveryService?id=NPG-S_NPG_2018_8_18_int",
-      "fullRes": "https://ids.si.edu/ids/deliveryService?id=NPG-S_NPG_2018_8_18_int",
+      "fullRes": "https://ids.si.edu/ids/download?id=NPG-S_NPG_2018_8_18_int.jpg",
       "rights": "CC0",
       "sourceUrl": "https://npg.si.edu/object/npg_S_NPG.2018.8.18",
       "metadata": {
@@ -3148,14 +3176,16 @@
             "access": "CC0"
           }
         }
-      }
+      },
+      "imageWidth": 4000,
+      "imageHeight": 2701
     },
     {
       "id": "ld1-1643399756728-1643399821021-2",
       "title": "M. A. Meschert",
       "artist": "Charles Balthazar Julien Févret de Saint-Mémin, 12 Mar 1770 - 23 Jun 1852",
       "image": "https://ids.si.edu/ids/deliveryService?id=NPG-S_NPG_74_39_7_8Meschert-000001",
-      "fullRes": "https://ids.si.edu/ids/deliveryService?id=NPG-S_NPG_74_39_7_8Meschert-000001",
+      "fullRes": "https://ids.si.edu/ids/download?id=NPG-S_NPG_74_39_7_8Meschert-000001.jpg",
       "rights": "CC0",
       "sourceUrl": "https://npg.si.edu/object/npg_S_NPG.74.39.7.8",
       "metadata": {
@@ -3317,14 +3347,16 @@
             "access": "CC0"
           }
         }
-      }
+      },
+      "imageWidth": 2250,
+      "imageHeight": 2354
     },
     {
       "id": "ld1-1643399756728-1643399810872-0",
       "title": "Irvin McDowell",
       "artist": "Louis Prang Lithography Company, active 1856 - 1899",
       "image": "https://ids.si.edu/ids/deliveryService?id=NPG-NPG_80_119_o",
-      "fullRes": "https://ids.si.edu/ids/deliveryService?id=NPG-NPG_80_119_o",
+      "fullRes": "https://ids.si.edu/ids/download?id=NPG-NPG_80_119_o.jpg",
       "rights": "CC0",
       "sourceUrl": "https://npg.si.edu/object/npg_NPG.80.119.o",
       "metadata": {
@@ -3545,14 +3577,16 @@
             "access": "CC0"
           }
         }
-      }
+      },
+      "imageWidth": 2349,
+      "imageHeight": 4000
     },
     {
       "id": "ld1-1643399756728-1643399820905-1",
       "title": "Coddington",
       "artist": "Charles Balthazar Julien Févret de Saint-Mémin, 12 Mar 1770 - 23 Jun 1852",
       "image": "https://ids.si.edu/ids/deliveryService?id=NPG-S_NPG_74_39_2_34Coddington-000001",
-      "fullRes": "https://ids.si.edu/ids/deliveryService?id=NPG-S_NPG_74_39_2_34Coddington-000001",
+      "fullRes": "https://ids.si.edu/ids/download?id=NPG-S_NPG_74_39_2_34Coddington-000001.jpg",
       "rights": "CC0",
       "sourceUrl": "https://npg.si.edu/object/npg_S_NPG.74.39.2.34",
       "metadata": {
@@ -3714,14 +3748,16 @@
             "access": "CC0"
           }
         }
-      }
+      },
+      "imageWidth": 2269,
+      "imageHeight": 2368
     },
     {
       "id": "ld1-1643399756728-1643399821058-0",
       "title": "William Gilmor",
       "artist": "Charles Balthazar Julien Févret de Saint-Mémin, 12 Mar 1770 - 23 Jun 1852",
       "image": "https://ids.si.edu/ids/deliveryService?id=NPG-S_NPG_74_39_8_24Gilmor-000001",
-      "fullRes": "https://ids.si.edu/ids/deliveryService?id=NPG-S_NPG_74_39_8_24Gilmor-000001",
+      "fullRes": "https://ids.si.edu/ids/download?id=NPG-S_NPG_74_39_8_24Gilmor-000001.jpg",
       "rights": "CC0",
       "sourceUrl": "https://npg.si.edu/object/npg_S_NPG.74.39.8.24",
       "metadata": {
@@ -3883,14 +3919,16 @@
             "access": "CC0"
           }
         }
-      }
+      },
+      "imageWidth": 2281,
+      "imageHeight": 2373
     },
     {
       "id": "ld1-1643399756728-1643399813658-0",
       "title": "James William Denver",
       "artist": "Mathew Brady Studio, active 1844 - 1894",
       "image": "https://ids.si.edu/ids/deliveryService?id=NPG-NPG_79_246_53DenverR-000001",
-      "fullRes": "https://ids.si.edu/ids/deliveryService?id=NPG-NPG_79_246_53DenverR-000001",
+      "fullRes": "https://ids.si.edu/ids/download?id=NPG-NPG_79_246_53DenverR-000001.jpg",
       "rights": "CC0",
       "sourceUrl": "https://npg.si.edu/object/npg_NPG.79.246.53",
       "metadata": {
@@ -4150,14 +4188,16 @@
             "access": "CC0"
           }
         }
-      }
+      },
+      "imageWidth": 1877,
+      "imageHeight": 2883
     },
     {
       "id": "ld1-1643399756728-1643399821197-1",
       "title": "Nicholas Cabell, Jr.",
       "artist": "Charles Balthazar Julien Févret de Saint-Mémin, 12 Mar 1770 - 23 Jun 1852",
       "image": "https://ids.si.edu/ids/deliveryService?id=NPG-S_NPG_74_39_13_15Cabell-000001",
-      "fullRes": "https://ids.si.edu/ids/deliveryService?id=NPG-S_NPG_74_39_13_15Cabell-000001",
+      "fullRes": "https://ids.si.edu/ids/download?id=NPG-S_NPG_74_39_13_15Cabell-000001.jpg",
       "rights": "CC0",
       "sourceUrl": "https://npg.si.edu/object/npg_S_NPG.74.39.13.15",
       "metadata": {
@@ -4319,14 +4359,16 @@
             "access": "CC0"
           }
         }
-      }
+      },
+      "imageWidth": 2247,
+      "imageHeight": 2453
     },
     {
       "id": "ld1-1643399756728-1643399812537-0",
       "title": "Stephen Decatur",
       "artist": "Charles Balthazar Julien Févret de Saint-Mémin, 12 Mar 1770 - 23 Jun 1852",
       "image": "https://ids.si.edu/ids/deliveryService?id=NPG-A6000196B",
-      "fullRes": "https://ids.si.edu/ids/deliveryService?id=NPG-A6000196B",
+      "fullRes": "https://ids.si.edu/ids/download?id=NPG-A6000196B.jpg",
       "rights": "CC0",
       "sourceUrl": "https://npg.si.edu/object/npg_NPG.2006.98",
       "metadata": {
@@ -4501,14 +4543,16 @@
             "access": "CC0"
           }
         }
-      }
+      },
+      "imageWidth": 2965,
+      "imageHeight": 4000
     },
     {
       "id": "ld1-1643399756728-1643399821254-0",
       "title": "Catherine Keteltas Livingston",
       "artist": "Charles Balthazar Julien Févret de Saint-Mémin, 12 Mar 1770 - 23 Jun 1852",
       "image": "https://ids.si.edu/ids/deliveryService?id=NPG-S_NPG_74_39_15_5Livingston-000001",
-      "fullRes": "https://ids.si.edu/ids/deliveryService?id=NPG-S_NPG_74_39_15_5Livingston-000001",
+      "fullRes": "https://ids.si.edu/ids/download?id=NPG-S_NPG_74_39_15_5Livingston-000001.jpg",
       "rights": "CC0",
       "sourceUrl": "https://npg.si.edu/object/npg_S_NPG.74.39.15.5",
       "metadata": {
@@ -4670,14 +4714,16 @@
             "access": "CC0"
           }
         }
-      }
+      },
+      "imageWidth": 2236,
+      "imageHeight": 2444
     },
     {
       "id": "ld1-1643399756728-1643399810936-0",
       "title": "Thomas Tudor Tucker",
       "artist": "Charles Balthazar Julien Févret de Saint-Mémin, 12 Mar 1770 - 23 Jun 1852",
       "image": "https://ids.si.edu/ids/deliveryService?id=NPG-NPG_2005_57Tucker-000002",
-      "fullRes": "https://ids.si.edu/ids/deliveryService?id=NPG-NPG_2005_57Tucker-000002",
+      "fullRes": "https://ids.si.edu/ids/download?id=NPG-NPG_2005_57Tucker-000002.jpg",
       "rights": "CC0",
       "sourceUrl": "https://npg.si.edu/object/npg_NPG.2005.57",
       "metadata": {
@@ -4903,7 +4949,9 @@
             "access": "CC0"
           }
         }
-      }
+      },
+      "imageWidth": 2915,
+      "imageHeight": 4000
     }
   ],
   "total": 28218

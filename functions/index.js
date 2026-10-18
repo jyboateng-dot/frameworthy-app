@@ -882,9 +882,15 @@ exports.getImageKitUploadAuth = onCall({ secrets: [imageKitPrivateKey], region: 
 // allowlist rather than accepting any URL — an open image proxy is a
 // classic SSRF vector (a client could otherwise point it at internal
 // infrastructure, or just burn bandwidth as an anonymizing relay).
-const PROXY_ALLOWED_HOSTS = new Set(['bymuseum.com', 'www.bymuseum.com']);
+const PROXY_ALLOWED_HOSTS = new Set([
+    'bymuseum.com',
+    'www.bymuseum.com',
+    'openaccess-cdn.clevelandart.org',
+    'parismuseescollections.paris.fr',
+    'www.parismuseescollections.paris.fr',
+]);
 
-exports.proxyArtworkImage = onRequest({ region: 'us-central1', timeoutSeconds: 15, maxInstances: 10 }, async (req, res) => {
+exports.proxyArtworkImage = onRequest({ region: 'us-central1', memory: '512MiB', timeoutSeconds: 30, maxInstances: 10 }, async (req, res) => {
     const target = req.query.url;
     if (typeof target !== 'string' || !target) {
         res.status(400).send('Missing url parameter');
@@ -932,10 +938,10 @@ exports.proxyArtworkImage = onRequest({ region: 'us-central1', timeoutSeconds: 1
 // The Art Institute's IIIF server requires a museum-style request header and
 // rejects direct browser image requests. Keep this relay narrow: only accept
 // image identifiers, only request the Art Institute host, and cap the width.
-exports.proxyArtInstituteImage = onRequest({ region: 'us-central1', timeoutSeconds: 15, maxInstances: 10, invoker: 'public' }, async (req, res) => {
+exports.proxyArtInstituteImage = onRequest({ region: 'us-central1', memory: '512MiB', timeoutSeconds: 30, maxInstances: 10, invoker: 'public' }, async (req, res) => {
     const imageId = req.query.id;
     const requestedWidth = Number(req.query.width || 843);
-    const width = Math.min(2400, Math.max(240, Number.isFinite(requestedWidth) ? requestedWidth : 843));
+    const width = Math.min(16000, Math.max(240, Number.isFinite(requestedWidth) ? requestedWidth : 843));
     if (typeof imageId !== 'string' || !/^[a-f0-9-]{20,}$/i.test(imageId)) {
         res.status(400).send('Invalid image id');
         return;
@@ -943,7 +949,7 @@ exports.proxyArtInstituteImage = onRequest({ region: 'us-central1', timeoutSecon
     try {
         const upstream = await fetch(`https://www.artic.edu/iiif/2/${imageId}/full/${width},/0/default.jpg`, {
             headers: { 'User-Agent': 'FrameWorthy/1.0', Referer: 'https://www.artic.edu/' },
-            signal: AbortSignal.timeout(10_000),
+            signal: AbortSignal.timeout(25_000),
         });
         if (!upstream.ok) {
             res.status(upstream.status).send('Art Institute image unavailable');

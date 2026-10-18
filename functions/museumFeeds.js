@@ -35,11 +35,17 @@ function smithsonianRecord(record) {
     const media = info.online_media?.media?.find(item =>
         item.type === 'Images' && item.usage?.access === 'CC0' && item.content);
     if (!media) return null;
+    const resources = media.resources || [];
+    const hiResJpeg = resources.find(r => /jpeg/i.test(r.label || '') && r.url);
+    const dimResource = hiResJpeg || resources.find(r => Number(r.width) > 0 && Number(r.height) > 0);
     return {
         id: record.id, title: record.title || info.title?.content,
         artist: (content.freetext?.name || []).filter(item => /artist|creator|author/i.test(item.label))
             .map(item => item.content).join(', ') || 'Unknown artist',
-        image: media.thumbnail || media.content, fullRes: media.content,
+        image: media.thumbnail || media.content,
+        fullRes: hiResJpeg?.url || media.content,
+        imageWidth: Number(dimResource?.width) || null,
+        imageHeight: Number(dimResource?.height) || null,
         rights: 'CC0', sourceUrl: info.record_link,
         metadata: content,
     };
@@ -73,13 +79,14 @@ async function smithsonian(page, key) {
 
 const PARIS_DEFAULT_TOKEN = '9a695903-3959-4413-8a65-7427ac729efe';
 const PARIS_ESTIMATED_TOTAL = 185548;
+const PARIS_OPEN_ART_TYPE_IDS = [330958, 167983, 330934, 167938, 166238];
 
 function parisQuery(page) {
-    return `{ nodeQuery(limit: ${PAGE_SIZE}, offset: ${(page - 1) * PAGE_SIZE}, filter: {conditions: [{field: "type", value: "oeuvre"}, {field: "field_visuels", operator: IS_NOT_NULL}, {field: "field_oeuvre_types_objet", value: [${PARIS_ART_TYPE_IDS.map(id => `"${id}"`).join(',')}], operator: IN}]}) {
+    return `{ nodeQuery(limit: ${PAGE_SIZE}, offset: ${(page - 1) * PAGE_SIZE}, filter: {conditions: [{field: "type", value: "oeuvre"}, {field: "field_visuels.entity.field_image_libre", value: "1"}, {field: "field_oeuvre_types_objet", value: [${PARIS_OPEN_ART_TYPE_IDS.map(id => `"${id}"`).join(',')}], operator: IN}]}) {
         entities { entityUuid ... on NodeOeuvre {
             title absolutePath fieldLrefAdlib fieldCartelAuteur
             fieldOeuvreTypesObjet { entity { entityLabel } }
-            fieldVisuels { entity { vignette fieldLegende fieldCopyright } }
+            fieldVisuels { entity { ... on MediaImage { vignette publicUrl fieldLegende fieldCopyright } } }
         } }
     } }`;
 }
@@ -103,18 +110,22 @@ async function paris(page, token) {
         if (!item) return null;
         const objectType = item.fieldOeuvreTypesObjet?.map(type => type.entity?.entityLabel).filter(Boolean).join(', ') || '';
         if (!ART_TYPES.test(objectType)) return null;
-        const visual = item.fieldVisuels?.[0]?.entity || {};
+        const visual = item.fieldVisuels?.find(v => v?.entity?.publicUrl)?.entity || item.fieldVisuels?.[0]?.entity || {};
         const vignette = visual.vignette;
-        if (!vignette) return null;
-        const image = /^https?:\/\//i.test(vignette) ? vignette : `https://parismuseescollections.paris.fr${vignette}`;
+        if (!vignette && !visual.publicUrl) return null;
+        const rawPreview = vignette || visual.publicUrl;
+        const image = /^https?:\/\//i.test(rawPreview) ? rawPreview : `https://parismuseescollections.paris.fr${rawPreview}`;
+        const fullRes = visual.publicUrl
+            ? (/^https?:\/\//i.test(visual.publicUrl) ? visual.publicUrl : `https://www.parismuseescollections.paris.fr${visual.publicUrl}`)
+            : image;
         return {
             id: String(item.entityUuid || item.entityId),
             title: item.title || 'Paris Musées Artwork',
             artist: item.fieldCartelAuteur || 'Paris Musées',
             image,
-            fullRes: image,
+            fullRes,
             sourceUrl: item.absolutePath || `https://www.parismuseescollections.paris.fr/fr/node/${item.entityId}`,
-            rights: visual.fieldCopyright || 'Paris Musées API record; verify item-level rights',
+            rights: visual.fieldCopyright || 'CC0 / Paris Musées Open Content',
             description: visual.fieldLegende,
             objectType,
             metadata: { lrefAdlib: item.fieldLrefAdlib, copyright: visual.fieldCopyright },
@@ -124,32 +135,47 @@ async function paris(page, token) {
 }
 
 async function biodiversityHeritageLibrary(page) {
-    // BHL maintains a public Flickr Commons photostream. The feed is useful
-    // for discovery without exposing a BHL/Flickr key; item-level rights are
-    // retained and must still be checked before a work is sold as a print.
+    // Query high-resolution BHL botanical & natural-history plates hosted on
+    // Wikimedia Commons with a strict >=2000px resolution filter so every
+    // returned plate meets fine-art print DPI requirements.
+    const offset = (page - 1) * PAGE_SIZE;
     const params = new URLSearchParams({
-        tags: 'biodiversityheritagelibrary', tagmode: 'all', format: 'json', nojsoncallback: '1',
+        action: 'query',
+        generator: 'search',
+        gsrsearch: 'incategory:Files_from_the_Biodiversity_Heritage_Library fileres:>2000 filetype:bitmap (drawing OR illustration OR plate OR lithograph OR watercolor)',
+        gsrnamespace: '6',
+        gsrlimit: String(PAGE_SIZE),
+        gsroffset: String(offset),
+        prop: 'imageinfo',
+        iiprop: 'url|dimensions|extmetadata',
+        iiurlwidth: '800',
+        format: 'json',
     });
-    const data = await json(`https://www.flickr.com/services/feeds/photos_public.gne?${params}`);
-    const items = (data.items || []).slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
-    return {
-        artworks: items.map(item => {
-            if (!/\b(drawn|drawing|illustrat(?:ion|ed)|painting|painted|plate|print|engraving|lithograph|watercolou?r)\b/i.test(item.title || '')) return null;
-            const preview = item.media?.m;
-            if (!preview) return null;
-            const fullRes = preview.replace('_m.', '_b.');
-            return {
-                id: item.link || item.title,
-                title: item.title || 'Biodiversity illustration',
-                artist: item.author || 'Biodiversity Heritage Library',
-                image: preview,
-                fullRes,
-                sourceUrl: item.link,
-                rights: 'Flickr Commons / verify item-level rights',
-            };
-        }).filter(Boolean),
-        total: data.items?.length || 0,
-    };
+    const data = await json(`https://commons.wikimedia.org/w/api.php?${params}`, {
+        headers: { 'User-Agent': 'FrameWorthyApp/1.0 (contact@frameworthy.art)' },
+    });
+    const pages = Object.values(data.query?.pages || {});
+    const artworks = pages.map(item => {
+        const info = item.imageinfo?.[0];
+        if (!info || !info.url) return null;
+        if (Math.min(Number(info.width) || 0, Number(info.height) || 0) < 1500) return null;
+        const meta = info.extmetadata || {};
+        const rawTitle = meta.ObjectName?.value || item.title.replace(/^File:/, '').replace(/\.[^.]+$/, '').replace(/\bBHL\d+\b/gi, '').trim();
+        const title = rawTitle.replace(/<[^>]*>?/gm, '').trim() || 'Biodiversity Heritage Library Plate';
+        const artist = meta.Artist?.value?.replace(/<[^>]*>?/gm, '').trim() || 'Biodiversity Heritage Library';
+        return {
+            id: String(item.pageid || item.title),
+            title,
+            artist,
+            image: info.thumburl || info.url,
+            fullRes: info.url,
+            imageWidth: info.width,
+            imageHeight: info.height,
+            sourceUrl: info.descriptionurl || 'https://www.biodiversitylibrary.org/',
+            rights: 'Public Domain / Biodiversity Heritage Library',
+        };
+    }).filter(Boolean);
+    return { artworks, total: 2400 };
 }
 
 async function nasaOpenMedia(page) {

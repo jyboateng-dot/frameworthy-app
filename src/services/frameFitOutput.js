@@ -1,8 +1,11 @@
+import { Capacitor } from '@capacitor/core';
 import { imageCrop } from '../utils/frameFit';
 import { loadImageCached } from '../utils/imageCache';
 import { uploadImageToCloud } from './storage';
 
 const IN_TO_CM = 2.54;
+const MOBILE_MAX_CANVAS_PIXELS = 16_000_000;
+const DESKTOP_MAX_CANVAS_PIXELS = 60_000_000;
 const GEOMETRY_DIMENSIONS = [
     'width', 'height', 'mat', 'rail', 'outerWidth', 'outerHeight',
     'apertureWidth', 'apertureHeight',
@@ -28,12 +31,29 @@ const toCentimetres = (geometry) => Object.fromEntries(
  * URL, or null if it failed (callers fall back to the artwork image). That
  * property is not part of the cart item and must not be spread into it.
  */
-export async function prepareFrameOutput(source, geometry, position, frameColor, matColor, { deferThumbnail = false } = {}) {
+export async function prepareFrameOutput(source, geometry, position, frameColor, matColor, { deferThumbnail = false, isMobile } = {}) {
     const image = await loadImageCached(source);
     const crop = imageCrop({ w: image.naturalWidth, h: image.naturalHeight }, geometry, position);
     if (!crop) throw new Error('The frame opening is too small. Adjust the mat width.');
     const print = document.createElement('canvas');
-    const scale = Math.min(1, 6000 / Math.max(crop.w, crop.h));
+    const maxFrameEdgeIn = Math.max(
+        geometry.apertureWidth || 0,
+        geometry.apertureHeight || 0,
+        geometry.width || 0,
+        geometry.height || 0
+    );
+    const maxPrintPx = Math.min(16000, Math.max(6000, Math.ceil(maxFrameEdgeIn * 300)));
+    const isMobilePlatform = typeof isMobile === 'boolean'
+        ? isMobile
+        : (Capacitor.isNativePlatform()
+            || (typeof window !== 'undefined' && (
+                window.innerWidth < 1024
+                || Boolean(window.matchMedia?.('(pointer: coarse)')?.matches)
+            )));
+    const maxCanvasPixels = isMobilePlatform ? MOBILE_MAX_CANVAS_PIXELS : DESKTOP_MAX_CANVAS_PIXELS;
+    const edgeScale = maxPrintPx / Math.max(crop.w, crop.h);
+    const areaScale = Math.sqrt(maxCanvasPixels / Math.max(1, crop.w * crop.h));
+    const scale = Math.min(1, edgeScale, areaScale);
     print.width = Math.max(1, Math.round(crop.w * scale));
     print.height = Math.max(1, Math.round(crop.h * scale));
     const ctx = print.getContext('2d');

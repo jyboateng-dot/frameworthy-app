@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 import { SIZE_GUIDE_ENTRIES, SCALE_REFERENCES } from '../../data/sizeGuide';
 import { formatDimensions } from '../../data/constants';
+import { MIN_PRINT_DPI, doesSizeMeetMinDpi } from '../../utils/museumArtwork';
 import womanFigure from '../../assets/scaleFigures/woman.png';
 import manFigure from '../../assets/scaleFigures/man.png';
 
@@ -183,7 +184,7 @@ const Scene = ({ selectedSize, reference, orientation }) => {
     );
 };
 
-const SizeGuidePanel = ({ currentSize, orientation, onSelect, unit, onClose }) => {
+const SizeGuidePanel = ({ currentSize, orientation, imageNaturalSize = null, onSelect, unit, onClose }) => {
     const [reference, setReference] = useState('woman');
     const [customWidthCm, setCustomWidthCm] = useState('');
     const [customHeightCm, setCustomHeightCm] = useState('');
@@ -192,8 +193,11 @@ const SizeGuidePanel = ({ currentSize, orientation, onSelect, unit, onClose }) =
     const dialogRef = useRef(null);
     const closeButtonRef = useRef(null);
 
+    const availableEntries = SIZE_GUIDE_ENTRIES.filter(
+        (entry) => !imageNaturalSize || doesSizeMeetMinDpi(entry, imageNaturalSize, MIN_PRINT_DPI)
+    );
     const sameSize = (a, b) => a && b && a.width === b.width && a.height === b.height;
-    const selectedEntry = currentSize ? SIZE_GUIDE_ENTRIES.find(e => sameSize(e, currentSize)) : null;
+    const selectedEntry = currentSize ? availableEntries.find(e => sameSize(e, currentSize)) : null;
 
     useEffect(() => {
         const previouslyFocused = document.activeElement;
@@ -249,10 +253,10 @@ const SizeGuidePanel = ({ currentSize, orientation, onSelect, unit, onClose }) =
         : (orientation || currentSize?.orientation || 'portrait');
     const parsedCustomWidth = Number(customWidthCm);
     const parsedCustomHeight = Number(customHeightCm);
-    const customSizeIsValid = Number.isFinite(parsedCustomWidth) && Number.isFinite(parsedCustomHeight)
+    const customSizeInBounds = Number.isFinite(parsedCustomWidth) && Number.isFinite(parsedCustomHeight)
         && parsedCustomWidth >= 13 && parsedCustomWidth <= 180
         && parsedCustomHeight >= 13 && parsedCustomHeight <= 180;
-    const customPreview = customSizeIsValid ? {
+    const customCandidate = customSizeInBounds ? {
         id: `custom-preview-${parsedCustomWidth}x${parsedCustomHeight}`,
         width: Math.min(parsedCustomWidth, parsedCustomHeight) / 2.54,
         height: Math.max(parsedCustomWidth, parsedCustomHeight) / 2.54,
@@ -261,6 +265,9 @@ const SizeGuidePanel = ({ currentSize, orientation, onSelect, unit, onClose }) =
             ? 'square'
             : (parsedCustomWidth > parsedCustomHeight ? 'landscape' : 'portrait'),
     } : null;
+    const customMeetsDpi = !customCandidate || !imageNaturalSize || doesSizeMeetMinDpi(customCandidate, imageNaturalSize, MIN_PRINT_DPI);
+    const customSizeIsValid = customSizeInBounds && customMeetsDpi;
+    const customPreview = customSizeIsValid ? customCandidate : null;
     const previewSize = customPreview || currentSize;
     const previewOrientation = customPreview?.orientation || currentOrientation;
     const previewOrientationLabel = previewOrientation.charAt(0).toUpperCase() + previewOrientation.slice(1);
@@ -418,7 +425,8 @@ const SizeGuidePanel = ({ currentSize, orientation, onSelect, unit, onClose }) =
                                     <input type="number" min="13" max="180" step="0.1" inputMode="decimal" value={customHeightCm} onChange={(event) => setCustomHeightCm(event.target.value)} placeholder="Height" className="mt-1 block w-full rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm text-stone-900 outline-none transition-colors focus:border-fw-gold focus:ring-2 focus:ring-fw-gold/20" />
                                 </label>
                             </div>
-                            {((customWidthCm || customHeightCm) && !customSizeIsValid) && <p className="m-0 mt-2 text-[11px] text-red-700" role="alert">Enter both dimensions from 13 to 180 cm.</p>}
+                            {((customWidthCm || customHeightCm) && !customSizeInBounds) && <p className="m-0 mt-2 text-[11px] text-red-700" role="alert">Enter both dimensions from 13 to 180 cm.</p>}
+                            {(customSizeInBounds && !customMeetsDpi) && <p className="m-0 mt-2 text-[11px] text-red-700" role="alert">This image's resolution cannot support that size at {MIN_PRINT_DPI} DPI.</p>}
                             {customPreview && <button type="button" onClick={() => onSelect(customPreview)} className="mt-3 w-full cursor-pointer rounded-lg bg-stone-900 px-3 py-2.5 text-xs font-semibold text-white transition-colors hover:bg-stone-700">Use this custom size</button>}
                         </div>
                         <p className="text-[12.5px] text-stone-500 m-0 mb-2">All sizes for this piece</p>
@@ -435,7 +443,7 @@ const SizeGuidePanel = ({ currentSize, orientation, onSelect, unit, onClose }) =
                                 <th className="text-left font-medium text-sm text-stone-500 pb-2 pr-2.5 border-b border-stone-200 md:whitespace-nowrap">Price</th>
                                 <th className="text-left font-medium text-sm text-stone-500 pb-2 border-b border-stone-200 md:whitespace-nowrap">Best for</th>
                             </tr></thead>
-                            <tbody>{SIZE_GUIDE_ENTRIES.map(entry => {
+                            <tbody>{availableEntries.map(entry => {
                                 const isSelected = sameSize(entry, currentSize);
                                 return <tr key={entry.id} ref={el => { rowRefs.current[entry.id] = el; }} onClick={() => onSelect(entry)} onKeyDown={(event) => {
                                     if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); onSelect(entry); }

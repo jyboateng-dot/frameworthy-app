@@ -32,14 +32,18 @@ async function fetchArtInstitute(page) {
     const [paintings, drawings] = await Promise.all([fetchType('Painting'), fetchType('Drawing')]);
     const source = sourceById('art-institute-of-chicago');
     return {
-        artworks: [...(paintings.data || []), ...(drawings.data || [])].filter(item => item.image_id).map(item => normalizeMuseumArtwork({
-            ...item,
-            artist_display: item.artist_display,
-            image: artInstituteImageUrl(item.image_id, 400),
-            fullRes: artInstituteImageUrl(item.image_id, 2400),
-            imageWidth: item.thumbnail?.width,
-            imageHeight: item.thumbnail?.height,
-        }, source)),
+        artworks: [...(paintings.data || []), ...(drawings.data || [])].filter(item => item.image_id).map(item => {
+            const masterWidth = Number(item.thumbnail?.width) || 4000;
+            const masterHeight = Number(item.thumbnail?.height) || null;
+            return normalizeMuseumArtwork({
+                ...item,
+                artist_display: item.artist_display,
+                image: artInstituteImageUrl(item.image_id, 400),
+                fullRes: artInstituteImageUrl(item.image_id, masterWidth),
+                imageWidth: masterWidth,
+                imageHeight: masterHeight,
+            }, source);
+        }),
         total: (paintings.pagination?.total || 0) + (drawings.pagination?.total || 0),
     };
 }
@@ -55,12 +59,18 @@ async function fetchCleveland(page) {
     const [paintings, drawings] = await Promise.all([fetchType('Painting'), fetchType('Drawing')]);
     const source = sourceById('cleveland-museum-of-art');
     return {
-        artworks: [...(paintings.data || []), ...(drawings.data || [])].filter(item => item.images?.web?.url).map(item => normalizeMuseumArtwork({
-            ...item,
-            artist: item.creators?.map(creator => creator.description).filter(Boolean).join(', '),
-            image: item.images.web.url,
-            fullRes: item.images.original?.url || item.images.print?.url || item.images.web.url,
-        }, source)),
+        artworks: [...(paintings.data || []), ...(drawings.data || [])].filter(item => item.images?.web?.url).map(item => {
+            const printImg = item.images.print || {};
+            const webImg = item.images.web || {};
+            return normalizeMuseumArtwork({
+                ...item,
+                artist: item.creators?.map(creator => creator.description).filter(Boolean).join(', '),
+                image: webImg.url,
+                fullRes: printImg.url || item.images.original?.url || webImg.url,
+                imageWidth: Number(printImg.width || webImg.width) || null,
+                imageHeight: Number(printImg.height || webImg.height) || null,
+            }, source);
+        }),
         total: (paintings.info?.total || 0) + (drawings.info?.total || 0),
     };
 }
@@ -89,11 +99,32 @@ async function fetchRijks(page) {
             const digital = await getJson(`${digitalId.replace('id.rijksmuseum.nl', 'data.rijksmuseum.nl')}?_profile=la-framed`);
             const image = digital.access_point?.find(access => access.id?.includes('iiif.micr.io'))?.id;
             if (!image) return null;
+            let imageWidth = null;
+            let imageHeight = null;
+            try {
+                const infoUrl = image.replace(/\/full\/.*$/, '/info.json');
+                if (infoUrl !== image) {
+                    const info = await getJson(infoUrl);
+                    imageWidth = Number(info.width) || null;
+                    imageHeight = Number(info.height) || null;
+                }
+            } catch {
+                // IIIF info.json is optional metadata enrichment.
+            }
             const title = firstEnglishName(object.identified_by)?.content || 'Untitled artwork';
             const artist = object.produced_by?.part?.flatMap(part => part.carried_out_by || [])
                 .flatMap(person => person.notation || [])
                 .find(notation => notation['@language'] === 'en')?.['@value'] || 'Unknown artist';
-            return normalizeMuseumArtwork({ id: item.id, title, artist, image, fullRes: image, rights: object.subject_of?.find(subject => subject.subject_to)?.subject_to }, source);
+            return normalizeMuseumArtwork({
+                id: item.id,
+                title,
+                artist,
+                image,
+                fullRes: image,
+                imageWidth,
+                imageHeight,
+                rights: object.subject_of?.find(subject => subject.subject_to)?.subject_to,
+            }, source);
         } catch {
             return null;
         }
@@ -128,11 +159,7 @@ async function fetchNasa(page) {
     return fetchServerCollection('nasa-open-media', page);
 }
 
-const PARIS_ART_TYPE_IDS = [
-    166168, 166238, 330934, 167938, 167983, 330958, 213549, 214341,
-    214461, 214484, 214499, 25, 130627, 130658, 349077, 307019,
-    307699, 358254, 350951, 430913,
-];
+const PARIS_OPEN_ART_TYPE_IDS = [330958, 167983, 330934, 167938, 166238];
 const PARIS_PUBLIC_TOKEN = '9a695903-3959-4413-8a65-7427ac729efe';
 
 async function fetchParis(page) {
@@ -140,16 +167,15 @@ async function fetchParis(page) {
         return await fetchServerCollection('paris-musees', page);
     } catch (serverErr) {
         // Fall back directly to the open GraphQL API (CORS enabled) if server function is unreachable
-        const query = `{ nodeQuery(limit: ${PAGE_SIZE}, offset: ${(page - 1) * PAGE_SIZE}, filter: {conditions: [{field: "type", value: "oeuvre"}, {field: "field_visuels", operator: IS_NOT_NULL}, {field: "field_oeuvre_types_objet", value: [${PARIS_ART_TYPE_IDS.map(id => `"${id}"`).join(',')}], operator: IN}]}) {
+        const query = `{ nodeQuery(limit: ${PAGE_SIZE}, offset: ${(page - 1) * PAGE_SIZE}, filter: {conditions: [{field: "type", value: "oeuvre"}, {field: "field_visuels.entity.field_image_libre", value: "1"}, {field: "field_oeuvre_types_objet", value: [${PARIS_OPEN_ART_TYPE_IDS.map(id => `"${id}"`).join(',')}], operator: IN}]}) {
             entities { entityUuid ... on NodeOeuvre {
                 title absolutePath fieldLrefAdlib fieldCartelAuteur
                 fieldOeuvreTypesObjet { entity { entityLabel } }
-                fieldVisuels { entity { vignette fieldLegende fieldCopyright } }
+                fieldVisuels { entity { ... on MediaImage { vignette publicUrl fieldLegende fieldCopyright } } }
             } }
         } }`;
         const res = await fetch('https://apicollections.parismusees.paris.fr/graphql', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'auth-token': PARIS_PUBLIC_TOKEN },
+            method: 'POST', headers: { 'Content-Type': 'application/json', 'auth-token': PARIS_PUBLIC_TOKEN },
             body: JSON.stringify({ query }),
         });
         if (!res.ok) throw serverErr;
@@ -159,18 +185,22 @@ async function fetchParis(page) {
         const artworks = entities.map(item => {
             if (!item) return null;
             const objectType = item.fieldOeuvreTypesObjet?.map(type => type.entity?.entityLabel).filter(Boolean).join(', ') || '';
-            const visual = item.fieldVisuels?.[0]?.entity || {};
+            const visual = item.fieldVisuels?.find(v => v?.entity?.publicUrl)?.entity || item.fieldVisuels?.[0]?.entity || {};
             const vignette = visual.vignette;
-            if (!vignette) return null;
-            const image = /^https?:\/\//i.test(vignette) ? vignette : `https://parismuseescollections.paris.fr${vignette}`;
+            if (!vignette && !visual.publicUrl) return null;
+            const rawPreview = vignette || visual.publicUrl;
+            const image = /^https?:\/\//i.test(rawPreview) ? rawPreview : `https://parismuseescollections.paris.fr${rawPreview}`;
+            const fullRes = visual.publicUrl
+                ? (/^https?:\/\//i.test(visual.publicUrl) ? visual.publicUrl : `https://www.parismuseescollections.paris.fr${visual.publicUrl}`)
+                : image;
             return normalizeMuseumArtwork({
                 id: String(item.entityUuid || item.entityId),
                 title: item.title || 'Paris Musées Artwork',
                 artist: item.fieldCartelAuteur || 'Paris Musées',
                 image,
-                fullRes: image,
+                fullRes,
                 sourceUrl: item.absolutePath || `https://www.parismuseescollections.paris.fr/fr/node/${item.entityId}`,
-                rights: visual.fieldCopyright || 'Paris Musées API record; verify item-level rights',
+                rights: visual.fieldCopyright || 'CC0 / Paris Musées Open Content',
                 description: visual.fieldLegende,
                 objectType,
                 metadata: { lrefAdlib: item.fieldLrefAdlib, copyright: visual.fieldCopyright },

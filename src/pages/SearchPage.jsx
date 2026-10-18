@@ -15,6 +15,7 @@ import { MET_LOCAL_COLLECTIONS } from '../data/metLocal';
 import { ALBUMS_LOCAL_COLLECTIONS } from '../data/albumsLocal';
 import { MOVIES_LOCAL_COLLECTIONS } from '../data/moviesLocal';
 import { getThumbnailUrl } from '../services/storage';
+import { getMetArtworkPixelSize, getMetRecommendedSize, isMetArtworkPrintable } from '../utils/metArtworkSizing';
 
 const CATEGORY_LABELS = {
     originals: 'Original Painting',
@@ -71,7 +72,9 @@ function flattenMovies() {
 function flattenMet() {
     const seen = new Map();
     Object.values(MET_LOCAL_COLLECTIONS).forEach(list => {
-        (list || []).forEach(a => { if (!seen.has(a.id)) seen.set(a.id, a); });
+        (list || []).forEach(a => {
+            if (!seen.has(a.id) && isMetArtworkPrintable(a)) seen.set(a.id, a);
+        });
     });
     return Array.from(seen.values());
 }
@@ -335,10 +338,17 @@ const SearchPage = ({ setProductMode, setSelectedSize, navigate, isSubPage = fal
             }
             case 'met': {
                 const p = result.raw;
+                const sizeObj = getMetRecommendedSize(p);
+                const pixelSize = getMetArtworkPixelSize(p);
+                if (sizeObj && setSelectedSize) setSelectedSize(sizeObj);
                 navigate('/frame/customize', {
                     state: {
                         presetImage: p.image,
-                        orientation: p.orientation || 'portrait'
+                        presetTitle: p.title,
+                        initialSize: sizeObj || null,
+                        imageWidth: pixelSize?.w || null,
+                        imageHeight: pixelSize?.h || null,
+                        orientation: p.orientation || sizeObj?.orientation || 'portrait'
                     }
                 });
                 return;
