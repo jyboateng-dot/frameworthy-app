@@ -35,6 +35,7 @@ import {
     MAT_RENDER_MAX_PCT,
 } from '../../utils/matting';
 import { getMetRecommendedSize, getMetArtworkPixelSize } from '../../utils/metArtworkSizing';
+import { maxFramePrintSize } from '../../utils/maxFramePrintSize';
 import { doesSizeMeetMinDpi } from '../../utils/museumArtwork';
 import { buildPrintQualitySpec, minimumPrintDpiForFrame } from '../../utils/printQuality';
 import { useUnit } from '../../context/UnitContext';
@@ -611,6 +612,18 @@ const CustomizeFramePage = ({
             setSizeClampNotice(wasClamped
                 ? `This artwork's listed size was outside what we can produce, so it's been adjusted to ${clampedShortCm.toFixed(1)} × ${clampedLongCm.toFixed(1)} cm.`
                 : '');
+        } else if (Number(state.imageWidth) > 0 && Number(state.imageHeight) > 0) {
+            const maxSize = maxFramePrintSize({ w: Number(state.imageWidth), h: Number(state.imageHeight) });
+            if (maxSize) {
+                const { size: sizeToApply } = clampSizeToValidRange(maxSize);
+                setSelectedSize(sizeToApply);
+                setCustomSizeEntry(sizeToApply);
+                setShowAllSizes(!state.prodigiSelection);
+                if (!state.orientation && maxSize.orientation) {
+                    setOrientation(maxSize.orientation);
+                }
+            }
+            setSizeClampNotice('');
         } else {
             setSizeClampNotice('');
         }
@@ -1020,14 +1033,15 @@ const CustomizeFramePage = ({
     // and the preset/poster flags stale from whatever was loaded before, and
     // never resolved a frame/size for the newly-selected artwork at all.
     const handleMetArtSelect = (art) => {
-        const sizeObj = getMetRecommendedSize(art);
-        const pixelSize = getMetArtworkPixelSize(art);
+        const pixelSize = getMetArtworkPixelSize(art) || ((art.imageWidth && art.imageHeight) ? { w: art.imageWidth, h: art.imageHeight } : null);
+        const maxSize = maxFramePrintSize(pixelSize);
+        const sizeObj = maxSize || getMetRecommendedSize(art);
 
         applyInspirationSelection({
             presetImage: art.image,
             presetTitle: art.title,
             initialSize: sizeObj,
-            orientation: art.orientation || sizeObj?.orientation,
+            orientation: maxSize?.orientation || art.orientation || sizeObj?.orientation,
             imageWidth: pixelSize?.w || art.imageWidth || null,
             imageHeight: pixelSize?.h || art.imageHeight || null,
         });
@@ -1959,9 +1973,16 @@ const CustomizeFramePage = ({
 
     useEffect(() => {
         if (!hasOrderableProdigiProduct) return;
-        const currentIsAvailable = prodigiSizes.some((size) =>
-            Math.abs(size.width - selectedSize?.width) < 0.08 && Math.abs(size.height - selectedSize?.height) < 0.08);
-        if (currentIsAvailable) return;
+        const matched = prodigiSizes.find((size) =>
+            (size.prodigiSizeInches && selectedSize?.prodigiSizeInches && size.prodigiSizeInches === selectedSize.prodigiSizeInches)
+            || (size.id && selectedSize?.id && size.id === selectedSize.id)
+            || (Math.abs(size.width - selectedSize?.width) < 0.35 && Math.abs(size.height - selectedSize?.height) < 0.35));
+        if (matched) {
+            if (selectedSize !== matched && (selectedSize?.id !== matched.id || selectedSize?.width !== matched.width || selectedSize?.height !== matched.height)) {
+                setSelectedSize(matched);
+            }
+            return;
+        }
         const nearest = nearestProdigiSize(prodigiSizes, selectedSize);
         if (nearest) {
             setSelectedSize(nearest);
@@ -2026,7 +2047,9 @@ const CustomizeFramePage = ({
         const compactProdigiSizes = isProdigiFrame ? normalSizes.slice(0, 12) : [];
         if (isProdigiFrame && selectedSize) {
             const activeSize = normalSizes.find((size) =>
-                Math.abs(size.width - selectedSize.width) < 0.08 && Math.abs(size.height - selectedSize.height) < 0.08);
+                (size.prodigiSizeInches && selectedSize.prodigiSizeInches && size.prodigiSizeInches === selectedSize.prodigiSizeInches)
+                || (size.id && selectedSize.id && size.id === selectedSize.id)
+                || (Math.abs(size.width - selectedSize.width) < 0.35 && Math.abs(size.height - selectedSize.height) < 0.35));
             if (activeSize && !compactProdigiSizes.includes(activeSize)) compactProdigiSizes[11] = activeSize;
         }
         const leftColumnCollapsed = isProdigiFrame ? compactProdigiSizes.slice(0, 6) : findPopular(popularSmallIds);

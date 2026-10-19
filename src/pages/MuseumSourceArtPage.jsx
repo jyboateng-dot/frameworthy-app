@@ -65,9 +65,13 @@ const MuseumSourceArtPage = ({ sourceId, setProductMode, setSelectedSize, naviga
 
     const handleGetThis = (artwork) => {
         setProductMode('frame');
-        const sizeObj = artwork.recommendedSize || null;
+        const pixelSize = (artwork.imageWidth && artwork.imageHeight)
+            ? { w: artwork.imageWidth, h: artwork.imageHeight }
+            : null;
+        const maxSize = maxFramePrintSize(pixelSize);
+        const sizeObj = maxSize || artwork.recommendedSize || null;
         if (sizeObj && setSelectedSize) setSelectedSize(sizeObj);
-        const orientation = artwork.orientation || sizeObj?.orientation || 'portrait';
+        const orientation = maxSize?.orientation || artwork.orientation || sizeObj?.orientation || 'portrait';
         navigate('/frame/customize', {
             state: {
                 presetImage: artwork.fullRes || artwork.image,
@@ -75,7 +79,7 @@ const MuseumSourceArtPage = ({ sourceId, setProductMode, setSelectedSize, naviga
                 initialSize: sizeObj,
                 imageWidth: artwork.imageWidth || null,
                 imageHeight: artwork.imageHeight || null,
-                orientation: orientation,
+                orientation,
             },
         });
     };

@@ -1,4 +1,5 @@
 import { MIN_PRINT_DPI, doesSizeMeetMinDpi } from './museumArtwork';
+import { FRAME_SIZES } from '../data/constants';
 
 // Every distinct framed-print glazing size offered by the Prodigi Classic and
 // Box frame families (all mount/glaze variants), as `inches|cm`. Kept as a
@@ -24,7 +25,21 @@ export const FRAMED_PRINT_SIZES = [
 ].map((entry) => {
     const [inches, cm] = entry.split('|');
     const [width, height] = inches.split('x').map(Number);
-    return { width, height, inches, cm, label: `${inches}" · ${cm}cm` };
+    const [cmW, cmH] = cm.split('x').map(Number);
+    const matchingFrameSize = (FRAME_SIZES || []).find((s) => s.id === inches
+        || (Math.abs(s.width - width) < 0.1 && Math.abs(s.height - height) < 0.1));
+    const price = matchingFrameSize?.price || (Math.round(((cmW * cmH) / 1000) * 10) + 40);
+    return {
+        id: matchingFrameSize?.id || `prodigi-${inches}`,
+        width,
+        height,
+        inches,
+        cm,
+        label: `${inches}" · ${cm}cm`,
+        prodigiSizeInches: `${inches}"`,
+        prodigiSizeCm: `${cm}cm`,
+        price,
+    };
 });
 
 // How far a frame's aspect ratio may differ from the artwork's before it no

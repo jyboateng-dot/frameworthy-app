@@ -131,8 +131,10 @@ const MetArtPage = ({ setProductMode, setSelectedSize, navigate, isSubPage = fal
             return;
         }
         setProductMode('frame');
-        const sizeObj = getMetRecommendedSize(product);
         const pixelSize = getMetArtworkPixelSize(product);
+        const maxSize = maxFramePrintSize(pixelSize);
+        const sizeObj = maxSize || getMetRecommendedSize(product);
+        const orientation = maxSize?.orientation || product.orientation || sizeObj?.orientation;
         if (sizeObj && setSelectedSize) setSelectedSize(sizeObj);
 
         navigate('/frame/customize', {
@@ -142,7 +144,7 @@ const MetArtPage = ({ setProductMode, setSelectedSize, navigate, isSubPage = fal
                 initialSize: sizeObj || null,
                 imageWidth: pixelSize?.w || null,
                 imageHeight: pixelSize?.h || null,
-                orientation: product.orientation || sizeObj?.orientation
+                orientation
             }
         });
     };

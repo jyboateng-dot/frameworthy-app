@@ -16,6 +16,7 @@ import { ALBUMS_LOCAL_COLLECTIONS } from '../data/albumsLocal';
 import { MOVIES_LOCAL_COLLECTIONS } from '../data/moviesLocal';
 import { getThumbnailUrl } from '../services/storage';
 import { getMetArtworkPixelSize, getMetRecommendedSize, isMetArtworkPrintable } from '../utils/metArtworkSizing';
+import { maxFramePrintSize } from '../utils/maxFramePrintSize';
 
 const CATEGORY_LABELS = {
     originals: 'Original Painting',
@@ -338,8 +339,10 @@ const SearchPage = ({ setProductMode, setSelectedSize, navigate, isSubPage = fal
             }
             case 'met': {
                 const p = result.raw;
-                const sizeObj = getMetRecommendedSize(p);
                 const pixelSize = getMetArtworkPixelSize(p);
+                const maxSize = maxFramePrintSize(pixelSize);
+                const sizeObj = maxSize || getMetRecommendedSize(p);
+                const orientation = maxSize?.orientation || p.orientation || sizeObj?.orientation || 'portrait';
                 if (sizeObj && setSelectedSize) setSelectedSize(sizeObj);
                 navigate('/frame/customize', {
                     state: {
@@ -348,18 +351,26 @@ const SearchPage = ({ setProductMode, setSelectedSize, navigate, isSubPage = fal
                         initialSize: sizeObj || null,
                         imageWidth: pixelSize?.w || null,
                         imageHeight: pixelSize?.h || null,
-                        orientation: p.orientation || sizeObj?.orientation || 'portrait'
+                        orientation
                     }
                 });
                 return;
             }
             case 'museum': {
                 const p = result.raw;
+                const pixelSize = (p.imageWidth && p.imageHeight) ? { w: p.imageWidth, h: p.imageHeight } : null;
+                const maxSize = maxFramePrintSize(pixelSize);
+                const sizeObj = maxSize || p.recommendedSize || null;
+                const orientation = maxSize?.orientation || p.orientation || sizeObj?.orientation || 'portrait';
+                if (sizeObj && setSelectedSize) setSelectedSize(sizeObj);
                 navigate('/frame/customize', {
                     state: {
-                        presetImage: p.image,
+                        presetImage: p.fullRes || p.image,
                         presetTitle: p.artist ? `${p.title} — ${p.artist}` : p.title,
-                        orientation: p.orientation || 'portrait'
+                        initialSize: sizeObj || null,
+                        imageWidth: pixelSize?.w || null,
+                        imageHeight: pixelSize?.h || null,
+                        orientation
                     }
                 });
                 return;
