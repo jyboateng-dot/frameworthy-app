@@ -39,8 +39,38 @@ export function getMetRecommendedSize(artwork = {}) {
 }
 
 /**
- * Returns Met collection category names sorted so categories with the
- * biggest max frame sizes appear first.
+ * Collection categories that feature actual 2D paintings, portraits, prints,
+ * drawings, and fine art wall photography (as opposed to 3D artefacts,
+ * sculptures, armor, pottery, and antiquities).
+ */
+export const MET_PAINTING_PORTRAIT_CATEGORIES = new Set([
+    'European Paintings',
+    'Classic Masterpieces',
+    'Vincent van Gogh',
+    'Claude Monet',
+    'The Robert Lehman Collection',
+    'Japanese Prints',
+    'Drawings and Prints',
+    'Photographs',
+]);
+
+export function isPaintingOrPortraitCategory(categoryName = '') {
+    if (MET_PAINTING_PORTRAIT_CATEGORIES.has(categoryName)) return true;
+    const lower = String(categoryName).toLowerCase();
+    return lower.includes('painting') ||
+        lower.includes('portrait') ||
+        lower.includes('drawing') ||
+        lower.includes('print') ||
+        lower.includes('photograph') ||
+        lower.includes('masterpiece') ||
+        lower.includes('monet') ||
+        lower.includes('gogh');
+}
+
+/**
+ * Returns Met collection category names sorted so that actual paintings
+ * and portrait-like 2D wall art appear first on the list (with biggest
+ * max frame sizes prioritized), while artefacts/sculptures are pushed back.
  */
 export function getSortedMetCategories(collections = {}) {
     const stats = {};
@@ -70,15 +100,22 @@ export function getSortedMetCategories(collections = {}) {
             maxArea,
             maxDim,
             avgArea: count ? totalArea / count : 0,
+            isPainting: isPaintingOrPortraitCategory(cat),
         };
     }
 
     return Object.keys(stats).sort((a, b) => {
         const sa = stats[a], sb = stats[b];
+        // 1. Actual paintings and portrait-like categories appear first; artefacts pushed back
+        if (sa.isPainting !== sb.isPainting) {
+            return sa.isPainting ? -1 : 1;
+        }
+        // 2. Within each tier, categories with the biggest max frame sizes appear first
         if (sb.maxArea !== sa.maxArea) return sb.maxArea - sa.maxArea;
         if (sb.maxDim !== sa.maxDim) return sb.maxDim - sa.maxDim;
         if (sb.avgArea !== sa.avgArea) return sb.avgArea - sa.avgArea;
         return a.localeCompare(b);
     });
 }
+
 
