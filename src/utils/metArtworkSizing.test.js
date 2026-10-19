@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { getMetArtworkPixelSize, getMetRecommendedSize, isMetArtworkPrintable } from './metArtworkSizing';
+import { getMetArtworkPixelSize, getMetRecommendedSize, isMetArtworkPrintable, getSortedMetCategories } from './metArtworkSizing';
 import { doesSizeMeetMinDpi, MIN_PRINT_DPI } from './museumArtwork';
 
 describe('Met artwork size recommendations', () => {
@@ -30,5 +30,22 @@ describe('Met artwork size recommendations', () => {
         expect(landscapeArtwork.orientation).toBe('landscape');
         expect(isMetArtworkPrintable(tallRecord)).toBe(false);
         expect(doesSizeMeetMinDpi(landscapeArtwork, getMetArtworkPixelSize(landscapeRecord), MIN_PRINT_DPI)).toBe(true);
+    });
+
+    it('sorts categories so that categories with the biggest max frame sizes appear first', async () => {
+        const { MET_LOCAL_COLLECTIONS } = await import('../data/metLocal');
+        const sorted = getSortedMetCategories(MET_LOCAL_COLLECTIONS);
+
+        expect(Array.isArray(sorted)).toBe(true);
+        expect(sorted.length).toBeGreaterThan(0);
+
+        // Greek and Roman Art has 30x34 max frame size, the largest in the collection
+        expect(sorted[0]).toBe('Greek and Roman Art');
+
+        // Asian Art (15x20) and European Paintings (16x16) should appear before categories with smaller max frame sizes like Claude Monet (11.7x16.5)
+        expect(sorted.indexOf('Greek and Roman Art')).toBeLessThan(sorted.indexOf('Asian Art'));
+        expect(sorted.indexOf('Asian Art')).toBeLessThan(sorted.indexOf('European Paintings'));
+        expect(sorted.indexOf('European Paintings')).toBeLessThan(sorted.indexOf('Vincent van Gogh'));
+        expect(sorted.indexOf('Vincent van Gogh')).toBeLessThan(sorted.indexOf('Claude Monet'));
     });
 });

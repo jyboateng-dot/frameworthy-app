@@ -1,23 +1,13 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Heart, RefreshCw, ChevronDown } from 'lucide-react';
+import { Heart, RefreshCw } from 'lucide-react';
 import { formatDimensions } from '../data/constants';
 import { useUnit } from '../context/UnitContext';
 import { useWishlist } from '../context/WishlistContext';
 import { MET_LOCAL_COLLECTIONS } from '../data/metLocal';
 import { getThumbnailUrl } from '../services/storage';
 import CollectionPagination from '../components/common/CollectionPagination';
-import { getMetArtworkPixelSize, getMetRecommendedSize, isMetArtworkPrintable } from '../utils/metArtworkSizing';
+import { getMetArtworkPixelSize, getMetRecommendedSize, isMetArtworkPrintable, getSortedMetCategories } from '../utils/metArtworkSizing';
 import { maxFramePrintSize } from '../utils/maxFramePrintSize';
-
-const PRIMARY_COLLECTIONS_ORDER = [
-    'Classic Masterpieces',
-    'Claude Monet',
-    'Drawings and Prints',
-    'European Paintings',
-    'Japanese Prints',
-    'Photographs',
-    'Vincent van Gogh'
-];
 
 const COLLECTION_LABELS = {
     'Vincent van Gogh': 'Van Gogh',
@@ -76,40 +66,27 @@ const MetProductCard = ({ product, onGetThis }) => {
     );
 };
 
-const MetArtPage = ({ setProductMode, setSelectedSize, navigate, isSubPage = false, onSelect = null, disableWindowScroll = false }) => {
+const MetArtPage = ({ setProductMode, setSelectedFrame, setSelectedSize, navigate, isSubPage = false, onSelect = null, disableWindowScroll = false }) => {
     // disableWindowScroll is true only inside the in-studio Inspiration
     // modal, where window isn't the real scroll container — isSubPage
     // alone isn't enough (it's also true on the real /inspiration route,
     // where window IS the real scroll container).
     const scrollToTop = () => { if (!disableWindowScroll) window.scrollTo({ top: 0, behavior: 'smooth' }); };
 
-    // Get all collections that have at least 1 downloaded file meeting >= 150 DPI
-    const availableCollections = useMemo(() => {
-        return Object.keys(MET_LOCAL_COLLECTIONS).filter(
-            key => MET_LOCAL_COLLECTIONS[key] && MET_LOCAL_COLLECTIONS[key].some(isMetArtworkPrintable)
-        );
-    }, []);
-
-    // Categorize into Primary (paintings/prints) and Secondary (others)
-    // Primary tabs are ALWAYS displayed in the user-specified order
-    const primary = PRIMARY_COLLECTIONS_ORDER;
-            
-    const secondary = useMemo(() => {
-        return Object.keys(MET_LOCAL_COLLECTIONS).filter(
-            c => !PRIMARY_COLLECTIONS_ORDER.includes(c) && MET_LOCAL_COLLECTIONS[c] && MET_LOCAL_COLLECTIONS[c].some(isMetArtworkPrintable)
-        );
-    }, [availableCollections]);
+    // Collections sorted such that categories with the biggest max frame sizes appear first
+    const categories = useMemo(() => getSortedMetCategories(MET_LOCAL_COLLECTIONS), []);
 
     // Initial selected category — persisted so navigating away (e.g. to
     // customize a selection) and back to Inspiration restores the same
     // category/page instead of resetting.
-    const [activeCategory, setActiveCategory] = useState(() => sessionStorage.getItem('fw_met_category') || primary[0]);
-    const [secondarySelected, setSecondarySelected] = useState(() => sessionStorage.getItem('fw_met_secondary') || '');
+    const [activeCategory, setActiveCategory] = useState(() => {
+        const saved = sessionStorage.getItem('fw_met_category');
+        return (saved && categories.includes(saved)) ? saved : (categories[0] || '');
+    });
     const [currentPage, setCurrentPage] = useState(() => parseInt(sessionStorage.getItem('fw_met_page') || '1', 10));
     const itemsPerPage = 24;
 
     useEffect(() => { sessionStorage.setItem('fw_met_category', activeCategory || ''); }, [activeCategory]);
-    useEffect(() => { sessionStorage.setItem('fw_met_secondary', secondarySelected || ''); }, [secondarySelected]);
     useEffect(() => { sessionStorage.setItem('fw_met_page', currentPage.toString()); }, [currentPage]);
 
     const currentArtworks = useMemo(() => {
@@ -117,12 +94,9 @@ const MetArtPage = ({ setProductMode, setSelectedSize, navigate, isSubPage = fal
         return MET_LOCAL_COLLECTIONS[activeCategory].filter(isMetArtworkPrintable);
     }, [activeCategory]);
 
-    const handleCategoryChange = (cat, isSecondary = false) => {
+    const handleCategoryChange = (cat) => {
         setActiveCategory(cat);
         setCurrentPage(1);
-        if (!isSecondary) {
-            setSecondarySelected(''); // reset dropdown
-        }
     };
 
     const handleGetThis = (product) => {
@@ -158,7 +132,7 @@ const MetArtPage = ({ setProductMode, setSelectedSize, navigate, isSubPage = fal
         scrollToTop();
     }, [currentPage]);
 
-    if (availableCollections.length === 0) {
+    if (categories.length === 0) {
         return (
             <div className="w-full flex flex-col items-center justify-center py-20 text-stone-400">
                 <RefreshCw size={24} className="animate-spin mb-4" />
@@ -186,7 +160,7 @@ const MetArtPage = ({ setProductMode, setSelectedSize, navigate, isSubPage = fal
                         <div className="shrink-0 text-right">
                             <p className="text-[9px] uppercase tracking-[0.28em] text-stone-400 mb-1">COLLECTION</p>
                             <p className="font-serif text-3xl text-stone-900 font-light leading-none">
-                                {availableCollections.length} <span className="text-xs text-stone-500 font-light ml-1">categories</span>
+                                {categories.length} <span className="text-xs text-stone-500 font-light ml-1">categories</span>
                             </p>
                         </div>
                     </div>
@@ -196,12 +170,12 @@ const MetArtPage = ({ setProductMode, setSelectedSize, navigate, isSubPage = fal
             {/* Categories Navigation */}
             <div className="bg-[#faf9f8]/95 backdrop-blur-sm border-b border-stone-200 sticky top-12 z-20 py-3 mt-1">
                 <div className="max-w-[2560px] mx-auto px-6 md:px-12 flex items-center gap-2 overflow-x-auto no-scrollbar after:content-[''] after:pr-6 md:after:pr-12">
-                    {primary.map(cat => (
+                    {categories.map(cat => (
                         <button
                             key={cat}
                             onClick={() => handleCategoryChange(cat)}
                             className={`flex-shrink-0 px-5 py-2 rounded-full text-xs font-bold whitespace-nowrap transition-all duration-200 ${
-                                activeCategory === cat && secondarySelected === ''
+                                activeCategory === cat
                                     ? 'bg-stone-900 text-white shadow-md'
                                     : 'bg-stone-50 text-stone-600 hover:bg-stone-100 border border-stone-200'
                             }`}
@@ -209,38 +183,6 @@ const MetArtPage = ({ setProductMode, setSelectedSize, navigate, isSubPage = fal
                             {COLLECTION_LABELS[cat] || cat}
                         </button>
                     ))}
-
-                    {secondary.length > 0 && (
-                        <div className="relative flex-shrink-0 flex items-center">
-                            <select
-                                value={secondarySelected}
-                                onChange={(e) => {
-                                    const val = e.target.value;
-                                    setSecondarySelected(val);
-                                    handleCategoryChange(val, true);
-                                }}
-                                className={`appearance-none w-20 pl-4 pr-6 py-2 rounded-full text-xs font-bold whitespace-nowrap transition-all duration-200 outline-none border cursor-pointer ${
-                                    secondarySelected !== ''
-                                        ? 'bg-stone-900 text-white border-stone-900 shadow-md'
-                                        : 'bg-stone-50 text-stone-600 hover:bg-stone-100 border-stone-200'
-                                }`}
-                            >
-                                <option value="" disabled className="text-stone-400">More</option>
-                                {secondary.map(cat => (
-                                    <option key={cat} value={cat} className="text-stone-850 bg-white">
-                                        {COLLECTION_LABELS[cat] || cat}
-                                    </option>
-                                ))}
-                            </select>
-                            <ChevronDown 
-                                size={10} 
-                                strokeWidth={2.5}
-                                className={`absolute right-2.5 pointer-events-none transition-colors ${
-                                    secondarySelected !== '' ? 'text-white' : 'text-stone-500'
-                                }`}
-                            />
-                        </div>
-                    )}
                 </div>
             </div>
 
