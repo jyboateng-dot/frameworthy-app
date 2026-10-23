@@ -25,6 +25,7 @@ import CropStudioModal from '../../components/crop/CropStudioModal';
 import SmartAlignmentPad from '../../components/crop/SmartAlignmentPad';
 import HybridCropper from '../../components/crop/HybridCropper';
 import CropMetricsBar from '../../components/crop/CropMetricsBar';
+import SmartCropSliders from '../../components/framing/SmartCropSliders';
 
 import {
     DEFAULT_POSITION,
@@ -84,44 +85,51 @@ const SANDBOX_SIZES = [
 
 const CONCEPT_TABS = [
     {
+        id: 'sliders',
+        title: 'Smart Sliders (Redesigned)',
+        icon: Sliders,
+        badge: 'Attractive & Useful',
+        summary: 'Context-aware sliders that highlight active cropping axes, explain when an axis fits 100% without crop, and provide fine nudge controls with center snap.'
+    },
+    {
         id: 'canvas',
-        title: '1. Direct Canvas',
+        title: 'Direct Canvas Drag',
         icon: Zap,
         badge: 'Tactile 1:1 Drag',
         summary: 'Direct on-frame drag-to-pan, 1:1 pixel tracking, mouse-wheel zoom & auto-fading rule-of-thirds grid.'
     },
     {
         id: 'modal',
-        title: '2. Precision Studio',
+        title: 'Precision Studio Modal',
         icon: Maximize2,
         badge: 'Full Modal',
         summary: 'Dedicated darkroom aperture modal showing the entire uncropped image, illuminated cutout & live DPI gauge.'
     },
     {
         id: 'pad',
-        title: '3. 9-Point Smart Pad',
+        title: '9-Point Smart Pad',
         icon: Compass,
         badge: 'Sidebar Joypad',
         summary: 'Tactile 3×3 joypad and 2D miniature focal map for fast, deterministic 1-click positioning without dragging.'
     },
     {
         id: 'hybrid',
-        title: '4. Hybrid Flow',
+        title: 'Hybrid Flow',
         icon: Sparkles,
         badge: 'Ultimate Flow',
         summary: 'Seamless union: direct on-frame canvas drag for quick tweaks + instant "Precision Studio" button for uncropped context.'
     },
     {
         id: 'compare',
-        title: 'Compare All 4',
+        title: 'Compare All',
         icon: LayoutGrid,
         badge: 'Side-by-Side',
-        summary: 'Review and compare all 4 cropping architectures side-by-side to evaluate ergonomics and user experience.'
+        summary: 'Review and compare all cropping architectures side-by-side to evaluate ergonomics and user experience.'
     }
 ];
 
 export default function CropSandboxPage() {
-    const [activeTab, setActiveTab] = useState('canvas');
+    const [activeTab, setActiveTab] = useState('sliders');
     const [selectedPhoto, setSelectedPhoto] = useState(SAMPLE_PHOTOS[0]);
     const [customPhotoUrl, setCustomPhotoUrl] = useState(null);
     const [customPhotoNatural, setCustomPhotoNatural] = useState(null);
@@ -460,6 +468,69 @@ export default function CropSandboxPage() {
                 />
 
                 {/* Interactive Sandbox Canvas per Tab */}
+                {activeTab === 'sliders' && (
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                        {/* Frame Visualizer Preview */}
+                        <div className="lg:col-span-7 bg-white rounded-2xl border border-stone-200/90 shadow-sm p-6">
+                            <div className="pb-3 border-b border-stone-100 mb-4 flex items-center justify-between">
+                                <div>
+                                    <h3 className="text-sm font-bold text-stone-900">
+                                        Live Framed Presentation
+                                    </h3>
+                                    <p className="text-xs text-stone-500">
+                                        Watch the frame respond dynamically as you slide
+                                    </p>
+                                </div>
+                                <span className="text-[11px] font-semibold text-stone-400 bg-stone-100 px-2.5 py-1 rounded-full">
+                                    Real-Time Crop
+                                </span>
+                            </div>
+                            <DirectCanvasCropper
+                                image={activeImage}
+                                natural={activeNatural}
+                                geometry={geometry}
+                                position={fitPosition}
+                                onPositionChange={setFitPosition}
+                                frame={selectedFrame}
+                                matColor="#faf9f5"
+                                minimumDpi={MIN_CROP_DPI}
+                            />
+                        </div>
+
+                        {/* Redesigned Smart Crop Sliders */}
+                        <div className="lg:col-span-5 bg-white rounded-2xl border border-stone-200/90 shadow-sm p-5 space-y-4">
+                            <div className="pb-3 border-b border-stone-100 flex items-center justify-between">
+                                <div>
+                                    <h3 className="text-xs font-bold uppercase tracking-wider text-stone-900 flex items-center gap-2">
+                                        <Sliders size={15} className="text-amber-500" />
+                                        <span>Attractive & Useful Sliders</span>
+                                    </h3>
+                                    <p className="text-[11px] text-stone-500 mt-0.5">
+                                        Clear directional endpoints, center snap & active axis detection
+                                    </p>
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={() => setFitPosition(DEFAULT_POSITION)}
+                                    className="text-xs text-stone-500 hover:text-stone-900 flex items-center gap-1 font-semibold"
+                                    title="Reset position to default center"
+                                >
+                                    <RotateCcw size={12} />
+                                    <span>Reset</span>
+                                </button>
+                            </div>
+
+                            <SmartCropSliders
+                                natural={activeNatural}
+                                geometry={geometry}
+                                position={fitPosition}
+                                onPosition={setFitPosition}
+                                minimumDpi={MIN_CROP_DPI}
+                            />
+                        </div>
+                    </div>
+                )}
+
                 {activeTab === 'canvas' && (
                     <div className="bg-white rounded-2xl border border-stone-200/90 shadow-sm p-6 space-y-4">
                         <div className="flex items-center justify-between pb-3 border-b border-stone-100">

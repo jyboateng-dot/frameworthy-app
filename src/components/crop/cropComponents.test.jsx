@@ -5,6 +5,7 @@ import CropMetricsBar from './CropMetricsBar';
 import SmartAlignmentPad from './SmartAlignmentPad';
 import DirectCanvasCropper from './DirectCanvasCropper';
 import CropStudioModal from './CropStudioModal';
+import SmartCropSliders from '../framing/SmartCropSliders';
 import { frameGeometry, imageCrop, DEFAULT_POSITION, MIN_CROP_DPI } from '../../utils/frameFit';
 
 describe('Cropping Components & Sandbox Suite', () => {
@@ -177,6 +178,45 @@ describe('Cropping Components & Sandbox Suite', () => {
             fireEvent.click(screen.getByText('Apply Composition'));
             expect(onApply).toHaveBeenCalled();
             expect(onClose).toHaveBeenCalled();
+        });
+    });
+
+    describe('SmartCropSliders (Redesigned Attractive & Useful Sliders)', () => {
+        it('identifies when an axis fits exactly and renders directional nudge buttons', () => {
+            const onPosition = vi.fn();
+            // 2400 x 3200 (aspect 3:4 = 0.75) in aperture 12 x 16 (aspect 12/16 = 0.75)
+            // Exactly matches aperture!
+            render(
+                <SmartCropSliders
+                    natural={mockImageNatural}
+                    geometry={mockGeometry}
+                    position={DEFAULT_POSITION}
+                    onPosition={onPosition}
+                />
+            );
+
+            expect(screen.getByText('Horizontal Position')).toBeInTheDocument();
+            expect(screen.getByText('Vertical Position')).toBeInTheDocument();
+            expect(screen.getByText('Scale & Zoom')).toBeInTheDocument();
+        });
+
+        it('allows zooming and nudging values', () => {
+            const onPosition = vi.fn();
+            render(
+                <SmartCropSliders
+                    natural={mockImageNatural}
+                    geometry={mockGeometry}
+                    position={{ x: 0.5, y: 0.5, zoom: 1.5 }}
+                    onPosition={onPosition}
+                />
+            );
+
+            const nudgeLeftBtn = screen.getByTitle('Nudge left');
+            expect(nudgeLeftBtn).toBeInTheDocument();
+            fireEvent.click(nudgeLeftBtn);
+            expect(onPosition).toHaveBeenCalledWith(expect.objectContaining({
+                x: 0.45
+            }));
         });
     });
 });
