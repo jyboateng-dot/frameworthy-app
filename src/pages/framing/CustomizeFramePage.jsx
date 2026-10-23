@@ -37,7 +37,7 @@ import {
 import { getMetRecommendedSize, getMetArtworkPixelSize } from '../../utils/metArtworkSizing';
 import { maxFramePrintSize } from '../../utils/maxFramePrintSize';
 import { doesSizeMeetMinDpi } from '../../utils/museumArtwork';
-import { buildPrintQualitySpec, minimumPrintDpiForFrame } from '../../utils/printQuality';
+import { buildPrintQualitySpec, minimumPrintDpiForFrame, minimumNativeFloorDpiForFrame } from '../../utils/printQuality';
 import { useUnit } from '../../context/UnitContext';
 import { useCart } from '../../context/CartContext';
 import { uploadImageToCloud, getThumbnailUrl } from '../../services/storage';
@@ -1967,7 +1967,7 @@ const CustomizeFramePage = ({
     const prodigiSizes = useMemo(
         () => prodigiAvailableSizes(selectedFrame, prodigiConfiguration)
             .filter((size) => !(activeImageWidth > 0 && activeImageHeight > 0)
-                || doesSizeMeetMinDpi(size, { w: activeImageWidth, h: activeImageHeight }, minimumPrintDpiForFrame(selectedFrame))),
+                || doesSizeMeetMinDpi(size, { w: activeImageWidth, h: activeImageHeight }, minimumNativeFloorDpiForFrame(selectedFrame))),
         [selectedFrame, prodigiConfiguration, activeImageWidth, activeImageHeight]
     );
     const hasOrderableProdigiProduct = Boolean(isProdigiFrame && prodigiSizes.length);
@@ -1996,7 +1996,7 @@ const CustomizeFramePage = ({
         const baseSizes = isProdigiFrame
             ? prodigiSizes
             : FRAME_SIZES.filter((size) => !(activeImageWidth > 0 && activeImageHeight > 0)
-                || doesSizeMeetMinDpi(size, { w: activeImageWidth, h: activeImageHeight }, minimumPrintDpiForFrame(selectedFrame)));
+                || doesSizeMeetMinDpi(size, { w: activeImageWidth, h: activeImageHeight }, minimumNativeFloorDpiForFrame(selectedFrame)));
         const sortedSizes = [...baseSizes].sort((a, b) => {
             const aMax = Math.max(a.width, a.height), aMin = Math.min(a.width, a.height);
             const bMax = Math.max(b.width, b.height), bMin = Math.min(b.width, b.height);
@@ -2070,7 +2070,7 @@ const CustomizeFramePage = ({
             ? { w: activeImageWidth, h: activeImageHeight }
             : null;
         if (isProdigiFrame || !pixelSize || !selectedSize) return;
-        if (doesSizeMeetMinDpi(selectedSize, pixelSize, minimumPrintDpi)) return;
+        if (doesSizeMeetMinDpi(selectedSize, pixelSize, minimumNativeFloorDpiForFrame(selectedFrame))) return;
         if (finalSizesList.length > 0) {
             const nearest = nearestProdigiSize(finalSizesList, selectedSize) || finalSizesList[finalSizesList.length - 1];
             if (nearest) setSelectedSize(nearest);
@@ -4112,7 +4112,7 @@ const CustomizeFramePage = ({
                     {fitEnabled && <FrameFitPanel step={stepImagePosition} image={uploadedImage} natural={imageNaturalSize}
                         size={selectedSize} orientation={orientation} mat={matWidth} rail={railWidthIn}
                         frame={selectedFrame} matColor={matColor.hex} matPrice={matColor.price || 75}
-                        minimumDpi={minimumPrintDpi}
+                        minimumDpi={minimumNativeFloorDpiForFrame(selectedFrame)}
                         unit={unit} price={buildCartItem(null).totalPrice} position={fitPosition} onPosition={setFitPosition}
                         availableSizes={isProdigiFrame ? prodigiSizes : finalSizesList}
                         prodigiConfiguration={prodigiConfiguration}

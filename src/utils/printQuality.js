@@ -18,6 +18,10 @@ export const minimumPrintDpiForFrame = (frame) => (
     isCanvasFrame(frame) ? MIN_CANVAS_PRINT_DPI : MIN_PAPER_PRINT_DPI
 );
 
+export const minimumNativeFloorDpiForFrame = (frame) => (
+    isCanvasFrame(frame) ? AI_NATIVE_CANVAS_FLOOR_DPI : AI_NATIVE_FLOOR_DPI
+);
+
 const finitePositive = (value) => {
     const number = Number(value);
     return Number.isFinite(number) && number > 0 ? number : null;

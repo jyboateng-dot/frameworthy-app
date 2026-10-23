@@ -1,7 +1,7 @@
 import { frameGeometry, imageCrop } from './frameFit';
 import { maxMatWidthForSize } from './matting';
 import { doesSizeMeetMinDpi } from './museumArtwork';
-import { minimumPrintDpiForFrame } from './printQuality';
+import { minimumPrintDpiForFrame, minimumNativeFloorDpiForFrame } from './printQuality';
 import {
     isProdigiConfigurationAvailable,
     prodigiMountWidthInForSize,
@@ -19,7 +19,7 @@ export function bestFitOptions({
     price,
     matPrice,
     prodigiConfiguration = {},
-    minimumDpi = minimumPrintDpiForFrame(frame),
+    minimumDpi = minimumNativeFloorDpiForFrame(frame),
 }) {
     const isProdigi = Boolean(frame?.prodigiProduct);
     const candidateSizes = isProdigi
