@@ -283,7 +283,6 @@ const CustomizeFramePage = ({
     useEffect(() => {
         setFitPosition(DEFAULT_POSITION);
         setCleanFrameInsets(null);
-        setTrimFrameEdges(true);
     }, [uploadedImage]);
     
     // Also recognises the previous URL shape so an already-open dev session
@@ -1282,7 +1281,6 @@ const CustomizeFramePage = ({
         const isUntransformedUrl = thumbUrl === uploadedImage;
         let cancelled = false;
         const img = new Image();
-        img.crossOrigin = 'anonymous';
         img.onload = () => {
             if (cancelled || effectImage !== latestUploadedImageRef.current) return;
             const known = knownImageDimensionsRef.current;
@@ -1298,11 +1296,10 @@ const CustomizeFramePage = ({
             setIsImageLoading(false); // Hide spinner safely even if cached
 
             // Intelligently scan for leftover frame mouldings / scanner margins
-            detectArtworkContentBounds(img).then(detected => {
+            detectArtworkContentBounds(thumbUrl || effectImage).then(detected => {
                 if (cancelled || effectImage !== latestUploadedImageRef.current) return;
                 if (detected?.hasLeftoverFrame && detected.insets) {
                     setCleanFrameInsets(detected.insets);
-                    setTrimFrameEdges(true);
                 } else {
                     setCleanFrameInsets(null);
                 }
