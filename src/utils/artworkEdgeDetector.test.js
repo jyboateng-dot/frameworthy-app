@@ -169,6 +169,58 @@ describe('artworkEdgeDetector', () => {
         expect(result.insets.right).toBeGreaterThanOrEqual(0.030);
     });
 
+    it('successfully detects leftover frames across diverse colors (gold, walnut wood, silver, red, green, cream, black)', () => {
+        const frameColorProfiles = [
+            { name: 'Antique Gold / Gilt', getFrame: (x, y) => [180 + (x % 15), 145 + (y % 15), 55] },
+            { name: 'Dark Mahogany / Walnut', getFrame: (x, y) => [60 + (x % 10), 35 + (y % 8), 20] },
+            { name: 'Natural Honey Oak', getFrame: (x, y) => [190 + (x % 15), 150 + (y % 12), 90] },
+            { name: 'Silver / Pewter', getFrame: (x, y) => [175 + (x % 12), 175 + (y % 12), 180] },
+            { name: 'Venetian Red', getFrame: (x, y) => [150 + (x % 15), 40 + (y % 8), 35] },
+            { name: 'Florentine Green', getFrame: (x, y) => [35 + (x % 8), 75 + (y % 15), 45] },
+            { name: 'Distressed Cream / Ivory', getFrame: (x, y) => [235 - (x % 10), 228 - (y % 10), 205] },
+            { name: 'Ebonized Black / Charcoal', getFrame: (x, y) => [25 + (x % 6), 25 + (y % 6), 25] },
+        ];
+
+        for (const profile of frameColorProfiles) {
+            const width = 120;
+            const height = 120;
+            const data = new Uint8ClampedArray(width * height * 4);
+
+            // Natural artwork interior with varied tones and forms
+            for (let y = 0; y < height; y++) {
+                for (let x = 0; x < width; x++) {
+                    const idx = (y * width + x) * 4;
+                    data[idx] = 40 + ((x * 3 + y * 2) % 60);
+                    data[idx + 1] = 50 + ((x + y * 4) % 60);
+                    data[idx + 2] = 60 + ((x * y) % 60);
+                    data[idx + 3] = 255;
+                }
+            }
+
+            // 10px frame border on all 4 sides (10 / 120 = 8.33%)
+            for (let y = 0; y < height; y++) {
+                for (let x = 0; x < width; x++) {
+                    if (y < 10 || y >= height - 10 || x < 10 || x >= width - 10) {
+                        const idx = (y * width + x) * 4;
+                        const [r, g, b] = profile.getFrame(x, y);
+                        data[idx] = r;
+                        data[idx + 1] = g;
+                        data[idx + 2] = b;
+                        data[idx + 3] = 255;
+                    }
+                }
+            }
+
+            const result = detectBordersFromImageData(data, width, height);
+
+            expect(result.hasLeftoverFrame, `${profile.name} was not detected as leftover frame`).toBe(true);
+            expect(result.insets.top, `${profile.name} top inset`).toBeGreaterThanOrEqual(0.08);
+            expect(result.insets.bottom, `${profile.name} bottom inset`).toBeGreaterThanOrEqual(0.08);
+            expect(result.insets.left, `${profile.name} left inset`).toBeGreaterThanOrEqual(0.08);
+            expect(result.insets.right, `${profile.name} right inset`).toBeGreaterThanOrEqual(0.08);
+        }
+    });
+
     it('returns zero insets on a clean, full-bleed artwork with no borders', () => {
         const width = 100;
         const height = 100;
