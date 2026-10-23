@@ -1035,13 +1035,14 @@ const CustomizeFramePage = ({
     const handleMetArtSelect = (art) => {
         const pixelSize = getMetArtworkPixelSize(art) || ((art.imageWidth && art.imageHeight) ? { w: art.imageWidth, h: art.imageHeight } : null);
         const maxSize = maxFramePrintSize(pixelSize);
-        const sizeObj = maxSize || getMetRecommendedSize(art);
+        const recSize = getMetRecommendedSize(art);
+        const sizeObj = recSize || maxSize;
 
         applyInspirationSelection({
             presetImage: art.image,
             presetTitle: art.title,
             initialSize: sizeObj,
-            orientation: maxSize?.orientation || art.orientation || sizeObj?.orientation,
+            orientation: sizeObj?.orientation || maxSize?.orientation || art.orientation,
             imageWidth: pixelSize?.w || art.imageWidth || null,
             imageHeight: pixelSize?.h || art.imageHeight || null,
         });

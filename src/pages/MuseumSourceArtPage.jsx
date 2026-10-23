@@ -69,9 +69,9 @@ const MuseumSourceArtPage = ({ sourceId, setProductMode, setSelectedSize, naviga
             ? { w: artwork.imageWidth, h: artwork.imageHeight }
             : null;
         const maxSize = maxFramePrintSize(pixelSize);
-        const sizeObj = maxSize || artwork.recommendedSize || null;
+        const sizeObj = artwork.recommendedSize || maxSize || null;
         if (sizeObj && setSelectedSize) setSelectedSize(sizeObj);
-        const orientation = maxSize?.orientation || artwork.orientation || sizeObj?.orientation || 'portrait';
+        const orientation = sizeObj?.orientation || maxSize?.orientation || artwork.orientation || 'portrait';
         navigate('/frame/customize', {
             state: {
                 presetImage: artwork.fullRes || artwork.image,
@@ -174,7 +174,7 @@ const MuseumArtworkCard = ({ artwork, unit, onGetThis, prioritizeImage, fetchPri
                 <h3 className="text-sm text-stone-900 font-medium leading-tight truncate" title={artwork.title}>{artwork.title}</h3>
                 <p className="text-xs text-stone-500 truncate" title={artwork.artist}>{artwork.artist}</p>
                 {maxSize && (
-                    <p className="text-[10px] text-stone-500 font-light leading-snug">Max frame size {formatDimensions(maxSize.label, unit, maxSize.orientation)}</p>
+                    <p className="text-[10px] text-stone-500 font-light leading-snug">Available up to {formatDimensions(maxSize.label, unit, maxSize.orientation)}</p>
                 )}
                 <button type="button" onClick={() => onGetThis(artwork)} className="text-left text-[10px] uppercase tracking-wider mt-1 text-stone-900 hover:text-stone-700 font-bold">Get This</button>
             </div>

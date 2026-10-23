@@ -8,6 +8,7 @@ const crypto = require('crypto');
 const { recomputeOrderTotal } = require('./pricing');
 const { FRAMEWORTHY_KNOWLEDGE_BASE } = require('./supportKnowledge');
 const prodigi = require('./prodigi');
+const { upscaleWithReplicate } = require('./upscale');
 
 admin.initializeApp();
 
@@ -44,6 +45,7 @@ exports.archivalArtworks = onRequest({
 const paystackSecretKey = defineSecret('PAYSTACK_SECRET_KEY');
 const prodigiApiKey = defineSecret('PRODIGI_API_KEY');
 const prodigiCallbackToken = defineSecret('PRODIGI_CALLBACK_TOKEN');
+const replicateApiToken = defineSecret('REPLICATE_API_TOKEN');
 
 const prodigiEnvironment = () => process.env.PRODIGI_ENVIRONMENT === 'live' ? 'live' : 'sandbox';
 
@@ -1298,9 +1300,9 @@ exports.pruneArRelayObjects = onSchedule({ schedule: 'every 60 minutes', region:
 exports.submitPaidProdigiOrder = onDocumentUpdated({
     document: 'orders/{orderId}',
     region: 'us-central1',
-    timeoutSeconds: 60,
+    timeoutSeconds: 120,
     maxInstances: 10,
-    secrets: [prodigiApiKey],
+    secrets: [prodigiApiKey, replicateApiToken],
 }, async (event) => {
     const before = event.data?.before?.data();
     const after = event.data?.after?.data();
@@ -1309,6 +1311,59 @@ exports.submitPaidProdigiOrder = onDocumentUpdated({
     const items = (after.items || []).filter((item) => item?.prodigi?.sku);
     if (items.length === 0) return;
     if (after.prodigi?.orderId) return;
+
+    // Perform on-demand AI super-resolution for any items requiring upscaling
+    let orderItemsUpdated = false;
+    let replicateToken = '';
+    try { replicateToken = process.env.REPLICATE_API_TOKEN || replicateApiToken.value(); } catch {}
+
+    for (const item of items) {
+        const quality = item.printQuality;
+        const requiredDpi = prodigi.minimumDpiForSku(item?.prodigi?.sku || item?.sku);
+        const effectiveDpi = Number(quality?.effectiveDpi);
+        const needsUpscale = Boolean(quality?.aiUpscale?.required || (!item.productionImage && effectiveDpi < requiredDpi));
+
+        if (needsUpscale && replicateToken) {
+            try {
+                const sourceUrl = item.productionImage || item.image;
+                const scale = quality?.aiUpscale?.scale || Math.min(4, Math.max(2, Math.ceil(requiredDpi / Math.max(1, effectiveDpi))));
+                const upscaledUrl = await upscaleWithReplicate(sourceUrl, scale, replicateToken);
+
+                item.productionImage = upscaledUrl;
+                orderItemsUpdated = true;
+                if (quality) {
+                    quality.sourceWidthPx = Math.round(Number(quality.sourceWidthPx) * scale);
+                    quality.sourceHeightPx = Math.round(Number(quality.sourceHeightPx) * scale);
+                    if (quality.crop) {
+                        quality.crop.x = Math.round(Number(quality.crop.x) * scale);
+                        quality.crop.y = Math.round(Number(quality.crop.y) * scale);
+                        quality.crop.w = Math.round(Number(quality.crop.w) * scale);
+                        quality.crop.h = Math.round(Number(quality.crop.h) * scale);
+                    }
+                    quality.outputWidthPx = Math.round(Number(quality.outputWidthPx || quality.sourceWidthPx) * scale);
+                    quality.outputHeightPx = Math.round(Number(quality.outputHeightPx || quality.sourceHeightPx) * scale);
+                    quality.effectiveDpi = Math.min(300, Math.round(effectiveDpi * scale));
+                    quality.assetUrl = upscaledUrl;
+                    quality.passed = true;
+                    quality.aiUpscale = {
+                        ...(quality.aiUpscale || {}),
+                        completed: true,
+                        upscaledUrl,
+                    };
+                }
+            } catch (upscaleError) {
+                logger.error('Replicate super-resolution failed for order item', {
+                    orderId: event.params.orderId,
+                    sku: item.prodigi?.sku,
+                    error: upscaleError.message,
+                });
+            }
+        }
+    }
+
+    if (orderItemsUpdated) {
+        await event.data.after.ref.update({ items: after.items });
+    }
 
     try {
         items.forEach((item) => prodigi.validatePrintQuality(item));

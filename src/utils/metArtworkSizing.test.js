@@ -23,12 +23,14 @@ describe('Met artwork size recommendations', () => {
     it('uses measured Met image pixels to fit both the frame ratio and print resolution', () => {
         const tallRecord = { id: 'met_local_9b2yni830' };
         const landscapeRecord = { id: 'met_312231' };
+        const subMinRecord = { id: 'met_313290' }; // 300x451, below 75 native DPI floor
         const tallArtwork = getMetRecommendedSize(tallRecord);
         const landscapeArtwork = getMetRecommendedSize(landscapeRecord);
 
         expect(tallArtwork.orientation).toBe('portrait');
         expect(landscapeArtwork.orientation).toBe('landscape');
-        expect(isMetArtworkPrintable(tallRecord)).toBe(false);
+        expect(isMetArtworkPrintable(subMinRecord)).toBe(false);
+        expect(isMetArtworkPrintable(tallRecord)).toBe(true);
         expect(doesSizeMeetMinDpi(landscapeArtwork, getMetArtworkPixelSize(landscapeRecord), MIN_PRINT_DPI)).toBe(true);
     });
 
@@ -71,7 +73,7 @@ describe('Met artwork size recommendations', () => {
         expect(sorted.indexOf('European Paintings')).toBeLessThan(sorted.indexOf('Vincent van Gogh'));
         expect(sorted.indexOf('Vincent van Gogh')).toBeLessThan(sorted.indexOf('Claude Monet'));
 
-        // Within artefacts tier, biggest max frame sizes appear first (Greek and Roman Art 30x34 before Asian Art 15x20)
-        expect(sorted.indexOf('Greek and Roman Art')).toBeLessThan(sorted.indexOf('Asian Art'));
+        // Within artefacts tier, biggest max frame sizes appear first (Asian Art now unlocks 36x48 at 75 native DPI, before Greek and Roman Art)
+        expect(sorted.indexOf('Asian Art')).toBeLessThan(sorted.indexOf('Greek and Roman Art'));
     });
 });

@@ -1,10 +1,7 @@
 import { FRAME_SIZES } from '../data/constants';
 
-// Curated museum art enters the customizer as a paper print, so catalogue
-// recommendations must use the same floor as the order pipeline. Keeping this
-// at the former 150 DPI value could advertise a large size that disappeared as
-// soon as the customer opened the customizer.
-export const MIN_PRINT_DPI = 240;
+// Native print floor before AI super-resolution (Replicate Real-ESRGAN upscales 4x to 300 DPI)
+export const MIN_PRINT_DPI = 75;
 
 function normalizePixelPair(pixelSize) {
     if (!pixelSize) return null;
@@ -49,26 +46,47 @@ export function getArtworkPixelSize(record = {}) {
     return found ? { w: Number(found.w), h: Number(found.h) } : null;
 }
 
+// Core recognizable customer frame sizes preferred for initial presentation
+const CORE_FRAME_SIZE_IDS = new Set([
+    '8x10', 'a4', '11x14', '12x12', '12x18', 'a3', '16x20', 'a2', '18x24', '20x30', '24x36'
+]);
+
+// Ideal target aperture area (~350 sq in, around 16x20 to 18x24) for initial visualizer loading
+const TARGET_RECOMMENDED_AREA = 350;
+
 export function recommendFrameSize(record = {}) {
     const pixelSize = getArtworkPixelSize(record);
     const ratio = pixelSize ? Number(pixelSize.w) / Number(pixelSize.h) : 1;
+    const shortRatio = ratio >= 1 ? 1 / ratio : ratio;
+
     const candidates = FRAME_SIZES
         .filter(size => size.width > 0 && size.height > 0)
         .map(size => {
-            const sizeRatio = size.width / size.height;
+            const sizeRatio = Math.min(size.width, size.height) / Math.max(size.width, size.height);
             return {
                 size,
-                ratioDiff: Math.abs(sizeRatio - (ratio >= 1 ? 1 / ratio : ratio)),
+                ratioDiff: Math.abs(sizeRatio - shortRatio),
                 fitsResolution: doesSizeMeetMinDpi(size, pixelSize, MIN_PRINT_DPI),
             };
         });
     const feasible = candidates.filter(candidate => candidate.fitsResolution);
     const pool = feasible.length ? feasible : candidates;
     pool.sort((a, b) => {
-        if (Math.abs(a.ratioDiff - b.ratioDiff) > 0.005) return a.ratioDiff - b.ratioDiff;
+        // 1. If aspect ratio difference is noticeable (> 0.04), prioritize the closer aspect ratio
+        if (Math.abs(a.ratioDiff - b.ratioDiff) > 0.04) {
+            return a.ratioDiff - b.ratioDiff;
+        }
+        // 2. Prefer core recognizable frame sizes over obscure custom cutouts
+        const isCoreA = CORE_FRAME_SIZE_IDS.has(a.size.id);
+        const isCoreB = CORE_FRAME_SIZE_IDS.has(b.size.id);
+        if (isCoreA !== isCoreB) return isCoreA ? -1 : 1;
+
+        // 3. Target the balanced "sweet spot" area (16x20" - 18x24") for initial loading
         const areaA = a.size.width * a.size.height;
         const areaB = b.size.width * b.size.height;
-        return feasible.length ? areaB - areaA : areaA - areaB;
+        const distA = Math.abs(areaA - TARGET_RECOMMENDED_AREA);
+        const distB = Math.abs(areaB - TARGET_RECOMMENDED_AREA);
+        return distA - distB;
     });
     const chosen = pool[0]?.size || FRAME_SIZES[0];
     return {

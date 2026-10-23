@@ -33,6 +33,37 @@ describe('print quality policy', () => {
             frame: { prodigiProduct: 'classic' },
             assetUrl: 'https://images.example.com/master.jpg',
         });
-        expect(spec).toMatchObject({ passed: true, effectiveDpi: 300, minimumDpi: 240 });
+        expect(spec).toMatchObject({ passed: true, effectiveDpi: 300, minimumDpi: 240, aiUpscale: null });
+    });
+
+    it('qualifies an image meeting the 75 DPI native floor for AI super-resolution up to 300 DPI', () => {
+        // 1800x2700 on 24x36 gives 75 native DPI -> AI upscales 4x to 300 DPI
+        const spec = buildPrintQualitySpec({
+            sourceSize: { w: 1800, h: 2700 },
+            geometry: { apertureWidth: 24, apertureHeight: 36 },
+            frame: { prodigiProduct: 'classic' },
+            assetUrl: 'https://images.example.com/met-masterpiece.jpg',
+        });
+        expect(spec.passed).toBe(true);
+        expect(spec.effectiveDpi).toBe(300);
+        expect(spec.aiUpscale).toMatchObject({
+            required: true,
+            scale: 4,
+            nativeDpi: 75,
+            targetDpi: 300,
+        });
+    });
+
+    it('rejects an image below the 75 DPI AI native floor', () => {
+        // 1200x1800 on 24x36 gives 50 native DPI -> below 75 DPI floor
+        const spec = buildPrintQualitySpec({
+            sourceSize: { w: 1200, h: 1800 },
+            geometry: { apertureWidth: 24, apertureHeight: 36 },
+            frame: { prodigiProduct: 'classic' },
+            assetUrl: 'https://images.example.com/lowres.jpg',
+        });
+        expect(spec.passed).toBe(false);
+        expect(spec.effectiveDpi).toBe(50);
+        expect(spec.aiUpscale).toBeNull();
     });
 });

@@ -56,7 +56,7 @@ const MetProductCard = ({ product, onGetThis }) => {
                 <h3 className="text-sm text-stone-900 font-medium leading-tight truncate" title={product.title}>{product.title}</h3>
                 <p className="text-xs text-stone-500 truncate">{product.artist}</p>
                 {maxSize && (
-                    <p className="text-[10px] text-stone-500 font-light leading-snug">Max frame size {formatDimensions(maxSize.label, unit, maxSize.orientation)}</p>
+                    <p className="text-[10px] text-stone-500 font-light leading-snug">Available up to {formatDimensions(maxSize.label, unit, maxSize.orientation)}</p>
                 )}
                 <div className="flex items-center gap-2 text-[10px] uppercase tracking-wider mt-1">
                     <button onClick={() => onGetThis(product)} className="text-stone-900 hover:text-stone-700 font-bold transition-colors duration-150">Get This</button>
@@ -107,8 +107,9 @@ const MetArtPage = ({ setProductMode, setSelectedFrame, setSelectedSize, navigat
         setProductMode('frame');
         const pixelSize = getMetArtworkPixelSize(product);
         const maxSize = maxFramePrintSize(pixelSize);
-        const sizeObj = maxSize || getMetRecommendedSize(product);
-        const orientation = maxSize?.orientation || product.orientation || sizeObj?.orientation;
+        const recSize = getMetRecommendedSize(product);
+        const sizeObj = recSize || maxSize;
+        const orientation = sizeObj?.orientation || maxSize?.orientation || product.orientation;
         if (sizeObj && setSelectedSize) setSelectedSize(sizeObj);
 
         navigate('/frame/customize', {

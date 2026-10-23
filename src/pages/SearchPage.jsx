@@ -341,8 +341,9 @@ const SearchPage = ({ setProductMode, setSelectedSize, navigate, isSubPage = fal
                 const p = result.raw;
                 const pixelSize = getMetArtworkPixelSize(p);
                 const maxSize = maxFramePrintSize(pixelSize);
-                const sizeObj = maxSize || getMetRecommendedSize(p);
-                const orientation = maxSize?.orientation || p.orientation || sizeObj?.orientation || 'portrait';
+                const recSize = getMetRecommendedSize(p);
+                const sizeObj = recSize || maxSize;
+                const orientation = sizeObj?.orientation || maxSize?.orientation || p.orientation || 'portrait';
                 if (sizeObj && setSelectedSize) setSelectedSize(sizeObj);
                 navigate('/frame/customize', {
                     state: {
@@ -360,8 +361,8 @@ const SearchPage = ({ setProductMode, setSelectedSize, navigate, isSubPage = fal
                 const p = result.raw;
                 const pixelSize = (p.imageWidth && p.imageHeight) ? { w: p.imageWidth, h: p.imageHeight } : null;
                 const maxSize = maxFramePrintSize(pixelSize);
-                const sizeObj = maxSize || p.recommendedSize || null;
-                const orientation = maxSize?.orientation || p.orientation || sizeObj?.orientation || 'portrait';
+                const sizeObj = p.recommendedSize || maxSize || null;
+                const orientation = sizeObj?.orientation || maxSize?.orientation || p.orientation || 'portrait';
                 if (sizeObj && setSelectedSize) setSelectedSize(sizeObj);
                 navigate('/frame/customize', {
                     state: {

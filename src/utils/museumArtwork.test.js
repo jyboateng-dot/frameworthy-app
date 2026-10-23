@@ -14,20 +14,20 @@ describe('museum artwork normalization', () => {
         expect(size.width / size.height).toBeCloseTo(2 / 3, 2);
     });
 
-    it('enforces the 240 DPI paper floor on recommended sizes and printability checks', () => {
-        expect(MIN_PRINT_DPI).toBe(240);
-        // 2400x3360 supports up to 10x14 at 240 DPI, so 11x14 must be rejected.
-        expect(doesSizeMeetMinDpi({ width: 8, height: 10 }, { width: 2400, height: 3360 })).toBe(true);
-        expect(doesSizeMeetMinDpi({ width: 11, height: 14 }, { width: 2400, height: 3360 })).toBe(false);
+    it('enforces the 75 DPI native floor on recommended sizes and printability checks (backed by AI super-resolution to 300 DPI)', () => {
+        expect(MIN_PRINT_DPI).toBe(75);
+        // At 75 native DPI, 2400x3360 supports up to 32x44 inches (e.g. 24x36 passes, 40x60 is rejected).
+        expect(doesSizeMeetMinDpi({ width: 24, height: 36 }, { width: 2400, height: 3360 })).toBe(true);
+        expect(doesSizeMeetMinDpi({ width: 40, height: 60 }, { width: 2400, height: 3360 })).toBe(false);
 
         const rec = recommendFrameSize({ width: 2400, height: 3360 });
-        expect(Math.min(rec.width, rec.height) * 240).toBeLessThanOrEqual(2400);
-        expect(Math.max(rec.width, rec.height) * 240).toBeLessThanOrEqual(3360);
+        expect(Math.min(rec.width, rec.height) * 75).toBeLessThanOrEqual(2400);
+        expect(Math.max(rec.width, rec.height) * 75).toBeLessThanOrEqual(3360);
 
-        // Smallest 5x7 frame requires 1200x1680 at 240 DPI.
-        expect(isArtworkPrintableAtMinDpi({ width: 1200, height: 1680 })).toBe(true);
-        expect(isArtworkPrintableAtMinDpi({ width: 1199, height: 1680 })).toBe(false);
-        expect(isArtworkPrintableAtMinDpi({ width: 1280, height: 1600 })).toBe(false);
+        // Smallest 5x7 frame requires 375x525 at 75 DPI.
+        expect(isArtworkPrintableAtMinDpi({ width: 375, height: 525 })).toBe(true);
+        expect(isArtworkPrintableAtMinDpi({ width: 374, height: 525 })).toBe(false);
+        expect(isArtworkPrintableAtMinDpi({ width: 500, height: 350 })).toBe(false);
     });
 
     it('preserves source metadata while normalizing display fields', () => {

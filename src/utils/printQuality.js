@@ -5,6 +5,8 @@ const DEFAULT_PRINT_POSITION = { x: 0.5, y: 0.5, zoom: 1 };
 export const TARGET_PRINT_DPI = 300;
 export const MIN_PAPER_PRINT_DPI = 240;
 export const MIN_CANVAS_PRINT_DPI = 150;
+export const AI_NATIVE_FLOOR_DPI = 75;
+export const AI_NATIVE_CANVAS_FLOOR_DPI = 60;
 
 export const isCanvasFrame = (frame) => Boolean(
     frame?.isCanvas
@@ -45,13 +47,32 @@ export function buildPrintQualitySpec({
     );
     if (!crop) return null;
 
+    const isCanvas = isCanvasFrame(frame);
+    const nativeFloorDpi = isCanvas ? AI_NATIVE_CANVAS_FLOOR_DPI : AI_NATIVE_FLOOR_DPI;
     const sourceDpi = Math.min(crop.w / printWidthIn, crop.h / printHeightIn);
     const outputWidthPx = finitePositive(outputSize?.w ?? outputSize?.width);
     const outputHeightPx = finitePositive(outputSize?.h ?? outputSize?.height);
     const outputDpi = outputWidthPx && outputHeightPx
         ? Math.min(outputWidthPx / printWidthIn, outputHeightPx / printHeightIn)
         : sourceDpi;
-    const effectiveDpi = Math.min(sourceDpi, outputDpi);
+    const baseEffectiveDpi = Math.min(sourceDpi, outputDpi);
+
+    let effectiveDpi = baseEffectiveDpi;
+    let aiUpscale = null;
+
+    if (baseEffectiveDpi + 0.01 >= minimumDpi) {
+        effectiveDpi = baseEffectiveDpi;
+    } else if (assetKind === 'original' && baseEffectiveDpi + 0.01 >= nativeFloorDpi) {
+        // Native scan meets the 75 DPI floor (60 for canvas) — backed by Replicate Real-ESRGAN super-resolution
+        const scale = Math.min(4, Math.max(2, Math.ceil(TARGET_PRINT_DPI / baseEffectiveDpi)));
+        effectiveDpi = Math.min(TARGET_PRINT_DPI, Math.floor(baseEffectiveDpi * scale * 10) / 10);
+        aiUpscale = {
+            required: true,
+            scale,
+            nativeDpi: Math.floor(baseEffectiveDpi * 10) / 10,
+            targetDpi: TARGET_PRINT_DPI,
+        };
+    }
 
     return {
         version: 1,
@@ -61,7 +82,8 @@ export function buildPrintQualitySpec({
         sourceDpi: Math.floor(sourceDpi * 10) / 10,
         outputDpi: Math.floor(outputDpi * 10) / 10,
         passed: effectiveDpi + 0.01 >= minimumDpi,
-        productClass: isCanvasFrame(frame) ? 'canvas' : 'paper',
+        productClass: isCanvas ? 'canvas' : 'paper',
+        aiUpscale,
         sourceWidthPx,
         sourceHeightPx,
         outputWidthPx: outputWidthPx || sourceWidthPx,
