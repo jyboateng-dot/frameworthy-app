@@ -2315,10 +2315,10 @@ const CustomizeFramePage = ({
     const stepArtwork = stepCounter++;
     const stepFrameStyle = stepCounter++;
     const stepDimensions = stepCounter++;
-    const stepImagePosition = fitEnabled ? stepCounter++ : null;
-    
+
     const showOrientation = !isPreset && !isAlbumArt && !isAlbumPoster && !isMoviePoster && !isMoviePosterPrint;
     const stepOrientation = showOrientation ? stepCounter++ : null;
+    const stepImagePosition = fitEnabled ? stepCounter++ : null;
     const stepProdigi = selectedFrame?.prodigiProduct ? stepCounter++ : null;
     
     // A canvas print (glassType 'canvas-floater'/'canvas-traditional') is
@@ -4175,19 +4175,6 @@ const CustomizeFramePage = ({
                     </section>
 
                     {/* 4. Orientation */}
-                    {fitEnabled && <FrameFitPanel step={stepImagePosition} image={uploadedImage} natural={imageNaturalSize}
-                        size={selectedSize} orientation={orientation} mat={matWidth} rail={railWidthIn}
-                        frame={selectedFrame} matColor={matColor.hex} matPrice={matColor.price || 75}
-                        minimumDpi={minimumNativeFloorDpiForFrame(selectedFrame)}
-                        contentBounds={activeContentBounds}
-                        unit={unit} price={buildCartItem(null).totalPrice} position={fitPosition} onPosition={setFitPosition}
-                        availableSizes={isProdigiFrame ? prodigiSizes : finalSizesList}
-                        prodigiConfiguration={prodigiConfiguration}
-                        currency={isProdigiFrame ? 'GBP' : 'GHS'}
-                        onApply={choice => { setIsOptimized(false); setSelectedSize(choice.size);
-                            setOrientation(choice.orientation); setMatWidth(choice.mat); setFitPosition(choice.position); }}
-                        error={fitError}
-                        />}
                     {!isPreset && !isAlbumArt && !isAlbumPoster && !isMoviePoster && !isMoviePosterPrint && (
                         <section>
                             <h2 className="text-xs font-bold uppercase tracking-wider text-stone-900 mb-3 flex items-center justify-between gap-2">
@@ -4228,6 +4215,21 @@ const CustomizeFramePage = ({
                         </div>
                     </section>
                     )}
+
+                    {/* 5. Image Position & Crop */}
+                    {fitEnabled && <FrameFitPanel step={stepImagePosition} image={uploadedImage} natural={imageNaturalSize}
+                        size={selectedSize} orientation={orientation} mat={matWidth} rail={railWidthIn}
+                        frame={selectedFrame} matColor={matColor.hex} matPrice={matColor.price || 75}
+                        minimumDpi={minimumNativeFloorDpiForFrame(selectedFrame)}
+                        contentBounds={activeContentBounds}
+                        unit={unit} price={buildCartItem(null).totalPrice} position={fitPosition} onPosition={setFitPosition}
+                        availableSizes={isProdigiFrame ? prodigiSizes : finalSizesList}
+                        prodigiConfiguration={prodigiConfiguration}
+                        currency={isProdigiFrame ? 'GBP' : 'GHS'}
+                        onApply={choice => { setIsOptimized(false); setSelectedSize(choice.size);
+                            setOrientation(choice.orientation); setMatWidth(choice.mat); setFitPosition(choice.position); }}
+                        error={fitError}
+                        />}
 
                     {selectedFrame?.prodigiProduct && (
                         <ProdigiConfigurationPanel
