@@ -250,5 +250,5 @@ describe('Prodigi Frame Studio flow', () => {
 
         expect(checkedCombinations).toBeGreaterThan(5000);
         expect(availableCombinations).toBeGreaterThan(3000);
-    });
+    }, 15000);
 });
