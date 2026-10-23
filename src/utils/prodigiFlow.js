@@ -40,6 +40,33 @@ export const prodigiMountWidthInForSize = (size, product = null) => {
     return 2;
 };
 
+/**
+ * Returns Prodigi's exact physical mount width in millimetres (25mm, 38mm, 50mm, 75mm)
+ * with no decimal places, matching the manufacturer specifications for UK/JE markets.
+ */
+export const prodigiMountWidthMmForSize = (size, product = null) => {
+    const widthIn = prodigiMountWidthInForSize(size, product);
+    if (widthIn === 1) return 25;
+    if (widthIn === 1.5) return 38;
+    if (widthIn === 2) return 50;
+    if (widthIn === 3) return 75;
+    return Math.round(widthIn * 25.4);
+};
+
+/**
+ * Returns a cleanly formatted mount width label respecting the active unit
+ * (e.g. "50 mm" or "2\"") with no decimal ambiguity.
+ */
+export const formatProdigiMountWidth = (size, product = null, unit = 'cm') => {
+    const widthIn = prodigiMountWidthInForSize(size, product);
+    if (!widthIn) return 'Custom';
+    if (unit === 'cm') {
+        return `${prodigiMountWidthMmForSize(size, product)} mm`;
+    }
+    return `${widthIn}"`;
+};
+
+
 const matchesSize = (product, size) => {
     const productInches = String(product?.sizeInches || '').replace(/\s+/g, '').toLowerCase();
     const selectedInches = String(size?.prodigiSizeInches || '').replace(/\s+/g, '').toLowerCase();

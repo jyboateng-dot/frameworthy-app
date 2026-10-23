@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Check } from 'lucide-react';
+import { useUnit } from '../../context/UnitContext';
 import { getProdigiQuote, prodigiAttributesForProduct } from '../../services/prodigi';
 import {
     isProdigiConfigurationAvailable,
@@ -7,6 +8,7 @@ import {
     prodigiConfigurationFromSelection,
     prodigiHangingHardware,
     prodigiMountWidthInForSize,
+    formatProdigiMountWidth,
     prodigiProductsForFrame,
     prodigiWrapsForSelection,
     prodigiBaseProductForProduct,
@@ -60,6 +62,7 @@ export default function ProdigiConfigurationPanel({
     onSelectionChange,
     onVisualOptionsChange,
 }) {
+    const { unit } = useUnit();
     const initial = prodigiConfigurationFromSelection(selection);
     const [mounted, setMounted] = useState(initial.mounted);
     const [mountColor, setMountColor] = useState(initial.mountColor);
@@ -91,7 +94,7 @@ export default function ProdigiConfigurationPanel({
     const baseProduct = useMemo(() => prodigiBaseProductForProduct(product, destination), [product, destination]);
     const hangingHardware = useMemo(() => prodigiHangingHardware(frame, size), [frame, size]);
     const mountWidthIn = activeMounted ? prodigiMountWidthInForSize(size, product) : null;
-    const mountWidthLabel = mountWidthIn ? `${mountWidthIn}" (${Math.round(mountWidthIn * 25.4)} mm)` : 'Custom';
+    const mountWidthLabel = mountWidthIn ? formatProdigiMountWidth(size, product, unit) : 'Custom';
     const hasImportedProducts = prodigiProductsForFrame(frame).length > 0;
 
     useEffect(() => {

@@ -193,4 +193,54 @@ describe('Prodigi rendering integration', () => {
             expect(floaterMesh.parts.some(p => p.material === `canvas${side}`)).toBe(true);
         }
     });
+
+    it('accurately applies mount reveal and maintains identical outer frame dimensions between mounted and unmounted states', () => {
+        const classic = frames.find(f => f.prodigiProduct === 'classic');
+        const p = getFrameRenderProfile(classic);
+        const glazingW = 16;
+        const glazingH = 20;
+        const mountWidthIn = 2;
+        const mountReveal = { topIn: mountWidthIn, sideIn: mountWidthIn, bottomIn: mountWidthIn };
+
+        // 1. Unmounted state: art fills the 16x20 opening
+        const unmountedMesh = buildFrameMesh({
+            artworkWidthIn: glazingW,
+            artworkHeightIn: glazingH,
+            ...p,
+            matReveal: noMat,
+        });
+
+        // 2. Mounted state: frame opening stays 16x20, art opening shrinks to 12x16
+        const mountedMesh = buildFrameMesh({
+            artworkWidthIn: glazingW - mountWidthIn * 2,
+            artworkHeightIn: glazingH - mountWidthIn * 2,
+            ...p,
+            matReveal: mountReveal,
+        });
+
+        // Outer frame dimensions must be IDENTICAL in both states
+        expect(mountedMesh.outerWidthM).toBeCloseTo(unmountedMesh.outerWidthM, 5);
+        expect(mountedMesh.outerHeightM).toBeCloseTo(unmountedMesh.outerHeightM, 5);
+        expect(mountedMesh.outerWidthM).toBeCloseTo((glazingW + 2 * p.mouldingWidthIn) * 0.0254, 5);
+        expect(mountedMesh.outerHeightM).toBeCloseTo((glazingH + 2 * p.mouldingWidthIn) * 0.0254, 5);
+
+        // Mounted state contains mat and precision mat bevel
+        expect(mountedMesh.parts.some(part => part.material === 'mat')).toBe(true);
+        expect(mountedMesh.parts.some(part => part.material === 'matBevel')).toBe(true);
+
+        // Unmounted state has no mat or bevel
+        expect(unmountedMesh.parts.some(part => part.material === 'mat')).toBe(false);
+        expect(unmountedMesh.parts.some(part => part.material === 'matBevel')).toBe(false);
+
+        // Visible art aperture matches physical dimensions
+        const artPart = mountedMesh.parts.find(part => part.material === 'art');
+        const artXs = artPart.positions.filter((_, i) => i % 3 === 0);
+        const artYs = artPart.positions.filter((_, i) => i % 3 === 1);
+        const artWidthM = Math.max(...artXs) - Math.min(...artXs);
+        const artHeightM = Math.max(...artYs) - Math.min(...artYs);
+
+        expect(artWidthM).toBeCloseTo((glazingW - mountWidthIn * 2) * 0.0254, 4);
+        expect(artHeightM).toBeCloseTo((glazingH - mountWidthIn * 2) * 0.0254, 4);
+    });
 });
+

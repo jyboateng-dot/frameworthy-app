@@ -6,6 +6,8 @@ import {
     prodigiConfigurationFromSelection,
     prodigiHangingHardware,
     prodigiMountWidthInForSize,
+    prodigiMountWidthMmForSize,
+    formatProdigiMountWidth,
     prodigiBaseProductForProduct,
     resolveProdigiProduct,
 } from './prodigiFlow';
@@ -99,6 +101,21 @@ describe('Prodigi Frame Studio flow', () => {
         expect(prodigiMountWidthInForSize({ width: 11, height: 14 })).toBe(1.5);
         expect(prodigiMountWidthInForSize({ width: 12, height: 16 })).toBe(2);
         expect(prodigiMountWidthInForSize({ width: 12, height: 14 }, { sku: 'FRA-CLA-CPWP-3M-ACRY-30X35' })).toBe(3);
+
+        // Exact millimetre values per manufacturer spec without decimal places
+        expect(prodigiMountWidthMmForSize({ width: 10, height: 10 })).toBe(25);
+        expect(prodigiMountWidthMmForSize({ width: 8, height: 12 })).toBe(38);
+        expect(prodigiMountWidthMmForSize({ width: 11, height: 14 })).toBe(38);
+        expect(prodigiMountWidthMmForSize({ width: 12, height: 16 })).toBe(50);
+        expect(prodigiMountWidthMmForSize({ width: 12, height: 14 }, { sku: 'FRA-CLA-CPWP-3M-ACRY-30X35' })).toBe(75);
+
+        // Format label respecting active unit
+        expect(formatProdigiMountWidth({ width: 10, height: 10 }, null, 'cm')).toBe('25 mm');
+        expect(formatProdigiMountWidth({ width: 10, height: 10 }, null, 'in')).toBe('1"');
+        expect(formatProdigiMountWidth({ width: 11, height: 14 }, null, 'cm')).toBe('38 mm');
+        expect(formatProdigiMountWidth({ width: 11, height: 14 }, null, 'in')).toBe('1.5"');
+        expect(formatProdigiMountWidth({ width: 16, height: 20 }, null, 'cm')).toBe('50 mm');
+        expect(formatProdigiMountWidth({ width: 16, height: 20 }, null, 'in')).toBe('2"');
     });
 
     it('offers only real stretched-canvas sizes and resolves an edge finish', () => {
