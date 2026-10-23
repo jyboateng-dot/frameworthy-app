@@ -52,7 +52,7 @@ export const CAROUSEL_SLIDES = [
     {
         img: '/landing_carousel/slide-museum-masterpieces.webp',
         title: "Masterpieces at Home",
-        text: "Explore and frame public-domain masterpieces from The Met, review their artwork details, and carry your chosen piece directly into the custom framing studio.",
+        text: "Discover free public-domain masterpieces from the Metropolitan Museum of Art, the National Gallery of Art, and the Rijksmuseum, among other public-domain collections, ready to browse and custom-frame.",
         triggersMetArt: true
     },
     {

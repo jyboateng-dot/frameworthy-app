@@ -48,7 +48,7 @@ const CAROUSEL_SLIDES = [
     { 
         img: '/landing_carousel/slide-6.jpg',
         title: "Masterpieces at Home",
-        text: "Directly search, browse, and custom-frame open-access public domain masterpieces from the Metropolitan Museum of Art."
+        text: "Discover free public-domain masterpieces from the Metropolitan Museum of Art, the National Gallery of Art, and the Rijksmuseum, among other public-domain collections, ready to browse and custom-frame."
     },
     { 
         img: '/landing_carousel/slide-7.jpg',
