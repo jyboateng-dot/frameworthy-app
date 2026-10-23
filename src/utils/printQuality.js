@@ -43,16 +43,15 @@ export function buildPrintQualitySpec({
     const printHeightIn = finitePositive(geometry?.apertureHeight);
     if (!sourceWidthPx || !sourceHeightPx || !printWidthIn || !printHeightIn) return null;
 
+    const isCanvas = isCanvasFrame(frame);
+    const nativeFloorDpi = isCanvas ? AI_NATIVE_CANVAS_FLOOR_DPI : AI_NATIVE_FLOOR_DPI;
     const crop = imageCrop(
         { w: sourceWidthPx, h: sourceHeightPx },
         geometry,
         position,
-        minimumDpi
+        nativeFloorDpi
     );
     if (!crop) return null;
-
-    const isCanvas = isCanvasFrame(frame);
-    const nativeFloorDpi = isCanvas ? AI_NATIVE_CANVAS_FLOOR_DPI : AI_NATIVE_FLOOR_DPI;
     const sourceDpi = Math.min(crop.w / printWidthIn, crop.h / printHeightIn);
     const outputWidthPx = finitePositive(outputSize?.w ?? outputSize?.width);
     const outputHeightPx = finitePositive(outputSize?.h ?? outputSize?.height);

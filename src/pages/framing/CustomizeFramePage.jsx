@@ -1078,6 +1078,7 @@ const CustomizeFramePage = ({
     const railWidthIn = getMouldingWidthIn(selectedFrame);
     const isCanvasOnly = selectedFrame?.canvasOnly || selectedFrame?.id === 'frame-canvas';
     const minimumPrintDpi = minimumPrintDpiForFrame(selectedFrame);
+    const minimumFloorDpi = minimumNativeFloorDpiForFrame(selectedFrame);
     const canvasWrap = prodigiSelection?.attributes?.wrap || 'ImageWrap';
     const physicalGapIn = Math.max(0, Number(selectedFrame?.canvasGapMm) || 0) / 25.4;
     // The most the mat-width slider can offer for this print size + frame
@@ -1097,7 +1098,7 @@ const CustomizeFramePage = ({
         && glassType !== 'canvas-traditional' && glassType !== 'canvas-floater'
         && imageNaturalSize?.w > 0 && !(collageImages?.length > 0);
     const fitGeometry = selectedSize ? frameGeometry(selectedSize, orientation, matWidth, railWidthIn) : null;
-    const fitCrop = fitEnabled ? imageCrop(imageNaturalSize, fitGeometry, fitPosition, minimumPrintDpi) : null;
+    const fitCrop = fitEnabled ? imageCrop(imageNaturalSize, fitGeometry, fitPosition, minimumFloorDpi) : null;
     useEffect(() => { setWasAddedToCart(false); }, [fitPosition]);
 
     // If switching size/orientation/frame drops sizeMaxMatWidthIn below the
@@ -2114,7 +2115,7 @@ const CustomizeFramePage = ({
                     fitPosition, selectedFrame.baseColor, matColor.hex, {
                         deferThumbnail: thumbnailInBackground,
                         frame: selectedFrame,
-                        minimumDpi: minimumPrintDpi,
+                        minimumDpi: minimumFloorDpi,
                     }, timeoutMs);
                 if (action === 'pay') toggleAllSelection(false);
                 if (result) {

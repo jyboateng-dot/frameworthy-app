@@ -1,8 +1,8 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { Focus, RotateCcw, X, Check } from 'lucide-react';
+import { Focus, RotateCcw, X, Check, ZoomIn, Move } from 'lucide-react';
 import { FRAME_SIZES, formatDimensions } from '../../data/constants';
-import { DEFAULT_POSITION, frameGeometry, imageCrop, cropStyle, maxZoomForMinDpi } from '../../utils/frameFit';
+import { DEFAULT_POSITION, frameGeometry, imageCrop, cropStyle, maxZoomForMinDpi, isDefaultFitPosition } from '../../utils/frameFit';
 import { getFrameRail, getRailTextureStyle, getRailShading } from '../../utils/frameRail';
 import { getFrameInnerShadow, getFrameWallShadow } from '../../utils/frameDepthPresentation';
 import { bestFitOptions } from '../../utils/bestFitOptions';
@@ -82,8 +82,71 @@ export default function FrameFitPanel({ image, natural, size, orientation, mat, 
         dialogRef.current?.querySelector('button')?.focus();
         return () => previous?.focus();
     }, [open]);
+
     const geometry = frameGeometry(size, orientation, mat, rail);
     const maxZoom = maxZoomForMinDpi(natural, geometry, minimumDpi);
+
+    const aspect = (geometry?.apertureWidth && geometry?.apertureHeight)
+        ? geometry.apertureWidth / geometry.apertureHeight
+        : 1;
+    const baseW = Math.min(natural?.w || 1000, (natural?.h || 1000) * aspect);
+    const baseH = baseW / aspect;
+    const currentZoom = Math.max(1, Math.min(maxZoom, Number(position?.zoom) || 1));
+    const cropW = baseW / currentZoom;
+    const cropH = cropW / aspect;
+    const overflowX = Math.max(0, (natural?.w || 1000) - cropW);
+    const overflowY = Math.max(0, (natural?.h || 1000) - cropH);
+
+    const posX = Number.isFinite(Number(position?.x)) ? Number(position.x) : 0.5;
+    const posY = Number.isFinite(Number(position?.y)) ? Number(position.y) : 0.5;
+    const isDefault = isDefaultFitPosition(position);
+
+    let horizontalBadge;
+    if (overflowX <= 1 && currentZoom <= 1.02) {
+        horizontalBadge = 'Full width';
+    } else if (Math.abs(posX - 0.5) < 0.02) {
+        horizontalBadge = 'Center';
+    } else if (posX < 0.48) {
+        horizontalBadge = `${Math.round((0.5 - posX) * 200)}% Left`;
+    } else {
+        horizontalBadge = `${Math.round((posX - 0.5) * 200)}% Right`;
+    }
+
+    let verticalBadge;
+    if (overflowY <= 1 && currentZoom <= 1.02) {
+        verticalBadge = 'Full height';
+    } else if (Math.abs(posY - 0.5) < 0.02) {
+        verticalBadge = 'Center';
+    } else if (posY < 0.48) {
+        verticalBadge = `${Math.round((0.5 - posY) * 200)}% Top`;
+    } else {
+        verticalBadge = `${Math.round((posY - 0.5) * 200)}% Bottom`;
+    }
+
+    const handleHorizontalChange = (val) => {
+        const newX = Number(val);
+        if (overflowX <= 1 && currentZoom <= 1.02 && maxZoom > 1.05) {
+            const autoZoom = Math.min(maxZoom, 1.15);
+            onPosition({ ...position, x: newX, zoom: autoZoom });
+        } else {
+            onPosition({ ...position, x: newX });
+        }
+    };
+
+    const handleVerticalChange = (val) => {
+        const newY = Number(val);
+        if (overflowY <= 1 && currentZoom <= 1.02 && maxZoom > 1.05) {
+            const autoZoom = Math.min(maxZoom, 1.15);
+            onPosition({ ...position, y: newY, zoom: autoZoom });
+        } else {
+            onPosition({ ...position, y: newY });
+        }
+    };
+
+    const handleZoomChange = (val) => {
+        onPosition({ ...position, zoom: Number(val) });
+    };
+
     const options = useMemo(() => bestFitOptions({
         sizes: availableSizes,
         natural,
@@ -97,30 +160,228 @@ export default function FrameFitPanel({ image, natural, size, orientation, mat, 
         prodigiConfiguration,
         minimumDpi,
     }), [availableSizes, natural, size, orientation, mat, rail, frame, price, matPrice, prodigiConfiguration, minimumDpi]);
+
     const applyOption = option => {
         setUndo({ size, orientation, mat, position });
         onApply({ ...option, position: DEFAULT_POSITION });
         setCompare(false);
     };
+
     const preview = (g, p = position) => <FitPreview image={image} natural={natural} geometry={g}
         position={p} frame={frame} matColor={matColor} minimumDpi={minimumDpi} />;
+
     return <section className="space-y-3 text-stone-900">
         <div className="flex flex-wrap items-center justify-between gap-2">
             <h2 className="text-xs font-bold uppercase tracking-wider flex items-center gap-2">
                 <span className="bg-stone-100 text-stone-500 w-5 h-5 rounded-full flex shrink-0 items-center justify-center text-[10px]">{step}</span>
-                Image Position
+                Image Position & Crop
             </h2>
             <div className="flex items-center gap-2">
-                <button type="button" onClick={() => setCompare(true)} className="text-xs text-stone-700 hover:text-stone-950 flex items-center gap-1 font-semibold"><Focus size={15} />Best Fit</button>
-                <button type="button" className="w-7 h-7 flex items-center justify-center text-stone-600 hover:text-stone-950" title="Reset image position" aria-label="Reset image position" onClick={() => onPosition(DEFAULT_POSITION)}><RotateCcw size={15} /></button>
+                <button
+                    type="button"
+                    onClick={() => setCompare(true)}
+                    className="text-xs text-stone-700 hover:text-stone-950 flex items-center gap-1 font-semibold transition-colors"
+                >
+                    <Focus size={14} />
+                    Best Fit
+                </button>
+                <button
+                    type="button"
+                    className={`w-7 h-7 rounded-md flex items-center justify-center transition-colors ${
+                        !isDefault
+                            ? 'text-amber-700 bg-amber-50 hover:bg-amber-100'
+                            : 'text-stone-400 hover:text-stone-600'
+                    }`}
+                    title="Reset image position to center"
+                    aria-label="Reset image position"
+                    onClick={() => onPosition(DEFAULT_POSITION)}
+                >
+                    <RotateCcw size={14} />
+                </button>
             </div>
         </div>
-        {[['x', 'Horizontal', 0, 1, 0.01], ['y', 'Vertical', 0, 1, 0.01], ['zoom', 'Zoom', 1, maxZoom, 0.01]].map(([key, label, min, max, stepVal]) =>
-            <label key={key} className="flex items-center gap-3 text-xs font-medium text-stone-700"><span className="w-16 shrink-0">{label}</span>
-                <input className="w-full min-w-0 accent-fw-gold disabled:opacity-40" aria-label={label} type="range" min={min} max={max} step={stepVal}
-                    disabled={key === 'zoom' && max <= 1.01}
-                    value={Math.min(max, position[key])} onChange={e => onPosition({ ...position, [key]: Number(e.target.value) })} /></label>)}
-        {undo && <button type="button" className="text-xs flex items-center gap-1" onClick={() => { onApply(undo); setUndo(null); }}><RotateCcw size={14} />Undo fit change</button>}
+
+        <div className="space-y-3.5 bg-stone-50/70 p-3.5 rounded-xl border border-stone-200/80">
+            {/* Zoom Slider */}
+            <div className="space-y-1.5">
+                <div className="flex items-center justify-between text-xs">
+                    <span className="font-semibold text-stone-800 flex items-center gap-1.5">
+                        <ZoomIn size={14} className="text-stone-500" />
+                        Zoom
+                    </span>
+                    <span className="text-[11px] font-bold text-stone-800 tabular-nums bg-white px-2 py-0.5 rounded shadow-xs border border-stone-200">
+                        {currentZoom.toFixed(2)}×
+                    </span>
+                </div>
+                <input
+                    className="w-full h-1.5 accent-fw-gold cursor-pointer bg-stone-200 rounded-lg appearance-none disabled:opacity-40"
+                    aria-label="Zoom artwork"
+                    type="range"
+                    min={1}
+                    max={maxZoom}
+                    step={0.01}
+                    disabled={maxZoom <= 1.01}
+                    value={currentZoom}
+                    onChange={e => handleZoomChange(e.target.value)}
+                />
+                <div className="flex justify-between text-[10px] text-stone-500 font-medium">
+                    <span>1.0× (Fit)</span>
+                    <span>{maxZoom.toFixed(1)}× Max</span>
+                </div>
+            </div>
+
+            {/* Horizontal Slider */}
+            <div className="space-y-1.5">
+                <div className="flex items-center justify-between text-xs">
+                    <span className="font-semibold text-stone-800 flex items-center gap-1.5">
+                        <Move size={14} className="text-stone-500" />
+                        Horizontal
+                    </span>
+                    <span className="text-[11px] font-medium text-stone-700 tabular-nums bg-white px-2 py-0.5 rounded shadow-xs border border-stone-200">
+                        {horizontalBadge}
+                    </span>
+                </div>
+                <div className="relative flex items-center">
+                    <input
+                        className="w-full h-1.5 accent-fw-gold cursor-pointer bg-stone-200 rounded-lg appearance-none"
+                        aria-label="Horizontal position"
+                        type="range"
+                        min={0}
+                        max={1}
+                        step={0.01}
+                        value={posX}
+                        onChange={e => handleHorizontalChange(e.target.value)}
+                    />
+                    <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-0.5 h-2.5 bg-stone-400/80 pointer-events-none rounded-full" />
+                </div>
+                <div className="flex justify-between text-[10px] text-stone-500 font-medium">
+                    <span>Left</span>
+                    <button
+                        type="button"
+                        aria-label="Center horizontally"
+                        onClick={() => onPosition({ ...position, x: 0.5 })}
+                        className="hover:text-stone-800 underline decoration-dotted transition-colors"
+                    >
+                        Center
+                    </button>
+                    <span>Right</span>
+                </div>
+            </div>
+
+            {/* Vertical Slider */}
+            <div className="space-y-1.5">
+                <div className="flex items-center justify-between text-xs">
+                    <span className="font-semibold text-stone-800 flex items-center gap-1.5">
+                        <Move size={14} className="text-stone-500 rotate-90" />
+                        Vertical
+                    </span>
+                    <span className="text-[11px] font-medium text-stone-700 tabular-nums bg-white px-2 py-0.5 rounded shadow-xs border border-stone-200">
+                        {verticalBadge}
+                    </span>
+                </div>
+                <div className="relative flex items-center">
+                    <input
+                        className="w-full h-1.5 accent-fw-gold cursor-pointer bg-stone-200 rounded-lg appearance-none"
+                        aria-label="Vertical position"
+                        type="range"
+                        min={0}
+                        max={1}
+                        step={0.01}
+                        value={posY}
+                        onChange={e => handleVerticalChange(e.target.value)}
+                    />
+                    <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-0.5 h-2.5 bg-stone-400/80 pointer-events-none rounded-full" />
+                </div>
+                <div className="flex justify-between text-[10px] text-stone-500 font-medium">
+                    <span>Top</span>
+                    <button
+                        type="button"
+                        aria-label="Center vertically"
+                        onClick={() => onPosition({ ...position, y: 0.5 })}
+                        className="hover:text-stone-800 underline decoration-dotted transition-colors"
+                    >
+                        Center
+                    </button>
+                    <span>Bottom</span>
+                </div>
+            </div>
+
+            {/* Quick Presets */}
+            <div className="pt-2 border-t border-stone-200/70 flex flex-wrap items-center justify-between gap-1.5">
+                <div className="flex flex-wrap items-center gap-1.5">
+                    <button
+                        type="button"
+                        aria-label="Center artwork"
+                        onClick={() => onPosition({ ...position, x: 0.5, y: 0.5 })}
+                        className="px-2 py-1 text-[11px] font-semibold bg-white hover:bg-stone-100 text-stone-700 rounded-md border border-stone-200 shadow-xs transition-colors"
+                    >
+                        Center
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => onPosition({ ...position, zoom: 1 })}
+                        className={`px-2 py-1 text-[11px] font-semibold rounded-md border transition-colors ${
+                            Math.abs(currentZoom - 1) < 0.02
+                                ? 'bg-stone-900 text-white border-stone-900'
+                                : 'bg-white hover:bg-stone-100 text-stone-700 border-stone-200 shadow-xs'
+                        }`}
+                    >
+                        Fit (1.0×)
+                    </button>
+                    {maxZoom >= 1.25 && (
+                        <button
+                            type="button"
+                            onClick={() => onPosition({ ...position, zoom: 1.25 })}
+                            className={`px-2 py-1 text-[11px] font-semibold rounded-md border transition-colors ${
+                                Math.abs(currentZoom - 1.25) < 0.05
+                                    ? 'bg-stone-900 text-white border-stone-900'
+                                    : 'bg-white hover:bg-stone-100 text-stone-700 border-stone-200 shadow-xs'
+                            }`}
+                        >
+                            1.25×
+                        </button>
+                    )}
+                    {maxZoom >= 1.5 && (
+                        <button
+                            type="button"
+                            onClick={() => onPosition({ ...position, zoom: 1.5 })}
+                            className={`px-2 py-1 text-[11px] font-semibold rounded-md border transition-colors ${
+                                Math.abs(currentZoom - 1.5) < 0.05
+                                    ? 'bg-stone-900 text-white border-stone-900'
+                                    : 'bg-white hover:bg-stone-100 text-stone-700 border-stone-200 shadow-xs'
+                            }`}
+                        >
+                            1.5×
+                        </button>
+                    )}
+                    {maxZoom >= 2 && (
+                        <button
+                            type="button"
+                            onClick={() => onPosition({ ...position, zoom: 2 })}
+                            className={`px-2 py-1 text-[11px] font-semibold rounded-md border transition-colors ${
+                                Math.abs(currentZoom - 2) < 0.05
+                                    ? 'bg-stone-900 text-white border-stone-900'
+                                    : 'bg-white hover:bg-stone-100 text-stone-700 border-stone-200 shadow-xs'
+                            }`}
+                        >
+                            2.0×
+                        </button>
+                    )}
+                </div>
+                {!isDefault && (
+                    <button
+                        type="button"
+                        onClick={() => onPosition(DEFAULT_POSITION)}
+                        className="text-[11px] font-semibold text-stone-500 hover:text-stone-800 transition-colors"
+                    >
+                        Reset
+                    </button>
+                )}
+            </div>
+        </div>
+
+        {undo && <button type="button" className="text-xs flex items-center gap-1 text-stone-600 hover:text-stone-900" onClick={() => { onApply(undo); setUndo(null); }}><RotateCcw size={14} />Undo fit change</button>}
+
         {compare && createPortal(<div className="fixed inset-0 z-[200] text-stone-900 bg-black/50 flex items-center justify-center p-4" onKeyDown={e => { if (e.key === 'Escape') setCompare(false); }}>
             <div ref={dialogRef} role="dialog" aria-modal="true" aria-label="Best fit options" onKeyDown={event => {
                 if (event.key !== 'Tab') return;
