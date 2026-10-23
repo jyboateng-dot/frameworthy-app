@@ -10,7 +10,7 @@ describe('artworkEdgeDetector', () => {
         const height = 100;
         const data = new Uint8ClampedArray(width * height * 4);
 
-        // Fill entire image with white/bright painting content (e.g. RGB 200, 180, 150)
+        // Bright artwork interior (RGB 200, 180, 150)
         for (let i = 0; i < width * height; i++) {
             data[i * 4] = 200;
             data[i * 4 + 1] = 180;
@@ -18,7 +18,7 @@ describe('artworkEdgeDetector', () => {
             data[i * 4 + 3] = 255;
         }
 
-        // Draw a 4px dark border on all 4 sides (RGB 0, 0, 0)
+        // 4px dark border on all 4 sides (RGB 0, 0, 0)
         for (let y = 0; y < height; y++) {
             for (let x = 0; x < width; x++) {
                 if (y < 4 || y >= height - 4 || x < 4 || x >= width - 4) {
@@ -34,11 +34,85 @@ describe('artworkEdgeDetector', () => {
         const result = detectBordersFromImageData(data, width, height);
 
         expect(result.hasLeftoverFrame).toBe(true);
-        // 4px / 100px + 0.002 buffer ≈ 0.042 (4.2%)
         expect(result.insets.top).toBeCloseTo(0.042, 2);
         expect(result.insets.bottom).toBeCloseTo(0.042, 2);
         expect(result.insets.left).toBeCloseTo(0.042, 2);
         expect(result.insets.right).toBeCloseTo(0.042, 2);
+    });
+
+    it('detects light, cream, or grey studio conservation margins', () => {
+        const width = 100;
+        const height = 100;
+        const data = new Uint8ClampedArray(width * height * 4);
+
+        // Dark painting interior (RGB 40, 30, 25)
+        for (let i = 0; i < width * height; i++) {
+            data[i * 4] = 40;
+            data[i * 4 + 1] = 30;
+            data[i * 4 + 2] = 25;
+            data[i * 4 + 3] = 255;
+        }
+
+        // 6px light-grey museum mounting board (RGB 210, 210, 215)
+        for (let y = 0; y < height; y++) {
+            for (let x = 0; x < width; x++) {
+                if (y < 6 || y >= height - 6 || x < 6 || x >= width - 6) {
+                    const idx = (y * width + x) * 4;
+                    data[idx] = 210;
+                    data[idx + 1] = 210;
+                    data[idx + 2] = 215;
+                    data[idx + 3] = 255;
+                }
+            }
+        }
+
+        const result = detectBordersFromImageData(data, width, height);
+
+        expect(result.hasLeftoverFrame).toBe(true);
+        expect(result.insets.top).toBeCloseTo(0.062, 2);
+        expect(result.insets.bottom).toBeCloseTo(0.062, 2);
+        expect(result.insets.left).toBeCloseTo(0.062, 2);
+        expect(result.insets.right).toBeCloseTo(0.062, 2);
+    });
+
+    it('detects full antique picture frame mouldings (wood/gold rails)', () => {
+        const width = 120;
+        const height = 120;
+        const data = new Uint8ClampedArray(width * height * 4);
+
+        // Complex artwork interior (RGB 50..180)
+        for (let y = 0; y < height; y++) {
+            for (let x = 0; x < width; x++) {
+                const idx = (y * width + x) * 4;
+                data[idx] = 40 + ((x * 3 + y * 2) % 60);
+                data[idx + 1] = 50 + ((x + y * 4) % 60);
+                data[idx + 2] = 60 + ((x * y) % 60);
+                data[idx + 3] = 255;
+            }
+        }
+
+        // 12px antique gold/wood frame rails (RGB ~170, 120, 50) on all sides
+        for (let y = 0; y < height; y++) {
+            for (let x = 0; x < width; x++) {
+                if (y < 12 || y >= height - 12 || x < 12 || x >= width - 12) {
+                    const idx = (y * width + x) * 4;
+                    // Textured frame moulding with carved variations
+                    const woodGrain = (x + y * 3) % 25;
+                    data[idx] = 170 + woodGrain;
+                    data[idx + 1] = 125 + woodGrain;
+                    data[idx + 2] = 55 + Math.floor(woodGrain / 2);
+                    data[idx + 3] = 255;
+                }
+            }
+        }
+
+        const result = detectBordersFromImageData(data, width, height);
+
+        expect(result.hasLeftoverFrame).toBe(true);
+        expect(result.insets.top).toBeGreaterThanOrEqual(0.09);
+        expect(result.insets.bottom).toBeGreaterThanOrEqual(0.09);
+        expect(result.insets.left).toBeGreaterThanOrEqual(0.09);
+        expect(result.insets.right).toBeGreaterThanOrEqual(0.09);
     });
 
     it('returns zero insets on a clean, full-bleed artwork with no borders', () => {
