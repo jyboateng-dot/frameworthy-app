@@ -99,32 +99,31 @@ export function detectBordersFromImageData(data, width, height, maxSearchPct = 0
     }
 
     // --- Strategy 2: Frame Moulding & Sight-Edge Projection ---
-    // At the inner sight edge of an antique frame moulding (gold, wood, or carved),
-    // there is a continuous horizontal (top/bottom) or vertical (left/right)
-    // gradient step across a large fraction of the aperture.
-    const innerSpanX1 = Math.max(flatLeft, Math.floor(width * 0.15));
-    const innerSpanX2 = Math.min(width - flatRight, Math.floor(width * 0.85));
-    const spanW = innerSpanX2 - innerSpanX1;
-
-    const innerSpanY1 = Math.max(flatTop, Math.floor(height * 0.15));
-    const innerSpanY2 = Math.min(height - flatBottom, Math.floor(height * 0.85));
-    const spanH = innerSpanY2 - innerSpanY1;
-
-    const findInnerSightEdge = (isRow, start, end, spanMin, spanMax) => {
-        let bestInset = 0;
-        let maxEdgeScore = 0;
+    // Antique picture frames and inner slips/liners consist of multiple profile bevels
+    // starting from the outer edge and stepping inward to the innermost sight edge.
+    // We scan inwards along each rail (top, bottom, left, right) over the central 70% span,
+    // following consecutive moulding steps/rebates to find the true innermost sight edge.
+    const detectRail = (isRow, isMaxSide, dim, otherDim, flatInset) => {
+        const maxSearch = Math.min(Math.floor(dim * 0.25), Math.floor(dim / 2) - 8);
+        const spanMin = Math.floor(otherDim * 0.15);
+        const spanMax = Math.floor(otherDim * 0.85);
         const span = spanMax - spanMin;
         const step = Math.max(1, Math.floor(span / 80));
 
-        for (let i = start; i < end; i++) {
+        let lastEdgeInset = 0;
+        let bestScore = 0;
+        const maxGap = Math.max(4, Math.floor(dim * 0.035));
+
+        for (let inset = Math.max(1, flatInset); inset < maxSearch; inset++) {
+            const pos = isMaxSide ? (dim - 1 - inset) : (inset - 1);
             let edgeCount = 0;
             let totalDiff = 0;
             let count = 0;
 
             for (let j = spanMin; j < spanMax; j += step) {
                 const diff = isRow
-                    ? Math.abs(getLum(j, i + 1) - getLum(j, i))
-                    : Math.abs(getLum(i + 1, j) - getLum(i, j));
+                    ? Math.abs(getLum(j, pos + 1) - getLum(j, pos))
+                    : Math.abs(getLum(pos + 1, j) - getLum(pos, j));
                 totalDiff += diff;
                 if (diff > 16) edgeCount++;
                 count++;
@@ -132,61 +131,30 @@ export function detectBordersFromImageData(data, width, height, maxSearchPct = 0
 
             const avgDiff = totalDiff / count;
             const edgeFraction = edgeCount / count;
+            const score = avgDiff * edgeFraction;
 
-            if (edgeFraction >= 0.30 && avgDiff >= 15) {
-                const score = avgDiff * edgeFraction;
-                if (score > maxEdgeScore) {
-                    maxEdgeScore = score;
-                    bestInset = i + 1;
+            const isSignificant = (edgeFraction >= 0.45 && avgDiff >= 14) ||
+                                  (edgeFraction >= 0.28 && avgDiff >= 18) ||
+                                  (score >= 7.5 && edgeFraction >= 0.30);
+
+            if (isSignificant) {
+                if (lastEdgeInset === 0) {
+                    lastEdgeInset = inset;
+                    bestScore = score;
+                } else if (inset - lastEdgeInset <= maxGap) {
+                    lastEdgeInset = inset;
+                    bestScore = Math.max(bestScore, score);
                 }
             }
         }
-        return { inset: bestInset, score: maxEdgeScore };
+
+        return { inset: lastEdgeInset, score: bestScore };
     };
 
-    const topRail = findInnerSightEdge(true, flatTop, maxSearchY, innerSpanX1, innerSpanX2);
-
-    let bottomRail = { inset: 0, score: 0 };
-    for (let y = height - 2; y >= height - maxSearchY; y--) {
-        let edgeCount = 0, totalDiff = 0, count = 0;
-        const step = Math.max(1, Math.floor(spanW / 80));
-        for (let x = innerSpanX1; x < innerSpanX2; x += step) {
-            const diff = Math.abs(getLum(x, y + 1) - getLum(x, y));
-            totalDiff += diff;
-            if (diff > 16) edgeCount++;
-            count++;
-        }
-        const avgDiff = totalDiff / count;
-        const edgeFraction = edgeCount / count;
-        if (edgeFraction >= 0.30 && avgDiff >= 15) {
-            const score = avgDiff * edgeFraction;
-            if (score > bottomRail.score) {
-                bottomRail = { inset: height - (y + 1), score };
-            }
-        }
-    }
-
-    const leftRail = findInnerSightEdge(false, flatLeft, maxSearchX, innerSpanY1, innerSpanY2);
-
-    let rightRail = { inset: 0, score: 0 };
-    for (let x = width - 2; x >= width - maxSearchX; x--) {
-        let edgeCount = 0, totalDiff = 0, count = 0;
-        const step = Math.max(1, Math.floor(spanH / 80));
-        for (let y = innerSpanY1; y < innerSpanY2; y += step) {
-            const diff = Math.abs(getLum(x + 1, y) - getLum(x, y));
-            totalDiff += diff;
-            if (diff > 16) edgeCount++;
-            count++;
-        }
-        const avgDiff = totalDiff / count;
-        const edgeFraction = edgeCount / count;
-        if (edgeFraction >= 0.30 && avgDiff >= 15) {
-            const score = avgDiff * edgeFraction;
-            if (score > rightRail.score) {
-                rightRail = { inset: width - (x + 1), score };
-            }
-        }
-    }
+    const topRail = detectRail(true, false, height, width, flatTop);
+    const bottomRail = detectRail(true, true, height, width, flatBottom);
+    const leftRail = detectRail(false, false, width, height, flatLeft);
+    const rightRail = detectRail(false, true, width, height, flatRight);
 
     // Require opposite rails or at least two coherent rails to confirm a textured frame moulding,
     // ensuring natural pictorial horizon or landscape lines are never mistaken for frames.
