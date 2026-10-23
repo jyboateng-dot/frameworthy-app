@@ -7,7 +7,6 @@ import { getFrameRail, getRailTextureStyle, getRailShading } from '../../utils/f
 import { getFrameInnerShadow, getFrameWallShadow } from '../../utils/frameDepthPresentation';
 import { bestFitOptions } from '../../utils/bestFitOptions';
 import Price from '../common/Price';
-import SmartCropSliders from './SmartCropSliders';
 
 const FRAME_SIDE_STYLES = {
     top: geometry => ({ top: 0, left: 0, right: 0, height: `${geometry.rail / geometry.outerHeight * 100}%`,
@@ -116,13 +115,11 @@ export default function FrameFitPanel({ image, natural, size, orientation, mat, 
                 <button type="button" className="w-7 h-7 flex items-center justify-center text-stone-600 hover:text-stone-950" title="Reset image position" aria-label="Reset image position" onClick={() => onPosition(DEFAULT_POSITION)}><RotateCcw size={15} /></button>
             </div>
         </div>
-        <SmartCropSliders
-            natural={natural}
-            geometry={geometry}
-            position={position}
-            onPosition={onPosition}
-            minimumDpi={minimumDpi}
-        />
+        {[['x', 'Horizontal', 0, 1, 0.01], ['y', 'Vertical', 0, 1, 0.01], ['zoom', 'Zoom', 1, maxZoom, 0.01]].map(([key, label, min, max, stepVal]) =>
+            <label key={key} className="flex items-center gap-3 text-xs font-medium text-stone-700"><span className="w-16 shrink-0">{label}</span>
+                <input className="w-full min-w-0 accent-fw-gold disabled:opacity-40" aria-label={label} type="range" min={min} max={max} step={stepVal}
+                    disabled={key === 'zoom' && max <= 1.01}
+                    value={Math.min(max, position[key])} onChange={e => onPosition({ ...position, [key]: Number(e.target.value) })} /></label>)}
         {undo && <button type="button" className="text-xs flex items-center gap-1" onClick={() => { onApply(undo); setUndo(null); }}><RotateCcw size={14} />Undo fit change</button>}
         {compare && createPortal(<div className="fixed inset-0 z-[200] text-stone-900 bg-black/50 flex items-center justify-center p-4" onKeyDown={e => { if (e.key === 'Escape') setCompare(false); }}>
             <div ref={dialogRef} role="dialog" aria-modal="true" aria-label="Best fit options" onKeyDown={event => {
