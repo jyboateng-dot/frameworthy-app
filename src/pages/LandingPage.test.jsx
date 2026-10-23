@@ -15,7 +15,7 @@ describe('home catalogue and carousel', () => {
         expect(screen.getByText(/Explore made-to-order frames and canvases/)).toBeInTheDocument();
         expect(screen.queryByText(/Prodigi/i)).not.toBeInTheDocument();
         expect(screen.getByRole('button', { name: 'Classic Frames' })).toHaveAttribute('aria-pressed', 'true');
-        expect(screen.getByText(/Solid, satin-laminated wood paired with a premium fine-art print/)).toBeInTheDocument();
+        expect(screen.getByText(/Solid, satin-laminated wood with a 20 mm face and 22 mm depth/)).toBeInTheDocument();
         expect(screen.getByRole('heading', { name: 'Black' })).toBeInTheDocument();
         expect(screen.getAllByText('From £32').length).toBeGreaterThan(0);
         expect(screen.getAllByRole('button').filter(button => button.hasAttribute('aria-pressed'))).toHaveLength(7);

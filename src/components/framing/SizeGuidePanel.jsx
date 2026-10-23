@@ -456,7 +456,7 @@ const SizeGuidePanel = ({ currentSize, orientation, imageNaturalSize = null, min
                             })}</tbody>
                         </table>
                         <div className="pt-4 mt-4 text-xs text-stone-500 border-t border-stone-200" style={{ lineHeight: 1.6 }}>
-                            Every frame is built custom to fit. Moulding, matting, and glazing options are available in the steps below.
+                            Every frame is built custom to fit. Moulding, mounting, and glazing options are available in the steps below.
                         </div>
                     </div>
                 </div>

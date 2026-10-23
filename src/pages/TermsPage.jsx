@@ -18,7 +18,7 @@ const TermsPage = ({ navigate }) => (
 
         <LegalSection title="2. Who We Are">
             <p>
-                FrameWorthy is operated by Frameworthy&amp;co, Liberty Wharf Apartments, Esplanade,
+                FrameWorthy is operated by Frameworthy&amp;co, Esplanade,
                 St Helier, Jersey, JE2 3AS.
             </p>
         </LegalSection>

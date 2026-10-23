@@ -22,7 +22,7 @@ const ItemFulfillmentCard = ({ item }) => {
 
     let productTitle = 'Custom Photo Frame';
     if (item.collageImages?.length > 0) productTitle = 'Custom Photo Collage';
-    else if (item.isPreset) productTitle = 'Curated Artwork Frame';
+    else if (item.isPreset) productTitle = 'Artwork Frame';
 
     return (
         <div className="border border-gray-200 rounded-xl p-5 bg-white shadow-sm">
@@ -90,12 +90,12 @@ const ItemFulfillmentCard = ({ item }) => {
                         )}
                         {(item.productionSpec?.version === 1 || item.productionSpec?.version === 2) && <>
                             <SpecRow label="Print aperture">{item.productionSpec.apertureWidth.toFixed(item.productionSpec.units === 'cm' ? 2 : 3)} x {item.productionSpec.apertureHeight.toFixed(item.productionSpec.units === 'cm' ? 2 : 3)} {item.productionSpec.units || 'in'}</SpecRow>
-                            <SpecRow label="Mat edges (T/B/L/R)">{['top', 'bottom', 'left', 'right'].map(edge => item.productionSpec[edge].toFixed(item.productionSpec.units === 'cm' ? 2 : 3)).join(' / ')} {item.productionSpec.units || 'in'}</SpecRow>
+                            <SpecRow label="Mount edges (T/B/L/R)">{['top', 'bottom', 'left', 'right'].map(edge => item.productionSpec[edge].toFixed(item.productionSpec.units === 'cm' ? 2 : 3)).join(' / ')} {item.productionSpec.units || 'in'}</SpecRow>
                             <SpecRow label="Finished frame">{item.productionSpec.outerWidth.toFixed(item.productionSpec.units === 'cm' ? 2 : 3)} x {item.productionSpec.outerHeight.toFixed(item.productionSpec.units === 'cm' ? 2 : 3)} {item.productionSpec.units || 'in'}</SpecRow>
                         </>}
                         <SpecRow label="Glazing">{GLASS_LABELS[item.glassType] || item.glassType || '—'}</SpecRow>
                         <SpecRow label="Hardware">{HARDWARE_LABELS[item.hardwareType] || item.hardwareType || '—'}</SpecRow>
-                        <SpecRow label="Mat">
+                        <SpecRow label="Mount">
                             {hasMat ? (
                                 <span className="flex items-center gap-1.5">
                                     <span
@@ -106,7 +106,7 @@ const ItemFulfillmentCard = ({ item }) => {
                                     {item.matColor.name} ({matWidthLabel(item.matWidth)})
                                 </span>
                             ) : (
-                                <span className="text-gray-400">No Mat</span>
+                                <span className="text-gray-400">No Mount</span>
                             )}
                         </SpecRow>
                     </div>

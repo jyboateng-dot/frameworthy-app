@@ -305,7 +305,7 @@ const PRODIGI_FRAME_RECORDS = [
         category: 'Prodigi Classic Frames',
         baseColor: ['#242321', '#f4f1e9', '#b08a5a', '#aaa9a5', '#68472f', '#c4a357', '#555451', '#c3c1bd'][index],
         width: '20px', widthCategory: 'standard', priceMod: 1, type: 'Framed Print',
-        desc: 'Solid wood classic frame · Perspex, float glass or Motheye glaze.',
+        desc: 'Solid wood classic frame · Perspex, float or Motheye glazing.',
         previewImg: `/prodigi/finishes/classic-${color}.png`, cornerImage: `/prodigi/finishes/classic-${color}.png`, borderImageSource: `/prodigi/finishes/classic-${color}.png`, borderImageSlicePct: 27,
         mouldingWidthIn: 20 / 25.4, rabbetDepthIn: 17 / 25.4, totalDepthIn: 22 / 25.4, renderProfile: 'flat', finish: /gold|silver/.test(color) ? 'metallic' : 'matte', prodigiProduct: 'classic', prodigiColor: ({ 'antique-gold': 'gold', 'antique-silver': 'silver', 'dark-grey': 'dark grey', 'light-grey': 'light grey' }[color] || color),
     })),

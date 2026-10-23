@@ -15,7 +15,7 @@ const FAQ_DATA = [
         questions: [
             {
                 q: 'How do I upload and preview my photo?',
-                a: 'Click "Start Framing" in the navigation menu to upload any photo from your phone or computer. Our real-time visualizer instantly displays your photo inside custom frames, letting you adjust frame styles, matboards, dimensions, and wall colors before placing your order.'
+                a: 'Click "Start Framing" in the navigation menu to upload any photo from your phone or computer. Our real-time visualizer instantly displays your photo inside custom frames, letting you adjust frame styles, mounts, dimensions, and wall colours before placing your order.'
             },
             {
                 q: 'What photo resolution and quality should I upload?',
@@ -30,16 +30,16 @@ const FAQ_DATA = [
                 a: 'We offer standard and metric preset sizes ranging from small desktop frames (13 x 18 cm / 5x7 in) up to statement gallery sizes (60 x 90 cm / 24x36 in) and 120 x 120 cm pieces. You can also enter your own custom width and height dimensions directly into the customizer for tailor-made framing, and toggle between centimeters (cm) and inches (in) anytime.'
             },
             {
-                q: 'How do matboard colors and mat widths work?',
-                a: 'Matboards create a elegant border between your artwork and the frame. You can choose from 10 acid-free mat shades (including Polar White, Warm Ivory, Soot Black, Royal Navy, Hunter Green, Terracotta, and Burgundy Maroon) and select your preferred width: No Mat, Narrow (1.5 in), Standard (2.5 in), or Wide Exhibition (3.5 in).'
+                q: 'How do mount colours and mount widths work?',
+                a: 'A mount creates a considered border between the artwork and frame. Classic and Box frames can be ordered without a mount or with Snow White, Off-white, or Black mounting where the selected size supports it. The mount width is set automatically for the chosen frame size.'
             },
             {
-                q: 'What is the difference between Standard Clear Glass and Non-Glare Acrylic?',
-                a: 'Standard Clear Glass provides crystal-clear protection that enhances color contrast in normal lighting. Non-Glare Anti-Reflective Acrylic features a museum-grade matte coating designed to eliminate glare and reflections in brightly lit rooms or spaces with direct sunlight.'
+                q: 'How do the glazing options differ?',
+                a: 'Shatterproof Perspex is clear and lightweight, Float glazing has a crisp reflective finish, and Moth-eye glazing provides near reflection-free clarity. The available choice depends on the selected frame and size.'
             },
             {
                 q: 'How do Gallery Wrapped Canvas, Traditional Canvas, and Floater Canvas framing and glazing work?',
-                a: '1) Gallery Wrapped Canvas (Frame Style): Your artwork is stretched taut over deep wooden stretcher bars with the image wrapping smoothly around the edges for a frameless, modern studio presentation. 2) Traditional Canvas (Glazing): Canvas artwork set inside a classic outer moulding; finished with a protective UV matte sealant directly on the canvas surface so glass glazing is not required, preserving the natural tactile texture. 3) Floater Canvas (Glazing): Canvas mounted inside a recessed channel frame that leaves a subtle shadow gap around all edges, making the artwork appear to float inside the frame. Like traditional canvas, it is protected by a UV coating without glass to prevent reflection and showcase 3D depth.'
+                a: '1) Gallery Wrapped Canvas (Frame Style): Your artwork is stretched taut over deep wooden stretcher bars with the image wrapping smoothly around the edges for a frameless, modern studio presentation. 2) Traditional Canvas (Glazing): Canvas artwork set inside a classic outer moulding; finished with a protective UV matte sealant directly on the canvas surface, so separate glazing is not required and the natural tactile texture remains visible. 3) Floater Canvas (Glazing): Canvas mounted inside a recessed channel frame that leaves a subtle shadow gap around all edges, making the artwork appear to float inside the frame. Like traditional canvas, it is protected by a UV coating without separate glazing to showcase its depth.'
             },
             {
                 q: 'Can I change the orientation of my frame (Portrait vs. Landscape)?',
@@ -58,12 +58,12 @@ const FAQ_DATA = [
                 a: 'The Room Visualizer lets you preview your custom frame against different wall textures and paint colors (such as Linen, Slate, Brick, Dark Wood, and Light Plaster) so you can see how your frame will look in a real room environment before buying.'
             },
             {
-                q: 'Can I order curated art prints instead of uploading my own photos?',
-                a: 'Yes! Visit our "Curated Art" page to browse thousands of pre-formatted artwork pieces, including Met Museum Masterpieces, Prestige Paintings, Vintage Movie Posters, and Iconic Album Cover Art, all ready for custom framing.'
+                q: 'Can I order public-domain art prints instead of uploading my own photos?',
+                a: 'Yes! Visit our "Public Domain Art" page to browse artwork from open-access museum collections, ready for custom framing.'
             },
             {
                 q: "How is my frame's price calculated?",
-                a: 'Pricing is fully customization-based — you only pay for what you choose. Your final price reflects your selected size, frame style, mat, glazing, and hardware, and updates instantly in the customizer as you adjust each option.'
+                a: 'Pricing is fully customization-based — you only pay for what you choose. Your final price reflects your selected size, frame style, mount, glazing, and hardware, and updates instantly in the customizer as you adjust each option.'
             }
         ]
     },
@@ -256,7 +256,7 @@ const HelpCenterPage = ({ navigate, onOpenChat }) => {
                                     📞 +44 7797 789598
                                 </a>
                                 <p className="text-[11px] text-stone-500 pt-1">
-                                    Liberty Wharf Apartments, Esplanade, St Helier, Jersey, JE2 3AS
+                                    Esplanade, St Helier, Jersey, JE2 3AS
                                 </p>
                             </div>
                         </div>

@@ -11,7 +11,7 @@ const RefundPolicyPage = ({ navigate }) => (
         <LegalSection title="1. Overview">
             <p>
                 Every FrameWorthy order is custom-produced to your exact specifications — your
-                uploaded image, chosen frame, mat, size, and orientation. Because of this, most orders
+                uploaded image, chosen frame, mount, size, and orientation. Because of this, most orders
                 can't be resold to another customer once production starts, which shapes the policy
                 below.
             </p>
@@ -75,7 +75,7 @@ const RefundPolicyPage = ({ navigate }) => (
                 or +44 7797 789598.
             </p>
             <p className="mt-2 text-xs text-stone-500">
-                Frameworthy&amp;co, Liberty Wharf Apartments, Esplanade, St Helier, Jersey, JE2 3AS.
+                Frameworthy&amp;co, Esplanade, St Helier, Jersey, JE2 3AS.
             </p>
         </LegalSection>
     </LegalPageLayout>

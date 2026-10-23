@@ -39,7 +39,7 @@ it('presents fulfilment finishes as selectable cards in the shared curated colle
 
     expect(screen.getByRole('heading', { name: 'Frame Catalogue' })).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Classic Frames' }));
-    expect(screen.getByText(/Solid, satin-laminated wood paired with a premium fine-art print/)).toBeInTheDocument();
+    expect(screen.getByText(/Solid, satin-laminated wood with a 20 mm face and 22 mm depth/)).toBeInTheDocument();
     const classicBlack = screen.getByRole('button', { name: /Black/ });
     expect(classicBlack.querySelector('img')).toHaveAttribute('src', expect.stringContaining('classic-black.png'));
     expect(classicBlack).not.toHaveTextContent(/depth/i);

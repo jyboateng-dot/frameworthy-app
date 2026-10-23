@@ -17,10 +17,10 @@ ACTIVE COLLECTION
 - Prices are live quotes in Pounds Sterling (GBP). Standard delivery and applicable tax are included.
 - Online payment is being connected. Do not tell customers that payment is currently available.
 
-MATTING AND GLAZING
-- Classic and Box frames can offer No Mat, Snow White, Off-white, and Black where supported.
-- Mat width is set automatically for the chosen frame size.
-- Aluminium and canvas products do not offer matting.
+MOUNTS AND GLAZING
+- Classic and Box frames can offer No Mount, Snow White, Off-white, and Black where supported.
+- Mount width is set automatically for the chosen frame size.
+- Aluminium and canvas products do not offer mounting.
 - Applicable print frames use the glazing shown in the customizer, including Perspex and selected anti-reflective options. Canvas styles do not use glazing.
 
 HANGING HARDWARE
@@ -37,7 +37,7 @@ ORDERS AND SUPPORT
 - Made-to-order products can only be cancelled before production begins.
 - Damage or incorrect-item claims should be reported within 72 hours with photographs.
 - Support email: admin@frameworthyco.com.
-- Physical business address: Liberty Wharf Apartments, Esplanade, St Helier, Jersey, JE2 3AS.
+- Physical business address: Esplanade, St Helier, Jersey, JE2 3AS.
 - Phone: +44 7797 789598, Monday-Saturday, 8:00 AM-6:00 PM GMT.
 `;
 

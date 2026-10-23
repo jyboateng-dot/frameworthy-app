@@ -2479,7 +2479,7 @@ const CustomizeFramePage = ({
         <div className={`flex ${isSideBySide ? 'flex-row h-[calc(100dvh-47px)] overflow-hidden' : 'flex-col min-h-[calc(100dvh-47px)]'} bg-[#faf9f8]`}>
             <PageMeta
                 title="Design Your Custom Frame"
-                description="Upload a photo or choose art, pick a frame style, mat, and size, and see it rendered on your wall in real time."
+                description="Upload a photo or choose art, pick a frame style, mount, and size, and see it rendered on your wall in real time."
             />
 
             {/* LEFT COLUMN: the visualizer. The former approximation-note band
@@ -3879,7 +3879,7 @@ const CustomizeFramePage = ({
                                 className="border border-stone-200 rounded-xl p-3 flex flex-col items-center justify-center hover:bg-stone-50 hover:border-stone-400 transition-colors h-[72px] text-center"
                             >
                                 <ImagePlus size={16} className="text-stone-500" />
-                                <span className="mt-1 text-[10px] font-bold uppercase tracking-wider text-stone-700 truncate w-full">Curated Art</span>
+                                <span className="mt-1 text-[10px] font-bold uppercase tracking-wider text-stone-700 truncate w-full">Public Domain Art</span>
                             </button>
                         </div>
                     </section>
@@ -4191,7 +4191,7 @@ const CustomizeFramePage = ({
                                         const sizeMaxSliderIndex = matWidthToSliderIndex(sizeMaxMatWidthIn);
                                         const isNoMat = matWidth === 'none';
                                         const widthLabel = isNoMat
-                                            ? 'No Mat'
+                                            ? 'No Mount'
                                             : unit === 'cm'
                                                 ? `${(Number(matWidth) * 2.54).toFixed(1)} cm`
                                                 : `${Number(matWidth).toFixed(2)} in`;
@@ -4201,8 +4201,8 @@ const CustomizeFramePage = ({
                                                     <span className="flex min-w-0 items-center gap-2">
                                                         <span className="bg-stone-100 text-stone-500 w-5 h-5 rounded-full flex shrink-0 items-center justify-center text-[10px]">{stepMatting}</span>
                                                         <span>
-                                                            Mat Width
-                                                            <InfoTooltip text="Drag to the far left for no mat. The first step right is a 1 inch mat; each step after adds a quarter inch, up to 8 inches (less on smaller prints, so the mat never overwhelms the artwork)." />
+                                                            Mount Width
+                                                            <InfoTooltip text="Drag to the far left for no mount. The first step right is a 1 inch mount; each step after adds a quarter inch, up to 8 inches (less on smaller prints, so the mount never overwhelms the artwork)." />
                                                         </span>
                                                     </span>
                                                     <span className="shrink-0 text-xs font-bold text-stone-900 tabular-nums normal-case">
@@ -4220,7 +4220,7 @@ const CustomizeFramePage = ({
                                                         setIsOptimized(false);
                                                     }}
                                                     className="w-full h-1.5 accent-fw-gold cursor-pointer"
-                                                    aria-label="Mat width"
+                                                    aria-label="Mount width"
                                                 />
                                             </>
                                         );
@@ -4230,7 +4230,7 @@ const CustomizeFramePage = ({
                                 {matWidth !== 'none' && (
                                     <section>
                                         <h2 className="text-xs font-bold uppercase tracking-wider text-stone-900 mb-3 flex items-center gap-2">
-                                            <span>Mat Color</span>
+                                            <span>Mount Colour</span>
                                         </h2>
                                         <div className="grid grid-cols-5 gap-2">
                                             {MAT_COLORS.map(color => (
@@ -4255,7 +4255,7 @@ const CustomizeFramePage = ({
                                 <h2 className="text-xs font-bold uppercase tracking-wider text-stone-900 mb-3 flex items-center gap-2">
                             <span className="bg-stone-100 text-stone-500 w-5 h-5 rounded-full flex items-center justify-center text-[10px]">{stepGlazing}</span>
                                     <span>
-                                        Glazing (Glass)
+                                        Glazing
                                         <InfoTooltip text="We use gallery-grade, shatterproof framing acrylic. Museum option blocks 99% UV." />
                                     </span>
                                 </h2>
@@ -4263,7 +4263,7 @@ const CustomizeFramePage = ({
                                     {[
                                         { id: 'standard', name: 'Shatterproof Perspex', desc: 'Clear, lightweight protection.', price: 0 },
                                         { id: 'non-glare', name: 'Non-Glare Acrylic', desc: 'Reduces reflections in bright rooms.', price: 100 },
-                                        { id: 'museum', name: 'Museum Glass', desc: '99% UV protection, zero reflection.', price: 200 },
+                                        { id: 'museum', name: 'Museum Glazing', desc: '99% UV protection, zero reflection.', price: 200 },
                                         { id: 'canvas-traditional', name: 'Traditional Canvas', desc: "Frame's inner lip overlaps the canvas edges", price: 350 },
                                         { id: 'canvas-floater', name: 'Floater Canvas', desc: 'Canvas floats with a reveal gap inside the frame', price: 400 },
                                     ].map(glass => (

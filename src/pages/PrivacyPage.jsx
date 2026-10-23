@@ -113,7 +113,7 @@ const PrivacyPage = ({ navigate }) => (
                 or +44 7797 789598.
             </p>
             <p className="mt-2 text-xs text-stone-500">
-                Frameworthy&amp;co, Liberty Wharf Apartments, Esplanade, St Helier, Jersey, JE2 3AS.
+                Frameworthy&amp;co, Esplanade, St Helier, Jersey, JE2 3AS.
             </p>
         </LegalSection>
     </LegalPageLayout>

@@ -10,14 +10,14 @@ import { formatDimensions } from '../data/constants';
 export const GLASS_LABELS = {
     standard: 'Shatterproof Perspex',
     'non-glare': 'Non-Glare Acrylic',
-    museum: 'Museum Glass',
+    museum: 'Museum Glazing',
     'canvas-traditional': 'Traditional Canvas',
     'canvas-floater': 'Floater Canvas',
 };
 
 export const PRODIGI_GLAZE_LABELS = {
     'Acrylic / Perspex': 'Shatterproof Perspex',
-    'Float glass': 'Float Glass',
+    'Float glass': 'Float Glazing',
     Motheye: 'Moth-eye Anti-Reflective',
 };
 
@@ -29,7 +29,7 @@ export const HARDWARE_LABELS = {
     'french-cleat': 'French Cleat',
     easel: 'Tabletop Easel',
 };
-export const MAT_WIDTH_LABELS = { none: 'No Mat', narrow: 'Narrow Mat', standard: 'Standard Mat', wide: 'Wide Mat' };
+export const MAT_WIDTH_LABELS = { none: 'No Mount', narrow: 'Narrow Mount', standard: 'Standard Mount', wide: 'Wide Mount' };
 
 // matWidth used to be one of the three fixed presets above; orders placed
 // since the mat-width slider replaced them (see CustomizeFramePage.jsx and
@@ -37,10 +37,10 @@ export const MAT_WIDTH_LABELS = { none: 'No Mat', narrow: 'Narrow Mat', standard
 // This formats either shape, so order history from before the change keeps
 // reading correctly forever alongside new orders.
 export const matWidthLabel = (matWidth) => {
-    if (matWidth == null || matWidth === 'none') return 'No Mat';
+    if (matWidth == null || matWidth === 'none') return 'No Mount';
     if (MAT_WIDTH_LABELS[matWidth]) return MAT_WIDTH_LABELS[matWidth];
     const inches = Number(matWidth);
-    return Number.isFinite(inches) ? `${inches}" Mat` : `${matWidth} Mat`;
+    return Number.isFinite(inches) ? `${inches}" Mount` : `${matWidth} Mount`;
 };
 
 /**
@@ -147,15 +147,15 @@ export const generateItemDescription = (item) => {
         specs.push(`${widthStr ? `${widthStr} ` : ''}${mountColor} Mount`.trim());
     } else if (item.matWidth && item.matWidth !== 'none' && !isCanvas) {
         let widthStr = matWidthLabel(item.matWidth);
-        // Strip " Mat" suffix if present so we can inject the color before it
-        if (widthStr.endsWith(' Mat')) {
-            widthStr = widthStr.substring(0, widthStr.length - 4);
+        // Strip " Mount" suffix if present so we can inject the colour before it.
+        if (widthStr.endsWith(' Mount')) {
+            widthStr = widthStr.substring(0, widthStr.length - 6);
         }
         
         if (item.matColor?.name) {
-            specs.push(`${widthStr} ${item.matColor.name} Mat`);
+            specs.push(`${widthStr} ${item.matColor.name} Mount`);
         } else {
-            specs.push(`${widthStr} Mat`);
+            specs.push(`${widthStr} Mount`);
         }
     }
 
@@ -164,10 +164,10 @@ export const generateItemDescription = (item) => {
         if (item.prodigi?.attributes?.glaze) {
             const glaze = item.prodigi.attributes.glaze;
             const label = PRODIGI_GLAZE_LABELS[glaze] || (glaze === 'standard' ? 'Shatterproof Perspex' : glaze);
-            specs.push(`${label} Glazing`);
+            specs.push(/glazing$/i.test(label) ? label : `${label} Glazing`);
         } else if (item.glassType && !item.glassType.startsWith('canvas')) {
             const label = item.glassType === 'standard' ? 'Shatterproof Perspex' : (GLASS_LABELS[item.glassType] || item.glassType);
-            specs.push(`${label} Glazing`);
+            specs.push(/glazing$/i.test(label) ? label : `${label} Glazing`);
         }
     }
 
@@ -210,7 +210,7 @@ export const getItemCustomizerSpecs = (item, options = {}) => {
         } else if (item.matWidth && item.matWidth !== 'none') {
             const width = matWidthLabel(item.matWidth);
             const color = item.matColor?.name ? ` (${item.matColor.name})` : '';
-            specs.push({ label: 'Mat', value: `${width}${color}` });
+            specs.push({ label: 'Mount', value: `${width}${color}` });
         } else if (isProdigi) {
             specs.push({ label: 'Mount', value: 'No mount' });
         }
@@ -326,15 +326,15 @@ export const formatOrdersForSharing = (orders) => {
             
             const matDesc = item.matWidth !== 'none' && item.matColor
                 ? `${item.matColor.name} (${matWidthLabel(item.matWidth)})`
-                : 'No Mat';
+                : 'No Mount';
                 
-            orderText += `Qty: ${item.quantity}                 Mat: ${matDesc}\n\n`;
+            orderText += `Qty: ${item.quantity}                 Mount: ${matDesc}\n\n`;
             if (item.productionSpec?.version === 1 || item.productionSpec?.version === 2) {
                 const spec = item.productionSpec;
                 const unit = spec.units === 'cm' ? 'cm' : 'in';
                 const precision = unit === 'cm' ? 2 : 3;
                 orderText += `Print aperture: ${spec.apertureWidth.toFixed(precision)} x ${spec.apertureHeight.toFixed(precision)} ${unit}\n`;
-                orderText += `Mat edges (top/bottom/left/right): ${['top', 'bottom', 'left', 'right'].map(edge => spec[edge].toFixed(precision)).join(' / ')} ${unit}\n`;
+                orderText += `Mount edges (top/bottom/left/right): ${['top', 'bottom', 'left', 'right'].map(edge => spec[edge].toFixed(precision)).join(' / ')} ${unit}\n`;
                 orderText += `Finished frame: ${spec.outerWidth.toFixed(precision)} x ${spec.outerHeight.toFixed(precision)} ${unit}\n`;
             }
             

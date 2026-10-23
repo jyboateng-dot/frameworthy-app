@@ -93,7 +93,7 @@ const Header = ({
                         onClick={() => navigate('/curated-art')}
                         className="text-[10px] lg:text-[11px] font-bold uppercase tracking-wider text-[#9a8e7d] hover:text-[#e8e2d9] transition-colors whitespace-nowrap"
                     >
-                        Curated Art
+                        Public Domain Art
                     </button>
                 </div>
 
@@ -227,7 +227,7 @@ const Header = ({
                             <div className="bg-[#141210]/95 backdrop-blur-md shadow-xl border border-white/[0.07] rounded-xl flex flex-col p-4 space-y-2 animate-fade-in-up">
                                 <button onClick={() => { navigate('/'); setIsMenuOpen(false); }} className="text-left py-2 hover:bg-white/[0.05] rounded px-2 transition text-[#e8e2d9] font-bold">Home</button>
                                 <button onClick={handleFramesClick} className="text-left py-2 hover:bg-white/[0.05] rounded px-2 transition text-[#e8e2d9]">Frames</button>
-                                <button onClick={() => { navigate('/curated-art'); setIsMenuOpen(false); }} className="text-left py-2 hover:bg-white/[0.05] rounded px-2 transition text-[#e8e2d9]">Curated Art</button>
+                                <button onClick={() => { navigate('/curated-art'); setIsMenuOpen(false); }} className="text-left py-2 hover:bg-white/[0.05] rounded px-2 transition text-[#e8e2d9]">Public Domain Art</button>
                                 <button onClick={() => { navigate('/help'); setIsMenuOpen(false); }} className="text-left py-2 hover:bg-white/[0.05] rounded px-2 transition text-[#e8e2d9]">Help Centre</button>
                                 <button onClick={() => { navigate('/frame/customize'); setIsMenuOpen(false); }} className="text-center py-2 mt-1 rounded-full font-bold text-sm bg-[#c9a84c] text-[#0a0a0a] hover:bg-[#d4b55c] transition-colors">Start Framing</button>
 

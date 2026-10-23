@@ -42,7 +42,7 @@ export function getLocalAiResponse(userMessage) {
 
     // 3. Matboard Options
     if (matchAny(text, ['mat', 'mats', 'matboard', 'matboards', 'border', 'margin', 'ivory', 'navy', 'cream', 'terracotta', 'burgundy', 'white mat', 'black mat'])) {
-        return "Classic and Box frames can be ordered without matting or with Snow White, Off-white, or Black matting where the selected size supports it. Mat width is set automatically for the chosen product size.";
+        return "Classic and Box frames can be ordered without a mount or with Snow White, Off-white, or Black mounting where the selected size supports it. Mount width is set automatically for the chosen product size.";
     }
 
     // 4. Custom Sizes, Dimensions & Pricing
@@ -77,7 +77,7 @@ export function getLocalAiResponse(userMessage) {
 
     // 10. Location, Physical Address & Phone Contacts
     if (matchAny(text, ['address', 'location', 'where', 'office', 'studio', 'jersey', 'phone', 'contact', 'call', 'email', 'number', 'speak'])) {
-        return "Our physical studio is located at Liberty Wharf Apartments, Esplanade, St Helier, Jersey, JE2 3AS. You can call our support team at +44 7797 789598 (Mon-Sat, 8am-6pm GMT) or email us at admin@frameworthyco.com.";
+        return "Our physical studio is located at Esplanade, St Helier, Jersey, JE2 3AS. You can call our support team at +44 7797 789598 (Mon-Sat, 8am-6pm GMT) or email us at admin@frameworthyco.com.";
     }
 
     // 11. Returns, Cancellations & Damaged Items
@@ -92,7 +92,7 @@ export function getLocalAiResponse(userMessage) {
 
     // 13. Curated Art Catalog
     if (matchAny(text, ['curated art', 'inspiration', 'art', 'met', 'museum', 'poster', 'posters', 'album', 'albums'])) {
-        return "You can order pre-formatted artwork ready for custom framing from our Curated Art catalog! Collections include Met Museum Classics (Monet, Van Gogh, Hokusai), Prestige Contemporary Art, Vintage Movie Posters, and Iconic Album Covers.";
+        return "You can order artwork ready for custom framing from our Public Domain Art catalogue, including open-access museum masterpieces and other public-domain collections.";
     }
 
     // 14. Multi-photo Collage
@@ -106,7 +106,7 @@ export function getLocalAiResponse(userMessage) {
     }
 
     // Contextual Fallback
-    return "Thank you for reaching out to FrameWorthy! I can help with frame styles, available sizes, live GBP prices, matting, glazing, delivery to the United Kingdom or Jersey, and checkout.";
+    return "Thank you for reaching out to FrameWorthy! I can help with frame styles, available sizes, live GBP prices, mounts, glazing, delivery to the United Kingdom or Jersey, and checkout.";
 }
 
 // Helper to check if string contains any keyword from list

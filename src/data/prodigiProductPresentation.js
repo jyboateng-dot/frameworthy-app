@@ -43,7 +43,7 @@ export const PRODIGI_PRESENTATION = {
         specs: [
             ['Frame face', '20 mm'], ['Depth from wall', '22 mm'], ['Rebate', '5 mm wide · 17 mm deep'],
             ['Frame material', 'Satin-laminated wood'], ['Print', 'Giclée · 5 paper types'], ['Mount', 'Optional · 2.4 mm conservation board'],
-            ['Glazing', 'Perspex, float glass or Motheye'], ['Frame colours', '8 finishes'],
+            ['Glazing', 'Perspex, float or Motheye'], ['Frame colours', '8 finishes'],
             ['Hanging', 'Cobra hook ≤70 × 100 cm; sawtooth above'], ['Production time', 'About 72 hours'],
         ],
     },
@@ -59,7 +59,7 @@ export const PRODIGI_PRESENTATION = {
         specs: [
             ['Frame face', '20 mm'], ['Depth from wall', '33 mm'], ['Rebate', '8 mm wide · 30 mm deep'],
             ['Frame material', 'Hand-stained wood'], ['Print', 'Giclée · 5 paper types'], ['Mount', 'Optional · 2.4 mm conservation board'],
-            ['Mount colours', 'Snow white, black, off-white'], ['Glazing', 'Perspex, float glass or Motheye'], ['Frame colours', 'Black, white, natural'],
+            ['Mount colours', 'Snow white, black, off-white'], ['Glazing', 'Perspex, float or Motheye'], ['Frame colours', 'Black, white, natural'],
             ['Assembly', 'Delivered fully assembled'], ['Hanging', 'Cobra hook ≤70 × 100 cm; sawtooth above'], ['Production time', 'About 72 hours'],
             ['File guidance', 'JPG or PDF · 300 dpi recommended'],
         ],

@@ -22,7 +22,7 @@ const WRAP_LABELS = {
 
 const GLAZE_LABELS = {
     'Acrylic / Perspex': 'Shatterproof Perspex',
-    'Float glass': 'Float Glass',
+    'Float glass': 'Float Glazing',
     Motheye: 'Moth-eye Anti-Reflective',
 };
 
@@ -219,16 +219,16 @@ export default function ProdigiConfigurationPanel({
                         <h2 className="mb-3 flex items-center justify-between gap-3 text-xs font-bold uppercase tracking-wider text-stone-900">
                             <span className="flex min-w-0 items-center gap-2">
                                 <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-stone-100 text-[10px] text-stone-500">{step}</span>
-                                Matting
+                                Mount
                             </span>
                             <span className="shrink-0 text-xs font-bold normal-case tabular-nums text-stone-900">
-                                {activeMounted ? mountWidthLabel : 'No Mat'}
+                                {activeMounted ? mountWidthLabel : 'No Mount'}
                             </span>
                         </h2>
                         {isConfigurablePrintFrame ? <div className="flex rounded-xl bg-stone-100 p-1">
                             {[
-                                { mounted: false, label: 'No Mat' },
-                                { mounted: true, label: 'Add Mat' },
+                                { mounted: false, label: 'No Mount' },
+                                { mounted: true, label: 'Add Mount' },
                             ].map((option) => {
                                     const available = isProdigiConfigurationAvailable(frame, size, { mounted: option.mounted, mountColor: activeMountColor, glaze: activeGlaze, destinationCountryCode: destination });
                                 const selected = activeMounted === option.mounted;
@@ -240,17 +240,17 @@ export default function ProdigiConfigurationPanel({
                                     </button>
                                 );
                             })}
-                        </div> : <FixedSelectionCard label="No Mat" />}
+                        </div> : <FixedSelectionCard label="No Mount" />}
                         {activeMounted && (
                             <p className="mt-2 text-[10px] leading-4 text-stone-500">
-                                Mat width is set automatically for this frame size.
+                                Mount width is set automatically for this frame size.
                             </p>
                         )}
             </section>
 
                     {isConfigurablePrintFrame && activeMounted && (
                         <section>
-                            <h2 className="mb-3 text-xs font-bold uppercase tracking-wider text-stone-900">Mat Color</h2>
+                            <h2 className="mb-3 text-xs font-bold uppercase tracking-wider text-stone-900">Mount Colour</h2>
                             <div className="grid grid-cols-3 gap-2">
                                 {PRODIGI_MOUNT_COLORS.map((option) => {
                                     const selected = activeMountColor === option.value;
@@ -276,8 +276,8 @@ export default function ProdigiConfigurationPanel({
                         {isConfigurablePrintFrame ? <div className="space-y-2">
                             {[
                                 { value: 'Acrylic / Perspex', name: 'Shatterproof Perspex', description: 'Clear, lightweight protection.' },
-                                { value: 'Float glass', name: 'Float Glass', description: 'Traditional glass with a crisp reflective finish.' },
-                                { value: 'Motheye', name: 'Moth-eye Anti-Reflective', description: 'Near reflection-free, no-glass clarity.' },
+                                { value: 'Float glass', name: 'Float Glazing', description: 'Traditional glazing with a crisp reflective finish.' },
+                                { value: 'Motheye', name: 'Moth-eye Anti-Reflective', description: 'Near reflection-free clarity.' },
                             ].map((option) => {
                                 const available = isProdigiConfigurationAvailable(frame, size, { mounted: activeMounted, mountColor: activeMountColor, glaze: option.value, destinationCountryCode: destination });
                                 const selected = activeGlaze === option.value;

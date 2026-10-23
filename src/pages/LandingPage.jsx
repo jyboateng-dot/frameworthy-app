@@ -273,9 +273,9 @@ export default function LandingPage({ onStartFraming, navigate, setSelectedFrame
 
                     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-y-10 gap-x-6 text-center">
                         {[
-                            { icon: Upload, title: 'Upload Your Image', desc: "Bring your photo, print, or artwork — we'll optimize it for the sharpest possible print." },
-                            { icon: FrameIcon, title: 'Choose Your Frame', desc: 'Browse hundreds of styles, from natural woods to hand-finished ornate mouldings.' },
-                            { icon: SlidersHorizontal, title: 'Choose Your Customizations', desc: 'Dial in size, mat, glass, and hardware — your price updates instantly to match exactly what you choose.' },
+                            { icon: Upload, title: 'Choose or Upload Your Image', desc: "Upload your own photo, print, or artwork, or choose a free public-domain masterpiece — we'll optimize it for the sharpest possible print." },
+                            { icon: FrameIcon, title: 'Choose Your Frame', desc: 'Explore curated frame styles, from natural woods to hand-finished ornate mouldings.' },
+                            { icon: SlidersHorizontal, title: 'Choose Your Customizations', desc: 'Dial in size, mount, glazing, and hardware — your price updates instantly to match exactly what you choose.' },
                             { icon: Eye, title: 'Preview the End Product', desc: 'See your exact piece rendered true-to-scale in our visualizer, then step into AR to see it on your own wall in 3D.' },
                             { icon: Truck, title: 'Place Your Order', desc: 'Handcrafted locally and delivered ready to hang within 5-7 business days.' },
                         ].map((step, i) => (
@@ -305,7 +305,6 @@ export default function LandingPage({ onStartFraming, navigate, setSelectedFrame
                         <div>
                             <h6 className="text-white font-bold uppercase tracking-widest text-xs mb-6">Frameworthy&amp;co</h6>
                             <p className="leading-loose">
-                                Liberty Wharf Apartments<br />
                                 Esplanade, St Helier<br />
                                 Jersey, JE2 3AS
                             </p>

@@ -40,7 +40,7 @@ export function displayCategoryName(category) {
 }
 
 export const CATEGORY_DESCRIPTIONS = {
-    'Prodigi Classic Frames': 'Solid, satin-laminated wood paired with a premium fine-art print for a timeless, ready-to-hang finish.',
+    'Prodigi Classic Frames': 'Solid, satin-laminated wood with a 20 mm face and 22 mm depth, paired with a premium fine-art print for a timeless, ready-to-hang finish.',
     'Prodigi Box Frames': 'Solid, hand-stained wood with a 20 mm face and 33 mm depth for a clean, contemporary shadow-line look.',
     'Prodigi Aluminium Frames': 'A sleek, lightweight aluminium frame with a slim 10 mm face, shatterproof Perspex and a modern matt finish.',
     'Prodigi Classic Framed Canvas': 'A 38 mm artist-grade cotton canvas set inside a satin-laminated classic frame for a traditional gallery-style look.',

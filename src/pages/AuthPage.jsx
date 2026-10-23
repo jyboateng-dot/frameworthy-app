@@ -43,7 +43,7 @@ const CAROUSEL_SLIDES = [
     { 
         img: '/landing_carousel/slide-5.jpg',
         title: "Curated Collections",
-        text: "Access beautifully pre-framed images and curated artwork to inspire your space."
+        text: "Access beautifully pre-framed images and public-domain artwork to inspire your space."
     },
     { 
         img: '/landing_carousel/slide-6.jpg',

@@ -150,7 +150,7 @@ const ChatFloater = ({ isOpen, setIsOpen }) => {
                     type="text"
                     value={draft}
                     onChange={(e) => setDraft(e.target.value)}
-                    placeholder="Ask about frames, glass, delivery, sizing..."
+                    placeholder="Ask about frames, glazing, delivery, sizing..."
                     className="flex-1 px-4 py-3 rounded-xl border border-stone-300 focus:border-stone-950 focus:ring-1 focus:ring-stone-950 outline-none text-base font-normal text-stone-900 placeholder:text-stone-400 bg-stone-50 focus:bg-white transition"
                 />
                 <button
