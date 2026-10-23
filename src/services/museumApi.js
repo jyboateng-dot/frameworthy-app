@@ -30,23 +30,27 @@ async function fetchArtInstitute(page) {
         params.set('query[bool][must][1][term][artwork_type_title.keyword]', type);
         return getJson(`https://api.artic.edu/api/v1/artworks/search?${params}`);
     };
-    const [paintings, drawings] = await Promise.all([fetchType('Painting'), fetchType('Drawing')]);
-    const source = sourceById('art-institute-of-chicago');
-    return {
-        artworks: [...(paintings.data || []), ...(drawings.data || [])].filter(item => item.image_id).map(item => {
-            const masterWidth = Number(item.thumbnail?.width) || 4000;
-            const masterHeight = Number(item.thumbnail?.height) || null;
-            return normalizeMuseumArtwork({
-                ...item,
-                artist_display: item.artist_display,
-                image: artInstituteImageUrl(item.image_id, 400),
-                fullRes: artInstituteImageUrl(item.image_id, masterWidth),
-                imageWidth: masterWidth,
-                imageHeight: masterHeight,
-            }, source);
-        }),
-        total: (paintings.pagination?.total || 0) + (drawings.pagination?.total || 0),
-    };
+    try {
+        const [paintings, drawings] = await Promise.all([fetchType('Painting'), fetchType('Drawing')]);
+        const source = sourceById('art-institute-of-chicago');
+        return {
+            artworks: [...(paintings.data || []), ...(drawings.data || [])].filter(item => item.image_id).map(item => {
+                const masterWidth = Number(item.thumbnail?.width) || 4000;
+                const masterHeight = Number(item.thumbnail?.height) || null;
+                return normalizeMuseumArtwork({
+                    ...item,
+                    artist_display: item.artist_display,
+                    image: artInstituteImageUrl(item.image_id, 400),
+                    fullRes: artInstituteImageUrl(item.image_id, masterWidth),
+                    imageWidth: masterWidth,
+                    imageHeight: masterHeight,
+                }, source);
+            }),
+            total: (paintings.pagination?.total || 0) + (drawings.pagination?.total || 0),
+        };
+    } catch {
+        return fetchServerCollection('art-institute-of-chicago', page);
+    }
 }
 
 async function fetchCleveland(page) {
@@ -241,9 +245,6 @@ export async function fetchMuseumArtworks(sourceId, page = 1) {
 }
 
 async function fetchMuseumSnapshot(sourceId, page) {
-    // Older Chicago snapshots omit artwork type, so they cannot be safely
-    // screened. Use the typed live query until they are regenerated.
-    if (sourceId === 'art-institute-of-chicago') return null;
     try {
         const staticUrl = sourceId === 'national-gallery-of-art'
             ? `/museum-data/nga/${page}.json`

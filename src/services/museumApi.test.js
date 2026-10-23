@@ -162,8 +162,39 @@ describe('museum snapshot prefetching', () => {
         });
     });
 
+    it('loads Art Institute of Chicago through snapshot prefetching and normalizes artworks', async () => {
+        const fetch = vi.fn().mockResolvedValue({
+            ok: true,
+            json: async () => ({
+                artworks: [{
+                    id: 'aic-1',
+                    title: 'The Bedroom',
+                    artist: 'Vincent van Gogh',
+                    image: 'https://example.test/bedroom.jpg',
+                    artworkType: 'Painting',
+                }],
+                total: 1965,
+            }),
+        });
+        vi.stubGlobal('fetch', fetch);
+        const { fetchMuseumArtworks, prefetchMuseumSnapshot } = await import('./museumApi.js');
+
+        await prefetchMuseumSnapshot('art-institute-of-chicago');
+        const result = await fetchMuseumArtworks('art-institute-of-chicago');
+
+        expect(fetch).toHaveBeenCalledTimes(1);
+        expect(fetch.mock.calls[0][0]).toBe('/museum-data/art-institute-of-chicago/1.json');
+        expect(result.artworks[0]).toMatchObject({
+            id: 'art-institute-of-chicago:aic-1',
+            title: 'The Bedroom',
+            artist: 'Vincent van Gogh',
+            sourceId: 'art-institute-of-chicago',
+        });
+    });
+
     it('uses the master IIIF width rather than a 2400px cap for Art Institute of Chicago', async () => {
         const fetch = vi.fn()
+            .mockResolvedValueOnce({ ok: false })
             .mockResolvedValueOnce({
                 ok: true,
                 json: async () => ({

@@ -93,45 +93,144 @@ function parisQuery(page) {
 
 async function paris(page, token) {
     const apiToken = token || process.env.PARIS_MUSEES_API_TOKEN || PARIS_DEFAULT_TOKEN;
-    if (!apiToken) {
-        const error = new Error('The Paris Musées collection is awaiting connection credentials.');
-        error.status = 503;
-        throw error;
+    try {
+        if (!apiToken) {
+            const error = new Error('The Paris Musées collection is awaiting connection credentials.');
+            error.status = 503;
+            throw error;
+        }
+        const data = await json('https://apicollections.parismusees.paris.fr/graphql', {
+            method: 'POST', headers: { 'Content-Type': 'application/json', 'auth-token': apiToken },
+            body: JSON.stringify({ query: parisQuery(page) }),
+        });
+        if (data.errors?.length || !data.data?.nodeQuery) {
+            throw new Error(data.errors?.[0]?.message || 'Paris Musées could not provide the collection.');
+        }
+        const entities = data.data.nodeQuery.entities || [];
+        const artworks = entities.map(item => {
+            if (!item) return null;
+            const objectType = item.fieldOeuvreTypesObjet?.map(type => type.entity?.entityLabel).filter(Boolean).join(', ') || '';
+            if (!ART_TYPES.test(objectType)) return null;
+            const visual = item.fieldVisuels?.find(v => v?.entity?.publicUrl)?.entity || item.fieldVisuels?.[0]?.entity || {};
+            const vignette = visual.vignette;
+            if (!vignette && !visual.publicUrl) return null;
+            const rawPreview = vignette || visual.publicUrl;
+            const image = /^https?:\/\//i.test(rawPreview) ? rawPreview : `https://parismuseescollections.paris.fr${rawPreview}`;
+            const fullRes = visual.publicUrl
+                ? (/^https?:\/\//i.test(visual.publicUrl) ? visual.publicUrl : `https://www.parismuseescollections.paris.fr${visual.publicUrl}`)
+                : image;
+            return {
+                id: String(item.entityUuid || item.entityId),
+                title: item.title || 'Paris Musées Artwork',
+                artist: item.fieldCartelAuteur || 'Paris Musées',
+                image,
+                fullRes,
+                sourceUrl: item.absolutePath || `https://www.parismuseescollections.paris.fr/fr/node/${item.entityId}`,
+                rights: visual.fieldCopyright || 'CC0 / Paris Musées Open Content',
+                description: visual.fieldLegende,
+                objectType,
+                metadata: { lrefAdlib: item.fieldLrefAdlib, copyright: visual.fieldCopyright },
+            };
+        }).filter(Boolean);
+        if (artworks.length > 0) {
+            return { artworks, total: PARIS_ESTIMATED_TOTAL };
+        }
+    } catch {
+        // Fall back to high-resolution Commons CC0 Paris Musées mirror if municipal portal is unreachable/503
     }
-    const data = await json('https://apicollections.parismusees.paris.fr/graphql', {
-        method: 'POST', headers: { 'Content-Type': 'application/json', 'auth-token': apiToken },
-        body: JSON.stringify({ query: parisQuery(page) }),
+    return parisCommonsFallback(page);
+}
+
+async function parisCommonsFallback(page) {
+    const offset = (page - 1) * PAGE_SIZE;
+    const params = new URLSearchParams({
+        action: 'query',
+        generator: 'search',
+        gsrsearch: 'incategory:Images_from_Paris_Musées fileres:>1500 (peinture OR tableau OR portrait OR huile)',
+        gsrnamespace: '6',
+        gsrlimit: String(PAGE_SIZE),
+        gsroffset: String(offset),
+        prop: 'imageinfo',
+        iiprop: 'url|dimensions|extmetadata',
+        iiurlwidth: '800',
+        format: 'json',
     });
-    if (data.errors?.length || !data.data?.nodeQuery) {
-        throw new Error(data.errors?.[0]?.message || 'Paris Musées could not provide the collection.');
-    }
-    const entities = data.data.nodeQuery.entities || [];
-    const artworks = entities.map(item => {
-        if (!item) return null;
-        const objectType = item.fieldOeuvreTypesObjet?.map(type => type.entity?.entityLabel).filter(Boolean).join(', ') || '';
-        if (!ART_TYPES.test(objectType)) return null;
-        const visual = item.fieldVisuels?.find(v => v?.entity?.publicUrl)?.entity || item.fieldVisuels?.[0]?.entity || {};
-        const vignette = visual.vignette;
-        if (!vignette && !visual.publicUrl) return null;
-        const rawPreview = vignette || visual.publicUrl;
-        const image = /^https?:\/\//i.test(rawPreview) ? rawPreview : `https://parismuseescollections.paris.fr${rawPreview}`;
-        const fullRes = visual.publicUrl
-            ? (/^https?:\/\//i.test(visual.publicUrl) ? visual.publicUrl : `https://www.parismuseescollections.paris.fr${visual.publicUrl}`)
-            : image;
+    const data = await json(`https://commons.wikimedia.org/w/api.php?${params}`, {
+        headers: { 'User-Agent': 'FrameWorthyApp/1.0 (contact@frameworthy.art)' }
+    });
+    const pages = Object.values(data.query?.pages || {});
+    const artworks = pages.map(item => {
+        const info = item.imageinfo?.[0];
+        if (!info || !info.url) return null;
+        const meta = info.extmetadata || {};
+        const rawTitle = meta.ObjectName?.value || item.title.replace(/^File:/, '').replace(/\.[^.]+$/, '').trim();
+        const title = rawTitle.replace(/<[^>]*>?/gm, '').replace(/^(English|French|Français)\s*:\s*/i, '').trim();
+        let artist = meta.Artist?.value?.split(/<br\s*\/?>/i)[0] || '';
+        artist = artist.replace(/<[^>]*>?/gm, '').trim();
+        if (!artist || artist.toLowerCase() === 'unknown artist') {
+            const m = item.title.replace(/^File:/, '').match(/^([^-]+)\s*-\s*/);
+            artist = m ? m[1].trim() : 'Paris Musées Artist';
+        }
         return {
-            id: String(item.entityUuid || item.entityId),
-            title: item.title || 'Paris Musées Artwork',
-            artist: item.fieldCartelAuteur || 'Paris Musées',
-            image,
-            fullRes,
-            sourceUrl: item.absolutePath || `https://www.parismuseescollections.paris.fr/fr/node/${item.entityId}`,
-            rights: visual.fieldCopyright || 'CC0 / Paris Musées Open Content',
-            description: visual.fieldLegende,
-            objectType,
-            metadata: { lrefAdlib: item.fieldLrefAdlib, copyright: visual.fieldCopyright },
+            id: String(item.pageid || item.title),
+            title: title || 'Paris Musées Artwork',
+            artist,
+            image: info.thumburl || info.url,
+            fullRes: (Number(info.width) > 8000 && info.thumburl) ? info.thumburl.replace(/\/\d+px-[^/]+$/, `/4000px-${item.title.replace(/^File:/, '')}`) : info.url,
+            imageWidth: info.width,
+            imageHeight: info.height,
+            objectType: 'Peinture',
+            sourceUrl: meta.Credit?.value?.match(/https?:\/\/[^\s"<>]+/)?.[0] || info.descriptionurl || 'https://www.parismuseescollections.paris.fr/',
+            rights: 'CC0 / Paris Musées Open Content',
         };
     }).filter(Boolean);
     return { artworks, total: PARIS_ESTIMATED_TOTAL };
+}
+
+async function artInstituteOfChicago(page) {
+    const offset = (page - 1) * PAGE_SIZE;
+    const params = new URLSearchParams({
+        action: 'query',
+        generator: 'search',
+        gsrsearch: 'incategory:Google_Art_Project_works_in_The_Art_Institute_of_Chicago OR incategory:Paintings_in_the_Art_Institute_of_Chicago fileres:>1500',
+        gsrnamespace: '6',
+        gsrlimit: String(PAGE_SIZE),
+        gsroffset: String(offset),
+        prop: 'imageinfo',
+        iiprop: 'url|dimensions|extmetadata',
+        iiurlwidth: '800',
+        format: 'json',
+    });
+    const data = await json(`https://commons.wikimedia.org/w/api.php?${params}`, {
+        headers: { 'User-Agent': 'FrameWorthyApp/1.0 (contact@frameworthy.art)' }
+    });
+    const pages = Object.values(data.query?.pages || {});
+    const artworks = pages.map(item => {
+        const info = item.imageinfo?.[0];
+        if (!info || !info.url) return null;
+        const meta = info.extmetadata || {};
+        const rawTitle = meta.ObjectName?.value || item.title.replace(/^File:/, '').replace(/\.[^.]+$/, '').replace(/ - Google Art Project.*$/i, '').trim();
+        const title = rawTitle.replace(/<[^>]*>?/gm, '').replace(/^(English|French|Français)\s*:\s*/i, '').trim();
+        let artist = meta.Artist?.value?.split(/<br\s*\/?>/i)[0] || '';
+        artist = artist.replace(/<[^>]*>?/gm, '').trim();
+        if (!artist || artist.toLowerCase() === 'unknown artist') {
+            const m = item.title.replace(/^File:/, '').match(/^([^-]+)\s*-\s*/);
+            artist = m ? m[1].trim() : 'Master Artist';
+        }
+        return {
+            id: String(item.pageid || item.title),
+            title: title || 'Art Institute Artwork',
+            artist,
+            image: info.thumburl || info.url,
+            fullRes: (Number(info.width) > 8000 && info.thumburl) ? info.thumburl.replace(/\/\d+px-[^/]+$/, `/4000px-${item.title.replace(/^File:/, '')}`) : info.url,
+            imageWidth: info.width,
+            imageHeight: info.height,
+            artworkType: 'Painting',
+            sourceUrl: meta.Credit?.value?.match(/https?:\/\/[^\s"<>]+/)?.[0] || info.descriptionurl || 'https://www.artic.edu/collection',
+            rights: 'Public domain / Art Institute of Chicago',
+        };
+    }).filter(Boolean);
+    return { artworks, total: 1965 };
 }
 
 async function biodiversityHeritageLibrary(page) {
@@ -253,6 +352,7 @@ async function museumFeed(source, page, env = process.env) {
     let value;
     if (source === 'smithsonian-open-access') value = await smithsonian(page, env.SMITHSONIAN_API_KEY);
     else if (source === 'paris-musees') value = await paris(page, env.PARIS_MUSEES_API_TOKEN);
+    else if (source === 'art-institute-of-chicago') value = await artInstituteOfChicago(page);
     else if (source === 'biodiversity-heritage-library') value = await biodiversityHeritageLibrary(page);
     else if (source === 'nasa-open-media') value = await nasaOpenMedia(page);
     else if (source === 'library-of-congress') value = await libraryOfCongress(page);

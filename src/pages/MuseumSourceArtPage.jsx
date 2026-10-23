@@ -135,22 +135,34 @@ const MuseumArtworkCard = ({ artwork, unit, onGetThis, prioritizeImage, fetchPri
     const { toggleWishlist, isInWishlist } = useWishlist();
     const [hovered, setHovered] = useState(false);
     const [imageLoaded, setImageLoaded] = useState(false);
+    const [imageError, setImageError] = useState(false);
     const liked = isInWishlist(artwork.id);
     const maxSize = maxFramePrintSize({ w: artwork.imageWidth, h: artwork.imageHeight });
 
     return (
         <article className="group relative flex flex-col gap-3" onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}>
             <div className="relative overflow-hidden bg-white flex items-center justify-center border border-stone-200/50 aspect-square">
-                <img
-                    src={getThumbnailUrl(artwork.image)}
-                    alt={artwork.title}
-                    loading={prioritizeImage ? 'eager' : 'lazy'}
-                    fetchPriority={fetchPriority}
-                    decoding="async"
-                    onLoad={() => setImageLoaded(true)}
-                    className={`w-full h-full object-cover transition-all duration-500 ease-out group-hover:scale-[1.03] ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
-                />
-                {!imageLoaded && (
+                {!imageError ? (
+                    <img
+                        src={getThumbnailUrl(artwork.image)}
+                        alt={artwork.title}
+                        loading={prioritizeImage ? 'eager' : 'lazy'}
+                        fetchPriority={fetchPriority}
+                        decoding="async"
+                        onLoad={() => setImageLoaded(true)}
+                        onError={() => {
+                            setImageLoaded(true);
+                            setImageError(true);
+                        }}
+                        className={`w-full h-full object-cover transition-all duration-500 ease-out group-hover:scale-[1.03] ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
+                    />
+                ) : (
+                    <div className="w-full h-full flex flex-col items-center justify-center bg-stone-100 text-stone-400 p-4 text-center">
+                        <svg className="w-8 h-8 mb-2 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                        <span className="text-[11px] font-medium text-stone-600 line-clamp-2">{artwork.title}</span>
+                    </div>
+                )}
+                {!imageLoaded && !imageError && (
                     <div className="absolute inset-0 bg-stone-100 animate-pulse" />
                 )}
                 <div className={`absolute inset-0 bg-stone-50/20 flex items-center justify-center transition-opacity duration-300 ${hovered ? 'opacity-100' : 'opacity-0'}`}>

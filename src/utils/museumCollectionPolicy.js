@@ -15,7 +15,11 @@ export function isFramableMuseumArtwork(sourceId, record) {
         if (record.type) return ART_TYPES.test(record.type);
         return PAINTING_MEDIA.test(record.medium || record.technique || '');
     }
-    if (sourceId === 'art-institute-of-chicago') return ART_TYPES.test(record.artworkType || record.artwork_type_title || '');
+    if (sourceId === 'art-institute-of-chicago') {
+        if (record.artworkType || record.artwork_type_title) return ART_TYPES.test(record.artworkType || record.artwork_type_title);
+        if (record.type || record.classification || record.medium) return ART_TYPES.test(record.type || record.classification || record.medium);
+        return record.rights?.includes('Art Institute') || false;
+    }
     if (sourceId === 'smithsonian-open-access') {
         const type = record.metadata?.freetext?.objectType?.map(item => item.content).join(' ') || record.objectType || '';
         return ART_TYPES.test(type);
