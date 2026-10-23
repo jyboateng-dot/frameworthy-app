@@ -21,6 +21,7 @@ const GlossyArtPage = lazy(() => import('./pages/GlossyArtPage'));
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage'));
 const AuthPage = lazy(() => import('./pages/AuthPage'));
 const AdminDashboard = lazy(() => import('./pages/admin/AdminDashboard'));
+const CropSandboxPage = lazy(() => import('./pages/sandbox/CropSandboxPage'));
 const AdminMessagesPage = lazy(() => import('./pages/admin/AdminMessagesPage'));
 const OrdersPage = lazy(() => import('./pages/OrdersPage'));
 const TermsPage = lazy(() => import('./pages/TermsPage'));
@@ -258,6 +259,7 @@ const AppLayout = () => {
           />
         } />
         <Route path="/prodigi/catalogue" element={<ProdigiCataloguePage />} />
+        <Route path="/sandbox/crop" element={<CropSandboxPage />} />
 
         {/* AUTH ROUTE */}
         <Route path="/auth" element={
