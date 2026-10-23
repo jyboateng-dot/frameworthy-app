@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { Focus, RotateCcw, X, Check, ZoomIn, Move } from 'lucide-react';
+import { Focus, RotateCcw, X, Check, ZoomIn, Move, Sparkles } from 'lucide-react';
 import { FRAME_SIZES, formatDimensions } from '../../data/constants';
 import { DEFAULT_POSITION, frameGeometry, imageCrop, cropStyle, maxZoomForMinDpi, isDefaultFitPosition } from '../../utils/frameFit';
 import { getFrameRail, getRailTextureStyle, getRailShading } from '../../utils/frameRail';
@@ -30,8 +30,8 @@ function FrameSide({ side, frame, geometry }) {
     </div>;
 }
 
-export function FitPreview({ image, natural, geometry, position, frame, matColor, minimumDpi }) {
-    const crop = imageCrop(natural, geometry, position, minimumDpi);
+export function FitPreview({ image, natural, geometry, position, frame, matColor, minimumDpi, contentBounds = null }) {
+    const crop = imageCrop(natural, geometry, position, minimumDpi, contentBounds);
     const railPctX = geometry.rail / geometry.outerWidth * 100;
     const railPctY = geometry.rail / geometry.outerHeight * 100;
     const matPctX = (geometry.rail + geometry.mat) / geometry.outerWidth * 100;
@@ -71,7 +71,8 @@ export function FitPreview({ image, natural, geometry, position, frame, matColor
 
 export default function FrameFitPanel({ image, natural, size, orientation, mat, rail, frame, matColor,
     unit, position, onPosition, onApply, error, price, matPrice, step,
-    availableSizes = FRAME_SIZES, prodigiConfiguration = {}, currency = 'GHS', minimumDpi }) {
+    availableSizes = FRAME_SIZES, prodigiConfiguration = {}, currency = 'GHS', minimumDpi,
+    contentBounds = null, cleanFrameInsets = null, trimFrameEdges = true, onToggleTrim = null }) {
     const [compare, setCompare] = useState(false);
     const [undo, setUndo] = useState(null);
     const dialogRef = useRef(null);
@@ -84,18 +85,19 @@ export default function FrameFitPanel({ image, natural, size, orientation, mat, 
     }, [open]);
 
     const geometry = frameGeometry(size, orientation, mat, rail);
-    const maxZoom = maxZoomForMinDpi(natural, geometry, minimumDpi);
+    const activeNatural = contentBounds || natural;
+    const maxZoom = maxZoomForMinDpi(activeNatural, geometry, minimumDpi);
 
     const aspect = (geometry?.apertureWidth && geometry?.apertureHeight)
         ? geometry.apertureWidth / geometry.apertureHeight
         : 1;
-    const baseW = Math.min(natural?.w || 1000, (natural?.h || 1000) * aspect);
+    const baseW = Math.min(activeNatural?.w || 1000, (activeNatural?.h || 1000) * aspect);
     const baseH = baseW / aspect;
     const currentZoom = Math.max(1, Math.min(maxZoom, Number(position?.zoom) || 1));
     const cropW = baseW / currentZoom;
     const cropH = cropW / aspect;
-    const overflowX = Math.max(0, (natural?.w || 1000) - cropW);
-    const overflowY = Math.max(0, (natural?.h || 1000) - cropH);
+    const overflowX = Math.max(0, (activeNatural?.w || 1000) - cropW);
+    const overflowY = Math.max(0, (activeNatural?.h || 1000) - cropH);
 
     const posX = Number.isFinite(Number(position?.x)) ? Number(position.x) : 0.5;
     const posY = Number.isFinite(Number(position?.y)) ? Number(position.y) : 0.5;
@@ -168,7 +170,7 @@ export default function FrameFitPanel({ image, natural, size, orientation, mat, 
     };
 
     const preview = (g, p = position) => <FitPreview image={image} natural={natural} geometry={g}
-        position={p} frame={frame} matColor={matColor} minimumDpi={minimumDpi} />;
+        position={p} frame={frame} matColor={matColor} minimumDpi={minimumDpi} contentBounds={contentBounds} />;
 
     return <section className="space-y-3 text-stone-900">
         <div className="flex flex-wrap items-center justify-between gap-2">
@@ -200,6 +202,34 @@ export default function FrameFitPanel({ image, natural, size, orientation, mat, 
                 </button>
             </div>
         </div>
+
+        {cleanFrameInsets && (cleanFrameInsets.top > 0 || cleanFrameInsets.bottom > 0 || cleanFrameInsets.left > 0 || cleanFrameInsets.right > 0) && (
+            <div className="flex items-center justify-between p-2.5 rounded-lg bg-amber-50/80 border border-amber-200/90 text-xs">
+                <div className="flex items-center gap-2">
+                    <Sparkles size={15} className="text-amber-700 shrink-0" />
+                    <div>
+                        <div className="font-semibold text-amber-950">Clean Historical Borders</div>
+                        <div className="text-[11px] text-amber-800/80">
+                            {trimFrameEdges
+                                ? `Auto-trimmed ${Math.round(Math.max(cleanFrameInsets.top, cleanFrameInsets.bottom, cleanFrameInsets.left, cleanFrameInsets.right) * 100)}% leftover frame edge`
+                                : 'Showing original with vintage framing'}
+                        </div>
+                    </div>
+                </div>
+                <button
+                    type="button"
+                    aria-label={trimFrameEdges ? 'Disable edge trim' : 'Enable edge trim'}
+                    onClick={() => onToggleTrim?.(!trimFrameEdges)}
+                    className={`px-2.5 py-1 text-xs font-semibold rounded-md transition-colors ${
+                        trimFrameEdges
+                            ? 'bg-amber-700 text-white shadow-xs'
+                            : 'bg-white text-stone-700 border border-stone-200 hover:bg-stone-50'
+                    }`}
+                >
+                    {trimFrameEdges ? 'Trimmed' : 'Show Original'}
+                </button>
+            </div>
+        )}
 
         <div className="space-y-3.5 bg-stone-50/70 p-3.5 rounded-xl border border-stone-200/80">
             {/* Zoom Slider */}

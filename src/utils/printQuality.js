@@ -33,6 +33,7 @@ export function buildPrintQualitySpec({
     position = DEFAULT_PRINT_POSITION,
     frame,
     minimumDpi = minimumPrintDpiForFrame(frame),
+    contentBounds = null,
     outputSize = null,
     assetUrl = null,
     assetKind = 'original',
@@ -49,7 +50,8 @@ export function buildPrintQualitySpec({
         { w: sourceWidthPx, h: sourceHeightPx },
         geometry,
         position,
-        nativeFloorDpi
+        nativeFloorDpi,
+        contentBounds
     );
     if (!crop) return null;
     const sourceDpi = Math.min(crop.w / printWidthIn, crop.h / printHeightIn);

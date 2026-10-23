@@ -58,6 +58,7 @@ import FrameFitPanel from '../../components/framing/FrameFitPanel';
 import ProdigiConfigurationPanel from '../../components/framing/ProdigiConfigurationPanel';
 import { DEFAULT_POSITION, frameGeometry, imageCrop, cropStyle, isDefaultFitPosition } from '../../utils/frameFit';
 import { prepareFrameOutput } from '../../services/frameFitOutput';
+import { detectArtworkContentBounds, computeCleanArtworkBounds } from '../../utils/artworkEdgeDetector';
 import { loadImageCached } from '../../utils/imageCache';
 import { visualizerFullScreenState } from '../../utils/visualizerFullScreenState';
 import { nearestProdigiSize, prodigiAvailableSizes, prodigiConfigurationFromSelection, prodigiHangingHardware } from '../../utils/prodigiFlow';
@@ -279,7 +280,11 @@ const CustomizeFramePage = ({
     const [showAuthModal, setShowAuthModal] = useState(false);
     const [fitPosition, setFitPosition] = useState(DEFAULT_POSITION);
     const [fitError, setFitError] = useState('');
-    useEffect(() => { setFitPosition(DEFAULT_POSITION); }, [uploadedImage]);
+    useEffect(() => {
+        setFitPosition(DEFAULT_POSITION);
+        setCleanFrameInsets(null);
+        setTrimFrameEdges(true);
+    }, [uploadedImage]);
     
     // Also recognises the previous URL shape so an already-open dev session
     // immediately adopts the orientation-aware crop after hot reload.
@@ -518,6 +523,12 @@ const CustomizeFramePage = ({
     const [customSizeEntry, setCustomSizeEntry] = useState(null);
     const [isOptimized, setIsOptimized] = useState(false);
     const [imageNaturalSize, setImageNaturalSize] = useState(null);   // { w, h }
+    const [cleanFrameInsets, setCleanFrameInsets] = useState(null);   // { top, bottom, left, right }
+    const [trimFrameEdges, setTrimFrameEdges] = useState(true);
+    const activeContentBounds = useMemo(() => {
+        if (!trimFrameEdges || !cleanFrameInsets || !imageNaturalSize) return null;
+        return computeCleanArtworkBounds(imageNaturalSize, cleanFrameInsets);
+    }, [trimFrameEdges, cleanFrameInsets, imageNaturalSize]);
     const [savedSettings, setSavedSettings] = useState(() => ({
         orientation: orientation || 'portrait',
         matWidth: matWidth || 'none'
@@ -1098,7 +1109,7 @@ const CustomizeFramePage = ({
         && glassType !== 'canvas-traditional' && glassType !== 'canvas-floater'
         && imageNaturalSize?.w > 0 && !(collageImages?.length > 0);
     const fitGeometry = selectedSize ? frameGeometry(selectedSize, orientation, matWidth, railWidthIn) : null;
-    const fitCrop = fitEnabled ? imageCrop(imageNaturalSize, fitGeometry, fitPosition, minimumFloorDpi) : null;
+    const fitCrop = fitEnabled ? imageCrop(imageNaturalSize, fitGeometry, fitPosition, minimumFloorDpi, activeContentBounds) : null;
     useEffect(() => { setWasAddedToCart(false); }, [fitPosition]);
 
     // If switching size/orientation/frame drops sizeMaxMatWidthIn below the
@@ -1272,6 +1283,7 @@ const CustomizeFramePage = ({
         const isUntransformedUrl = thumbUrl === uploadedImage;
         let cancelled = false;
         const img = new Image();
+        img.crossOrigin = 'anonymous';
         img.onload = () => {
             if (cancelled || effectImage !== latestUploadedImageRef.current) return;
             const known = knownImageDimensionsRef.current;
@@ -1285,6 +1297,21 @@ const CustomizeFramePage = ({
                 setImageNaturalSize(measured);
             }
             setIsImageLoading(false); // Hide spinner safely even if cached
+
+            // Intelligently scan for leftover frame mouldings / scanner margins
+            detectArtworkContentBounds(img).then(detected => {
+                if (cancelled || effectImage !== latestUploadedImageRef.current) return;
+                if (detected?.hasLeftoverFrame && detected.insets) {
+                    setCleanFrameInsets(detected.insets);
+                    setTrimFrameEdges(true);
+                } else {
+                    setCleanFrameInsets(null);
+                }
+            }).catch(() => {
+                if (cancelled || effectImage !== latestUploadedImageRef.current) return;
+                setCleanFrameInsets(null);
+            });
+
             if (isPresetImage) return;
 
             // Album posters and movie posters are always portrait, regardless of
@@ -1867,6 +1894,7 @@ const CustomizeFramePage = ({
                 position: fitEnabled ? fitPosition : DEFAULT_POSITION,
                 frame: selectedFrame,
                 minimumDpi: minimumPrintDpi,
+                contentBounds: activeContentBounds,
                 assetUrl,
                 assetKind: 'original',
             })
@@ -2104,9 +2132,8 @@ const CustomizeFramePage = ({
         setFitError('');
         // For Prodigi frames at default center crop (x=0.5, y=0.5, zoom=1),
         // pass the untouched master productionImage URL directly to Prodigi
-        // (sizing: 'fillPrintArea') instead of downloading 20-45MB master files
-        // and re-encoding them through a client-side browser canvas.
-        const needsCustomCropOutput = fitEnabled && (!isDefaultFitPosition(fitPosition) || !selectedFrame?.prodigiProduct);
+        const hasTrimmedFrameEdges = Boolean(trimFrameEdges && cleanFrameInsets && (cleanFrameInsets.top > 0 || cleanFrameInsets.bottom > 0 || cleanFrameInsets.left > 0 || cleanFrameInsets.right > 0));
+        const needsCustomCropOutput = fitEnabled && (!isDefaultFitPosition(fitPosition) || hasTrimmedFrameEdges || !selectedFrame?.prodigiProduct);
         try {
             if (needsCustomCropOutput) {
                 // Give Pay Now ample time (25s) to upload high-res print + thumbnail
@@ -2116,6 +2143,7 @@ const CustomizeFramePage = ({
                         deferThumbnail: thumbnailInBackground,
                         frame: selectedFrame,
                         minimumDpi: minimumFloorDpi,
+                        contentBounds: activeContentBounds,
                     }, timeoutMs);
                 if (action === 'pay') toggleAllSelection(false);
                 if (result) {
@@ -4155,6 +4183,10 @@ const CustomizeFramePage = ({
                         size={selectedSize} orientation={orientation} mat={matWidth} rail={railWidthIn}
                         frame={selectedFrame} matColor={matColor.hex} matPrice={matColor.price || 75}
                         minimumDpi={minimumNativeFloorDpiForFrame(selectedFrame)}
+                        contentBounds={activeContentBounds}
+                        cleanFrameInsets={cleanFrameInsets}
+                        trimFrameEdges={trimFrameEdges}
+                        onToggleTrim={setTrimFrameEdges}
                         unit={unit} price={buildCartItem(null).totalPrice} position={fitPosition} onPosition={setFitPosition}
                         availableSizes={isProdigiFrame ? prodigiSizes : finalSizesList}
                         prodigiConfiguration={prodigiConfiguration}

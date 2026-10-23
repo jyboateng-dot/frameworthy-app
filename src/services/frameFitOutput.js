@@ -37,9 +37,10 @@ export async function prepareFrameOutput(source, geometry, position, frameColor,
     isMobile,
     frame = null,
     minimumDpi,
+    contentBounds = null,
 } = {}) {
     const image = await loadImageCached(source);
-    const crop = imageCrop({ w: image.naturalWidth, h: image.naturalHeight }, geometry, position, minimumDpi);
+    const crop = imageCrop({ w: image.naturalWidth, h: image.naturalHeight }, geometry, position, minimumDpi, contentBounds);
     if (!crop) throw new Error('The frame opening is too small. Adjust the mount width.');
     const print = document.createElement('canvas');
     const maxFrameEdgeIn = Math.max(

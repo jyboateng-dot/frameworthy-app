@@ -98,4 +98,42 @@ describe('FrameFitPanel', () => {
         fireEvent.click(screen.getByRole('button', { name: 'Reset image position' }));
         expect(onPosition).toHaveBeenCalledWith(DEFAULT_POSITION);
     });
+
+    it('renders the Clean Historical Borders banner and toggles trim state when clicked', () => {
+        const onToggleTrim = vi.fn();
+        const cleanFrameInsets = { top: 0.04, bottom: 0.04, left: 0.03, right: 0.03 };
+
+        const { rerender } = render(
+            <FrameFitPanel
+                {...defaultProps}
+                cleanFrameInsets={cleanFrameInsets}
+                trimFrameEdges={true}
+                onToggleTrim={onToggleTrim}
+            />
+        );
+
+        expect(screen.getByText('Clean Historical Borders')).toBeInTheDocument();
+        expect(screen.getByText(/Auto-trimmed 4% leftover frame edge/i)).toBeInTheDocument();
+
+        const toggleBtn = screen.getByRole('button', { name: 'Disable edge trim' });
+        expect(toggleBtn).toHaveTextContent('Trimmed');
+        fireEvent.click(toggleBtn);
+        expect(onToggleTrim).toHaveBeenCalledWith(false);
+
+        // When trim is disabled
+        rerender(
+            <FrameFitPanel
+                {...defaultProps}
+                cleanFrameInsets={cleanFrameInsets}
+                trimFrameEdges={false}
+                onToggleTrim={onToggleTrim}
+            />
+        );
+
+        expect(screen.getByText('Showing original with vintage framing')).toBeInTheDocument();
+        const enableBtn = screen.getByRole('button', { name: 'Enable edge trim' });
+        expect(enableBtn).toHaveTextContent('Show Original');
+        fireEvent.click(enableBtn);
+        expect(onToggleTrim).toHaveBeenCalledWith(true);
+    });
 });

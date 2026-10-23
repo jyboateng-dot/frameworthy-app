@@ -31,17 +31,20 @@ export function frameGeometry(size, orientation, mat = 'none', rail = 0) {
         apertureHeight: height - border * 2 };
 }
 
-export function imageCrop(image, geometry, position = DEFAULT_POSITION, minDpi = MIN_CROP_DPI) {
+export function imageCrop(image, geometry, position = DEFAULT_POSITION, minDpi = MIN_CROP_DPI, contentBounds = null) {
     if (!image?.w || !image?.h || geometry.apertureWidth <= 0 || geometry.apertureHeight <= 0) return null;
+    const bounds = contentBounds && contentBounds.w > 0 && contentBounds.h > 0
+        ? contentBounds
+        : { x: 0, y: 0, w: image.w, h: image.h };
     const aspect = geometry.apertureWidth / geometry.apertureHeight;
-    const maxZoom = maxZoomForMinDpi(image, geometry, minDpi);
+    const maxZoom = maxZoomForMinDpi(bounds, geometry, minDpi);
     const requestedZoom = Number.isFinite(Number(position?.zoom)) ? Number(position.zoom) : 1;
     const zoom = Math.max(1, Math.min(maxZoom, requestedZoom));
-    const w = Math.min(image.w, image.h * aspect) / zoom;
+    const w = Math.min(bounds.w, bounds.h * aspect) / zoom;
     const h = w / aspect;
-    const x = (image.w - w) * Math.max(0, Math.min(1, position?.x ?? 0.5));
-    const y = (image.h - h) * Math.max(0, Math.min(1, position?.y ?? 0.5));
-    return { x, y, w, h, retained: w * h / (image.w * image.h) };
+    const x = bounds.x + (bounds.w - w) * Math.max(0, Math.min(1, position?.x ?? 0.5));
+    const y = bounds.y + (bounds.h - h) * Math.max(0, Math.min(1, position?.y ?? 0.5));
+    return { x, y, w, h, retained: w * h / (image.w * image.h), contentBounds: bounds };
 }
 
 export function cropStyle(image, crop) {
