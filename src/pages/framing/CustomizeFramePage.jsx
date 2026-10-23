@@ -2183,9 +2183,9 @@ const CustomizeFramePage = ({
         const source = unit === 'cm' ? size.prodigiSizeCm : size.prodigiSizeInches;
         const values = source?.match(/\d+(?:\.\d+)?/g)?.slice(0, 2) || [];
         if (values.length < 2) return source;
-        let [width, height] = values;
-        if (orientation === 'landscape' && Number(width) < Number(height)) [width, height] = [height, width];
-        if (orientation === 'portrait' && Number(width) > Number(height)) [width, height] = [height, width];
+        let [width, height] = values.map(v => Math.round(parseFloat(v)));
+        if (orientation === 'landscape' && width < height) [width, height] = [height, width];
+        if (orientation === 'portrait' && width > height) [width, height] = [height, width];
         return `${width} × ${height} ${unit}`;
     };
 
@@ -3466,12 +3466,44 @@ const CustomizeFramePage = ({
                                             <div style={{ fontSize: `${dimFontSizePx}px` }} className={`absolute ${dimHorizontalClass} left-0 w-full flex items-center justify-center ${wallInkClass} font-mono border-t ${wallInkBorderClass} pt-1 ${wallInkBlend} opacity-80 transition-all ${ZOOM_MOTION} whitespace-nowrap overflow-visible pointer-events-none`}>
                                                 <div className={`absolute left-0 top-0 h-1.5 sm:h-2 w-px ${wallInkBgClass}`} />
                                                 <div className={`absolute right-0 top-0 h-1.5 sm:h-2 w-px ${wallInkBgClass}`} />
-                                                {unit === 'in' ? wInch.toFixed(1) : innerWidthCm.toFixed(1)} {unit === 'in' ? 'in' : 'cm'}
+                                                {(() => {
+                                                    if (unit === 'in') {
+                                                        const inVals = selectedSize?.prodigiSizeInches?.match(/\d+(?:\.\d+)?/g)?.map(v => Math.round(parseFloat(v)));
+                                                        if (inVals && inVals.length >= 2) {
+                                                            const val = orientation === 'landscape' ? Math.max(...inVals) : Math.min(...inVals);
+                                                            return `${val} in`;
+                                                        }
+                                                        return `${Math.round(wInch || 0)} in`;
+                                                    }
+                                                    const cmVals = selectedSize?.prodigiSizeCm?.match(/\d+(?:\.\d+)?/g)?.map(v => Math.round(parseFloat(v)));
+                                                    if (cmVals && cmVals.length >= 2) {
+                                                        const val = orientation === 'landscape' ? Math.max(...cmVals) : Math.min(...cmVals);
+                                                        return `${val} cm`;
+                                                    }
+                                                    return `${Math.round(innerWidthCm || 0)} cm`;
+                                                })()}
                                             </div>
                                             <div style={{ fontSize: `${dimFontSizePx}px` }} className={`absolute ${dimVerticalClass} top-0 h-full flex flex-col items-center justify-center ${wallInkClass} font-mono border-r ${wallInkBorderClass} pr-1 ${wallInkBlend} opacity-80 transition-all ${ZOOM_MOTION} whitespace-nowrap overflow-visible pointer-events-none`}>
                                                 <div className={`absolute right-0 top-0 w-1.5 sm:w-2 h-px ${wallInkBgClass}`} />
                                                 <div className={`absolute right-0 bottom-0 w-1.5 sm:w-2 h-px ${wallInkBgClass}`} />
-                                                <span style={{ writingMode: 'vertical-rl' }}>{unit === 'in' ? hInch.toFixed(1) : innerHeightCm.toFixed(1)} {unit === 'in' ? 'in' : 'cm'}</span>
+                                                <span style={{ writingMode: 'vertical-rl' }}>
+                                                    {(() => {
+                                                        if (unit === 'in') {
+                                                            const inVals = selectedSize?.prodigiSizeInches?.match(/\d+(?:\.\d+)?/g)?.map(v => Math.round(parseFloat(v)));
+                                                            if (inVals && inVals.length >= 2) {
+                                                                const val = orientation === 'landscape' ? Math.min(...inVals) : Math.max(...inVals);
+                                                                return `${val} in`;
+                                                            }
+                                                            return `${Math.round(hInch || 0)} in`;
+                                                        }
+                                                        const cmVals = selectedSize?.prodigiSizeCm?.match(/\d+(?:\.\d+)?/g)?.map(v => Math.round(parseFloat(v)));
+                                                        if (cmVals && cmVals.length >= 2) {
+                                                            const val = orientation === 'landscape' ? Math.min(...cmVals) : Math.max(...cmVals);
+                                                            return `${val} cm`;
+                                                        }
+                                                        return `${Math.round(innerHeightCm || 0)} cm`;
+                                                    })()}
+                                                </span>
                                             </div>
                                         </>
                                     )}

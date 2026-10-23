@@ -133,15 +133,15 @@ export const formatDimensions = (label, unit, orientation) => {
         const aliasMatch = label.match(/\((.*?)\)/);
         const aliasTag = aliasMatch ? ` (${aliasMatch[1]})` : '';
 
-        // Format to target unit
+        // Format to target unit without decimal places, matching exact whole numbers
         if (unit === 'in') {
-            const wIn = isCm ? Math.round(wFinal / 2.54) : wFinal;
-            const hIn = isCm ? Math.round(hFinal / 2.54) : hFinal;
+            const wIn = Math.round(isCm ? wFinal / 2.54 : wFinal);
+            const hIn = Math.round(isCm ? hFinal / 2.54 : hFinal);
             return `${wIn} × ${hIn} in${aliasTag}`;
         } else {
             // Target unit is cm
-            const wCm = isCm ? wFinal : Math.round(wFinal * 2.54);
-            const hCm = isCm ? hFinal : Math.round(hFinal * 2.54);
+            const wCm = Math.round(isCm ? wFinal : wFinal * 2.54);
+            const hCm = Math.round(isCm ? hFinal : hFinal * 2.54);
             return `${wCm} × ${hCm} cm${aliasTag}`;
         }
     }
