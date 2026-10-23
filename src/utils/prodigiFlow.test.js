@@ -176,4 +176,79 @@ describe('Prodigi Frame Studio flow', () => {
         expect(prodigiHangingHardware(floatCanvas, { width: 24, height: 36 })).toMatchObject({ id: 'none', included: false });
         expect(prodigiHangingHardware(stretched, { width: 24, height: 36 })).toMatchObject({ id: 'none', included: false });
     });
+
+    it('ensures 100% consistency between all user-selectable combinations and Prodigi catalogue availability', () => {
+        const prodigiFrames = FRAME_STYLES.filter((frame) => frame.prodigiProduct);
+        let checkedCombinations = 0;
+        let availableCombinations = 0;
+
+        for (const frame of prodigiFrames) {
+            const isConfigurable = ['classic', 'box'].includes(frame.prodigiProduct);
+            const sizes = prodigiAvailableSizes(frame);
+            expect(sizes.length, `No sizes available for frame ${frame.id}`).toBeGreaterThan(0);
+
+            for (const size of sizes) {
+                for (const destinationCountryCode of ['GB', 'JE']) {
+                    if (isConfigurable) {
+                        for (const mounted of [false, true]) {
+                            for (const glaze of ['Acrylic / Perspex', 'Float glass', 'Motheye']) {
+                                for (const mountColor of mounted ? ['Snow white', 'Off-white', 'Black'] : ['Snow white']) {
+                                    checkedCombinations++;
+                                    const config = { mounted, glaze, mountColor, destinationCountryCode };
+                                    const available = isProdigiConfigurationAvailable(frame, size, config);
+
+                                    if (available) {
+                                        availableCombinations++;
+                                        const product = resolveProdigiProduct(frame, size, config);
+                                        expect(product, `Product resolved for ${frame.id} ${size.label}`).toBeTruthy();
+                                        expect(product.sku, `SKU exists for ${frame.id} ${size.label}`).toBeTruthy();
+                                        expect(product.markets?.[destinationCountryCode], `Market pricing exists for ${destinationCountryCode}`).toBeTruthy();
+                                        expect(product.markets[destinationCountryCode].productPrice).toBeGreaterThan(0);
+
+                                        // Base product resolution for quotation and checkout
+                                        const baseProduct = prodigiBaseProductForProduct(product, destinationCountryCode);
+                                        expect(baseProduct, `Base product resolved for ${product.sku}`).toBeTruthy();
+                                        expect(baseProduct.sku, `Base SKU exists for ${product.sku}`).toBeTruthy();
+                                        expect(baseProduct.markets?.[destinationCountryCode], `Base product market exists`).toBeTruthy();
+
+                                        if (mounted) {
+                                            expect(product.options.mountColor).toBe(mountColor);
+                                            const widthIn = prodigiMountWidthInForSize(size, product);
+                                            const widthMm = prodigiMountWidthMmForSize(size, product);
+                                            expect([1, 1.5, 2, 3]).toContain(widthIn);
+                                            expect([25, 38, 50, 75]).toContain(widthMm);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    } else if (frame.canvasOnly) {
+                        for (const wrap of ['ImageWrap', 'MirrorWrap', 'White', 'Black']) {
+                            checkedCombinations++;
+                            const config = { wrap, destinationCountryCode };
+                            const available = isProdigiConfigurationAvailable(frame, size, config);
+                            if (available) {
+                                availableCombinations++;
+                                const product = resolveProdigiProduct(frame, size, config);
+                                expect(product.options.wrap).toBe(wrap);
+                                expect(product.markets?.[destinationCountryCode]).toBeTruthy();
+                            }
+                        }
+                    } else {
+                        checkedCombinations++;
+                        const config = { destinationCountryCode };
+                        const available = isProdigiConfigurationAvailable(frame, size, config);
+                        expect(available, `Non-configurable frame ${frame.id} ${size.label} should be available`).toBe(true);
+                        availableCombinations++;
+                        const product = resolveProdigiProduct(frame, size, config);
+                        expect(product.sku).toBeTruthy();
+                        expect(product.markets?.[destinationCountryCode]).toBeTruthy();
+                    }
+                }
+            }
+        }
+
+        expect(checkedCombinations).toBeGreaterThan(5000);
+        expect(availableCombinations).toBeGreaterThan(3000);
+    });
 });
