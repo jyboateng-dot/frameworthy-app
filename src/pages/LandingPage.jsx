@@ -212,9 +212,7 @@ export default function LandingPage({ onStartFraming, navigate, setSelectedFrame
                                             transform: `scale(${frame.thumbnailCrop.scale})`,
                                             transformOrigin: frame.thumbnailCrop.origin,
                                         } : undefined}
-                                        className={frame.thumbnailImage && !frame.thumbnailCrop
-                                            ? 'w-full h-full object-cover transition-transform duration-700 group-hover:scale-[1.04]'
-                                            : 'w-full h-full object-cover scale-[1.65] origin-[50%_68%] transition-transform duration-700 group-hover:scale-[1.78]'}
+                                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-[1.04]"
                                     />
                                     <div className="absolute inset-0 shadow-[inset_0_0_46px_12px_rgba(28,26,23,0.18)] pointer-events-none" />
                                     <div className="absolute inset-0 opacity-0 group-hover:opacity-100 bg-black/10 transition-opacity duration-300 z-10" />
