@@ -156,6 +156,15 @@ export default defineConfig({
     environment: 'jsdom',
     setupFiles: ['./src/test/setup.js'],
     globals: true,
+    // src/services/firebase.js calls getAuth() at import time, which throws
+    // auth/invalid-api-key when CI has no Firebase config. Placeholder values
+    // let any test that imports it load; no test talks to a real project.
+    env: {
+      VITE_FIREBASE_API_KEY: 'test-api-key',
+      VITE_FIREBASE_AUTH_DOMAIN: 'demo-test.firebaseapp.com',
+      VITE_FIREBASE_PROJECT_ID: 'demo-test',
+      VITE_FIREBASE_APP_ID: '1:1:web:1',
+    },
     // firestore.rules tests need the emulator (see vitest.rules.config.js /
     // `npm run test:rules`) and would hang here without one running.
     // functions/ is its own package with its own emulator-backed test run
