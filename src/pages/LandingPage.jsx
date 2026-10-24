@@ -4,6 +4,23 @@ import { framesForCategory, displayCategoryName, displayFrameName, frameStarting
 import { CAROUSEL_SLIDES } from '../data/landingCarouselSlides';
 import { openExternalLinkFromEvent as openExternalLink } from '../utils/nativeLinks';
 import PageMeta from '../components/common/PageMeta';
+import MobileLanding from './landing/MobileLanding';
+
+// Phones get their own home page layout (see MobileLanding); tablets and
+// desktops keep the carousel layout below.
+const PHONE_QUERY = '(max-width: 767px)';
+
+function useIsPhone() {
+    const [isPhone, setIsPhone] = useState(() => typeof window !== 'undefined' && typeof window.matchMedia === 'function' && window.matchMedia(PHONE_QUERY).matches);
+    useEffect(() => {
+        if (typeof window.matchMedia !== 'function') return undefined;
+        const query = window.matchMedia(PHONE_QUERY);
+        const update = () => setIsPhone(query.matches);
+        query.addEventListener('change', update);
+        return () => query.removeEventListener('change', update);
+    }, []);
+    return isPhone;
+}
 
 export default function LandingPage({ onStartFraming, navigate, setSelectedFrame }) {
     const [activeCategory, setActiveCategory] = useState(PRODIGI_FRAME_CATEGORIES[0]);
@@ -11,6 +28,7 @@ export default function LandingPage({ onStartFraming, navigate, setSelectedFrame
     const [currentSlide, setCurrentSlide] = useState(0);
     const [loadedSlides, setLoadedSlides] = useState(() => new Set([0, 1]));
     const touchStartX = useRef(null);
+    const isPhone = useIsPhone();
 
     const nextSlide = () => {
         setCurrentSlide(s => (s + 1) % CAROUSEL_SLIDES.length);
@@ -75,12 +93,25 @@ export default function LandingPage({ onStartFraming, navigate, setSelectedFrame
         else if (navigate) navigate('/frame/customize', { state });
     };
 
+    const pageMeta = (
+        <PageMeta
+            title="Made-to-Order Frames & Canvas"
+            description="Design made-to-order framed prints and canvas online, with live previews and delivery to the United Kingdom and Jersey."
+        />
+    );
+
+    if (isPhone) {
+        return (
+            <>
+                {pageMeta}
+                <MobileLanding navigate={navigate} onStartFraming={onStartFraming} onSelectFrame={handleFrameSelect} />
+            </>
+        );
+    }
+
     return (
         <div className="min-h-screen bg-[#faf9f8] text-stone-900 font-sans antialiased overflow-x-hidden selection:bg-stone-200">
-            <PageMeta
-                title="Made-to-Order Frames & Canvas"
-                description="Design made-to-order framed prints and canvas online, with live previews and delivery to the United Kingdom and Jersey."
-            />
+            {pageMeta}
             {/* Header is handled globally by App.jsx */}
 
             
