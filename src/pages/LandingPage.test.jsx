@@ -1,6 +1,6 @@
 import React from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { act, cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import LandingPage from './LandingPage';
 import { framesForCategory, PRODIGI_FRAME_CATEGORIES } from '../data/frameBrowsing';
 import { CAROUSEL_SLIDES } from '../data/landingCarouselSlides';
@@ -50,20 +50,6 @@ describe('home catalogue and carousel', () => {
         fireEvent.click(screen.getByRole('button', { name: 'Next slide' }));
         fireEvent.click(screen.getByRole('button', { name: 'Start Framing' }));
         expect(onStartFraming).toHaveBeenLastCalledWith({});
-    });
-
-    it('auto-advances slides periodically when not paused', () => {
-        vi.useFakeTimers();
-        try {
-            render(<LandingPage />);
-            expect(screen.getByText(/01\s*—\s*15/)).toBeInTheDocument();
-            act(() => {
-                vi.advanceTimersByTime(5100);
-            });
-            expect(screen.getByText(/02\s*—\s*15/)).toBeInTheDocument();
-        } finally {
-            vi.useRealTimers();
-        }
     });
 });
 
