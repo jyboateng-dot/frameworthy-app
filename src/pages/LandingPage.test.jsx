@@ -118,7 +118,7 @@ describe('phone home page', () => {
         expect(onStartFraming).toHaveBeenLastCalledWith({});
         fireEvent.click(screen.getByRole('button', { name: /Free museum masterpieces/ }));
         expect(onStartFraming).toHaveBeenLastCalledWith({ openMetArt: true });
-        fireEvent.click(screen.getByRole('button', { name: /Curated art collections/ }));
+        fireEvent.click(screen.getByRole('button', { name: 'Public Domain Art' }));
         expect(navigate).toHaveBeenCalledWith('/curated-art');
 
         expect(screen.getAllByRole('button').filter(button => button.hasAttribute('aria-pressed'))).toHaveLength(7);

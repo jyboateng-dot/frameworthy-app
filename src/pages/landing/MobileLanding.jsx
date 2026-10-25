@@ -241,7 +241,7 @@ export default function MobileLanding({ navigate, onStartFraming, onSelectFrame 
                             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/25 to-transparent" />
                             <div className="relative p-3">
                                 <Images size={16} className="mb-1 text-[#e3c66d]" />
-                                <span className="block text-[15px] font-bold leading-tight text-white">Curated art collections</span>
+                                <span className="block text-[15px] font-bold leading-tight text-white">Public Domain Art</span>
                             </div>
                         </button>
                     </div>
