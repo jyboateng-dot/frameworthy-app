@@ -77,10 +77,10 @@ const LEGAL_LINKS = [
 
 function SectionHeading({ eyebrow, title, children }) {
     return (
-        <div className="mb-5">
-            {eyebrow && <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#a8892f] mb-2">{eyebrow}</p>}
+        <div className="mb-4">
+            {eyebrow && <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#a8892f] mb-1.5">{eyebrow}</p>}
             <h2 className="text-2xl font-bold tracking-tight text-stone-900 leading-tight">{title}</h2>
-            {children && <p className="mt-2 text-sm leading-relaxed text-stone-500">{children}</p>}
+            {children && <p className="mt-1.5 text-sm leading-relaxed text-stone-500">{children}</p>}
         </div>
     );
 }
@@ -190,19 +190,19 @@ export default function MobileLanding({ navigate, onStartFraming, onSelectFrame 
             </section>
 
             {/* Why FrameWorthy, at a glance */}
-            <section className="px-4 py-6 bg-white border-b border-stone-100">
-                <ul className="grid grid-cols-2 gap-3">
+            <section className="px-4 py-4 bg-white border-b border-stone-100">
+                <ul className="grid grid-cols-2 gap-2.5">
                     {BENEFITS.map((benefit) => (
-                        <li key={benefit.label} className="flex items-center gap-2.5 rounded-xl bg-stone-50 px-3 py-3">
-                            <benefit.icon size={18} strokeWidth={1.75} className="shrink-0 text-[#a8892f]" />
-                            <span className="text-[13px] font-semibold leading-snug text-stone-700">{benefit.label}</span>
+                        <li key={benefit.label} className="flex items-center gap-2 rounded-xl bg-stone-50 px-3 py-2.5">
+                            <benefit.icon size={17} strokeWidth={1.75} className="shrink-0 text-[#a8892f]" />
+                            <span className="text-[12.5px] font-semibold leading-snug text-stone-700">{benefit.label}</span>
                         </li>
                     ))}
                 </ul>
             </section>
 
             {/* Choose a starting point */}
-            <section className="px-4 py-10">
+            <section className="px-4 pt-6 pb-8">
                 <SectionHeading eyebrow="Step one" title="What would you like to frame?">
                     Upload from your device or pick a free museum masterpiece.
                 </SectionHeading>
