@@ -202,7 +202,7 @@ export default function MobileLanding({ navigate, onStartFraming, onSelectFrame 
             </section>
 
             {/* Choose a starting point */}
-            <section className="px-4 pt-6 pb-8">
+            <section className="px-4 pt-6 pb-6">
                 <SectionHeading eyebrow="Step one" title="What would you like to frame?">
                     Upload from your device or pick a free museum masterpiece.
                 </SectionHeading>
@@ -249,7 +249,7 @@ export default function MobileLanding({ navigate, onStartFraming, onSelectFrame 
             </section>
 
             {/* Frames: swipeable rail per category instead of a paginated grid */}
-            <section id="curated-frames" className="py-10 bg-white scroll-mt-14">
+            <section id="curated-frames" className="pt-6 pb-8 bg-white scroll-mt-14">
                 <div className="px-4">
                     <SectionHeading eyebrow="Step two" title="Pick your frame">
                         Solid wood, deep box, slim aluminium and canvas styles. Swipe to see every finish.
