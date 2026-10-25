@@ -249,7 +249,7 @@ export default function MobileLanding({ navigate, onStartFraming, onSelectFrame 
             </section>
 
             {/* Frames: swipeable rail per category instead of a paginated grid */}
-            <section id="curated-frames" className="pt-6 pb-8 bg-white scroll-mt-14">
+            <section id="curated-frames" className="pt-6 pb-6 bg-white scroll-mt-14">
                 <div className="px-4">
                     <SectionHeading eyebrow="Step two" title="Pick your frame">
                         Solid wood, deep box, slim aluminium and canvas styles. Swipe to see every finish.
@@ -299,7 +299,7 @@ export default function MobileLanding({ navigate, onStartFraming, onSelectFrame 
             </section>
 
             {/* Preview feature */}
-            <section className="px-4 py-10">
+            <section className="px-4 pt-6 pb-6">
                 <div className="overflow-hidden rounded-2xl bg-stone-900 text-white">
                     <img src="/landing_carousel/frameworthy-3d-ar.webp" alt="Previewing a framed print on a living room wall through a phone" loading="lazy" decoding="async" className="aspect-[16/10] w-full object-cover" />
                     <div className="p-5">
@@ -321,7 +321,7 @@ export default function MobileLanding({ navigate, onStartFraming, onSelectFrame 
             </section>
 
             {/* Delivery reassurance + final call to action */}
-            <section className="px-4 pb-10">
+            <section className="px-4 pb-8">
                 <div className="overflow-hidden rounded-2xl bg-white border border-stone-200 shadow-sm">
                     <img src="/landing_carousel/slide-delivered-door.webp" alt="A FrameWorthy delivery arriving at a front door" loading="lazy" decoding="async" className="aspect-[16/10] w-full object-cover" />
                     <div className="p-5">
