@@ -41,6 +41,23 @@ export default function LandingPage({ onStartFraming, navigate, setSelectedFrame
     const touchStartX = useRef(null);
     const isPhone = useIsPhone();
 
+    useEffect(() => {
+        try {
+            const savedScroll = sessionStorage.getItem('met_art_homepage_scroll');
+            if (savedScroll !== null) {
+                sessionStorage.removeItem('met_art_homepage_scroll');
+                const scrollY = Number(savedScroll);
+                if (!isNaN(scrollY) && scrollY > 0) {
+                    const restore = () => window.scrollTo({ top: scrollY, behavior: 'instant' });
+                    restore();
+                    requestAnimationFrame(restore);
+                    setTimeout(restore, 50);
+                    setTimeout(restore, 150);
+                }
+            }
+        } catch (_) {}
+    }, []);
+
     const nextSlide = () => {
         setCurrentSlide(s => (s + 1) % CAROUSEL_SLIDES.length);
     };
@@ -99,7 +116,18 @@ export default function LandingPage({ onStartFraming, navigate, setSelectedFrame
 
     const handleStartAction = (e, slide) => {
         if (e) e.stopPropagation();
-        const state = slide.triggersMetArt ? { openMetArt: true } : {};
+        const scrollY = typeof window !== 'undefined' ? window.scrollY : 0;
+        if (slide.triggersMetArt) {
+            try {
+                sessionStorage.setItem('met_art_homepage_scroll', String(scrollY));
+            } catch (_) {}
+        }
+        const state = slide.triggersMetArt ? {
+            openMetArt: true,
+            returnOnClose: true,
+            returnScrollY: scrollY,
+            returnTo: '/'
+        } : {};
         if (onStartFraming) onStartFraming(state);
         else if (navigate) navigate('/frame/customize', { state });
     };

@@ -372,6 +372,7 @@ const CustomizeFramePage = ({
     const [isSizeGuideOpen, setIsSizeGuideOpen] = useState(false);
     const { open: isWallPickerOpen, setOpen: setIsWallPickerOpen, hoverProps: wallPickerHoverProps, closeOnSelect: closeWallPickerOnSelect, containerRef: wallPickerContainerRef } = useHoverDropdown();
     const [isMetModalOpen, setIsMetModalOpen] = useState(false);
+    const metReturnRef = useRef(null);
     const [isArOpen, setIsArOpen] = useState(false);
     const [isHovered, setIsHovered] = useState(false);
     const [isMaxZoom, setIsMaxZoom] = useState(false);
@@ -656,7 +657,15 @@ const CustomizeFramePage = ({
         setPosterData((state.isAlbumPoster || state.isMoviePosterPrint) ? state.posterData : null);
         setProdigiSelection(state.prodigiSelection || null);
 
-        if (state.openMetArt) setIsMetModalOpen(true);
+        if (state.openMetArt) {
+            setIsMetModalOpen(true);
+            if (state.returnOnClose) {
+                metReturnRef.current = {
+                    scrollY: typeof state.returnScrollY === 'number' ? state.returnScrollY : 0,
+                    returnTo: state.returnTo || '/'
+                };
+            }
+        }
     };
 
     // Initial Setup
@@ -1042,6 +1051,10 @@ const CustomizeFramePage = ({
     // and the preset/poster flags stale from whatever was loaded before, and
     // never resolved a frame/size for the newly-selected artwork at all.
     const handleMetArtSelect = (art) => {
+        metReturnRef.current = null;
+        try {
+            sessionStorage.removeItem('met_art_homepage_scroll');
+        } catch (_) {}
         const pixelSize = getMetArtworkPixelSize(art) || ((art.imageWidth && art.imageHeight) ? { w: art.imageWidth, h: art.imageHeight } : null);
         const maxSize = maxFramePrintSize(pixelSize);
         const recSize = getMetRecommendedSize(art);
@@ -1056,6 +1069,28 @@ const CustomizeFramePage = ({
             imageHeight: pixelSize?.h || art.imageHeight || null,
         });
         setIsMetModalOpen(false);
+    };
+
+    const handleMetModalClose = () => {
+        setIsMetModalOpen(false);
+        if (metReturnRef.current) {
+            const { scrollY, returnTo } = metReturnRef.current;
+            metReturnRef.current = null;
+            if (navigate) {
+                if (typeof window !== 'undefined' && window.history.length > 1) {
+                    navigate(-1);
+                } else {
+                    navigate(returnTo || '/');
+                }
+            }
+            if (typeof window !== 'undefined' && typeof scrollY === 'number') {
+                const restore = () => window.scrollTo({ top: scrollY, behavior: 'instant' });
+                restore();
+                requestAnimationFrame(restore);
+                setTimeout(restore, 50);
+                setTimeout(restore, 150);
+            }
+        }
     };
 
     // Reset 'Added to cart' state when any configuration changes
@@ -4479,7 +4514,7 @@ const CustomizeFramePage = ({
             {/* Met Art Selection Modal */}
             <MetArtSelectionModal 
                 isOpen={isMetModalOpen} 
-                onClose={() => setIsMetModalOpen(false)} 
+                onClose={handleMetModalClose} 
                 onSelect={handleMetArtSelect}
             />
 

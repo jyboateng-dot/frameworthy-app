@@ -46,7 +46,7 @@ describe('home catalogue and carousel', () => {
         for (let i = 0; i < metIndex; i++) fireEvent.click(screen.getByRole('button', { name: 'Next slide' }));
         expect(screen.getByText(`${metIndex + 1} — ${CAROUSEL_SLIDES.length}`)).toBeInTheDocument();
         fireEvent.click(screen.getByRole('button', { name: 'Start Framing' }));
-        expect(onStartFraming).toHaveBeenLastCalledWith({ openMetArt: true });
+        expect(onStartFraming).toHaveBeenLastCalledWith(expect.objectContaining({ openMetArt: true }));
         fireEvent.click(screen.getByRole('button', { name: 'Next slide' }));
         fireEvent.click(screen.getByRole('button', { name: 'Start Framing' }));
         expect(onStartFraming).toHaveBeenLastCalledWith({});
@@ -117,7 +117,7 @@ describe('phone home page', () => {
         fireEvent.click(screen.getAllByRole('button', { name: /Start Framing/ })[0]);
         expect(onStartFraming).toHaveBeenLastCalledWith({});
         fireEvent.click(screen.getByRole('button', { name: /Museum Masterpieces/ }));
-        expect(onStartFraming).toHaveBeenLastCalledWith({ openMetArt: true });
+        expect(onStartFraming).toHaveBeenLastCalledWith(expect.objectContaining({ openMetArt: true }));
         fireEvent.click(screen.getByRole('button', { name: 'Public Domain Art' }));
         expect(navigate).toHaveBeenCalledWith('/curated-art');
 

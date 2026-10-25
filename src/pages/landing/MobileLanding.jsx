@@ -55,7 +55,7 @@ const BENEFITS = [
     { icon: Eye, label: 'Live preview as you design' },
     { icon: Smartphone, label: 'See it on your wall in AR' },
     { icon: Hammer, label: 'Handcrafted, ready to hang' },
-    { icon: ShieldCheck, label: 'Guest checkout, secure payment' },
+    { icon: ShieldCheck, label: 'Secure checkout' },
 ];
 
 const SOCIAL_LINKS = [
@@ -223,7 +223,18 @@ export default function MobileLanding({ navigate, onStartFraming, onSelectFrame 
                     </button>
                     <div className="grid grid-cols-2 gap-3">
                         <button
-                            onClick={() => startFraming({ openMetArt: true })}
+                            onClick={() => {
+                                const scrollY = typeof window !== 'undefined' ? window.scrollY : 0;
+                                try {
+                                    sessionStorage.setItem('met_art_homepage_scroll', String(scrollY));
+                                } catch (_) {}
+                                startFraming({
+                                    openMetArt: true,
+                                    returnOnClose: true,
+                                    returnScrollY: scrollY,
+                                    returnTo: '/'
+                                });
+                            }}
                             className="relative flex h-44 items-end overflow-hidden rounded-2xl text-left shadow-sm active:scale-[0.99] transition-transform"
                         >
                             <img src="/landing_carousel/slide-museum-masterpieces.webp" alt="" loading="lazy" decoding="async" className="absolute inset-0 h-full w-full object-cover" />
