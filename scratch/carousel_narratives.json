@@ -1,0 +1,56 @@
+[
+  {
+    "slide": 1,
+    "image": "/landing_carousel/slide-welcome-jersey.webp",
+    "headline": "Frame moments that matter",
+    "sub_narrative": "Turn cherished memories into frames made for your home."
+  },
+  {
+    "slide": 2,
+    "image": "/landing_carousel/slide-upload.webp",
+    "headline": "Upload from Anywhere",
+    "sub_narrative": "Upload photos from your phone, Google Drive or Dropbox."
+  },
+  {
+    "slide": 3,
+    "image": "/landing_carousel/slide-craftsmanship.webp",
+    "headline": "Make Every Detail Yours",
+    "sub_narrative": "Customise frames, mounts and sizes in real time."
+  },
+  {
+    "slide": 4,
+    "image": "/landing_carousel/slide-room-visualizer.webp",
+    "headline": "See It Live as You Build",
+    "sub_narrative": "Test mounts and wall colours in the visualizer."
+  },
+  {
+    "slide": 5,
+    "image": "/landing_carousel/slide-3d-ar.webp",
+    "headline": "Preview in Your Space",
+    "sub_narrative": "See it on your wall in Augmented Reality (AR)."
+  },
+  {
+    "slide": 6,
+    "image": "/landing_carousel/slide-frame-materials.webp",
+    "headline": "Curated Styles & Finishes",
+    "sub_narrative": "Solid wood, aluminium and canvas floaters."
+  },
+  {
+    "slide": 7,
+    "image": "/landing_carousel/slide-living-space.webp",
+    "headline": "Elevate Your Living Space",
+    "sub_narrative": "Create a considered focal point for any room."
+  },
+  {
+    "slide": 8,
+    "image": "/landing_carousel/slide-perfect-sizing.webp",
+    "headline": "Perfect Scale & Sizing",
+    "sub_narrative": "From tabletop prints to statement gallery walls."
+  },
+  {
+    "slide": 9,
+    "image": "/landing_carousel/frameworthy-checkout.webp",
+    "headline": "Easy, Secure Checkout",
+    "sub_narrative": "Check out as a guest or sign in for more features"
+  }
+]

@@ -10,9 +10,20 @@ import MobileLanding from './landing/MobileLanding';
 // desktops keep the carousel layout below.
 const PHONE_QUERY = '(max-width: 767px)';
 
+function isForcedPhonePreview() {
+    return import.meta.env.DEV
+        && typeof window !== 'undefined'
+        && new URLSearchParams(window.location.search).get('mobile') === '1';
+}
+
 function useIsPhone() {
-    const [isPhone, setIsPhone] = useState(() => typeof window !== 'undefined' && typeof window.matchMedia === 'function' && window.matchMedia(PHONE_QUERY).matches);
+    const [isPhone, setIsPhone] = useState(() => isForcedPhonePreview()
+        || (typeof window !== 'undefined' && typeof window.matchMedia === 'function' && window.matchMedia(PHONE_QUERY).matches));
     useEffect(() => {
+        if (isForcedPhonePreview()) {
+            setIsPhone(true);
+            return undefined;
+        }
         if (typeof window.matchMedia !== 'function') return undefined;
         const query = window.matchMedia(PHONE_QUERY);
         const update = () => setIsPhone(query.matches);

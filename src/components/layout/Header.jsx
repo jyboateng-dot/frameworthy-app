@@ -122,15 +122,17 @@ const Header = ({
                 {/* User Menu */}
                 {user ? (
                     <div
-                        className="relative hidden sm:block"
+                        className="relative shrink-0"
                         onMouseEnter={() => setIsUserMenuOpen(true)}
                         onMouseLeave={() => setIsUserMenuOpen(false)}
                     >
                         <button
-                            className="flex items-center gap-2 text-sm font-bold text-[#9a8e7d] hover:text-[#e8e2d9] transition px-1 md:px-2 py-1 rounded-lg hover:bg-white/[0.05]"
+                            onClick={() => setIsUserMenuOpen(prev => !prev)}
+                            className="flex items-center gap-1 sm:gap-2 text-sm font-bold text-[#9a8e7d] hover:text-[#e8e2d9] transition p-1 sm:px-2 sm:py-1 rounded-lg hover:bg-white/[0.05]"
+                            aria-label="User account"
                         >
-                            <div className="w-8 h-8 bg-white/[0.08] rounded-full flex items-center justify-center text-[#9a8e7d] shrink-0">
-                                <User size={16} />
+                            <div className="w-7 h-7 sm:w-8 sm:h-8 bg-white/[0.08] rounded-full flex items-center justify-center text-[#9a8e7d] shrink-0">
+                                <User size={15} className="sm:w-4 sm:h-4" />
                             </div>
                             <span className="hidden lg:inline">{user.displayName?.split(' ')[0] || 'User'}</span>
                             <ChevronDown size={14} className={`hidden lg:inline text-[#5a5248] transition-transform ${isUserMenuOpen ? 'rotate-180' : ''}`} />
@@ -138,60 +140,64 @@ const Header = ({
 
                         {/* Dropdown */}
                         {isUserMenuOpen && (
-                            <div className="absolute top-full right-0 mt-0 pt-2 w-48 z-50">
-                                <div className="bg-[#141210] rounded-xl shadow-xl border border-white/[0.07] py-1 animate-fade-in-up">
-                                    <div className="px-4 py-3 border-b border-white/[0.05] mb-1">
-                                        <p className="text-xs text-[#5a5248] font-bold uppercase">Signed in as</p>
-                                        <p className="text-sm font-medium text-[#e8e2d9] truncate">{user.email}</p>
-                                    </div>
-                                    <button
-                                        onClick={() => { navigate('/orders'); setIsUserMenuOpen(false); }}
-                                        className="w-full text-left px-4 py-2 text-sm text-[#9a8e7d] hover:bg-white/[0.05] hover:text-[#e8e2d9] flex items-center gap-2 transition"
-                                    >
-                                        <Package size={16} /> My Orders
-                                    </button>
-                                    <button
-                                        onClick={() => { navigate('/help'); setIsUserMenuOpen(false); }}
-                                        className="w-full text-left px-4 py-2 text-sm text-[#9a8e7d] hover:bg-white/[0.05] hover:text-[#e8e2d9] flex items-center gap-2 transition"
-                                    >
-                                        <HelpCircle size={16} /> Help Centre
-                                    </button>
-
-                                    {isAdminEmail(user.email) && (
-                                        <>
-                                            <button
-                                                onClick={() => { navigate('/admin'); setIsUserMenuOpen(false); }}
-                                                className="w-full text-left px-4 py-2 text-sm text-[#c9a84c] hover:bg-white/[0.05] flex items-center gap-2 transition"
-                                            >
-                                                <Shield size={16} /> Admin Dashboard
-                                            </button>
-                                            <button
-                                                onClick={() => { navigate('/admin/messages'); setIsUserMenuOpen(false); }}
-                                                className="w-full text-left px-4 py-2 text-sm text-[#c9a84c] hover:bg-white/[0.05] flex items-center justify-between gap-2 transition"
-                                            >
-                                                <span className="flex items-center gap-2"><MessageCircle size={16} /> Messages</span>
-                                                {unreadMessageCount > 0 && (
-                                                    <span className="bg-[#c9a84c] text-[#0a0a0a] text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center">{unreadMessageCount}</span>
-                                                )}
-                                            </button>
-                                        </>
-                                    )}
-                                    <div className="border-t border-white/[0.05] mt-1 pt-1">
-                                        <button onClick={handleLogout} className="w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-red-500/10 flex items-center gap-2 transition">
-                                            <LogOut size={16} /> Sign Out
+                            <>
+                                <div className="fixed inset-0 z-40" onClick={() => setIsUserMenuOpen(false)} />
+                                <div className="absolute top-full right-0 mt-0 pt-2 w-48 z-50">
+                                    <div className="bg-[#141210] rounded-xl shadow-xl border border-white/[0.07] py-1 animate-fade-in-up">
+                                        <div className="px-4 py-3 border-b border-white/[0.05] mb-1">
+                                            <p className="text-xs text-[#5a5248] font-bold uppercase">Signed in as</p>
+                                            <p className="text-sm font-medium text-[#e8e2d9] truncate">{user.email}</p>
+                                        </div>
+                                        <button
+                                            onClick={() => { navigate('/orders'); setIsUserMenuOpen(false); }}
+                                            className="w-full text-left px-4 py-2 text-sm text-[#9a8e7d] hover:bg-white/[0.05] hover:text-[#e8e2d9] flex items-center gap-2 transition"
+                                        >
+                                            <Package size={16} /> My Orders
                                         </button>
+                                        <button
+                                            onClick={() => { navigate('/help'); setIsUserMenuOpen(false); }}
+                                            className="w-full text-left px-4 py-2 text-sm text-[#9a8e7d] hover:bg-white/[0.05] hover:text-[#e8e2d9] flex items-center gap-2 transition"
+                                        >
+                                            <HelpCircle size={16} /> Help Centre
+                                        </button>
+
+                                        {isAdminEmail(user.email) && (
+                                            <>
+                                                <button
+                                                    onClick={() => { navigate('/admin'); setIsUserMenuOpen(false); }}
+                                                    className="w-full text-left px-4 py-2 text-sm text-[#c9a84c] hover:bg-white/[0.05] flex items-center gap-2 transition"
+                                                >
+                                                    <Shield size={16} /> Admin Dashboard
+                                                </button>
+                                                <button
+                                                    onClick={() => { navigate('/admin/messages'); setIsUserMenuOpen(false); }}
+                                                    className="w-full text-left px-4 py-2 text-sm text-[#c9a84c] hover:bg-white/[0.05] flex items-center justify-between gap-2 transition"
+                                                >
+                                                    <span className="flex items-center gap-2"><MessageCircle size={16} /> Messages</span>
+                                                    {unreadMessageCount > 0 && (
+                                                        <span className="bg-[#c9a84c] text-[#0a0a0a] text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center">{unreadMessageCount}</span>
+                                                    )}
+                                                </button>
+                                            </>
+                                        )}
+                                        <div className="border-t border-white/[0.05] mt-1 pt-1">
+                                            <button onClick={handleLogout} className="w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-red-500/10 flex items-center gap-2 transition">
+                                                <LogOut size={16} /> Sign Out
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
+                            </>
                         )}
                     </div>
                 ) : (
                     <button
                         onClick={() => navigate('/login')}
-                        className="hidden sm:flex items-center justify-center w-8 h-8 rounded-full text-[#9a8e7d] hover:text-[#c9a84c] hover:bg-white/[0.05] transition"
+                        className="flex items-center justify-center p-1.5 sm:w-8 sm:h-8 rounded-full text-[#9a8e7d] hover:text-[#c9a84c] hover:bg-white/[0.05] transition shrink-0"
                         title="Sign In"
+                        aria-label="Sign In"
                     >
-                        <User size={18} />
+                        <User size={18} className="sm:w-5 sm:h-5" />
                     </button>
                 )}
 

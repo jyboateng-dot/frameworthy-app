@@ -1,19 +1,55 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { ArrowRight, Upload, Landmark, Images, Eye, Smartphone, Truck, ShieldCheck, Hammer, Phone, Mail, ChevronRight } from 'lucide-react';
 import { framesForCategory, displayCategoryName, displayFrameName, frameStartingPriceDisplay, frameCategoryDescription, PRODIGI_FRAME_CATEGORIES } from '../../data/frameBrowsing';
+import { CAROUSEL_SLIDES } from '../../data/landingCarouselSlides';
 import { openExternalLinkFromEvent as openExternalLink } from '../../utils/nativeLinks';
 
 // Phone-only home page. LandingPage renders this below the md breakpoint so the
-// tablet/desktop layout stays exactly as it was. The copy is deliberately
-// shorter than the desktop carousel: one headline, rotating photos, and a
-// scroll that answers "what is it, what can I frame, how does it work".
+// tablet/desktop layout stays exactly as it was.
 
-const HERO_IMAGES = [
-    { src: '/landing_carousel/slide-welcome-jersey.webp', alt: 'A parent and child hanging a framed print at home' },
-    { src: '/landing_carousel/slide-gallery-wall.webp', alt: 'A living room gallery wall of framed photographs' },
-    { src: '/landing_carousel/slide-hallway.webp', alt: 'A hallway lined with black framed prints' },
-    { src: '/landing_carousel/slide-showcase-milestone.webp', alt: 'A large framed landscape above a bench' },
+// These desktop carousel scenes are not repeated anywhere else on the mobile
+// landing page. Reuse the shared slide records so image and narrative stay in
+// sync when the catalogue copy changes.
+const MOBILE_HERO_IMAGE_PATHS = [
+    '/landing_carousel/slide-welcome-jersey.webp',
+    '/landing_carousel/slide-upload.webp',
+    '/landing_carousel/slide-craftsmanship.webp',
+    '/landing_carousel/slide-room-visualizer.webp',
+    '/landing_carousel/slide-3d-ar.webp',
+    '/landing_carousel/slide-frame-materials.webp',
+    '/landing_carousel/slide-living-space.webp',
+    '/landing_carousel/slide-perfect-sizing.webp',
+    '/landing_carousel/frameworthy-checkout.webp',
 ];
+const MOBILE_HERO_TITLES = {
+    '/landing_carousel/slide-welcome-jersey.webp': 'Frame moments that matter',
+    '/landing_carousel/slide-upload.webp': 'Upload from Anywhere',
+    '/landing_carousel/slide-craftsmanship.webp': 'Make Every Detail Yours',
+    '/landing_carousel/slide-room-visualizer.webp': 'See It Live as You Build',
+    '/landing_carousel/slide-3d-ar.webp': 'Preview in Your Space',
+    '/landing_carousel/slide-frame-materials.webp': 'Curated Styles & Finishes',
+    '/landing_carousel/slide-living-space.webp': 'Elevate Your Living Space',
+    '/landing_carousel/slide-perfect-sizing.webp': 'Perfect Scale & Sizing',
+    '/landing_carousel/frameworthy-checkout.webp': 'Easy, Secure Checkout',
+};
+const MOBILE_HERO_NARRATIVES = {
+    '/landing_carousel/slide-welcome-jersey.webp': 'Turn cherished memories into frames made for your home.',
+    '/landing_carousel/slide-upload.webp': 'Upload photos from your phone, Google Drive or Dropbox.',
+    '/landing_carousel/slide-craftsmanship.webp': 'Customise frames, mounts and sizes in real time.',
+    '/landing_carousel/slide-room-visualizer.webp': 'Test mounts and wall colours in the visualizer.',
+    '/landing_carousel/slide-3d-ar.webp': 'See it on your wall in Augmented Reality (AR).',
+    '/landing_carousel/slide-frame-materials.webp': 'Solid wood, aluminium and canvas floaters.',
+    '/landing_carousel/slide-living-space.webp': 'Create a considered focal point for any room.',
+    '/landing_carousel/slide-perfect-sizing.webp': 'From tabletop prints to statement gallery walls.',
+    '/landing_carousel/frameworthy-checkout.webp': 'Check out as a guest or sign in for more features',
+};
+const MOBILE_HERO_SLIDES = CAROUSEL_SLIDES
+    .filter(slide => MOBILE_HERO_IMAGE_PATHS.includes(slide.img))
+    .map(slide => ({
+        ...slide,
+        mobileTitle: MOBILE_HERO_TITLES[slide.img] || slide.title,
+        mobileText: MOBILE_HERO_NARRATIVES[slide.img] || slide.text,
+    }));
 
 const BENEFITS = [
     { icon: Eye, label: 'Live preview as you design' },
@@ -56,7 +92,7 @@ export default function MobileLanding({ navigate, onStartFraming, onSelectFrame 
     const frameRailRef = useRef(null);
 
     useEffect(() => {
-        const timer = setInterval(() => setHeroIndex(i => (i + 1) % HERO_IMAGES.length), 5000);
+        const timer = setInterval(() => setHeroIndex(i => (i + 1) % MOBILE_HERO_SLIDES.length), 5000);
         return () => clearInterval(timer);
     }, [heroIndex]);
 
@@ -85,60 +121,69 @@ export default function MobileLanding({ navigate, onStartFraming, onSelectFrame 
         const deltaX = e.changedTouches[0].clientX - touchStartX.current;
         touchStartX.current = null;
         if (Math.abs(deltaX) < 40) return;
-        const count = HERO_IMAGES.length;
+        const count = MOBILE_HERO_SLIDES.length;
         setHeroIndex(i => (deltaX < 0 ? (i + 1) % count : (i - 1 + count) % count));
     };
 
     const frames = framesForCategory(activeCategory);
+    const currentHeroSlide = MOBILE_HERO_SLIDES[heroIndex];
 
     return (
         <div className="min-h-screen bg-[#faf9f8] text-stone-900 font-sans antialiased overflow-x-hidden">
 
             {/* Hero: full-bleed rotating photos with one steady headline on top */}
             <section
-                className="relative h-[min(78svh,640px)] min-h-[460px] w-full overflow-hidden bg-stone-900"
+                className="relative h-[clamp(420px,46svh,450px)] w-full overflow-hidden bg-stone-900"
                 onTouchStart={handleTouchStart}
                 onTouchEnd={handleTouchEnd}
             >
-                {HERO_IMAGES.map((image, index) => (
+                {MOBILE_HERO_SLIDES.map((slide, index) => (
                     <img
-                        key={image.src}
-                        src={image.src}
-                        alt={image.alt}
+                        key={slide.img}
+                        src={slide.img}
+                        alt={slide.title}
                         aria-hidden={heroIndex !== index}
                         loading={index === 0 ? 'eager' : 'lazy'}
                         fetchPriority={index === 0 ? 'high' : 'low'}
                         decoding={index === 0 ? 'sync' : 'async'}
-                        className={`absolute inset-0 h-full w-full object-cover transition-all duration-1000 ease-out ${heroIndex === index ? 'opacity-100 scale-100' : 'opacity-0 scale-105'}`}
+                        className={`absolute inset-0 h-full w-full object-cover object-center transition-all duration-1000 ease-out ${heroIndex === index ? 'opacity-100 scale-100' : 'opacity-0 scale-105'}`}
                     />
                 ))}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/60 via-50% to-black/0" />
 
-                <div className="absolute inset-x-0 bottom-0 px-5 pb-7">
-                    <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#e3c66d] mb-3">Custom framing, made to order</p>
-                    <h1 className="text-[2.35rem] font-bold leading-[1.02] tracking-tighter text-white">
-                        Frame the moments that matter.
+                <div className="absolute inset-x-0 bottom-0 px-5 pb-5">
+                    <p className="mb-1 text-[11px] font-bold uppercase tracking-[0.2em] text-[#e3c66d] truncate">Custom framing, made to order</p>
+                    <h1 key={`${currentHeroSlide.img}-title`} className="text-[1.65rem] sm:text-[1.85rem] font-bold leading-tight tracking-tight text-white animate-fade-in-up truncate">
+                        {currentHeroSlide.mobileTitle}
                     </h1>
-                    <p className="mt-3 text-[15px] leading-relaxed text-white/80">
-                        Design your frame on your phone, preview it on your wall, and we'll deliver it ready to hang.
+                    <p key={`${currentHeroSlide.img}-text`} className="mt-1 text-[12.5px] leading-snug text-white/85 animate-fade-in-up truncate">
+                        {currentHeroSlide.mobileText}
                     </p>
-                    <div className="mt-6 flex flex-col gap-3">
+                    <div className="mt-3.5 flex flex-col gap-2">
                         <button
                             onClick={() => startFraming()}
-                            className="flex w-full items-center justify-center gap-2 rounded-full bg-[#c9a84c] px-6 py-4 text-base font-bold text-[#0a0a0a] shadow-lg active:scale-[0.98] transition-transform"
+                            className="flex w-full items-center justify-center gap-1.5 rounded-full bg-[#c9a84c] px-5 py-2.5 text-sm font-bold text-[#0a0a0a] shadow-md active:scale-[0.98] transition-transform"
                         >
-                            Start Framing <ArrowRight className="h-5 w-5" />
+                            Start Framing <ArrowRight className="h-4 w-4" />
                         </button>
-                        <button
-                            onClick={scrollToFrames}
-                            className="w-full rounded-full border border-white/40 bg-white/10 px-6 py-3.5 text-sm font-semibold text-white backdrop-blur-sm active:bg-white/20"
-                        >
-                            Browse frames
-                        </button>
+                        <div className="grid grid-cols-2 gap-2">
+                            <button
+                                onClick={scrollToFrames}
+                                className="rounded-full border border-white/30 bg-white/10 px-3 py-2 text-xs font-semibold text-white backdrop-blur-sm active:bg-white/20 whitespace-nowrap text-center"
+                            >
+                                Browse frames
+                            </button>
+                            <button
+                                onClick={() => go('/curated-art')}
+                                className="rounded-full border border-white/30 bg-white/10 px-3 py-2 text-xs font-semibold text-white backdrop-blur-sm active:bg-white/20 whitespace-nowrap text-center"
+                            >
+                                Browse Public Domain Art
+                            </button>
+                        </div>
                     </div>
-                    <div className="mt-5 flex justify-center gap-2" aria-hidden="true">
-                        {HERO_IMAGES.map((image, index) => (
-                            <span key={image.src} className={`h-1.5 rounded-full transition-all duration-500 ${heroIndex === index ? 'w-6 bg-white' : 'w-1.5 bg-white/40'}`} />
+                    <div className="mt-3 flex justify-center gap-2" aria-hidden="true">
+                        {MOBILE_HERO_SLIDES.map((slide, index) => (
+                            <span key={slide.img} className={`h-1.5 rounded-full transition-all duration-500 ${heroIndex === index ? 'w-6 bg-white' : 'w-1.5 bg-white/40'}`} />
                         ))}
                     </div>
                 </div>
@@ -159,7 +204,7 @@ export default function MobileLanding({ navigate, onStartFraming, onSelectFrame 
             {/* Choose a starting point */}
             <section className="px-4 py-10">
                 <SectionHeading eyebrow="Step one" title="What would you like to frame?">
-                    Upload from your phone, Google Drive or Dropbox, or pick a free museum masterpiece.
+                    Upload from your device or pick a free museum masterpiece.
                 </SectionHeading>
                 <div className="flex flex-col gap-3">
                     <button

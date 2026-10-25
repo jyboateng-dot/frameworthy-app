@@ -5,7 +5,10 @@ import LandingPage from './LandingPage';
 import { framesForCategory, PRODIGI_FRAME_CATEGORIES } from '../data/frameBrowsing';
 import { CAROUSEL_SLIDES } from '../data/landingCarouselSlides';
 
-afterEach(cleanup);
+afterEach(() => {
+    cleanup();
+    window.history.replaceState({}, '', '/');
+});
 
 describe('home catalogue and carousel', () => {
     it('shows the seven fulfilment categories without exposing the supplier and selects the chosen finish', () => {
@@ -67,14 +70,49 @@ describe('phone home page', () => {
         return render(<LandingPage {...props} />);
     };
 
+    it('keeps the phone layout active for the development mobile preview URL', () => {
+        window.history.replaceState({}, '', '/?mobile=1');
+        window.matchMedia = vi.fn().mockImplementation(query => ({
+            matches: false,
+            media: query,
+            addEventListener: vi.fn(),
+            removeEventListener: vi.fn(),
+        }));
+
+        render(<LandingPage />);
+
+        expect(screen.getByRole('heading', { name: 'Frame moments that matter' })).toBeInTheDocument();
+        expect(screen.queryByRole('button', { name: 'Next slide' })).not.toBeInTheDocument();
+    });
+
     it('shows the phone layout with its starting points and swipeable frame rail', () => {
         const onStartFraming = vi.fn();
         const navigate = vi.fn();
         const setSelectedFrame = vi.fn();
         renderOnPhone({ onStartFraming, navigate, setSelectedFrame });
-        expect(screen.getByRole('heading', { name: 'Frame the moments that matter.' })).toBeInTheDocument();
+        expect(screen.getByRole('heading', { name: 'Frame moments that matter' })).toBeInTheDocument();
+        expect(screen.getByText(/Turn cherished memories into frames made for your home/i)).toBeInTheDocument();
         expect(screen.queryByRole('button', { name: 'Next slide' })).not.toBeInTheDocument();
         expect(screen.queryByText(/Prodigi/i)).not.toBeInTheDocument();
+
+        fireEvent.click(screen.getByRole('button', { name: 'Browse Public Domain Art' }));
+        expect(navigate).toHaveBeenCalledWith('/curated-art');
+
+        const hero = screen.getByRole('heading', { name: 'Frame moments that matter' }).closest('section');
+        fireEvent.touchStart(hero, { touches: [{ clientX: 300 }] });
+        fireEvent.touchEnd(hero, { changedTouches: [{ clientX: 100 }] });
+        expect(screen.getByRole('heading', { name: 'Upload from Anywhere' })).toBeInTheDocument();
+        expect(screen.getByText(/Upload photos from your phone/i)).toBeInTheDocument();
+
+        fireEvent.touchStart(hero, { touches: [{ clientX: 300 }] });
+        fireEvent.touchEnd(hero, { changedTouches: [{ clientX: 100 }] });
+        expect(screen.getByRole('heading', { name: 'Make Every Detail Yours' })).toBeInTheDocument();
+        expect(screen.getByText(/Customise frames, mounts and sizes/i)).toBeInTheDocument();
+
+        fireEvent.touchStart(hero, { touches: [{ clientX: 300 }] });
+        fireEvent.touchEnd(hero, { changedTouches: [{ clientX: 100 }] });
+        expect(screen.getByRole('heading', { name: 'See It Live as You Build' })).toBeInTheDocument();
+        expect(screen.getByText(/Test mounts and wall colours in the visualizer/i)).toBeInTheDocument();
 
         fireEvent.click(screen.getAllByRole('button', { name: /Start Framing/ })[0]);
         expect(onStartFraming).toHaveBeenLastCalledWith({});
