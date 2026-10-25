@@ -171,7 +171,7 @@ export default function LandingPage({ onStartFraming, navigate, setSelectedFrame
             {pageMeta}
 
             {/* Cinematic Hero Carousel Section */}
-            <section className="relative w-full max-w-[2560px] mx-auto px-4 sm:px-6 lg:px-12 pt-4 sm:pt-6 pb-4 sm:pb-6">
+            <section className="relative w-full max-w-[2560px] mx-auto px-4 sm:px-6 lg:px-12 pt-3 sm:pt-4 pb-2 sm:pb-3">
                 <div
                     onMouseEnter={() => setIsPaused(true)}
                     onMouseLeave={() => setIsPaused(false)}
@@ -307,15 +307,15 @@ export default function LandingPage({ onStartFraming, navigate, setSelectedFrame
             </section>
 
             {/* Value Proposition & Trust Bar */}
-            <section className="max-w-[2560px] mx-auto px-4 sm:px-6 lg:px-12 py-3 lg:py-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4">
+            <section className="max-w-[2560px] mx-auto px-4 sm:px-6 lg:px-12 pt-1 pb-3 lg:pt-1 lg:pb-3.5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-3.5">
                     {BENEFITS.map((item) => (
                         <div
                             key={item.title}
-                            className="flex items-center gap-3.5 rounded-2xl bg-white border border-stone-200/80 p-4 lg:p-5 shadow-sm hover:shadow-md transition-shadow"
+                            className="flex items-center gap-3.5 rounded-2xl bg-white border border-stone-200/80 p-3.5 sm:p-4 shadow-sm hover:shadow-md transition-shadow"
                         >
-                            <div className="w-11 h-11 rounded-xl bg-stone-50 border border-stone-200/60 flex items-center justify-center shrink-0">
-                                <item.icon size={20} strokeWidth={1.75} className="text-stone-900" />
+                            <div className="w-10 h-10 rounded-xl bg-stone-50 border border-stone-200/60 flex items-center justify-center shrink-0">
+                                <item.icon size={19} strokeWidth={1.75} className="text-stone-900" />
                             </div>
                             <div className="min-w-0">
                                 <h3 className="text-sm font-bold text-stone-900 leading-snug">{item.title}</h3>
@@ -327,9 +327,9 @@ export default function LandingPage({ onStartFraming, navigate, setSelectedFrame
             </section>
 
             {/* Step One: What would you like to frame? */}
-            <section className="max-w-[2560px] mx-auto px-4 sm:px-6 lg:px-12 py-8 lg:py-12">
-                <div className="mb-6 lg:mb-8">
-                    <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#a8892f] mb-1.5">Step one</p>
+            <section className="max-w-[2560px] mx-auto px-4 sm:px-6 lg:px-12 pt-3 pb-7 lg:pt-4 lg:pb-9">
+                <div className="mb-4 lg:mb-5">
+                    <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#a8892f] mb-1">Step one</p>
                     <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-stone-900">
                         What would you like to frame?
                     </h2>
@@ -338,11 +338,11 @@ export default function LandingPage({ onStartFraming, navigate, setSelectedFrame
                     </p>
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6">
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-3.5 lg:gap-4">
                     {/* Primary Large Card: User Upload */}
                     <button
                         onClick={() => startFraming()}
-                        className="group relative lg:col-span-7 xl:col-span-8 flex flex-col justify-end h-[360px] sm:h-[420px] lg:h-[460px] overflow-hidden rounded-3xl text-left shadow-sm hover:shadow-xl transition-all"
+                        className="group relative lg:col-span-7 xl:col-span-8 flex flex-col justify-end h-[340px] sm:h-[390px] lg:h-[430px] overflow-hidden rounded-3xl text-left shadow-sm hover:shadow-xl transition-all"
                     >
                         <img
                             src="/landing_carousel/slide-upload.webp"
@@ -369,11 +369,11 @@ export default function LandingPage({ onStartFraming, navigate, setSelectedFrame
                     </button>
 
                     {/* Secondary 2-Stack Cards: Museum Masterpieces & Public Domain Art */}
-                    <div className="lg:col-span-5 xl:col-span-4 flex flex-col sm:grid sm:grid-cols-2 lg:flex lg:flex-col gap-4 lg:gap-6">
+                    <div className="lg:col-span-5 xl:col-span-4 flex flex-col sm:grid sm:grid-cols-2 lg:flex lg:flex-col gap-3.5 lg:gap-4">
                         {/* Museum Masterpieces */}
                         <button
                             onClick={handleMuseumMasterpiecesClick}
-                            className="group relative flex-1 flex flex-col justify-end h-[200px] sm:h-[220px] overflow-hidden rounded-3xl text-left shadow-sm hover:shadow-xl transition-all"
+                            className="group relative flex-1 flex flex-col justify-end h-[190px] sm:h-[205px] overflow-hidden rounded-3xl text-left shadow-sm hover:shadow-xl transition-all"
                         >
                             <img
                                 src="/landing_carousel/slide-museum-masterpieces.webp"
@@ -399,7 +399,7 @@ export default function LandingPage({ onStartFraming, navigate, setSelectedFrame
                         {/* Public Domain Art */}
                         <button
                             onClick={handleCuratedArtClick}
-                            className="group relative flex-1 flex flex-col justify-end h-[200px] sm:h-[220px] overflow-hidden rounded-3xl text-left shadow-sm hover:shadow-xl transition-all"
+                            className="group relative flex-1 flex flex-col justify-end h-[190px] sm:h-[205px] overflow-hidden rounded-3xl text-left shadow-sm hover:shadow-xl transition-all"
                         >
                             <img
                                 src="/landing_carousel/slide-curated-collections.webp"
@@ -426,11 +426,11 @@ export default function LandingPage({ onStartFraming, navigate, setSelectedFrame
             </section>
 
             {/* Step Two: Pick your frame */}
-            <section id="curated-frames" className="py-10 lg:py-16 bg-white relative overflow-hidden scroll-mt-14">
+            <section id="curated-frames" className="py-7 lg:py-9 bg-white relative overflow-hidden scroll-mt-14">
                 <div className="max-w-[2560px] mx-auto px-4 sm:px-6 lg:px-12">
-                    <div className="mb-6 lg:mb-8">
-                        <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#a8892f] mb-1.5">Step two</p>
-                        <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-stone-900 mb-2 sm:mb-4">
+                    <div className="mb-4 lg:mb-5">
+                        <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#a8892f] mb-1">Step two</p>
+                        <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-stone-900 mb-1.5 sm:mb-2">
                             Pick your frame
                         </h2>
                         <p className="text-sm sm:text-base text-stone-500 max-w-2xl leading-relaxed">
@@ -439,7 +439,7 @@ export default function LandingPage({ onStartFraming, navigate, setSelectedFrame
                     </div>
                     
                     {/* Category Tabs */}
-                    <div className="flex overflow-x-auto gap-2 pb-3 hide-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0 snap-x">
+                    <div className="flex overflow-x-auto gap-2 pb-2.5 hide-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0 snap-x">
                         {PRODIGI_FRAME_CATEGORIES.map(cat => (
                             <button
                                 key={cat}
@@ -455,12 +455,12 @@ export default function LandingPage({ onStartFraming, navigate, setSelectedFrame
                             </button>
                         ))}
                     </div>
-                    <p aria-live="polite" className="mb-6 lg:mb-8 text-sm leading-6 text-stone-600">
+                    <p aria-live="polite" className="mb-4 lg:mb-6 text-sm leading-6 text-stone-600">
                         {frameCategoryDescription(activeCategory)}
                     </p>
 
                     {/* Frame Grid */}
-                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-4 gap-y-6 sm:gap-6 mb-8 lg:mb-12">
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-3.5 gap-y-5 sm:gap-5 mb-6 lg:mb-8">
                         {currentFrames.map((frame) => (
                             <div key={frame.id} className="group cursor-pointer" onClick={() => handleFrameSelect(frame)}>
                                 <div className="aspect-square rounded-2xl bg-stone-100 overflow-hidden mb-3 relative transition-transform duration-500 group-hover:scale-[1.02]">
@@ -520,7 +520,7 @@ export default function LandingPage({ onStartFraming, navigate, setSelectedFrame
             </section>
 
             {/* Step Three: See it on your wall before you buy */}
-            <section className="max-w-[2560px] mx-auto px-4 sm:px-6 lg:px-12 py-8 lg:py-12">
+            <section className="max-w-[2560px] mx-auto px-4 sm:px-6 lg:px-12 py-6 lg:py-8">
                 <div className="overflow-hidden rounded-3xl bg-stone-900 text-white shadow-2xl">
                     <div className="grid grid-cols-1 lg:grid-cols-12 items-center">
                         <div className="lg:col-span-7 relative h-[360px] sm:h-[440px] lg:h-[540px]">
@@ -575,7 +575,7 @@ export default function LandingPage({ onStartFraming, navigate, setSelectedFrame
             </section>
 
             {/* Step Four: Delivered to your door, ready to hang */}
-            <section className="max-w-[2560px] mx-auto px-4 sm:px-6 lg:px-12 py-8 lg:py-12">
+            <section className="max-w-[2560px] mx-auto px-4 sm:px-6 lg:px-12 py-6 lg:py-8">
                 <div className="overflow-hidden rounded-3xl bg-white border border-stone-200/90 shadow-sm">
                     <div className="grid grid-cols-1 lg:grid-cols-12 items-center">
                         <div className="lg:col-span-5 order-2 lg:order-1 p-6 sm:p-10 lg:p-12 xl:p-16 flex flex-col justify-center">
