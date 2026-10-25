@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { ArrowRight, ChevronRight, ChevronLeft, Sparkles, Upload, Frame as FrameIcon, SlidersHorizontal, Eye, Truck } from 'lucide-react';
+import { ArrowRight, ChevronRight, ChevronLeft, Upload, Eye, Truck, Landmark, Images, Smartphone, ShieldCheck, CheckCircle2 } from 'lucide-react';
 import { framesForCategory, displayCategoryName, displayFrameName, frameStartingPriceDisplay, frameCategoryDescription, PRODIGI_FRAME_CATEGORIES } from '../data/frameBrowsing';
 import { CAROUSEL_SLIDES } from '../data/landingCarouselSlides';
 import { openExternalLinkFromEvent as openExternalLink } from '../utils/nativeLinks';
@@ -7,7 +7,7 @@ import PageMeta from '../components/common/PageMeta';
 import MobileLanding from './landing/MobileLanding';
 
 // Phones get their own home page layout (see MobileLanding); tablets and
-// desktops keep the carousel layout below.
+// desktops use the modern 4-step fit-to-pc layout below.
 const PHONE_QUERY = '(max-width: 767px)';
 
 function isForcedPhonePreview() {
@@ -24,7 +24,7 @@ function useIsPhone() {
             setIsPhone(true);
             return undefined;
         }
-        if (typeof window.matchMedia !== 'function') return undefined;
+        if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return undefined;
         const query = window.matchMedia(PHONE_QUERY);
         const update = () => setIsPhone(query.matches);
         query.addEventListener('change', update);
@@ -33,12 +33,19 @@ function useIsPhone() {
     return isPhone;
 }
 
+const BENEFITS = [
+    { icon: Eye, title: 'Live preview as you design', desc: 'Watch frames, mounts, and glazing update live.' },
+    { icon: Smartphone, title: 'See it on your wall in AR', desc: 'Project your piece onto your wall at true physical scale.' },
+    { icon: CheckCircle2, title: 'Handcrafted, ready to hang', desc: 'Locally built with premium wood, glass, and hardware.' },
+    { icon: ShieldCheck, title: 'Secure checkout', desc: 'Guest checkout available with protected payments.' },
+];
+
 export default function LandingPage({ onStartFraming, navigate, setSelectedFrame }) {
     const [activeCategory, setActiveCategory] = useState(PRODIGI_FRAME_CATEGORIES[0]);
     const [currentPage, setCurrentPage] = useState(1);
     const [currentSlide, setCurrentSlide] = useState(0);
     const [loadedSlides, setLoadedSlides] = useState(() => new Set([0, 1]));
-    const touchStartX = useRef(null);
+    const [isPaused, setIsPaused] = useState(false);
     const isPhone = useIsPhone();
 
     useEffect(() => {
@@ -67,6 +74,14 @@ export default function LandingPage({ onStartFraming, navigate, setSelectedFrame
     };
 
     useEffect(() => {
+        if (isPaused) return undefined;
+        const timer = setInterval(() => {
+            setCurrentSlide(s => (s + 1) % CAROUSEL_SLIDES.length);
+        }, 5000);
+        return () => clearInterval(timer);
+    }, [currentSlide, isPaused]);
+
+    useEffect(() => {
         setLoadedSlides(prev => {
             const next = new Set(prev);
             const count = CAROUSEL_SLIDES.length;
@@ -77,35 +92,14 @@ export default function LandingPage({ onStartFraming, navigate, setSelectedFrame
         });
     }, [currentSlide]);
 
-    // Swipe left/right on the hero image to change slides on touch screens.
-    const handleTouchStart = (e) => {
-        touchStartX.current = e.touches[0].clientX;
-    };
-
-    const handleTouchEnd = (e) => {
-        if (touchStartX.current === null) return;
-        const deltaX = e.changedTouches[0].clientX - touchStartX.current;
-        touchStartX.current = null;
-        if (Math.abs(deltaX) < 40) return;
-        if (deltaX < 0) nextSlide();
-        else prevSlide();
-    };
-
-    useEffect(() => {
-        const timer = setInterval(() => setCurrentSlide(s => (s + 1) % CAROUSEL_SLIDES.length), 5000);
-        return () => clearInterval(timer);
-    }, [currentSlide]);
-
-    
-    // Pagination logic
-    const filteredFrames = framesForCategory(activeCategory);
-    const itemsPerPage = 12;
-    const totalPages = Math.ceil(filteredFrames.length / itemsPerPage);
-    const currentFrames = filteredFrames.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+    const allFrames = framesForCategory(activeCategory);
+    const framesPerPage = 8;
+    const totalPages = Math.ceil(allFrames.length / framesPerPage);
+    const currentFrames = allFrames.slice((currentPage - 1) * framesPerPage, currentPage * framesPerPage);
 
     const handleCategoryChange = (cat) => {
         setActiveCategory(cat);
-        setCurrentPage(1); // Reset to page 1 on category change
+        setCurrentPage(1);
     };
 
     const handleFrameSelect = (frameStyle) => {
@@ -114,15 +108,20 @@ export default function LandingPage({ onStartFraming, navigate, setSelectedFrame
         else if (onStartFraming) onStartFraming();
     };
 
+    const startFraming = (state = {}) => {
+        if (onStartFraming) onStartFraming(state);
+        else if (navigate) navigate('/frame/customize', { state });
+    };
+
     const handleStartAction = (e, slide) => {
         if (e) e.stopPropagation();
         const scrollY = typeof window !== 'undefined' ? window.scrollY : 0;
-        if (slide.triggersMetArt) {
+        if (slide?.triggersMetArt) {
             try {
                 sessionStorage.setItem('met_art_homepage_scroll', String(scrollY));
             } catch (_) {}
         }
-        const state = slide.triggersMetArt ? {
+        const state = slide?.triggersMetArt ? {
             openMetArt: true,
             returnOnClose: true,
             returnScrollY: scrollY,
@@ -130,6 +129,25 @@ export default function LandingPage({ onStartFraming, navigate, setSelectedFrame
         } : {};
         if (onStartFraming) onStartFraming(state);
         else if (navigate) navigate('/frame/customize', { state });
+    };
+
+    const handleMuseumMasterpiecesClick = (e) => {
+        if (e) e.stopPropagation();
+        const scrollY = typeof window !== 'undefined' ? window.scrollY : 0;
+        try {
+            sessionStorage.setItem('met_art_homepage_scroll', String(scrollY));
+        } catch (_) {}
+        startFraming({
+            openMetArt: true,
+            returnOnClose: true,
+            returnScrollY: scrollY,
+            returnTo: '/'
+        });
+    };
+
+    const handleCuratedArtClick = (e) => {
+        if (e) e.stopPropagation();
+        if (navigate) navigate('/curated-art');
     };
 
     const pageMeta = (
@@ -151,123 +169,273 @@ export default function LandingPage({ onStartFraming, navigate, setSelectedFrame
     return (
         <div className="min-h-screen bg-[#faf9f8] text-stone-900 font-sans antialiased overflow-x-hidden selection:bg-stone-200">
             {pageMeta}
-            {/* Header is handled globally by App.jsx */}
 
-            
-            {/* Hero Carousel Section */}
-            <section className="relative pt-4 pb-8 sm:pt-10 lg:pt-20 lg:pb-8 w-full flex items-center bg-[#faf9f8] overflow-hidden">
-                <div className="max-w-[2560px] mx-auto px-4 sm:px-6 lg:px-12 w-full grid grid-cols-1 lg:grid-cols-12 gap-5 lg:gap-6 items-start">
-                    
-                    {/* Left: Anchored Typography */}
-                    <div className="order-2 lg:order-none lg:col-span-5 relative z-10 flex flex-col lg:self-stretch">
-                        <div className="text-stone-400 font-bold tracking-widest text-xs uppercase mb-3 sm:mb-6 flex items-center gap-4 shrink-0">
-                            <span className="w-8 h-[1px] bg-stone-300"></span>
-                            {String(currentSlide + 1).padStart(2, '0')} &mdash; {String(CAROUSEL_SLIDES.length).padStart(2, '0')}
+            {/* Cinematic Hero Carousel Section */}
+            <section className="relative w-full max-w-[2560px] mx-auto px-4 sm:px-6 lg:px-12 pt-4 sm:pt-6 pb-4 sm:pb-6">
+                <div
+                    onMouseEnter={() => setIsPaused(true)}
+                    onMouseLeave={() => setIsPaused(false)}
+                    onTouchStart={() => setIsPaused(true)}
+                    onTouchEnd={() => setIsPaused(false)}
+                    className="relative w-full h-[520px] sm:h-[580px] lg:h-[620px] xl:h-[660px] rounded-3xl overflow-hidden shadow-2xl bg-stone-900"
+                >
+                    {/* Background Slide Images with Crossfade */}
+                    {CAROUSEL_SLIDES.map((slide, index) => {
+                        const isLoaded = loadedSlides.has(index);
+                        const isActive = currentSlide === index;
+                        return (
+                            <div
+                                key={slide.img}
+                                aria-hidden={!isActive}
+                                className={`absolute inset-0 w-full h-full transition-opacity duration-700 ease-in-out ${
+                                    isActive ? 'opacity-100 z-10 pointer-events-auto' : 'opacity-0 z-0 pointer-events-none'
+                                }`}
+                            >
+                                {isLoaded && (
+                                    <img
+                                        src={slide.img}
+                                        alt={slide.title}
+                                        loading={index === 0 ? 'eager' : 'lazy'}
+                                        fetchPriority={index === 0 ? 'high' : 'low'}
+                                        decoding={index === 0 ? 'sync' : 'async'}
+                                        className="w-full h-full object-cover object-center"
+                                    />
+                                )}
+                            </div>
+                        );
+                    })}
+
+                    {/* Gradient Scrims: Dark left scrim for text legibility, subtle bottom vignette */}
+                    <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/55 to-transparent z-20 pointer-events-none" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent z-20 pointer-events-none" />
+
+                    {/* Left: Anchored Typography & Action */}
+                    <div className="relative z-30 h-full flex flex-col justify-between p-6 sm:p-10 lg:p-14 xl:p-16 max-w-2xl lg:max-w-3xl">
+                        {/* Slide Indicator */}
+                        <div className="flex items-center gap-3 text-white/70 text-xs font-bold uppercase tracking-widest">
+                            <span className="w-8 h-[1px] bg-white/40" />
+                            <span>{String(currentSlide + 1).padStart(2, '0')} &mdash; {String(CAROUSEL_SLIDES.length).padStart(2, '0')}</span>
                         </div>
-                        <div className="grid grid-cols-1 grid-rows-1 relative">
-                            {CAROUSEL_SLIDES.map((slide, index) => (
-                                <div
-                                    key={index}
-                                    aria-hidden={currentSlide !== index}
-                                    inert={currentSlide !== index}
-                                    className={`col-start-1 row-start-1 flex flex-col justify-start lg:justify-between transition-all duration-700 ease-[cubic-bezier(0.25,1,0.5,1)] ${
-                                        currentSlide === index
-                                            ? 'opacity-100 translate-y-0 pointer-events-auto z-10'
-                                            : 'opacity-0 translate-y-4 pointer-events-none z-0'
-                                    }`}
-                                >
-                                    <div>
-                                        <h1 className="text-[1.75rem] sm:text-4xl lg:text-7xl font-bold tracking-tighter leading-[1.08] mb-3 sm:mb-4 lg:mb-6 text-stone-900">
-                                            {slide.title}
-                                        </h1>
-                                        <p className="text-sm sm:text-base lg:text-xl text-stone-600 max-w-lg leading-relaxed">
-                                            {slide.text}
-                                        </p>
-                                    </div>
-                                    <div className="mt-5 sm:mt-6">
-                                        <button
-                                            onClick={(e) => handleStartAction(e, slide)}
-                                            className="group flex w-full sm:w-auto items-center justify-center sm:justify-start gap-3 sm:gap-4 rounded-full sm:rounded-none bg-stone-900 sm:bg-transparent px-6 py-3.5 sm:p-0 text-sm font-bold tracking-wide uppercase text-white sm:text-stone-900 sm:hover:text-stone-600 transition-colors"
+
+                        {/* Slide Content */}
+                        <div className="my-auto py-4">
+                            <span className="inline-flex items-center px-3 py-1 rounded-full bg-white/10 backdrop-blur-md text-[11px] font-bold tracking-[0.2em] uppercase text-[#e3c66d] border border-white/15 mb-4">
+                                Custom Framing, Made to Order
+                            </span>
+                            <div className="grid grid-cols-1 grid-rows-1 relative">
+                                {CAROUSEL_SLIDES.map((slide, index) => {
+                                    const isActive = currentSlide === index;
+                                    return (
+                                        <div
+                                            key={index}
+                                            aria-hidden={!isActive}
+                                            inert={!isActive}
+                                            className={`col-start-1 row-start-1 flex flex-col transition-all duration-500 ease-out ${
+                                                isActive
+                                                    ? 'opacity-100 translate-y-0 pointer-events-auto z-10'
+                                                    : 'opacity-0 translate-y-4 pointer-events-none z-0'
+                                            }`}
                                         >
-                                            <span className="sm:border-b-2 sm:border-stone-900 sm:pb-1 sm:group-hover:border-stone-600 transition-colors">Start Framing</span>
-                                            <ArrowRight className="w-5 h-5 group-hover:translate-x-2 transition-transform" />
-                                        </button>
-                                    </div>
-                                </div>
-                            ))}
+                                            <h1 className="text-3xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold tracking-tight text-white leading-[1.08] mb-4 drop-shadow-sm">
+                                                {slide.title}
+                                            </h1>
+                                            <p className="text-sm sm:text-base lg:text-lg text-white/85 leading-relaxed max-w-xl">
+                                                {slide.text}
+                                            </p>
+                                            <div className="mt-8 flex flex-wrap items-center gap-3 sm:gap-4">
+                                                <button
+                                                    onClick={(e) => handleStartAction(e, slide)}
+                                                    className="flex items-center gap-2.5 rounded-full bg-[#c9a84c] hover:bg-[#d4b458] text-[#0a0a0a] px-7 py-3.5 sm:px-8 sm:py-4 text-sm sm:text-base font-bold shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all"
+                                                >
+                                                    Start Framing <ArrowRight className="w-5 h-5" />
+                                                </button>
+                                                <a
+                                                    href="#curated-frames"
+                                                    className="px-5 py-3.5 sm:px-6 sm:py-4 rounded-full bg-white/15 hover:bg-white/25 backdrop-blur-md text-white text-xs sm:text-sm font-semibold border border-white/20 transition-all"
+                                                >
+                                                    Browse frames
+                                                </a>
+                                                <button
+                                                    onClick={handleCuratedArtClick}
+                                                    className="px-5 py-3.5 sm:px-6 sm:py-4 rounded-full bg-white/15 hover:bg-white/25 backdrop-blur-md text-white text-xs sm:text-sm font-semibold border border-white/20 transition-all"
+                                                >
+                                                    Browse Public Domain Art
+                                                </button>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
                         </div>
 
-                    </div>
-
-                    {/* Right: Asymmetric Image Composition */}
-                    <div
-                        className="order-1 lg:order-none lg:col-span-7 relative w-full aspect-[4/3] sm:aspect-[16/10] lg:aspect-auto lg:h-[75vh]"
-                        onTouchStart={handleTouchStart}
-                        onTouchEnd={handleTouchEnd}
-                    >
-                        {/* Decorative background box offset */}
-                        <div className="absolute top-8 -right-8 w-full h-full bg-stone-200/50 hidden lg:block" />
-                        
-                        <div className="relative w-full h-full overflow-hidden rounded-xl lg:rounded-none shadow-xl lg:shadow-2xl bg-stone-100">
-                            {CAROUSEL_SLIDES.map((slide, index) => {
-                                const isLoaded = loadedSlides.has(index);
-                                return (
-                                    <div 
-                                        key={index}
-                                        className={`absolute inset-0 w-full h-full transition-all duration-1000 ease-[cubic-bezier(0.25,1,0.5,1)] ${
-                                            currentSlide === index ? 'opacity-100 scale-100 z-10' : 'opacity-0 scale-105 z-0'
+                        {/* Bottom Bar: Indicators & Controls */}
+                        <div className="flex items-center justify-between gap-4 pt-4 border-t border-white/15">
+                            {/* Slide Pills */}
+                            <div className="flex items-center gap-1.5 overflow-x-auto max-w-[60%] hide-scrollbar py-1">
+                                {CAROUSEL_SLIDES.map((_, idx) => (
+                                    <button
+                                        key={idx}
+                                        onClick={() => setCurrentSlide(idx)}
+                                        aria-label={`Go to slide ${idx + 1}`}
+                                        className={`h-1.5 rounded-full transition-all duration-300 ${
+                                            currentSlide === idx ? 'w-8 bg-[#c9a84c]' : 'w-2 bg-white/40 hover:bg-white/70'
                                         }`}
-                                    >
-                                        <div className="absolute inset-0 bg-stone-900 transition-opacity duration-1000" style={{opacity: currentSlide === index ? 0 : 0.3}} />
-                                        {isLoaded && (
-                                            <img 
-                                                src={slide.img} 
-                                                alt={slide.title} 
-                                                loading={index === 0 ? "eager" : "lazy"}
-                                                fetchPriority={index === 0 ? "high" : "low"}
-                                                decoding={index === 0 ? "sync" : "async"}
-                                                className="w-full h-full object-cover" 
-                                            />
-                                        )}
-                                    </div>
-                                );
-                            })}
-                        </div>
+                                    />
+                                ))}
+                            </div>
 
-                        {/* Minimalist Controls Overlayed on Image — flush against the
-                            slide's own left edge (lg:-left-6 used to push this outside
-                            the image onto the page background instead). */}
-                        <div className="absolute bottom-3 left-3 lg:bottom-6 lg:left-0 z-30 flex gap-0 shadow-xl overflow-hidden rounded-full lg:rounded-sm">
-                            <button 
-                                onClick={prevSlide}
-                                aria-label="Previous slide"
-                                className="w-11 h-11 lg:w-14 lg:h-14 bg-white/70 lg:bg-white/60 backdrop-blur-md text-stone-900 flex items-center justify-center hover:bg-white/90 transition-all border-r border-white/20"
-                            >
-                                <ChevronLeft className="w-5 h-5 lg:w-6 lg:h-6" />
-                            </button>
-                            <button 
-                                onClick={nextSlide}
-                                aria-label="Next slide"
-                                className="w-11 h-11 lg:w-14 lg:h-14 bg-white/70 lg:bg-white/60 backdrop-blur-md text-stone-900 flex items-center justify-center hover:bg-white/90 transition-all"
-                            >
-                                <ChevronRight className="w-5 h-5 lg:w-6 lg:h-6" />
-                            </button>
+                            {/* Minimal Carousel Arrows */}
+                            <div className="flex items-center gap-2">
+                                <button
+                                    onClick={prevSlide}
+                                    aria-label="Previous slide"
+                                    className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-white/15 hover:bg-white/30 backdrop-blur-md text-white flex items-center justify-center border border-white/20 transition-all"
+                                >
+                                    <ChevronLeft className="w-5 h-5" />
+                                </button>
+                                <button
+                                    onClick={nextSlide}
+                                    aria-label="Next slide"
+                                    className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-white/15 hover:bg-white/30 backdrop-blur-md text-white flex items-center justify-center border border-white/20 transition-all"
+                                >
+                                    <ChevronRight className="w-5 h-5" />
+                                </button>
+                            </div>
                         </div>
                     </div>
-
                 </div>
             </section>
 
-{/* Categorized Gallery Section */}
+            {/* Value Proposition & Trust Bar */}
+            <section className="max-w-[2560px] mx-auto px-4 sm:px-6 lg:px-12 py-3 lg:py-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4">
+                    {BENEFITS.map((item) => (
+                        <div
+                            key={item.title}
+                            className="flex items-center gap-3.5 rounded-2xl bg-white border border-stone-200/80 p-4 lg:p-5 shadow-sm hover:shadow-md transition-shadow"
+                        >
+                            <div className="w-11 h-11 rounded-xl bg-stone-50 border border-stone-200/60 flex items-center justify-center shrink-0">
+                                <item.icon size={20} strokeWidth={1.75} className="text-stone-900" />
+                            </div>
+                            <div className="min-w-0">
+                                <h3 className="text-sm font-bold text-stone-900 leading-snug">{item.title}</h3>
+                                <p className="text-xs text-stone-500 leading-normal mt-0.5">{item.desc}</p>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </section>
+
+            {/* Step One: What would you like to frame? */}
+            <section className="max-w-[2560px] mx-auto px-4 sm:px-6 lg:px-12 py-8 lg:py-12">
+                <div className="mb-6 lg:mb-8">
+                    <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#a8892f] mb-1.5">Step one</p>
+                    <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-stone-900">
+                        What would you like to frame?
+                    </h2>
+                    <p className="mt-1 text-sm sm:text-base text-stone-500">
+                        Upload from your device or pick a free museum masterpiece.
+                    </p>
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6">
+                    {/* Primary Large Card: User Upload */}
+                    <button
+                        onClick={() => startFraming()}
+                        className="group relative lg:col-span-7 xl:col-span-8 flex flex-col justify-end h-[360px] sm:h-[420px] lg:h-[460px] overflow-hidden rounded-3xl text-left shadow-sm hover:shadow-xl transition-all"
+                    >
+                        <img
+                            src="/landing_carousel/slide-upload.webp"
+                            alt="Upload your own photo or artwork"
+                            loading="lazy"
+                            decoding="async"
+                            className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.03]"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent" />
+                        <div className="relative p-6 sm:p-8 lg:p-10 flex flex-col justify-end">
+                            <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#e3c66d] bg-black/40 backdrop-blur-md px-3 py-1 rounded-full border border-white/10 w-fit mb-3">
+                                <Upload size={14} /> From your device or cloud
+                            </span>
+                            <h3 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white mb-2 leading-tight">
+                                Your own photo or artwork
+                            </h3>
+                            <p className="text-white/80 text-sm sm:text-base max-w-lg mb-4 leading-relaxed">
+                                Upload treasured memories, photography or digital prints. We'll optimize and calibrate them to the sharpest possible print.
+                            </p>
+                            <span className="inline-flex items-center gap-2 rounded-full bg-white group-hover:bg-[#c9a84c] text-stone-900 group-hover:text-[#0a0a0a] px-5 py-2.5 text-sm font-bold w-fit shadow-md transition-colors">
+                                Start with your photo <ArrowRight size={16} />
+                            </span>
+                        </div>
+                    </button>
+
+                    {/* Secondary 2-Stack Cards: Museum Masterpieces & Public Domain Art */}
+                    <div className="lg:col-span-5 xl:col-span-4 flex flex-col sm:grid sm:grid-cols-2 lg:flex lg:flex-col gap-4 lg:gap-6">
+                        {/* Museum Masterpieces */}
+                        <button
+                            onClick={handleMuseumMasterpiecesClick}
+                            className="group relative flex-1 flex flex-col justify-end h-[200px] sm:h-[220px] overflow-hidden rounded-3xl text-left shadow-sm hover:shadow-xl transition-all"
+                        >
+                            <img
+                                src="/landing_carousel/slide-museum-masterpieces.webp"
+                                alt="Museum Masterpieces"
+                                loading="lazy"
+                                decoding="async"
+                                className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.04]"
+                            />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent" />
+                            <div className="relative p-5 sm:p-6">
+                                <div className="flex items-center gap-2 text-xs font-bold text-[#e3c66d] uppercase tracking-wider mb-1">
+                                    <Landmark size={15} /> The Met Archive
+                                </div>
+                                <h3 className="text-xl sm:text-2xl font-bold text-white mb-1">
+                                    Museum Masterpieces
+                                </h3>
+                                <p className="text-white/80 text-xs sm:text-sm line-clamp-2">
+                                    Browse Van Gogh, Monet, Rembrandt and thousands of public-domain fine art treasures.
+                                </p>
+                            </div>
+                        </button>
+
+                        {/* Public Domain Art */}
+                        <button
+                            onClick={handleCuratedArtClick}
+                            className="group relative flex-1 flex flex-col justify-end h-[200px] sm:h-[220px] overflow-hidden rounded-3xl text-left shadow-sm hover:shadow-xl transition-all"
+                        >
+                            <img
+                                src="/landing_carousel/slide-curated-collections.webp"
+                                alt="Public Domain Art"
+                                loading="lazy"
+                                decoding="async"
+                                className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.04]"
+                            />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent" />
+                            <div className="relative p-5 sm:p-6">
+                                <div className="flex items-center gap-2 text-xs font-bold text-[#e3c66d] uppercase tracking-wider mb-1">
+                                    <Images size={15} /> Curated Art
+                                </div>
+                                <h3 className="text-xl sm:text-2xl font-bold text-white mb-1">
+                                    Public Domain Art
+                                </h3>
+                                <p className="text-white/80 text-xs sm:text-sm line-clamp-2">
+                                    Explore vintage posters, botanicals, Japanese woodblocks, and gallery prints.
+                                </p>
+                            </div>
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            {/* Step Two: Pick your frame */}
             <section id="curated-frames" className="py-10 lg:py-16 bg-white relative overflow-hidden scroll-mt-14">
                 <div className="max-w-[2560px] mx-auto px-4 sm:px-6 lg:px-12">
-                    <div className="flex flex-col md:flex-row justify-between items-end mb-6 lg:mb-12">
-                        <div>
-                            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-stone-900 mb-2 sm:mb-4">Frame Catalogue</h2>
-                            <p className="text-sm sm:text-[1rem] text-stone-500 max-w-2xl leading-relaxed">
-                                Explore made-to-order frames and canvases across classic wood, deep box, slim aluminium, traditional canvas, floating canvas, recycled canvas and stretched canvas styles.
-                            </p>
-                        </div>
+                    <div className="mb-6 lg:mb-8">
+                        <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#a8892f] mb-1.5">Step two</p>
+                        <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-stone-900 mb-2 sm:mb-4">
+                            Pick your frame
+                        </h2>
+                        <p className="text-sm sm:text-base text-stone-500 max-w-2xl leading-relaxed">
+                            Explore made-to-order frames and canvases across classic wood, deep box, slim aluminium, and canvas styles.
+                        </p>
                     </div>
                     
                     {/* Category Tabs */}
@@ -277,7 +445,11 @@ export default function LandingPage({ onStartFraming, navigate, setSelectedFrame
                                 key={cat}
                                 onClick={() => handleCategoryChange(cat)}
                                 aria-pressed={activeCategory === cat}
-                                className={`snap-start px-4 sm:px-5 py-2.5 rounded-full text-sm font-semibold whitespace-nowrap transition-all ${activeCategory === cat ? 'bg-stone-900 text-white shadow-md' : 'bg-stone-50 text-stone-600 hover:bg-stone-100 border border-stone-200'}`}
+                                className={`snap-start px-4 sm:px-5 py-2.5 rounded-full text-sm font-semibold whitespace-nowrap transition-all ${
+                                    activeCategory === cat
+                                        ? 'bg-stone-900 text-white shadow-md'
+                                        : 'bg-stone-50 text-stone-600 hover:bg-stone-100 border border-stone-200'
+                                }`}
                             >
                                 {displayCategoryName(cat)}
                             </button>
@@ -288,10 +460,10 @@ export default function LandingPage({ onStartFraming, navigate, setSelectedFrame
                     </p>
 
                     {/* Frame Grid */}
-                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-3 gap-y-6 sm:gap-6 mb-8 lg:mb-12">
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-4 gap-y-6 sm:gap-6 mb-8 lg:mb-12">
                         {currentFrames.map((frame) => (
                             <div key={frame.id} className="group cursor-pointer" onClick={() => handleFrameSelect(frame)}>
-                                <div className="aspect-square rounded-xl sm:rounded-2xl bg-stone-100 overflow-hidden mb-2.5 sm:mb-4 relative transition-transform duration-500 group-hover:scale-[1.02]">
+                                <div className="aspect-square rounded-2xl bg-stone-100 overflow-hidden mb-3 relative transition-transform duration-500 group-hover:scale-[1.02]">
                                     <img
                                         src={frame.thumbnailImage || frame.cornerImage || frame.previewImg || `/frames/${frame.filename}`}
                                         alt={frame.name}
@@ -347,49 +519,119 @@ export default function LandingPage({ onStartFraming, navigate, setSelectedFrame
                 </div>
             </section>
 
-            
-
-
-            {/* Info Section */}
-            <section className="py-10 sm:py-12 bg-stone-50 border-t border-stone-200">
-                <div className="max-w-[2560px] mx-auto px-4 sm:px-6 lg:px-12">
-                    <div className="text-center mb-8 sm:mb-12">
-                        <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-stone-900 mb-2">How It Works</h2>
-                        <p className="text-stone-500 max-w-2xl mx-auto">Five simple steps to museum-quality framing.</p>
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-5 gap-y-6 sm:gap-y-10 gap-x-6 sm:text-center">
-                        {[
-                            { icon: Upload, title: 'Choose or Upload Your Image', desc: "Upload your own photo, print, or artwork, or choose a free public-domain masterpiece — we'll optimize it for the sharpest possible print." },
-                            { icon: FrameIcon, title: 'Choose Your Frame', desc: 'Explore curated frame styles, from natural woods to hand-finished ornate mouldings.' },
-                            { icon: SlidersHorizontal, title: 'Choose Your Customizations', desc: 'Dial in size, mount, glazing, and hardware — your price updates instantly to match exactly what you choose.' },
-                            { icon: Eye, title: 'Preview the End Product', desc: 'See your exact piece rendered true-to-scale in our visualizer, then step into AR to see it on your own wall in 3D.' },
-                            { icon: Truck, title: 'Place Your Order', desc: 'Handcrafted locally and delivered ready to hang within 5-7 business days.' },
-                        ].map((step, i) => (
-                            <div key={step.title} className="flex flex-row sm:flex-col items-start sm:items-center gap-4 sm:gap-0">
-                                <div className="relative shrink-0 w-14 h-14 sm:w-16 sm:h-16 bg-white rounded-2xl shadow-sm border border-stone-100 flex items-center justify-center sm:mb-6">
-                                    <step.icon size={24} strokeWidth={1.75} className="text-[#c9a84c]" />
-                                    <span className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-stone-900 text-white text-xs font-bold flex items-center justify-center">{i + 1}</span>
-                                </div>
-                                <div className="min-w-0">
-                                    <h3 className="text-base lg:text-lg font-bold text-stone-900 mb-1 sm:mb-2">{step.title}</h3>
-                                    <p className="text-stone-500 text-sm leading-relaxed sm:max-w-[220px] sm:mx-auto">{step.desc}</p>
-                                </div>
+            {/* Step Three: See it on your wall before you buy */}
+            <section className="max-w-[2560px] mx-auto px-4 sm:px-6 lg:px-12 py-8 lg:py-12">
+                <div className="overflow-hidden rounded-3xl bg-stone-900 text-white shadow-2xl">
+                    <div className="grid grid-cols-1 lg:grid-cols-12 items-center">
+                        <div className="lg:col-span-7 relative h-[360px] sm:h-[440px] lg:h-[540px]">
+                            <img
+                                src="/landing_carousel/frameworthy-3d-ar.webp"
+                                alt="Previewing a framed print on a living room wall through a phone"
+                                loading="lazy"
+                                decoding="async"
+                                className="w-full h-full object-cover object-center"
+                            />
+                            <div className="absolute inset-0 bg-gradient-to-t lg:bg-gradient-to-r from-stone-900/60 via-transparent to-transparent pointer-events-none" />
+                        </div>
+                        <div className="lg:col-span-5 p-6 sm:p-10 lg:p-12 xl:p-16 flex flex-col justify-center">
+                            <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#e3c66d] mb-2">Step three</p>
+                            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight leading-tight mb-4">
+                                See it on your wall before you buy
+                            </h2>
+                            <p className="text-white/80 text-sm sm:text-base leading-relaxed mb-6">
+                                Experience your custom creation in real time before placing your order. No guesswork on scale, mounting, or lighting.
+                            </p>
+                            <ul className="space-y-4 text-sm sm:text-base text-white/85 mb-8">
+                                <li className="flex items-start gap-3">
+                                    <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center shrink-0 mt-0.5">
+                                        <Eye size={18} className="text-[#e3c66d]" />
+                                    </div>
+                                    <span><strong>Live visualizer:</strong> Watch your frame, matting and glazing update in real time. Your price updates live.</span>
+                                </li>
+                                <li className="flex items-start gap-3">
+                                    <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center shrink-0 mt-0.5">
+                                        <Images size={18} className="text-[#e3c66d]" />
+                                    </div>
+                                    <span><strong>Calibrated room scenes:</strong> Compare size options against realistic sofas, headboards, and dining spaces.</span>
+                                </li>
+                                <li className="flex items-start gap-3">
+                                    <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center shrink-0 mt-0.5">
+                                        <Smartphone size={18} className="text-[#e3c66d]" />
+                                    </div>
+                                    <span><strong>True-scale 3D AR:</strong> Place the framed artwork directly onto your own wall using your phone.</span>
+                                </li>
+                            </ul>
+                            <div>
+                                <button
+                                    onClick={() => startFraming()}
+                                    className="flex items-center gap-2.5 rounded-full bg-white hover:bg-stone-100 text-stone-900 px-7 py-3.5 sm:px-8 sm:py-4 text-sm sm:text-base font-bold shadow-md hover:shadow-lg transition-all"
+                                >
+                                    Try the preview <ArrowRight className="w-5 h-5" />
+                                </button>
                             </div>
-                        ))}
+                        </div>
                     </div>
                 </div>
             </section>
 
+            {/* Step Four: Delivered to your door, ready to hang */}
+            <section className="max-w-[2560px] mx-auto px-4 sm:px-6 lg:px-12 py-8 lg:py-12">
+                <div className="overflow-hidden rounded-3xl bg-white border border-stone-200/90 shadow-sm">
+                    <div className="grid grid-cols-1 lg:grid-cols-12 items-center">
+                        <div className="lg:col-span-5 order-2 lg:order-1 p-6 sm:p-10 lg:p-12 xl:p-16 flex flex-col justify-center">
+                            <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#a8892f] mb-2">Step four</p>
+                            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-stone-900 leading-tight mb-4">
+                                Delivered to your door, ready to hang
+                            </h2>
+                            <p className="text-stone-500 text-sm sm:text-base leading-relaxed mb-6">
+                                Handcrafted by specialist picture framers and shipped in custom-engineered packaging.
+                            </p>
+                            <ul className="space-y-4 text-sm sm:text-base text-stone-600 mb-8">
+                                <li className="flex items-start gap-3">
+                                    <div className="w-8 h-8 rounded-lg bg-stone-50 border border-stone-200/60 flex items-center justify-center shrink-0 mt-0.5">
+                                        <CheckCircle2 size={18} className="text-stone-900" />
+                                    </div>
+                                    <span><strong>Handcrafted to your exact choices:</strong> Precision-milled timber, acid-free mats, and pre-installed hanging wire.</span>
+                                </li>
+                                <li className="flex items-start gap-3">
+                                    <div className="w-8 h-8 rounded-lg bg-stone-50 border border-stone-200/60 flex items-center justify-center shrink-0 mt-0.5">
+                                        <Truck size={18} className="text-stone-900" />
+                                    </div>
+                                    <span><strong>Fast UK &amp; Jersey delivery:</strong> Direct delivery in 5–7 business days with end-to-end tracking.</span>
+                                </li>
+                                <li className="flex items-start gap-3">
+                                    <div className="w-8 h-8 rounded-lg bg-stone-50 border border-stone-200/60 flex items-center justify-center shrink-0 mt-0.5">
+                                        <ShieldCheck size={18} className="text-stone-900" />
+                                    </div>
+                                    <span><strong>Secure guest checkout:</strong> Order with confidence in under two minutes. No account required.</span>
+                                </li>
+                            </ul>
+                            <div>
+                                <button
+                                    onClick={() => startFraming()}
+                                    className="flex items-center gap-2.5 rounded-full bg-[#c9a84c] hover:bg-[#d4b458] text-[#0a0a0a] px-8 py-4 text-base font-bold shadow-md hover:shadow-lg transition-all"
+                                >
+                                    Start Framing Now <ArrowRight className="w-5 h-5" />
+                                </button>
+                            </div>
+                        </div>
+                        <div className="lg:col-span-7 order-1 lg:order-2 relative h-[360px] sm:h-[440px] lg:h-[540px]">
+                            <img
+                                src="/landing_carousel/slide-delivered-door.webp"
+                                alt="A FrameWorthy delivery arriving at a front door"
+                                loading="lazy"
+                                decoding="async"
+                                className="w-full h-full object-cover object-center"
+                            />
+                        </div>
+                    </div>
+                </div>
+            </section>
 
-            {/* Bubola-style Info & Footer Section */}
+            {/* 4-Column Footer */}
             <section className="bg-stone-900 text-stone-300 py-12 sm:py-24 pb-[calc(3rem+env(safe-area-inset-bottom,0px))] sm:pb-24">
                 <div className="max-w-[2560px] mx-auto px-4 sm:px-6 lg:px-12">
-
-
-                    {/* 4-Column Footer */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8 sm:gap-12 mb-10 sm:mb-16 text-sm">
-                        
                         {/* Col 1 */}
                         <div>
                             <h6 className="text-white font-bold uppercase tracking-widest text-xs mb-3 sm:mb-6">Frameworthy&amp;co</h6>
@@ -441,14 +683,12 @@ export default function LandingPage({ onStartFraming, navigate, setSelectedFrame
                                 </a>
                             </div>
                         </div>
-
                     </div>
 
                     {/* Copyright Row */}
                     <div className="pt-8 border-t border-stone-800 text-center text-xs text-stone-500 tracking-wider">
                         copyright © {new Date().getFullYear()} Frameworthy&amp;co | <button onClick={() => navigate && navigate('/privacy')} className="hover:text-stone-300">privacy &amp; cookies</button> | powered by FrameWorthy
                     </div>
-
                 </div>
             </section>
         </div>
