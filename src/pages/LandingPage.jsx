@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { ArrowRight, ChevronRight, ChevronLeft, Sparkles, Upload, Eye, Truck, Landmark, Images, Smartphone, ShieldCheck, CheckCircle2 } from 'lucide-react';
+import { ArrowRight, ChevronRight, ChevronLeft, Upload, Eye, Truck, Landmark, Images, Smartphone, ShieldCheck, CheckCircle2 } from 'lucide-react';
 import { framesForCategory, displayCategoryName, displayFrameName, frameStartingPriceDisplay, frameCategoryDescription, PRODIGI_FRAME_CATEGORIES } from '../data/frameBrowsing';
 import { CAROUSEL_SLIDES } from '../data/landingCarouselSlides';
 import { openExternalLinkFromEvent as openExternalLink } from '../utils/nativeLinks';
@@ -45,6 +45,7 @@ export default function LandingPage({ onStartFraming, navigate, setSelectedFrame
     const [currentPage, setCurrentPage] = useState(1);
     const [currentSlide, setCurrentSlide] = useState(0);
     const [loadedSlides, setLoadedSlides] = useState(() => new Set([0, 1]));
+    const [isPaused, setIsPaused] = useState(false);
     const isPhone = useIsPhone();
 
     useEffect(() => {
@@ -71,6 +72,14 @@ export default function LandingPage({ onStartFraming, navigate, setSelectedFrame
     const prevSlide = () => {
         setCurrentSlide(s => (s - 1 + CAROUSEL_SLIDES.length) % CAROUSEL_SLIDES.length);
     };
+
+    useEffect(() => {
+        if (isPaused) return undefined;
+        const timer = setInterval(() => {
+            setCurrentSlide(s => (s + 1) % CAROUSEL_SLIDES.length);
+        }, 5000);
+        return () => clearInterval(timer);
+    }, [currentSlide, isPaused]);
 
     useEffect(() => {
         setLoadedSlides(prev => {
@@ -163,7 +172,13 @@ export default function LandingPage({ onStartFraming, navigate, setSelectedFrame
 
             {/* Cinematic Hero Carousel Section */}
             <section className="relative w-full max-w-[2560px] mx-auto px-4 sm:px-6 lg:px-12 pt-4 sm:pt-6 pb-4 sm:pb-6">
-                <div className="relative w-full h-[520px] sm:h-[580px] lg:h-[620px] xl:h-[660px] rounded-3xl overflow-hidden shadow-2xl bg-stone-900">
+                <div
+                    onMouseEnter={() => setIsPaused(true)}
+                    onMouseLeave={() => setIsPaused(false)}
+                    onTouchStart={() => setIsPaused(true)}
+                    onTouchEnd={() => setIsPaused(false)}
+                    className="relative w-full h-[520px] sm:h-[580px] lg:h-[620px] xl:h-[660px] rounded-3xl overflow-hidden shadow-2xl bg-stone-900"
+                >
                     {/* Background Slide Images with Crossfade */}
                     {CAROUSEL_SLIDES.map((slide, index) => {
                         const isLoaded = loadedSlides.has(index);
@@ -204,8 +219,8 @@ export default function LandingPage({ onStartFraming, navigate, setSelectedFrame
 
                         {/* Slide Content */}
                         <div className="my-auto py-4">
-                            <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md text-[11px] font-bold tracking-[0.2em] uppercase text-[#e3c66d] border border-white/15 mb-4">
-                                <Sparkles size={12} className="text-[#e3c66d]" /> Custom Framing, Made to Order
+                            <span className="inline-flex items-center px-3 py-1 rounded-full bg-white/10 backdrop-blur-md text-[11px] font-bold tracking-[0.2em] uppercase text-[#e3c66d] border border-white/15 mb-4">
+                                Custom Framing, Made to Order
                             </span>
                             <div className="grid grid-cols-1 grid-rows-1 relative">
                                 {CAROUSEL_SLIDES.map((slide, index) => {
