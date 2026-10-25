@@ -171,13 +171,13 @@ export default function LandingPage({ onStartFraming, navigate, setSelectedFrame
             {pageMeta}
 
             {/* Cinematic Hero Carousel Section */}
-            <section className="relative w-full max-w-[2560px] mx-auto px-4 sm:px-6 lg:px-12 pt-4 sm:pt-6 pb-4 sm:pb-6">
+            <section className="relative w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 sm:pt-6 pb-4 sm:pb-6">
                 <div
                     onMouseEnter={() => setIsPaused(true)}
                     onMouseLeave={() => setIsPaused(false)}
                     onTouchStart={() => setIsPaused(true)}
                     onTouchEnd={() => setIsPaused(false)}
-                    className="relative w-full h-[520px] sm:h-[580px] lg:h-[620px] xl:h-[660px] rounded-3xl overflow-hidden shadow-2xl bg-stone-900"
+                    className="relative w-full h-[480px] sm:h-[520px] lg:h-[560px] rounded-3xl overflow-hidden shadow-2xl bg-stone-900"
                 >
                     {/* Background Slide Images with Crossfade */}
                     {CAROUSEL_SLIDES.map((slide, index) => {
@@ -307,15 +307,15 @@ export default function LandingPage({ onStartFraming, navigate, setSelectedFrame
             </section>
 
             {/* Value Proposition & Trust Bar */}
-            <section className="max-w-[2560px] mx-auto px-4 sm:px-6 lg:px-12 py-3 lg:py-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4">
+            <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 lg:py-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4">
                     {BENEFITS.map((item) => (
                         <div
                             key={item.title}
-                            className="flex items-center gap-3.5 rounded-2xl bg-white border border-stone-200/80 p-4 lg:p-5 shadow-sm hover:shadow-md transition-shadow"
+                            className="flex items-center gap-3.5 rounded-2xl bg-white border border-stone-200/80 p-4 shadow-sm hover:shadow-md transition-shadow"
                         >
-                            <div className="w-11 h-11 rounded-xl bg-stone-50 border border-stone-200/60 flex items-center justify-center shrink-0">
-                                <item.icon size={20} strokeWidth={1.75} className="text-stone-900" />
+                            <div className="w-10 h-10 rounded-xl bg-stone-50 border border-stone-200/60 flex items-center justify-center shrink-0">
+                                <item.icon size={19} strokeWidth={1.75} className="text-stone-900" />
                             </div>
                             <div className="min-w-0">
                                 <h3 className="text-sm font-bold text-stone-900 leading-snug">{item.title}</h3>
@@ -327,7 +327,7 @@ export default function LandingPage({ onStartFraming, navigate, setSelectedFrame
             </section>
 
             {/* Step One: What would you like to frame? */}
-            <section className="max-w-[2560px] mx-auto px-4 sm:px-6 lg:px-12 py-8 lg:py-12">
+            <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
                 <div className="mb-6 lg:mb-8">
                     <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#a8892f] mb-1.5">Step one</p>
                     <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-stone-900">
@@ -427,7 +427,7 @@ export default function LandingPage({ onStartFraming, navigate, setSelectedFrame
 
             {/* Step Two: Pick your frame */}
             <section id="curated-frames" className="py-10 lg:py-16 bg-white relative overflow-hidden scroll-mt-14">
-                <div className="max-w-[2560px] mx-auto px-4 sm:px-6 lg:px-12">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="mb-6 lg:mb-8">
                         <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#a8892f] mb-1.5">Step two</p>
                         <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-stone-900 mb-2 sm:mb-4">
@@ -520,10 +520,10 @@ export default function LandingPage({ onStartFraming, navigate, setSelectedFrame
             </section>
 
             {/* Step Three: See it on your wall before you buy */}
-            <section className="max-w-[2560px] mx-auto px-4 sm:px-6 lg:px-12 py-8 lg:py-12">
+            <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
                 <div className="overflow-hidden rounded-3xl bg-stone-900 text-white shadow-2xl">
                     <div className="grid grid-cols-1 lg:grid-cols-12 items-center">
-                        <div className="lg:col-span-7 relative h-[360px] sm:h-[440px] lg:h-[540px]">
+                        <div className="lg:col-span-7 relative h-[320px] sm:h-[380px] lg:h-[460px]">
                             <img
                                 src="/landing_carousel/frameworthy-3d-ar.webp"
                                 alt="Previewing a framed print on a living room wall through a phone"
@@ -575,7 +575,7 @@ export default function LandingPage({ onStartFraming, navigate, setSelectedFrame
             </section>
 
             {/* Step Four: Delivered to your door, ready to hang */}
-            <section className="max-w-[2560px] mx-auto px-4 sm:px-6 lg:px-12 py-8 lg:py-12">
+            <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
                 <div className="overflow-hidden rounded-3xl bg-white border border-stone-200/90 shadow-sm">
                     <div className="grid grid-cols-1 lg:grid-cols-12 items-center">
                         <div className="lg:col-span-5 order-2 lg:order-1 p-6 sm:p-10 lg:p-12 xl:p-16 flex flex-col justify-center">
@@ -615,7 +615,7 @@ export default function LandingPage({ onStartFraming, navigate, setSelectedFrame
                                 </button>
                             </div>
                         </div>
-                        <div className="lg:col-span-7 order-1 lg:order-2 relative h-[360px] sm:h-[440px] lg:h-[540px]">
+                        <div className="lg:col-span-7 order-1 lg:order-2 relative h-[320px] sm:h-[380px] lg:h-[460px]">
                             <img
                                 src="/landing_carousel/slide-delivered-door.webp"
                                 alt="A FrameWorthy delivery arriving at a front door"
@@ -630,7 +630,7 @@ export default function LandingPage({ onStartFraming, navigate, setSelectedFrame
 
             {/* 4-Column Footer */}
             <section className="bg-stone-900 text-stone-300 py-12 sm:py-24 pb-[calc(3rem+env(safe-area-inset-bottom,0px))] sm:pb-24">
-                <div className="max-w-[2560px] mx-auto px-4 sm:px-6 lg:px-12">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8 sm:gap-12 mb-10 sm:mb-16 text-sm">
                         {/* Col 1 */}
                         <div>
