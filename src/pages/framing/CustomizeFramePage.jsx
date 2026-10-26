@@ -53,7 +53,7 @@ import { renderMoviePoster } from '../../utils/moviePoster';
 import { useAuth } from '../../context/AuthContext';
 import AuthModal from '../../components/AuthModal';
 import Price from '../../components/common/Price';
-import FrameFitPanel from '../../components/framing/FrameFitPanel';
+import FrameFitPanel, { HorizontalMoveIcon, VerticalMoveIcon } from '../../components/framing/FrameFitPanel';
 import ProdigiConfigurationPanel from '../../components/framing/ProdigiConfigurationPanel';
 import { DEFAULT_POSITION, frameGeometry, imageCrop, cropStyle, isDefaultFitPosition } from '../../utils/frameFit';
 import { prepareFrameOutput } from '../../services/frameFitOutput';
@@ -519,17 +519,12 @@ const CustomizeFramePage = ({
     }, [isVisualizerLoading]);
     const [showAllSizes, setShowAllSizes] = useState(false);
     const [sizeClampNotice, setSizeClampNotice] = useState('');
-    const [isOptimized, setIsOptimized] = useState(false);
     const [imageNaturalSize, setImageNaturalSize] = useState(null);   // { w, h }
     const [cleanFrameInsets, setCleanFrameInsets] = useState(null);   // { top, bottom, left, right }
     const activeContentBounds = useMemo(() => {
         if (!cleanFrameInsets || !imageNaturalSize) return null;
         return computeCleanArtworkBounds(imageNaturalSize, cleanFrameInsets);
     }, [cleanFrameInsets, imageNaturalSize]);
-    const [savedSettings, setSavedSettings] = useState(() => ({
-        orientation: orientation || 'portrait',
-        matWidth: matWidth || 'none'
-    }));
 
     // Dynamically access the device screen to optimize visualizer height on mobile
     const [windowSize, setWindowSize] = useState({
@@ -550,13 +545,6 @@ const CustomizeFramePage = ({
     const isSideBySide = windowSize.width >= 1024;
     
     // The visualizer height is now calculated dynamically further down to fit the frame
-
-    // Sync saved manual settings whenever isOptimized is false
-    useEffect(() => {
-        if (!isOptimized) {
-            setSavedSettings({ orientation, matWidth });
-        }
-    }, [isOptimized, orientation, matWidth]);
     
     // Canonical interpretation of an Inspiration selection ("Get This" from any
     // category). This is THE single place that maps a selection's state object
@@ -1234,7 +1222,6 @@ const CustomizeFramePage = ({
     useEffect(() => {
         if (!uploadedImage) {
             setImageNaturalSize(null);
-            setIsOptimized(false);
             return;
         }
         // This effect and the "Initial Setup" mount effect both run in the same
@@ -1332,7 +1319,6 @@ const CustomizeFramePage = ({
                 const isLandscape = img.naturalWidth > img.naturalHeight;
                 setOrientation(isLandscape ? 'landscape' : 'portrait');
             }
-            setIsOptimized(false); // Reset optimization state for new image
         };
         img.onerror = () => {
             if (cancelled) return;
@@ -1574,7 +1560,6 @@ const CustomizeFramePage = ({
         setMatWidth(nextMatWidth);
         setGlassType(nextGlassType);
         if (nextMatWidth !== 'none') setMatColor(MAT_COLORS.find(color => color.id === nextMatColorId) || MAT_COLORS[0]);
-        setIsOptimized(false);
     }, [setMatWidth, setGlassType, setMatColor]);
 
     // Takes a picked image File (from the device dialog OR the cloud-storage
@@ -1638,97 +1623,6 @@ const CustomizeFramePage = ({
         } catch (error) {
             console.error('Failed to create local preview:', error);
             setIsUploading(false);
-        }
-    };
-
-    // Optimize toggle: computes best orientation + mat from image aspect ratio
-    // Pulled out of handleOptimizeToggle so the live-tracking effect below
-    // can also call it — auto-fit needs to recompute whenever the size or
-    // image it was calculated for changes, not just at the moment it's
-    // switched on.
-    const applyOptimization = (w, h) => {
-        const imageRatio = w / h;
-
-        // Frame ratios in portrait and landscape
-        const widthDim = selectedSize?.width ?? 8;
-        const heightDim = selectedSize?.height ?? 10;
-        const ratioPortrait = Math.min(widthDim, heightDim) / Math.max(widthDim, heightDim);
-        const ratioLandscape = Math.max(widthDim, heightDim) / Math.min(widthDim, heightDim);
-
-        // Mismatches
-        const mismatchPortrait = Math.abs(imageRatio - ratioPortrait) / ratioPortrait;
-        const mismatchLandscape = Math.abs(imageRatio - ratioLandscape) / ratioLandscape;
-
-        let recOrientation = 'portrait';
-        let recMismatch = mismatchPortrait;
-
-        // Choose the orientation that yields the closest fit
-        if (mismatchLandscape < mismatchPortrait) {
-            recOrientation = 'landscape';
-            recMismatch = mismatchLandscape;
-        } else {
-            recOrientation = 'portrait';
-            recMismatch = mismatchPortrait;
-        }
-
-        setOrientation(recOrientation);
-
-        // Decide mat width based on the optimal orientation's mismatch. Fixed
-        // inch values rather than the old 'narrow'/'standard' presets — mat
-        // width is now a free-form slider, independent of print size (see
-        // matting.js) — chosen to feel equivalently "minor" vs "significant".
-        if (recMismatch < 0.08) {
-            setMatWidth('none');   // Perfect or near-perfect fit — fill the frame (No Mat)
-        } else if (recMismatch < 0.22) {
-            setMatWidth(1.5);      // Minor aspect ratio mismatch
-        } else {
-            setMatWidth(2.5);      // Significant aspect ratio mismatch
-        }
-
-        setIsOptimized(true);
-    };
-
-    // Auto-fit is a live setting, not a one-shot calculation applied only at
-    // the moment the toggle is clicked: without this, switching sizes (or
-    // swapping the photo) while it's on left the "Auto-fit on" pill pointing
-    // at an orientation/mat combo computed for a size or image the user has
-    // since moved past. Re-derives from scratch whenever either input
-    // changes, same formula as the toggle-on path itself.
-    useEffect(() => {
-        if (!isOptimized || !imageNaturalSize) return;
-        applyOptimization(imageNaturalSize.w, imageNaturalSize.h);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isOptimized, imageNaturalSize?.w, imageNaturalSize?.h, selectedSize?.width, selectedSize?.height]);
-
-    const handleOptimizeToggle = () => {
-        if (isOptimized) {
-            // Restore saved manual settings
-            if (savedSettings) {
-                setOrientation(savedSettings.orientation);
-                setMatWidth(savedSettings.matWidth);
-            }
-            setIsOptimized(false);
-            return;
-        }
-
-        if (imageNaturalSize) {
-            applyOptimization(imageNaturalSize.w, imageNaturalSize.h);
-        } else if (uploadedImage) {
-            // Load size dynamically on demand if not yet available in state
-            setIsRendering(true);
-            const img = new Image();
-            img.onload = () => {
-                const size = { w: img.naturalWidth, h: img.naturalHeight };
-                setImageNaturalSize(size);
-                applyOptimization(size.w, size.h);
-                setIsRendering(false);
-            };
-            img.onerror = () => {
-                setIsRendering(false);
-                // Fallback to portrait 4:5 if image fails to load
-                applyOptimization(8, 10);
-            };
-            img.src = uploadedImage;
         }
     };
 
@@ -3986,34 +3880,21 @@ const CustomizeFramePage = ({
                                     <span className="bg-stone-100 text-stone-500 w-5 h-5 rounded-full flex items-center justify-center text-[10px]">{stepOrientation}</span>
                                     Orientation
                                 </span>
-                                {hasImage && uploadedImage && (
-                                    <button
-                                        type="button"
-                                        onClick={handleOptimizeToggle}
-                                        className={`normal-case font-semibold text-[11px] px-2.5 py-1 rounded-full transition-colors ${isOptimized ? 'bg-[#c9a84c] text-stone-950' : 'bg-stone-100 text-stone-500 hover:text-stone-700'}`}
-                                    >
-                                        {isOptimized ? 'Auto-fit on' : 'Auto-fit to photo'}
-                                    </button>
-                                )}
                             </h2>
 
                         <div className="flex bg-stone-100 p-1 rounded-xl">
                             <button
-                                onClick={() => {
-                                    setOrientation('portrait');
-                                    setIsOptimized(false);
-                                }}
-                                className={`flex-1 py-1.5 text-xs font-semibold rounded-lg transition-all ${orientation === 'portrait' ? 'bg-white shadow-sm text-stone-900 font-bold' : 'text-stone-500 hover:text-stone-700'}`}
+                                onClick={() => setOrientation('portrait')}
+                                className={`flex-1 py-1.5 text-xs font-semibold rounded-lg transition-all flex items-center justify-center gap-1.5 ${orientation === 'portrait' ? 'bg-white shadow-sm text-stone-900 font-bold' : 'text-stone-500 hover:text-stone-700'}`}
                             >
+                                <VerticalMoveIcon size={13} className={orientation === 'portrait' ? 'text-stone-900' : 'text-stone-400'} />
                                 Portrait
                             </button>
                             <button
-                                onClick={() => {
-                                    setOrientation('landscape');
-                                    setIsOptimized(false);
-                                }}
-                                className={`flex-1 py-1.5 text-xs font-semibold rounded-lg transition-all ${orientation === 'landscape' ? 'bg-white shadow-sm text-stone-900 font-bold' : 'text-stone-500 hover:text-stone-700'}`}
+                                onClick={() => setOrientation('landscape')}
+                                className={`flex-1 py-1.5 text-xs font-semibold rounded-lg transition-all flex items-center justify-center gap-1.5 ${orientation === 'landscape' ? 'bg-white shadow-sm text-stone-900 font-bold' : 'text-stone-500 hover:text-stone-700'}`}
                             >
+                                <HorizontalMoveIcon size={13} className={orientation === 'landscape' ? 'text-stone-900' : 'text-stone-400'} />
                                 Landscape
                             </button>
                         </div>
@@ -4030,7 +3911,7 @@ const CustomizeFramePage = ({
                         availableSizes={isProdigiFrame ? prodigiSizes : finalSizesList}
                         prodigiConfiguration={prodigiConfiguration}
                         currency={isProdigiFrame ? 'GBP' : 'GHS'}
-                        onApply={choice => { setIsOptimized(false); setSelectedSize(choice.size);
+                        onApply={choice => { setSelectedSize(choice.size);
                             setOrientation(choice.orientation); setMatWidth(choice.mat); setFitPosition(choice.position); }}
                         error={fitError}
                         />}
@@ -4091,7 +3972,6 @@ const CustomizeFramePage = ({
                                                     value={sliderIndex}
                                                     onChange={(e) => {
                                                         setMatWidth(sliderIndexToMatWidth(parseInt(e.target.value, 10)));
-                                                        setIsOptimized(false);
                                                     }}
                                                     className="w-full h-1.5 accent-fw-gold cursor-pointer"
                                                     aria-label="Mount width"
