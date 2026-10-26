@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { Focus, RotateCcw, X, Check, ZoomIn, MoveHorizontal, MoveVertical } from 'lucide-react';
+import { Focus, RotateCcw, X, Check, ZoomIn } from 'lucide-react';
 import { FRAME_SIZES, formatDimensions } from '../../data/constants';
 import { DEFAULT_POSITION, frameGeometry, imageCrop, cropStyle, maxZoomForMinDpi, isDefaultFitPosition } from '../../utils/frameFit';
 import { getFrameRail, getRailTextureStyle, getRailShading } from '../../utils/frameRail';
@@ -9,11 +9,47 @@ import { bestFitOptions } from '../../utils/bestFitOptions';
 import Price from '../common/Price';
 
 export const HorizontalMoveIcon = ({ size = 14, className = "text-stone-500" }) => (
-    <MoveHorizontal size={size} className={className} aria-hidden="true" />
+    <svg
+        width={size}
+        height={size}
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className={className}
+        aria-hidden="true"
+    >
+        {/* Horizontal directional line with arrowheads */}
+        <path d="m18 8 4 4-4 4" />
+        <path d="M2 12h20" />
+        <path d="m6 8-4 4 4 4" />
+        {/* Crossing arrowless vertical line */}
+        <line x1="12" y1="4" x2="12" y2="20" />
+    </svg>
 );
 
 export const VerticalMoveIcon = ({ size = 14, className = "text-stone-500" }) => (
-    <MoveVertical size={size} className={className} aria-hidden="true" />
+    <svg
+        width={size}
+        height={size}
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className={className}
+        aria-hidden="true"
+    >
+        {/* Vertical directional line with arrowheads */}
+        <path d="m8 6 4-4 4 4" />
+        <path d="M12 2v20" />
+        <path d="m8 18 4 4 4-4" />
+        {/* Crossing arrowless horizontal line */}
+        <line x1="4" y1="12" x2="20" y2="12" />
+    </svg>
 );
 
 const FRAME_SIDE_STYLES = {
