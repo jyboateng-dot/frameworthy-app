@@ -107,4 +107,56 @@ describe('CustomizeFramePage mounting', () => {
         expect(navigate).toHaveBeenCalledWith(expect.anything());
         expect(scrollToSpy).toHaveBeenCalledWith(expect.objectContaining({ top: 420 }));
     });
+
+    it('keeps size options collapsed by default and allows user to expand and collapse via button', () => {
+        render(
+            <MemoryRouter initialEntries={['/frame/customize']}>
+                <CustomizeFramePage {...defaultProps} />
+            </MemoryRouter>
+        );
+
+        const moreSizesBtn = screen.getByRole('button', { name: /\+ more sizes/i });
+        expect(moreSizesBtn).toBeInTheDocument();
+        expect(screen.queryByRole('button', { name: /- less sizes/i })).not.toBeInTheDocument();
+
+        // Expanding the list via click
+        fireEvent.click(moreSizesBtn);
+        const lessSizesBtn = screen.getByRole('button', { name: /- less sizes/i });
+        expect(lessSizesBtn).toBeInTheDocument();
+        expect(screen.queryByRole('button', { name: /\+ more sizes/i })).not.toBeInTheDocument();
+
+        // Collapsing back down
+        fireEvent.click(lessSizesBtn);
+        expect(screen.getByRole('button', { name: /\+ more sizes/i })).toBeInTheDocument();
+    });
+
+    it('keeps size options collapsed and places an external uploaded size in the collapsed list view', () => {
+        // Size 24x30 (or 60x80cm) is not part of the standard 12 popular sizes in collapsed view
+        const externalSize = { id: '24x30', width: 24, height: 30, label: '24x30"' };
+
+        render(
+            <MemoryRouter initialEntries={[{
+                pathname: '/frame/customize',
+                state: {
+                    presetImage: 'https://example.com/art.jpg',
+                    presetTitle: 'Museum Art',
+                    initialSize: externalSize,
+                }
+            }]}>
+                <CustomizeFramePage
+                    {...defaultProps}
+                    selectedSize={externalSize}
+                />
+            </MemoryRouter>
+        );
+
+        // Size list MUST remain collapsed
+        expect(screen.getByRole('button', { name: /\+ more sizes/i })).toBeInTheDocument();
+        expect(screen.queryByRole('button', { name: /- less sizes/i })).not.toBeInTheDocument();
+
+        // The external size button is rendered and marked pressed
+        const selectedButton = screen.getByRole('button', { name: /24 × 30/i });
+        expect(selectedButton).toBeInTheDocument();
+        expect(selectedButton).toHaveAttribute('aria-pressed', 'true');
+    });
 });

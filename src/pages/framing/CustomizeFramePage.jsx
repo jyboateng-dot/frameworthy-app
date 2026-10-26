@@ -66,6 +66,14 @@ import { getFrameInnerShadow, getFrameWallShadow } from '../../utils/frameDepthP
 
 const MOBILE_DOUBLE_TAP_DELAY_MS = 300;
 
+const isSameSize = (a, b) => {
+    if (!a || !b) return false;
+    if (a === b) return true;
+    if (a.id && b.id && a.id === b.id) return true;
+    if (a.prodigiSizeInches && b.prodigiSizeInches && a.prodigiSizeInches === b.prodigiSizeInches) return true;
+    return Math.abs(a.width - b.width) < 0.35 && Math.abs(a.height - b.height) < 0.35;
+};
+
 // High-fidelity 3D side gradients for the frame
 const getSideBackground = (side, frame) => {
     let hex = frame.baseColor || '#8b4513';
@@ -534,16 +542,14 @@ const CustomizeFramePage = ({
     }));
 
     // An Inspiration selection can restore into an already-mounted
-    // customizer after a hot navigation. Reapply the Dimensions reveal from
-    // its listed size so the selected option is never left behind the
-    // collapsed list.
+    // customizer after a hot navigation. Record its custom size entry if
+    // applicable, keeping the list view collapsed by default.
     useEffect(() => {
         if (!presetDims) return;
         const listedSize = parseCustomSize(presetDims) || findSizeByDimension(presetDims);
         if (!listedSize) return;
         const { size: sizeToReveal } = clampSizeToValidRange(listedSize);
         setCustomSizeEntry(sizeToReveal);
-        setShowAllSizes(true);
     }, [presetDims]);
 
     // Dynamically access the device screen to optimize visualizer height on mobile
@@ -613,12 +619,9 @@ const CustomizeFramePage = ({
             const { size: sizeToApply, wasClamped, clampedShortCm, clampedLongCm } = clampSizeToValidRange(state.initialSize);
             setSelectedSize(sizeToApply);
             // An Inspiration card's listed dimensions are the customer's
-            // starting choice. Keep that choice in view and highlighted just
-            // as if they had opened the list and selected it themselves.
-            // `customSizeEntry` also preserves a catalogue dimension that is
-            // not part of the normal, expanded catalog list.
+            // starting choice. `customSizeEntry` also preserves a catalogue
+            // dimension that is not part of the normal, expanded catalog list.
             setCustomSizeEntry(sizeToApply);
-            setShowAllSizes(!state.prodigiSelection);
             setSizeClampNotice(wasClamped
                 ? `This artwork's listed size was outside what we can produce, so it's been adjusted to ${clampedShortCm.toFixed(1)} × ${clampedLongCm.toFixed(1)} cm.`
                 : '');
@@ -628,7 +631,6 @@ const CustomizeFramePage = ({
                 const { size: sizeToApply } = clampSizeToValidRange(maxSize);
                 setSelectedSize(sizeToApply);
                 setCustomSizeEntry(sizeToApply);
-                setShowAllSizes(!state.prodigiSelection);
                 if (!state.orientation && maxSize.orientation) {
                     setOrientation(maxSize.orientation);
                 }
@@ -2105,16 +2107,27 @@ const CustomizeFramePage = ({
         const popularSmallIds = ['5x7', '8x10', 'a4', '11x14', '12x12', 'a3'];
         const popularLargeIds = ['16x20', 'a2', '18x24', '20x30', '24x36', '100x100cm'];
         const findPopular = (ids) => ids.map(id => normalSizes.find(s => s.id === id)).filter(Boolean);
-        const compactProdigiSizes = isProdigiFrame ? normalSizes.slice(0, 12) : [];
-        if (isProdigiFrame && selectedSize) {
-            const activeSize = normalSizes.find((size) =>
-                (size.prodigiSizeInches && selectedSize.prodigiSizeInches && size.prodigiSizeInches === selectedSize.prodigiSizeInches)
-                || (size.id && selectedSize.id && size.id === selectedSize.id)
-                || (Math.abs(size.width - selectedSize.width) < 0.35 && Math.abs(size.height - selectedSize.height) < 0.35));
-            if (activeSize && !compactProdigiSizes.includes(activeSize)) compactProdigiSizes[11] = activeSize;
+        const leftColumnCollapsed = isProdigiFrame ? normalSizes.slice(0, 6) : findPopular(popularSmallIds);
+        const rightColumnCollapsed = isProdigiFrame ? normalSizes.slice(6, 12) : findPopular(popularLargeIds);
+
+        // Always keep the size options collapsed unless the user expands the list.
+        // When artwork (from public domain art, uploads, or presets) has a size
+        // outside the collapsed list, show that active size as the last item on the collapsed view.
+        if (selectedSize) {
+            const isInCollapsed = leftColumnCollapsed.some(s => isSameSize(s, selectedSize))
+                || rightColumnCollapsed.some(s => isSameSize(s, selectedSize));
+
+            if (!isInCollapsed) {
+                const activeSize = normalSizes.find(s => isSameSize(s, selectedSize)) || selectedSize;
+                if (rightColumnCollapsed.length > 0) {
+                    rightColumnCollapsed[rightColumnCollapsed.length - 1] = activeSize;
+                } else if (leftColumnCollapsed.length > 0) {
+                    rightColumnCollapsed.push(activeSize);
+                } else {
+                    leftColumnCollapsed.push(activeSize);
+                }
+            }
         }
-        const leftColumnCollapsed = isProdigiFrame ? compactProdigiSizes.slice(0, 6) : findPopular(popularSmallIds);
-        const rightColumnCollapsed = isProdigiFrame ? compactProdigiSizes.slice(6, 12) : findPopular(popularLargeIds);
 
         return { finalSizesList, leftColumnCollapsed, rightColumnCollapsed };
     }, [isAlbumPoster, isMoviePoster, isMoviePosterPrint, isProdigiFrame, prodigiSizes, selectedSize, activeImageWidth, activeImageHeight, selectedFrame]);
@@ -2224,20 +2237,6 @@ const CustomizeFramePage = ({
     // decide whether "+ more sizes" should appear at all and what count to
     // show on it.
     const collapsedShownCount = leftColumnCollapsed.length + rightColumnCollapsed.length + (showCustomEntry ? 1 : 0);
-
-    // A selection can arrive from Inspiration, a guided flow, or a direct
-    // choice elsewhere in the studio. If its size is outside the curated
-    // collapsed set, expose the complete list so its active button is always
-    // visible and highlighted.
-    useEffect(() => {
-        if (!selectedSize) return;
-        if (isProdigiFrame) return;
-        const sameSize = (size) => size.width === selectedSize.width && size.height === selectedSize.height;
-        const isVisibleWhenCollapsed = leftColumnCollapsed.some(sameSize)
-            || rightColumnCollapsed.some(sameSize)
-            || (showCustomEntry && sameSize(customSizeEntry));
-        if (!isVisibleWhenCollapsed) setShowAllSizes(true);
-    }, [selectedSize, leftColumnCollapsed, rightColumnCollapsed, showCustomEntry, customSizeEntry, isProdigiFrame]);
 
     const formatProdigiDimension = (size) => {
         const source = unit === 'cm' ? size.prodigiSizeCm : size.prodigiSizeInches;
@@ -4123,7 +4122,7 @@ const CustomizeFramePage = ({
                                     </div>
                                     <div className="flex flex-col gap-2">
                                         {rightColumnCollapsed.map(renderSizeButton)}
-                                        {showCustomEntry && renderSizeButton(customSizeEntry)}
+                                        {showCustomEntry && !rightColumnCollapsed.some(s => isSameSize(s, customSizeEntry)) && renderSizeButton(customSizeEntry)}
                                     </div>
                                 </>
                             ) : (
