@@ -8,43 +8,53 @@ import { getFrameInnerShadow, getFrameWallShadow } from '../../utils/frameDepthP
 import { bestFitOptions } from '../../utils/bestFitOptions';
 import Price from '../common/Price';
 
-export const HorizontalMoveIcon = ({ size = 15, className = "text-stone-500" }) => (
+export const HorizontalMoveIcon = ({ size = 14, className = "text-stone-500" }) => (
     <svg
         width={size}
         height={size}
         viewBox="0 0 24 24"
         fill="none"
         stroke="currentColor"
-        strokeWidth="2.25"
+        strokeWidth="2"
         strokeLinecap="round"
         strokeLinejoin="round"
         className={className}
         aria-hidden="true"
     >
-        {/* Horizontal bidirectional shaft with deep arrowheads on right and left */}
+        {/* Existing 4-way move crossbars */}
         <line x1="2" y1="12" x2="22" y2="12" />
-        <polyline points="9 5.5 2 12 9 18.5" />
-        <polyline points="15 5.5 22 12 15 18.5" />
+        <line x1="12" y1="4" x2="12" y2="20" />
+        {/* Deepened right/left arrow points */}
+        <polyline points="7.5 8 2 12 7.5 16" />
+        <polyline points="16.5 8 22 12 16.5 16" />
+        {/* Subtle north/south arrow points */}
+        <polyline points="9.5 4.5 12 2 14.5 4.5" />
+        <polyline points="9.5 19.5 12 22 14.5 19.5" />
     </svg>
 );
 
-export const VerticalMoveIcon = ({ size = 15, className = "text-stone-500" }) => (
+export const VerticalMoveIcon = ({ size = 14, className = "text-stone-500" }) => (
     <svg
         width={size}
         height={size}
         viewBox="0 0 24 24"
         fill="none"
         stroke="currentColor"
-        strokeWidth="2.25"
+        strokeWidth="2"
         strokeLinecap="round"
         strokeLinejoin="round"
         className={className}
         aria-hidden="true"
     >
-        {/* Vertical bidirectional shaft with deep arrowheads on north and south */}
+        {/* Existing 4-way move crossbars */}
+        <line x1="4" y1="12" x2="20" y2="12" />
         <line x1="12" y1="2" x2="12" y2="22" />
-        <polyline points="5.5 9 12 2 18.5 9" />
-        <polyline points="5.5 15 12 22 18.5 15" />
+        {/* Deepened north/south arrow points */}
+        <polyline points="8 7.5 12 2 16 7.5" />
+        <polyline points="8 16.5 12 22 16 16.5" />
+        {/* Subtle right/left arrow points */}
+        <polyline points="4.5 9.5 2 12 4.5 14.5" />
+        <polyline points="19.5 9.5 22 12 19.5 14.5" />
     </svg>
 );
 
@@ -276,7 +286,7 @@ export default function FrameFitPanel({ image, natural, size, orientation, mat, 
             <div className="space-y-1.5">
                 <div className="flex items-center justify-between text-xs">
                     <span className="font-semibold text-stone-800 flex items-center gap-1.5">
-                        <HorizontalMoveIcon size={15} className="text-stone-500" />
+                        <HorizontalMoveIcon size={14} className="text-stone-500" />
                         Horizontal
                     </span>
                     <span className="text-[11px] font-medium text-stone-700 tabular-nums bg-white px-2 py-0.5 rounded shadow-xs border border-stone-200">
@@ -314,7 +324,7 @@ export default function FrameFitPanel({ image, natural, size, orientation, mat, 
             <div className="space-y-1.5">
                 <div className="flex items-center justify-between text-xs">
                     <span className="font-semibold text-stone-800 flex items-center gap-1.5">
-                        <VerticalMoveIcon size={15} className="text-stone-500" />
+                        <VerticalMoveIcon size={14} className="text-stone-500" />
                         Vertical
                     </span>
                     <span className="text-[11px] font-medium text-stone-700 tabular-nums bg-white px-2 py-0.5 rounded shadow-xs border border-stone-200">
