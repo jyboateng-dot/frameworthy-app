@@ -21,7 +21,7 @@ export function isFramableMuseumArtwork(sourceId, record) {
         return record.rights?.includes('Art Institute') || false;
     }
     if (sourceId === 'smithsonian-open-access') {
-        const type = record.metadata?.freetext?.objectType?.map(item => item.content).join(' ') || record.objectType || '';
+        const type = record.metadata?.freetext?.objectType?.map(item => item.content).join(' ') || record.objectType || record.artworkType || '';
         return ART_TYPES.test(type);
     }
     if (sourceId === 'paris-musees') return ART_TYPES.test(record.objectType || '');

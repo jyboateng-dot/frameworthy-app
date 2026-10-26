@@ -52,29 +52,81 @@ function smithsonianRecord(record) {
 }
 
 async function smithsonian(page, key) {
-    const apiKey = key || process.env.SMITHSONIAN_API_KEY || 'DEMO_KEY';
-    const params = new URLSearchParams({
-        q: 'online_media_type:Images AND (unit_code:SAAM OR unit_code:NPG OR unit_code:FSG)',
-        start: String((page - 1) * PAGE_SIZE), rows: String(PAGE_SIZE), api_key: apiKey,
-    });
-    const data = await json(`https://api.si.edu/openaccess/api/v1.0/search?${params}`);
-    if (data.status !== 200 || !data.response) throw new Error('Smithsonian returned an invalid response.');
-    const artworks = [];
-    const rows = data.response.rows || [];
-    for (let offset = 0; offset < rows.length; offset += 3) {
-        const batch = await Promise.all(rows.slice(offset, offset + 3).map(async row => {
-            const existing = smithsonianRecord(row);
-            if (existing) return existing;
-            try {
-                const detail = await json(`https://api.si.edu/openaccess/api/v1.0/content/${encodeURIComponent(row.url)}?api_key=${encodeURIComponent(apiKey)}`);
-                return smithsonianRecord(detail.response || {});
-            } catch {
-                return null;
+    const apiKey = key || process.env.SMITHSONIAN_API_KEY;
+    if (apiKey && apiKey !== 'DEMO_KEY') {
+        try {
+            const params = new URLSearchParams({
+                q: 'online_media_type:Images AND (unit_code:SAAM OR unit_code:NPG OR unit_code:FSG)',
+                start: String((page - 1) * PAGE_SIZE), rows: String(PAGE_SIZE), api_key: apiKey,
+            });
+            const data = await json(`https://api.si.edu/openaccess/api/v1.0/search?${params}`);
+            if (data.status === 200 && data.response?.rows) {
+                const artworks = [];
+                const rows = data.response.rows || [];
+                for (let offset = 0; offset < rows.length; offset += 3) {
+                    const batch = await Promise.all(rows.slice(offset, offset + 3).map(async row => {
+                        const existing = smithsonianRecord(row);
+                        if (existing) return existing;
+                        try {
+                            const detail = await json(`https://api.si.edu/openaccess/api/v1.0/content/${encodeURIComponent(row.url)}?api_key=${encodeURIComponent(apiKey)}`);
+                            return smithsonianRecord(detail.response || {});
+                        } catch {
+                            return null;
+                        }
+                    }));
+                    artworks.push(...batch.filter(Boolean));
+                }
+                if (artworks.length > 0) {
+                    return { artworks, total: data.response.rowCount || 0 };
+                }
             }
-        }));
-        artworks.push(...batch.filter(Boolean));
+        } catch {
+            // Fall back to high-res Smithsonian CC0 mirror on Wikimedia Commons
+        }
     }
-    return { artworks, total: data.response.rowCount || 0 };
+    return smithsonianCommonsFallback(page);
+}
+
+async function smithsonianCommonsFallback(page) {
+    const offset = (page - 1) * PAGE_SIZE;
+    const params = new URLSearchParams({
+        action: 'query',
+        generator: 'search',
+        gsrsearch: 'incategory:"Images from the Smithsonian Institution" fileres:>1500 (painting OR artwork OR portrait OR oil OR watercolor OR illustration)',
+        gsrnamespace: '6',
+        gsrlimit: String(PAGE_SIZE),
+        gsroffset: String(offset),
+        prop: 'imageinfo',
+        iiprop: 'url|dimensions|extmetadata',
+        iiurlwidth: '800',
+        format: 'json',
+    });
+    const data = await json(`https://commons.wikimedia.org/w/api.php?${params}`, {
+        headers: { 'User-Agent': 'FrameWorthyApp/1.0 (contact@frameworthy.art)' }
+    });
+    const pages = Object.values(data.query?.pages || {});
+    const artworks = pages.map(item => {
+        const info = item.imageinfo?.[0];
+        if (!info || !info.url) return null;
+        const meta = info.extmetadata || {};
+        const rawTitle = meta.ObjectName?.value || item.title.replace(/^File:/, '').replace(/\.[^.]+$/, '').trim();
+        const title = rawTitle.replace(/<[^>]*>?/gm, '').trim();
+        let artist = meta.Artist?.value?.split(/<br\s*\/?>/i)[0] || '';
+        artist = artist.replace(/<[^>]*>?/gm, '').trim() || 'Smithsonian Artist';
+        return {
+            id: String(item.pageid || item.title),
+            title: title || 'Smithsonian Artwork',
+            artist,
+            image: info.thumburl || info.url,
+            fullRes: (Number(info.width) > 8000 && info.thumburl) ? info.thumburl.replace(/\/\d+px-[^/]+$/, `/4000px-${item.title.replace(/^File:/, '')}`) : info.url,
+            imageWidth: info.width,
+            imageHeight: info.height,
+            artworkType: 'Painting',
+            sourceUrl: meta.Credit?.value?.match(/https?:\/\/[^\s"<>]+/)?.[0] || info.descriptionurl || 'https://www.si.edu/openaccess',
+            rights: 'CC0 / Smithsonian Open Access',
+        };
+    }).filter(Boolean);
+    return { artworks, total: 16283 };
 }
 
 const PARIS_DEFAULT_TOKEN = '9a695903-3959-4413-8a65-7427ac729efe';
@@ -102,6 +154,7 @@ async function paris(page, token) {
         const data = await json('https://apicollections.parismusees.paris.fr/graphql', {
             method: 'POST', headers: { 'Content-Type': 'application/json', 'auth-token': apiToken },
             body: JSON.stringify({ query: parisQuery(page) }),
+            signal: AbortSignal.timeout(3000),
         });
         if (data.errors?.length || !data.data?.nodeQuery) {
             throw new Error(data.errors?.[0]?.message || 'Paris Musées could not provide the collection.');
@@ -192,7 +245,7 @@ async function artInstituteOfChicago(page) {
     const params = new URLSearchParams({
         action: 'query',
         generator: 'search',
-        gsrsearch: 'incategory:Google_Art_Project_works_in_The_Art_Institute_of_Chicago OR incategory:Paintings_in_the_Art_Institute_of_Chicago fileres:>1500',
+        gsrsearch: '"Art Institute of Chicago" fileres:>1500 (painting OR artwork OR oil OR portrait OR canvas)',
         gsrnamespace: '6',
         gsrlimit: String(PAGE_SIZE),
         gsroffset: String(offset),
@@ -230,7 +283,49 @@ async function artInstituteOfChicago(page) {
             rights: 'Public domain / Art Institute of Chicago',
         };
     }).filter(Boolean);
-    return { artworks, total: 1965 };
+    return { artworks, total: 10347 };
+}
+
+async function rijksmuseum(page) {
+    const offset = (page - 1) * PAGE_SIZE;
+    const params = new URLSearchParams({
+        action: 'query',
+        generator: 'search',
+        gsrsearch: 'incategory:"Paintings in the Rijksmuseum Amsterdam" fileres:>1500',
+        gsrnamespace: '6',
+        gsrlimit: String(PAGE_SIZE),
+        gsroffset: String(offset),
+        prop: 'imageinfo',
+        iiprop: 'url|dimensions|extmetadata',
+        iiurlwidth: '800',
+        format: 'json',
+    });
+    const data = await json(`https://commons.wikimedia.org/w/api.php?${params}`, {
+        headers: { 'User-Agent': 'FrameWorthyApp/1.0 (contact@frameworthy.art)' }
+    });
+    const pages = Object.values(data.query?.pages || {});
+    const artworks = pages.map(item => {
+        const info = item.imageinfo?.[0];
+        if (!info || !info.url) return null;
+        const meta = info.extmetadata || {};
+        const rawTitle = meta.ObjectName?.value || item.title.replace(/^File:/, '').replace(/\.[^.]+$/, '').replace(/Rijksmuseum\s*[A-Z0-9-]+/gi, '').trim();
+        const title = rawTitle.replace(/<[^>]*>?/gm, '').trim();
+        let artist = meta.Artist?.value?.split(/<br\s*\/?>/i)[0] || '';
+        artist = artist.replace(/<[^>]*>?/gm, '').trim() || 'Rijksmuseum Master';
+        return {
+            id: String(item.pageid || item.title),
+            title: title || 'Rijksmuseum Painting',
+            artist,
+            image: info.thumburl || info.url,
+            fullRes: (Number(info.width) > 8000 && info.thumburl) ? info.thumburl.replace(/\/\d+px-[^/]+$/, `/4000px-${item.title.replace(/^File:/, '')}`) : info.url,
+            imageWidth: info.width,
+            imageHeight: info.height,
+            artworkType: 'Painting',
+            sourceUrl: meta.Credit?.value?.match(/https?:\/\/[^\s"<>]+/)?.[0] || info.descriptionurl || 'https://www.rijksmuseum.nl/en/collection',
+            rights: 'Public Domain / CC0',
+        };
+    }).filter(Boolean);
+    return { artworks, total: 277 };
 }
 
 async function biodiversityHeritageLibrary(page) {
@@ -353,6 +448,7 @@ async function museumFeed(source, page, env = process.env) {
     if (source === 'smithsonian-open-access') value = await smithsonian(page, env.SMITHSONIAN_API_KEY);
     else if (source === 'paris-musees') value = await paris(page, env.PARIS_MUSEES_API_TOKEN);
     else if (source === 'art-institute-of-chicago') value = await artInstituteOfChicago(page);
+    else if (source === 'rijksmuseum') value = await rijksmuseum(page);
     else if (source === 'biodiversity-heritage-library') value = await biodiversityHeritageLibrary(page);
     else if (source === 'nasa-open-media') value = await nasaOpenMedia(page);
     else if (source === 'library-of-congress') value = await libraryOfCongress(page);
