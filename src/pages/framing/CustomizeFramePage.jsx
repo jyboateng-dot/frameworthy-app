@@ -13,7 +13,7 @@ import {
     Maximize2,
     X
 } from 'lucide-react';
-import { FRAME_STYLES, FRAME_SIZES, MAT_COLORS, formatDimensions, findSizeByDimension, parseCustomSize, clampSizeToValidRange, DEFAULT_DEMO_IMAGE, getDemoImageForOrientation } from '../../data/constants';
+import { FRAME_STYLES, FRAME_SIZES, MAT_COLORS, formatDimensions, clampSizeToValidRange, DEFAULT_DEMO_IMAGE, getDemoImageForOrientation } from '../../data/constants';
 import { displayCategoryName } from '../../data/frameBrowsing';
 import { ROOM_SCENES, computeRoomPlacement, computeRoomLayout, computeReferenceAnchoredTop } from '../../data/roomScenes';
 import { ROOM_SCENE_COMPONENTS, ROOM_SCENE_FOREGROUND_COMPONENTS } from '../../components/framing/roomSceneComponents';
@@ -44,7 +44,6 @@ import { uploadImageToCloud, getThumbnailUrl } from '../../services/storage';
 import FrameSelectionModal from '../../components/FrameSelectionModal';
 import { activeFrameOrDefault, DEFAULT_PRODIGI_FRAME } from '../../data/frameBrowsing';
 import ArtworkImportMenu from '../../components/framing/ArtworkImportMenu';
-import SizeGuidePanel from '../../components/framing/SizeGuidePanel';
 import ArViewer from '../../components/framing/ArViewer';
 import { clearArModelCache } from '../../utils/ar/buildArModel';
 import { renderFrameOrderPreview } from '../../utils/frameOrderPreview';
@@ -377,7 +376,6 @@ const CustomizeFramePage = ({
     // won't survive a page reload, so Add to Cart/Buy Now must wait for it.
     const [isCloudUploadPending, setIsCloudUploadPending] = useState(false);
     const [isFrameModalOpen, setIsFrameModalOpen] = useState(false);
-    const [isSizeGuideOpen, setIsSizeGuideOpen] = useState(false);
     const { open: isWallPickerOpen, setOpen: setIsWallPickerOpen, hoverProps: wallPickerHoverProps, closeOnSelect: closeWallPickerOnSelect, containerRef: wallPickerContainerRef } = useHoverDropdown();
     const [isMetModalOpen, setIsMetModalOpen] = useState(false);
     const metReturnRef = useRef(null);
@@ -520,15 +518,7 @@ const CustomizeFramePage = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isVisualizerLoading]);
     const [showAllSizes, setShowAllSizes] = useState(false);
-    const [showCustomSizeForm, setShowCustomSizeForm] = useState(false);
-    const [customWidthInput, setCustomWidthInput] = useState('');
-    const [customHeightInput, setCustomHeightInput] = useState('');
-    const [customSizeError, setCustomSizeError] = useState('');
     const [sizeClampNotice, setSizeClampNotice] = useState('');
-    // Kept separate from selectedSize so the user's custom size stays visible
-    // in the list (in its last-position slot) even after they pick a
-    // different size — otherwise it'd vanish the moment it's no longer active.
-    const [customSizeEntry, setCustomSizeEntry] = useState(null);
     const [isOptimized, setIsOptimized] = useState(false);
     const [imageNaturalSize, setImageNaturalSize] = useState(null);   // { w, h }
     const [cleanFrameInsets, setCleanFrameInsets] = useState(null);   // { top, bottom, left, right }
@@ -540,17 +530,6 @@ const CustomizeFramePage = ({
         orientation: orientation || 'portrait',
         matWidth: matWidth || 'none'
     }));
-
-    // An Inspiration selection can restore into an already-mounted
-    // customizer after a hot navigation. Record its custom size entry if
-    // applicable, keeping the list view collapsed by default.
-    useEffect(() => {
-        if (!presetDims) return;
-        const listedSize = parseCustomSize(presetDims) || findSizeByDimension(presetDims);
-        if (!listedSize) return;
-        const { size: sizeToReveal } = clampSizeToValidRange(listedSize);
-        setCustomSizeEntry(sizeToReveal);
-    }, [presetDims]);
 
     // Dynamically access the device screen to optimize visualizer height on mobile
     const [windowSize, setWindowSize] = useState({
@@ -618,10 +597,6 @@ const CustomizeFramePage = ({
         if (state.initialSize) {
             const { size: sizeToApply, wasClamped, clampedShortCm, clampedLongCm } = clampSizeToValidRange(state.initialSize);
             setSelectedSize(sizeToApply);
-            // An Inspiration card's listed dimensions are the customer's
-            // starting choice. `customSizeEntry` also preserves a catalogue
-            // dimension that is not part of the normal, expanded catalog list.
-            setCustomSizeEntry(sizeToApply);
             setSizeClampNotice(wasClamped
                 ? `This artwork's listed size was outside what we can produce, so it's been adjusted to ${clampedShortCm.toFixed(1)} × ${clampedLongCm.toFixed(1)} cm.`
                 : '');
@@ -630,7 +605,6 @@ const CustomizeFramePage = ({
             if (maxSize) {
                 const { size: sizeToApply } = clampSizeToValidRange(maxSize);
                 setSelectedSize(sizeToApply);
-                setCustomSizeEntry(sizeToApply);
                 if (!state.orientation && maxSize.orientation) {
                     setOrientation(maxSize.orientation);
                 }
@@ -2055,10 +2029,7 @@ const CustomizeFramePage = ({
     const { finalSizesList, leftColumnCollapsed, rightColumnCollapsed } = useMemo(() => {
         const uniqueSizes = [];
         const sizeSeen = new Set();
-        const baseSizes = isProdigiFrame
-            ? prodigiSizes
-            : FRAME_SIZES.filter((size) => !(activeImageWidth > 0 && activeImageHeight > 0)
-                || doesSizeMeetMinDpi(size, { w: activeImageWidth, h: activeImageHeight }, minimumNativeFloorDpiForFrame(selectedFrame)));
+        const baseSizes = prodigiSizes;
         const sortedSizes = [...baseSizes].sort((a, b) => {
             const aMax = Math.max(a.width, a.height), aMin = Math.min(a.width, a.height);
             const bMax = Math.max(b.width, b.height), bMin = Math.min(b.width, b.height);
@@ -2084,31 +2055,11 @@ const CustomizeFramePage = ({
             }
         }
 
-        // Sizes with an extreme, mismatched aspect ratio (17x60cm, 10x60cm, and
-        // similar panoramic/banner shapes) are niche next to standard photo/
-        // print/A-series ratios — there's a clean gap in the catalog between
-        // ~1.54:1 (standard) and 2:1 (niche), so 1.8 sits safely in between
-        // regardless of float precision. Dropped from the picker entirely
-        // (collapsed and expanded) rather than just demoted — anyone who
-        // actually wants one of these shapes can dial it in via Custom Size.
-        const NICHE_ASPECT_RATIO = 1.8;
-        const isNicheAspect = (size) => (Math.max(size.width, size.height) / Math.min(size.width, size.height)) > NICHE_ASPECT_RATIO;
-        const normalSizes = isProdigiFrame ? uniqueSizes : uniqueSizes.filter(s => !isNicheAspect(s));
+        const finalSizesList = uniqueSizes;
 
-        const finalSizesList = normalSizes;
-
-        // Collapsed view is curated, not a slice of the full catalog: left column
-        // is the most popular small-to-medium sizes, right column the most
-        // popular large-to-very-large sizes, each ascending top to bottom. IDs
-        // are looked up against normalSizes so the remaining category filter
-        // (portrait-or-square posters) still applies — a popular ID that isn't
-        // available under the current filter is just skipped rather than
-        // leaving a gap.
-        const popularSmallIds = ['5x7', '8x10', 'a4', '11x14', '12x12', 'a3'];
-        const popularLargeIds = ['16x20', 'a2', '18x24', '20x30', '24x36', '100x100cm'];
-        const findPopular = (ids) => ids.map(id => normalSizes.find(s => s.id === id)).filter(Boolean);
-        const leftColumnCollapsed = isProdigiFrame ? normalSizes.slice(0, 6) : findPopular(popularSmallIds);
-        const rightColumnCollapsed = isProdigiFrame ? normalSizes.slice(6, 12) : findPopular(popularLargeIds);
+        // Collapsed view shows up to 12 popular sizes in a 2-column layout
+        const leftColumnCollapsed = finalSizesList.slice(0, 6);
+        const rightColumnCollapsed = finalSizesList.slice(6, 12);
 
         // Always keep the size options collapsed unless the user expands the list.
         // When artwork (from public domain art, uploads, or presets) has a size
@@ -2118,7 +2069,7 @@ const CustomizeFramePage = ({
                 || rightColumnCollapsed.some(s => isSameSize(s, selectedSize));
 
             if (!isInCollapsed) {
-                const activeSize = normalSizes.find(s => isSameSize(s, selectedSize)) || selectedSize;
+                const activeSize = finalSizesList.find(s => isSameSize(s, selectedSize)) || selectedSize;
                 if (rightColumnCollapsed.length > 0) {
                     rightColumnCollapsed[rightColumnCollapsed.length - 1] = activeSize;
                 } else if (leftColumnCollapsed.length > 0) {
@@ -2130,25 +2081,12 @@ const CustomizeFramePage = ({
         }
 
         return { finalSizesList, leftColumnCollapsed, rightColumnCollapsed };
-    }, [isAlbumPoster, isMoviePoster, isMoviePosterPrint, isProdigiFrame, prodigiSizes, selectedSize, activeImageWidth, activeImageHeight, selectedFrame]);
+    }, [isAlbumPoster, isMoviePoster, isMoviePosterPrint, prodigiSizes, selectedSize]);
 
     const isImageBelowMinDpi = Boolean(activeImagePixelSize && finalSizesList.length === 0);
     const productionAssetUrl = productionImage || uploadedImage;
     const hasSecureProductionAsset = /^https:\/\//i.test(String(productionAssetUrl || ''));
     const isPrintQualityPending = Boolean(hasImage && isProdigiFrame && (!activeImagePixelSize || !hasSecureProductionAsset));
-
-    // Keep non-Prodigi selections within the active paper/canvas quality floor.
-    useEffect(() => {
-        const pixelSize = activeImageWidth > 0 && activeImageHeight > 0
-            ? { w: activeImageWidth, h: activeImageHeight }
-            : null;
-        if (isProdigiFrame || !pixelSize || !selectedSize) return;
-        if (doesSizeMeetMinDpi(selectedSize, pixelSize, minimumNativeFloorDpiForFrame(selectedFrame))) return;
-        if (finalSizesList.length > 0) {
-            const nearest = nearestProdigiSize(finalSizesList, selectedSize) || finalSizesList[finalSizesList.length - 1];
-            if (nearest) setSelectedSize(nearest);
-        }
-    }, [isProdigiFrame, activeImageWidth, activeImageHeight, selectedSize, finalSizesList, minimumPrintDpi, setSelectedSize]);
 
     const completeCheckoutAction = async (action) => {
         if (isImageBelowMinDpi) {
@@ -2221,22 +2159,10 @@ const CustomizeFramePage = ({
         }
     };
 
-    // A created custom size stays visible as the LAST option — same spot as
-    // the "Custom Size" trigger button itself — even after the user selects
-    // a different size, so it isn't lost the moment it's no longer active.
-    // (It's tracked in its own customSizeEntry state rather than derived from
-    // selectedSize for exactly this reason.) Skipped if it happens to
-    // duplicate a catalog size already in the list, or if it fails the 150 DPI
-    // print floor for the current image.
-    const showCustomEntry = !isProdigiFrame
-        && customSizeEntry
-        && (!activeImagePixelSize || doesSizeMeetMinDpi(customSizeEntry, activeImagePixelSize, minimumPrintDpi))
-        && !finalSizesList.some(s => s.width === customSizeEntry.width && s.height === customSizeEntry.height);
-
     // Total catalog sizes actually visible in the collapsed view, used to
     // decide whether "+ more sizes" should appear at all and what count to
     // show on it.
-    const collapsedShownCount = leftColumnCollapsed.length + rightColumnCollapsed.length + (showCustomEntry ? 1 : 0);
+    const collapsedShownCount = leftColumnCollapsed.length + rightColumnCollapsed.length;
 
     const formatProdigiDimension = (size) => {
         const source = unit === 'cm' ? size.prodigiSizeCm : size.prodigiSizeInches;
@@ -2261,69 +2187,8 @@ const CustomizeFramePage = ({
             }`}
         >
             {size.prodigiSizeCm ? formatProdigiDimension(size) : formatDimensions(size.label, unit, orientation)}
-            {/* A user-typed size gets a small superscript "+" after the unit —
-                subtle enough not to look like a badge, but enough to mark it
-                as "the one you made" alongside the catalog sizes. */}
-            {size.id?.startsWith('custom-') && <sup className="ml-0.5">+</sup>}
         </button>
     );
-
-    // Builds a size entry from the user's own width/height (in whatever unit
-    // the page is currently displaying) via the same parseCustomSize helper
-    // Inspiration selections use for arbitrary catalogue dimensions — reusing
-    // it keeps custom sizes priced and portrait/landscape-tagged consistently
-    // with everything else. orientation must be set explicitly alongside
-    // selectedSize (they're independent state — see wInch/hInch above), or
-    // the frame renders with the previous selection's orientation.
-    const applyCustomSize = () => {
-        const w = parseFloat(customWidthInput);
-        const h = parseFloat(customHeightInput);
-        if (!w || !h || w <= 0 || h <= 0) {
-            setCustomSizeError('Enter a width and height.');
-            return;
-        }
-        const wCm = unit === 'cm' ? w : w * 2.54;
-        const hCm = unit === 'cm' ? h : h * 2.54;
-        const MAX_CM = 180;
-        if (wCm > MAX_CM || hCm > MAX_CM) {
-            setCustomSizeError(unit === 'cm' ? 'Max custom size is 180 x 180 cm.' : 'Max custom size is 70.9 x 70.9 in.');
-            return;
-        }
-        // Smallest allowed matches the smallest catalog size (5x7in / 13x18cm),
-        // in either orientation — so 13x18 and 18x13 both pass, but nothing
-        // smaller on either side does.
-        const MIN_SHORT_CM = 13, MIN_LONG_CM = 18;
-        const shortSide = Math.min(wCm, hCm);
-        const longSide = Math.max(wCm, hCm);
-        if (shortSide < MIN_SHORT_CM || longSide < MIN_LONG_CM) {
-            setCustomSizeError(unit === 'cm' ? 'Smallest custom size is 13 x 18 cm.' : 'Smallest custom size is 5 x 7 in.');
-            return;
-        }
-        const customSize = parseCustomSize(`${wCm} x ${hCm} cm`);
-        if (!customSize) {
-            setCustomSizeError('Could not create that size.');
-            return;
-        }
-        if (activeImagePixelSize && !doesSizeMeetMinDpi(customSize, activeImagePixelSize, minimumPrintDpi)) {
-            const maxShortIn = (Math.min(activeImagePixelSize.w, activeImagePixelSize.h) / minimumPrintDpi).toFixed(1);
-            const maxLongIn = (Math.max(activeImagePixelSize.w, activeImagePixelSize.h) / minimumPrintDpi).toFixed(1);
-            const maxShortCm = Math.floor(Number(maxShortIn) * 2.54);
-            const maxLongCm = Math.floor(Number(maxLongIn) * 2.54);
-            setCustomSizeError(
-                unit === 'cm'
-                    ? `Image resolution supports up to ${maxShortCm} × ${maxLongCm} cm at ${minimumPrintDpi} DPI.`
-                    : `Image resolution supports up to ${maxShortIn} × ${maxLongIn} in at ${minimumPrintDpi} DPI.`
-            );
-            return;
-        }
-        setSelectedSize(customSize);
-        setCustomSizeEntry(customSize);
-        setOrientation(customSize.orientation);
-        setCustomSizeError('');
-        setShowCustomSizeForm(false);
-        setCustomWidthInput('');
-        setCustomHeightInput('');
-    };
 
     // Expanding/collapsing the sizes list drastically changes the Dimensions
     // section's height — collapsing in particular can shrink the page enough
@@ -4065,27 +3930,7 @@ const CustomizeFramePage = ({
                                     </button>
                                 </div>
                             </span>
-                            {!isProdigiFrame && (
-                                <button
-                                    type="button"
-                                    onClick={() => setIsSizeGuideOpen(v => !v)}
-                                    className="normal-case tracking-normal font-semibold text-[11px] text-[#c9a84c] hover:text-[#b3924a] underline transition-colors"
-                                >
-                                    Size guide
-                                </button>
-                            )}
                         </h2>
-                        {!isProdigiFrame && isSizeGuideOpen && (
-                            <SizeGuidePanel
-                                currentSize={selectedSize}
-                                orientation={orientation}
-                                imageNaturalSize={activeImagePixelSize}
-                                minimumDpi={minimumPrintDpi}
-                                onSelect={(entry) => { setSelectedSize(entry); }}
-                                unit={unit}
-                                onClose={() => setIsSizeGuideOpen(false)}
-                            />
-                        )}
                         <div className="grid grid-cols-2 gap-2">
                             {isImageBelowMinDpi ? (
                                 <div className="col-span-2 rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs leading-5 text-rose-900" role="alert">
@@ -4098,96 +3943,15 @@ const CustomizeFramePage = ({
                             ) : null}
                             {(!showAllSizes && finalSizesList.length > 6) ? (
                                 <>
-                                    {/* Collapsed: curated, column-major — left
-                                        is the most popular small-to-medium
-                                        sizes, right the most popular large-
-                                        to-very-large sizes, each independently
-                                        ascending top to bottom. The custom
-                                        entry is an additional button tacked
-                                        onto the right column, not a
-                                        replacement for any of its 6 sizes —
-                                        but the "+ Custom Size" trigger itself
-                                        always lives at the bottom of the
-                                        left column. */}
                                     <div className="flex flex-col gap-2">
                                         {leftColumnCollapsed.map(renderSizeButton)}
-                                        {!isProdigiFrame && !isImageBelowMinDpi && !showCustomSizeForm && (
-                                            <button
-                                                onClick={() => { setShowCustomSizeForm(true); setCustomSizeError(''); }}
-                                                className="py-2 px-3 rounded-xl border border-stone-200 hover:border-stone-400 text-stone-700 text-xs font-semibold transition-all text-center"
-                                            >
-                                                + Custom Size
-                                            </button>
-                                        )}
                                     </div>
                                     <div className="flex flex-col gap-2">
                                         {rightColumnCollapsed.map(renderSizeButton)}
-                                        {showCustomEntry && !rightColumnCollapsed.some(s => isSameSize(s, customSizeEntry)) && renderSizeButton(customSizeEntry)}
                                     </div>
                                 </>
                             ) : (
-                                <>
-                                    {/* Expanded: back to plain ascending order
-                                        across the whole grid (its natural
-                                        row-major fill), ignoring the
-                                        collapsed view's popular-size column
-                                        split entirely. */}
-                                    {finalSizesList.map(renderSizeButton)}
-                                    {showCustomEntry && renderSizeButton(customSizeEntry)}
-                                    {!isProdigiFrame && !isImageBelowMinDpi && !showCustomSizeForm && (
-                                        <button
-                                            onClick={() => { setShowCustomSizeForm(true); setCustomSizeError(''); }}
-                                            className="py-2 px-3 rounded-xl border border-stone-200 hover:border-stone-400 text-stone-700 text-xs font-semibold transition-all text-center"
-                                        >
-                                            + Custom Size
-                                        </button>
-                                    )}
-                                </>
-                            )}
-
-                            {!isProdigiFrame && showCustomSizeForm && (
-                                <div className="col-span-2 p-3 rounded-xl border border-stone-300 bg-stone-50 space-y-2">
-                                    <div className="flex items-center gap-2">
-                                        <input
-                                            type="number"
-                                            inputMode="decimal"
-                                            min="0"
-                                            placeholder={`Width (${unit})`}
-                                            value={customWidthInput}
-                                            onChange={e => setCustomWidthInput(e.target.value)}
-                                            onKeyDown={e => { if (e.key === 'Enter') applyCustomSize(); }}
-                                            className="w-full py-2 px-3 rounded-lg border border-stone-300 text-xs focus:outline-none focus:border-stone-900"
-                                        />
-                                        <span className="text-stone-400 text-xs shrink-0">×</span>
-                                        <input
-                                            type="number"
-                                            inputMode="decimal"
-                                            min="0"
-                                            placeholder={`Height (${unit})`}
-                                            value={customHeightInput}
-                                            onChange={e => setCustomHeightInput(e.target.value)}
-                                            onKeyDown={e => { if (e.key === 'Enter') applyCustomSize(); }}
-                                            className="w-full py-2 px-3 rounded-lg border border-stone-300 text-xs focus:outline-none focus:border-stone-900"
-                                        />
-                                    </div>
-                                    {customSizeError && (
-                                        <p className="text-[11px] text-red-600">{customSizeError}</p>
-                                    )}
-                                    <div className="flex items-center gap-2">
-                                        <button
-                                            onClick={applyCustomSize}
-                                            className="flex-1 py-2 rounded-lg bg-stone-900 text-white text-xs font-bold hover:bg-stone-800 transition-colors"
-                                        >
-                                            Apply
-                                        </button>
-                                        <button
-                                            onClick={() => { setShowCustomSizeForm(false); setCustomSizeError(''); }}
-                                            className="flex-1 py-2 rounded-lg border border-stone-300 text-stone-500 text-xs font-bold hover:bg-stone-100 transition-colors"
-                                        >
-                                            Cancel
-                                        </button>
-                                    </div>
-                                </div>
+                                finalSizesList.map(renderSizeButton)
                             )}
 
                             {!showAllSizes && finalSizesList.length > 6 && finalSizesList.length > collapsedShownCount && (
