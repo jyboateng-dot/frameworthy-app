@@ -3934,7 +3934,7 @@ const CustomizeFramePage = ({
                 {/* Premium Tint Overlay: Keeps the sidebar 90% white, letting 10% of the wall color bleed through */}
                 <div className="absolute inset-0 bg-white/90" />
                 
-                <div className={`flex-1 p-5 space-y-6 custom-scrollbar relative z-10 ${isSideBySide ? 'overflow-y-auto pb-12' : 'pb-[calc(6rem+env(safe-area-inset-bottom,0px))] sm:pb-[calc(7rem+env(safe-area-inset-bottom,0px))]'}`}>
+                <div className={`flex-1 p-5 space-y-6 custom-scrollbar relative z-10 ${isSideBySide ? 'overflow-y-auto pb-4' : 'pb-3 sm:pb-4'}`}>
                     
                     {/* Header */}
                     <div>
@@ -4426,14 +4426,14 @@ const CustomizeFramePage = ({
                 </div>
 
                 {/* Sticky Checkout Footer */}
-                <div className={`bottom-0 z-20 backdrop-blur-md border-t border-stone-200 shadow-[0_-10px_40px_rgba(0,0,0,0.03)] ${isSideBySide ? 'relative bg-white/85 py-1.5 px-3' : 'sticky bg-white/95 pt-2 pb-[calc(0.4rem+env(safe-area-inset-bottom,0px))] px-3.5 sm:px-4'}`}>
+                <div className={`bottom-0 z-20 backdrop-blur-md border-t border-stone-200 ${isSideBySide ? 'relative bg-white/85 py-1.5 px-3 shadow-[0_-10px_40px_rgba(0,0,0,0.03)]' : 'sticky rounded-t-[22px] bg-white/95 px-4 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom,0px))] shadow-[0_-14px_36px_rgba(28,25,23,0.10)]'}`}>
                     {fitError && (
                         <div className="w-full text-[11px] font-medium text-rose-700 bg-rose-50 border border-rose-200 rounded-lg px-2.5 py-1.5 mb-2 text-center">
                             {fitError}
                         </div>
                     )}
-                    <div className={`flex ${isSideBySide ? 'flex-col gap-0 items-start' : 'items-center justify-between gap-3'}`}>
-                        <div className="flex flex-col">
+                    <div className="flex items-center gap-3">
+                        <div className={`${isSideBySide ? 'min-w-[78px]' : 'min-w-[86px]'} shrink-0`}>
                             {isImageBelowMinDpi ? (
                                 <span className="max-w-56 text-[10px] leading-4 text-rose-800">Image resolution is below {minimumPrintDpi} DPI minimum.</span>
                             ) : isPrintQualityPending ? (
@@ -4441,9 +4441,12 @@ const CustomizeFramePage = ({
                             ) : selectedFrame?.prodigiProduct && !hasOrderableProdigiProduct ? (
                                 <span className="max-w-56 text-[10px] leading-4 text-amber-800">Preview ready · this finish is not currently available to order.</span>
                             ) : selectedFrame?.prodigiProduct && (prodigiSelection?.quoteItemsGbp || prodigiSelection?.quoteTotalGbp) ? (
-                                <div className="flex flex-col items-start leading-none">
-                                    <Price amount={prodigiSelection.quoteItemsGbp || prodigiSelection.quoteTotalGbp} currency="GBP" className="text-base sm:text-lg font-bold text-stone-900 tracking-tight leading-none" />
-                                    <span className="mt-0.5 text-[9px] leading-none text-stone-400">Excl. delivery &amp; tax</span>
+                                <div className="flex w-full flex-col items-start leading-none">
+                                    <div className="flex flex-col items-start">
+                                        <span className="mb-1 text-[9px] font-bold uppercase tracking-[0.14em] text-stone-400">Item price</span>
+                                        <Price amount={prodigiSelection.quoteItemsGbp || prodigiSelection.quoteTotalGbp} currency="GBP" className={`${isSideBySide ? 'text-lg' : 'text-xl'} font-bold text-stone-900 tracking-tight leading-none`} />
+                                    </div>
+                                    <span className={`${isSideBySide ? 'mt-0.5 text-[9px] leading-none' : 'mt-1 text-[10px] leading-none'} text-stone-400`}>Excl. delivery &amp; tax</span>
                                 </div>
                             ) : selectedFrame?.prodigiProduct ? (
                                 <div className="flex flex-col items-start leading-none">
@@ -4466,11 +4469,11 @@ const CustomizeFramePage = ({
                                 </span>
                             )}
                         </div>
-                        <div className={`flex ${isSideBySide ? 'w-full mt-1 gap-1.5' : 'w-auto gap-1.5 sm:gap-2 max-w-[260px] sm:max-w-[280px] shrink-0'}`}>
+                        <div className={`grid min-w-0 flex-1 grid-cols-2 ${isSideBySide ? 'gap-1.5' : 'gap-2'}`}>
                             <button
                                 onClick={() => completeCheckoutAction('cart')}
                                 disabled={!hasImage || isImageBelowMinDpi || isPrintQualityPending || isCloudUploadPending || loadingAction !== null || Boolean(selectedFrame?.prodigiProduct && !prodigiSelection?.quoteTotalGbp)}
-                                className={`flex-1 bg-white border rounded-full text-[10px] font-bold uppercase tracking-widest transition-colors flex items-center justify-center gap-1.5 shadow-sm ${isSideBySide ? 'py-1.5' : 'py-2 px-3 h-8 sm:h-9'} ${!hasImage || isImageBelowMinDpi || isPrintQualityPending || isCloudUploadPending || loadingAction !== null || (selectedFrame?.prodigiProduct && !prodigiSelection?.quoteTotalGbp) ? 'opacity-50 cursor-not-allowed border-stone-200 text-stone-400 bg-stone-50' : 'text-stone-900 border-stone-200 hover:bg-stone-50'}`}
+                                className={`flex-1 bg-white border rounded-full text-[10px] font-bold uppercase tracking-[0.06em] transition-colors flex items-center justify-center gap-1 shadow-sm whitespace-nowrap ${isSideBySide ? 'h-10 px-1.5' : 'h-11 px-2'} ${!hasImage || isImageBelowMinDpi || isPrintQualityPending || isCloudUploadPending || loadingAction !== null || (selectedFrame?.prodigiProduct && !prodigiSelection?.quoteTotalGbp) ? 'opacity-50 cursor-not-allowed border-stone-200 text-stone-400 bg-stone-50' : 'text-stone-900 border-stone-300 hover:bg-stone-50'}`}
                             >
                                 {(loadingAction === 'cart' || (isCloudUploadPending && !loadingAction)) && <Loader size={12} className="animate-spin" />}
                                 {loadingAction === 'cart' ? 'Adding…' : isCloudUploadPending ? 'Uploading…' : (wasAddedToCart ? 'Added' : 'Add to Cart')}
@@ -4488,7 +4491,7 @@ const CustomizeFramePage = ({
                                     completeCheckoutAction('pay');
                                 }}
                                 disabled={!hasImage || isImageBelowMinDpi || isPrintQualityPending || isCloudUploadPending || loadingAction !== null || Boolean(selectedFrame?.prodigiProduct && !prodigiSelection?.quoteTotalGbp)}
-                                className={`flex-1 border rounded-full text-[10px] font-bold uppercase tracking-widest transition-colors flex items-center justify-center gap-1.5 shadow-sm ${isSideBySide ? 'py-1.5' : 'py-2 px-3 h-8 sm:h-9'} ${!hasImage || isImageBelowMinDpi || isPrintQualityPending || isCloudUploadPending || loadingAction !== null || (selectedFrame?.prodigiProduct && !prodigiSelection?.quoteTotalGbp) ? 'opacity-50 cursor-not-allowed border-stone-200 text-stone-400 bg-stone-50' : 'bg-[#c9a84c] border-[#c9a84c] text-[#0a0a0a] hover:bg-[#d4b55c]'}`}
+                                className={`flex-1 border rounded-full text-[10px] font-bold uppercase tracking-[0.06em] transition-colors flex items-center justify-center gap-1 shadow-sm whitespace-nowrap ${isSideBySide ? 'h-10 px-1.5' : 'h-11 px-2'} ${!hasImage || isImageBelowMinDpi || isPrintQualityPending || isCloudUploadPending || loadingAction !== null || (selectedFrame?.prodigiProduct && !prodigiSelection?.quoteTotalGbp) ? 'opacity-50 cursor-not-allowed border-stone-200 text-stone-400 bg-stone-50' : 'bg-[#c9a84c] border-[#c9a84c] text-[#0a0a0a] hover:bg-[#d4b55c]'}`}
                             >
                                 {loadingAction === 'pay' && <Loader size={12} className="animate-spin" />}
                                 {loadingAction === 'pay' ? 'Preparing…' : isCloudUploadPending ? 'Uploading…' : 'Pay Now'}

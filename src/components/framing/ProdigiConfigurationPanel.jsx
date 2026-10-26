@@ -340,19 +340,10 @@ export default function ProdigiConfigurationPanel({
             </section>
 
             {product ? (
-                <section className="border-t border-stone-200 pt-4">
+                <>
                     {isQuoting && <p className="text-center text-[10px] font-semibold text-stone-500" aria-live="polite">Updating price…</p>}
-                    {(selection?.quoteItemsGbp || selection?.quoteTotalGbp) && (
-                        <div className="mt-3 flex items-center justify-between rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs text-emerald-900" aria-live="polite">
-                            <div className="flex flex-col">
-                                <span className="flex items-center gap-1.5 font-semibold"><Check size={13} /> Item price</span>
-                                <span className="text-[10px] text-emerald-700">Delivery & tax calculated at checkout</span>
-                            </div>
-                            <span className="font-bold text-sm">£{Number(selection.quoteItemsGbp || selection.quoteTotalGbp).toFixed(2)}</span>
-                        </div>
-                    )}
-                    {quoteError && <p role="alert" className="mt-3 rounded-xl bg-amber-100 p-3 text-xs leading-5 text-amber-950">{quoteError}</p>}
-                </section>
+                    {quoteError && <p role="alert" className="rounded-xl bg-amber-100 p-3 text-xs leading-5 text-amber-950">{quoteError}</p>}
+                </>
             ) : (
                 <p role="alert" className="mt-3 rounded-xl bg-amber-100 p-3 text-xs text-amber-950">This option combination is not supplied in the selected size.</p>
             )}
