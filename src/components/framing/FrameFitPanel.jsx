@@ -2,49 +2,51 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Focus, RotateCcw, X, Check, ZoomIn } from 'lucide-react';
 import { FRAME_SIZES, formatDimensions } from '../../data/constants';
-
-export const HorizontalMoveIcon = ({ size = 14, className = "text-stone-500" }) => (
-    <svg
-        width={size}
-        height={size}
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2.25"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        className={className}
-        aria-hidden="true"
-    >
-        <line x1="2" y1="12" x2="22" y2="12" />
-        <polyline points="9 5 2 12 9 19" />
-        <polyline points="15 5 22 12 15 19" />
-    </svg>
-);
-
-export const VerticalMoveIcon = ({ size = 14, className = "text-stone-500" }) => (
-    <svg
-        width={size}
-        height={size}
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2.25"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        className={className}
-        aria-hidden="true"
-    >
-        <line x1="12" y1="2" x2="12" y2="22" />
-        <polyline points="5 9 12 2 19 9" />
-        <polyline points="5 15 12 22 19 15" />
-    </svg>
-);
 import { DEFAULT_POSITION, frameGeometry, imageCrop, cropStyle, maxZoomForMinDpi, isDefaultFitPosition } from '../../utils/frameFit';
 import { getFrameRail, getRailTextureStyle, getRailShading } from '../../utils/frameRail';
 import { getFrameInnerShadow, getFrameWallShadow } from '../../utils/frameDepthPresentation';
 import { bestFitOptions } from '../../utils/bestFitOptions';
 import Price from '../common/Price';
+
+export const HorizontalMoveIcon = ({ size = 15, className = "text-stone-500" }) => (
+    <svg
+        width={size}
+        height={size}
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2.25"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className={className}
+        aria-hidden="true"
+    >
+        {/* Horizontal bidirectional shaft with deep arrowheads on right and left */}
+        <line x1="2" y1="12" x2="22" y2="12" />
+        <polyline points="9 5.5 2 12 9 18.5" />
+        <polyline points="15 5.5 22 12 15 18.5" />
+    </svg>
+);
+
+export const VerticalMoveIcon = ({ size = 15, className = "text-stone-500" }) => (
+    <svg
+        width={size}
+        height={size}
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2.25"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className={className}
+        aria-hidden="true"
+    >
+        {/* Vertical bidirectional shaft with deep arrowheads on north and south */}
+        <line x1="12" y1="2" x2="12" y2="22" />
+        <polyline points="5.5 9 12 2 18.5 9" />
+        <polyline points="5.5 15 12 22 18.5 15" />
+    </svg>
+);
 
 const FRAME_SIDE_STYLES = {
     top: geometry => ({ top: 0, left: 0, right: 0, height: `${geometry.rail / geometry.outerHeight * 100}%`,
@@ -274,7 +276,7 @@ export default function FrameFitPanel({ image, natural, size, orientation, mat, 
             <div className="space-y-1.5">
                 <div className="flex items-center justify-between text-xs">
                     <span className="font-semibold text-stone-800 flex items-center gap-1.5">
-                        <HorizontalMoveIcon size={14} className="text-stone-500" />
+                        <HorizontalMoveIcon size={15} className="text-stone-500" />
                         Horizontal
                     </span>
                     <span className="text-[11px] font-medium text-stone-700 tabular-nums bg-white px-2 py-0.5 rounded shadow-xs border border-stone-200">
@@ -312,7 +314,7 @@ export default function FrameFitPanel({ image, natural, size, orientation, mat, 
             <div className="space-y-1.5">
                 <div className="flex items-center justify-between text-xs">
                     <span className="font-semibold text-stone-800 flex items-center gap-1.5">
-                        <VerticalMoveIcon size={14} className="text-stone-500" />
+                        <VerticalMoveIcon size={15} className="text-stone-500" />
                         Vertical
                     </span>
                     <span className="text-[11px] font-medium text-stone-700 tabular-nums bg-white px-2 py-0.5 rounded shadow-xs border border-stone-200">

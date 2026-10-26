@@ -53,7 +53,7 @@ import { renderMoviePoster } from '../../utils/moviePoster';
 import { useAuth } from '../../context/AuthContext';
 import AuthModal from '../../components/AuthModal';
 import Price from '../../components/common/Price';
-import FrameFitPanel, { HorizontalMoveIcon, VerticalMoveIcon } from '../../components/framing/FrameFitPanel';
+import FrameFitPanel from '../../components/framing/FrameFitPanel';
 import ProdigiConfigurationPanel from '../../components/framing/ProdigiConfigurationPanel';
 import { DEFAULT_POSITION, frameGeometry, imageCrop, cropStyle, isDefaultFitPosition } from '../../utils/frameFit';
 import { prepareFrameOutput } from '../../services/frameFitOutput';
@@ -3885,16 +3885,14 @@ const CustomizeFramePage = ({
                         <div className="flex bg-stone-100 p-1 rounded-xl">
                             <button
                                 onClick={() => setOrientation('portrait')}
-                                className={`flex-1 py-1.5 text-xs font-semibold rounded-lg transition-all flex items-center justify-center gap-1.5 ${orientation === 'portrait' ? 'bg-white shadow-sm text-stone-900 font-bold' : 'text-stone-500 hover:text-stone-700'}`}
+                                className={`flex-1 py-1.5 text-xs font-semibold rounded-lg transition-all ${orientation === 'portrait' ? 'bg-white shadow-sm text-stone-900 font-bold' : 'text-stone-500 hover:text-stone-700'}`}
                             >
-                                <VerticalMoveIcon size={13} className={orientation === 'portrait' ? 'text-stone-900' : 'text-stone-400'} />
                                 Portrait
                             </button>
                             <button
                                 onClick={() => setOrientation('landscape')}
-                                className={`flex-1 py-1.5 text-xs font-semibold rounded-lg transition-all flex items-center justify-center gap-1.5 ${orientation === 'landscape' ? 'bg-white shadow-sm text-stone-900 font-bold' : 'text-stone-500 hover:text-stone-700'}`}
+                                className={`flex-1 py-1.5 text-xs font-semibold rounded-lg transition-all ${orientation === 'landscape' ? 'bg-white shadow-sm text-stone-900 font-bold' : 'text-stone-500 hover:text-stone-700'}`}
                             >
-                                <HorizontalMoveIcon size={13} className={orientation === 'landscape' ? 'text-stone-900' : 'text-stone-400'} />
                                 Landscape
                             </button>
                         </div>
