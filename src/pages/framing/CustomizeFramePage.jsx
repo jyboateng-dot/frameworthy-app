@@ -2945,15 +2945,9 @@ const CustomizeFramePage = ({
                             
                             const renderedFrameWidthPx = Math.max(1, (frameWidthPct / 100) * zoneSize.width);
                             const renderedFrameHeightPx = Math.max(1, renderedFrameWidthPx * (outerFrameHeightCm / outerFrameWidthCm));
-                            // Reference-view calibration: catalogue inches are
-                            // relative style data, not literal screen pixels. The
-                            // smallest catalogue format (13 × 18 cm / 5 × 7 in)
-                            // is the visual baseline. Larger pieces get gentle
-                            // square-root compensation: their rails gain presence
-                            // without becoming fully proportional or overpowering
-                            // the artwork. The rails are percentage based below, so
-                            // hover, double-tap zoom and fullscreen still enlarge
-                            // the rail by the exact same factor as the frame.
+                            // Start from the physical face width at the scene scale.
+                            // Close-Up applies a bounded screen-size adjustment below
+                            // because different physical sizes are fitted into one pane.
                             let projectedRailPx = railWidthCm * pixelsPerCm;
                             let mouldingPctW = (projectedRailPx / renderedFrameWidthPx) * 100;
                             let mouldingPctH = (projectedRailPx / renderedFrameHeightPx) * 100;
@@ -3278,8 +3272,18 @@ const CustomizeFramePage = ({
                                 mouldingPctH = railWidthIn / fitGeometry.outerHeight * 100;
                             }
                             if (selectedFrame?.prodigiProduct) {
-                                mouldingPctW = railWidthIn / (outerFrameWidthCm / 2.54) * 100;
-                                mouldingPctH = railWidthIn / (outerFrameHeightCm / 2.54) * 100;
+                                const displayedWidthPx = (adjustedDisplayedFrameWidthPct / 100) * zoneSize.width;
+                                const displayedHeightPx = displayedWidthPx * (outerFrameHeightCm / outerFrameWidthCm);
+                                const physicalRailPx = displayedWidthPx * railWidthCm / outerFrameWidthCm;
+                                // Close-Up fits many physical sizes into the same viewport. Keep
+                                // each family's face recognisable there; room scenes retain their
+                                // true wall-relative scale, and 3D/AR geometry is unchanged.
+                                const previewRailPx = isSharedPreviewView && railWidthCm > 0
+                                    ? Math.min(railWidthCm * 10, Math.max(railWidthCm * 6, physicalRailPx))
+                                    : physicalRailPx;
+                                const safeRailPx = Math.min(previewRailPx, Math.min(displayedWidthPx, displayedHeightPx) * 0.18);
+                                mouldingPctW = safeRailPx / displayedWidthPx * 100;
+                                mouldingPctH = safeRailPx / displayedHeightPx * 100;
                             }
                             // Mat insets are derived from the true physical mat-to-frame ratio,
                             // ensuring exact physical scale alignment across Plain View (Close-Up),
@@ -3409,7 +3413,7 @@ const CustomizeFramePage = ({
                             // changes the preview crop; the uploaded source is untouched.
                             // Keep measurement guides in one predictable place across
                             // Close-Up and room scenes: width below, height on the right.
-                            const dimHorizontalClass = isHovered || isZoomedByDefault ? 'top-full mt-3' : 'top-full mt-1.5';
+                            const dimHorizontalClass = isHovered || isZoomedByDefault ? 'top-full mt-6' : 'top-full mt-4';
                             const dimVerticalClass = isHovered || isZoomedByDefault ? '-right-6' : '-right-4';
                             const dimFontSizePx = isHovered || isZoomedByDefault ? 14 : Math.max(8, Math.min(10, baseFrameWidthPx / 12));
 
@@ -3525,9 +3529,10 @@ const CustomizeFramePage = ({
                                         the Dimensions panel toggle controls all views. */}
                                     {showDimensions && (
                                         <>
-                                            <div style={{ fontSize: `${dimFontSizePx}px` }} className={`absolute ${dimHorizontalClass} left-0 w-full flex items-center justify-center ${wallInkClass} font-mono border-t ${wallInkBorderClass} pt-1 ${wallInkBlend} opacity-80 transition-all ${ZOOM_MOTION} whitespace-nowrap overflow-visible pointer-events-none`}>
-                                                <div className={`absolute left-0 -top-1 sm:-top-1.5 h-2 sm:h-2.5 w-px ${wallInkBgClass}`} />
-                                                <div className={`absolute right-0 -top-1 sm:-top-1.5 h-2 sm:h-2.5 w-px ${wallInkBgClass}`} />
+                                            <div style={{ fontSize: `${dimFontSizePx}px` }} className={`absolute ${dimHorizontalClass} left-0 w-full flex items-center justify-center ${wallInkClass} font-mono border-t ${wallInkBorderClass} ${wallInkBlend} opacity-80 transition-all ${ZOOM_MOTION} whitespace-nowrap overflow-visible pointer-events-none`}>
+                                                <div className={`absolute left-0 -top-1.5 sm:-top-2 h-1.5 sm:h-2 w-px ${wallInkBgClass}`} />
+                                                <div className={`absolute right-0 -top-1.5 sm:-top-2 h-1.5 sm:h-2 w-px ${wallInkBgClass}`} />
+                                                <span className="absolute bottom-1">
                                                 {(() => {
                                                     if (unit === 'in') {
                                                         const inVals = selectedSize?.prodigiSizeInches?.match(/\d+(?:\.\d+)?/g)?.map(v => Math.round(parseFloat(v)));
@@ -3544,6 +3549,7 @@ const CustomizeFramePage = ({
                                                     }
                                                     return `${Math.round(innerWidthCm || 0)} cm`;
                                                 })()}
+                                                </span>
                                             </div>
                                             <div style={{ fontSize: `${dimFontSizePx}px` }} className={`absolute ${dimVerticalClass} top-0 h-full flex flex-col items-center justify-center ${wallInkClass} font-mono border-r ${wallInkBorderClass} pr-1 ${wallInkBlend} opacity-80 transition-all ${ZOOM_MOTION} whitespace-nowrap overflow-visible pointer-events-none`}>
                                                 <div className={`absolute right-0 top-0 w-1.5 sm:w-2 h-px ${wallInkBgClass}`} />
