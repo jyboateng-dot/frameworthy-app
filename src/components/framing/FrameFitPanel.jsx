@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { Focus, RotateCcw, X, Check, ZoomIn } from 'lucide-react';
+import { Focus, RotateCcw, X, Check, ZoomIn, MoveHorizontal, MoveVertical } from 'lucide-react';
 import { FRAME_SIZES, formatDimensions } from '../../data/constants';
 import { DEFAULT_POSITION, frameGeometry, imageCrop, cropStyle, maxZoomForMinDpi, isDefaultFitPosition } from '../../utils/frameFit';
 import { getFrameRail, getRailTextureStyle, getRailShading } from '../../utils/frameRail';
@@ -9,53 +9,11 @@ import { bestFitOptions } from '../../utils/bestFitOptions';
 import Price from '../common/Price';
 
 export const HorizontalMoveIcon = ({ size = 14, className = "text-stone-500" }) => (
-    <svg
-        width={size}
-        height={size}
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        className={className}
-        aria-hidden="true"
-    >
-        {/* Existing 4-way move crossbars */}
-        <line x1="2" y1="12" x2="22" y2="12" />
-        <line x1="12" y1="4" x2="12" y2="20" />
-        {/* Deepened right/left arrow points */}
-        <polyline points="7.5 8 2 12 7.5 16" />
-        <polyline points="16.5 8 22 12 16.5 16" />
-        {/* Subtle north/south arrow points */}
-        <polyline points="9.5 4.5 12 2 14.5 4.5" />
-        <polyline points="9.5 19.5 12 22 14.5 19.5" />
-    </svg>
+    <MoveHorizontal size={size} className={className} aria-hidden="true" />
 );
 
 export const VerticalMoveIcon = ({ size = 14, className = "text-stone-500" }) => (
-    <svg
-        width={size}
-        height={size}
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        className={className}
-        aria-hidden="true"
-    >
-        {/* Existing 4-way move crossbars */}
-        <line x1="4" y1="12" x2="20" y2="12" />
-        <line x1="12" y1="2" x2="12" y2="22" />
-        {/* Deepened north/south arrow points */}
-        <polyline points="8 7.5 12 2 16 7.5" />
-        <polyline points="8 16.5 12 22 16 16.5" />
-        {/* Subtle right/left arrow points */}
-        <polyline points="4.5 9.5 2 12 4.5 14.5" />
-        <polyline points="19.5 9.5 22 12 19.5 14.5" />
-    </svg>
+    <MoveVertical size={size} className={className} aria-hidden="true" />
 );
 
 const FRAME_SIDE_STYLES = {
