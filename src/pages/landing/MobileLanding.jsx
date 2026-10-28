@@ -177,7 +177,7 @@ export default function MobileLanding({ navigate, onStartFraming, onSelectFrame 
                                 onClick={() => go('/curated-art')}
                                 className="rounded-full border border-white/30 bg-white/10 px-3 py-2 text-xs font-semibold text-white backdrop-blur-sm active:bg-white/20 whitespace-nowrap text-center"
                             >
-                                Browse Public Domain Art
+                                Browse Museum Art
                             </button>
                         </div>
                     </div>
@@ -252,7 +252,7 @@ export default function MobileLanding({ navigate, onStartFraming, onSelectFrame 
                             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/25 to-transparent" />
                             <div className="relative p-3">
                                 <Images size={16} className="mb-1 text-[#e3c66d]" />
-                                <span className="block text-[15px] font-bold leading-tight text-white">Public Domain Art</span>
+                                <span className="block text-[15px] font-bold leading-tight text-white">Museum Art</span>
                             </div>
                         </button>
                     </div>

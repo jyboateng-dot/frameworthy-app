@@ -46,7 +46,7 @@ const WishlistPage = () => {
                         onClick={() => navigate('/curated-art')}
                         className="px-8 py-3 bg-stone-900 text-white font-bold rounded-full text-sm hover:bg-stone-800 transition"
                     >
-                        Browse Public Domain Art
+                        Browse Museum Art
                     </button>
                 </div>
             </div>

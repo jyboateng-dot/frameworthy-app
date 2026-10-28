@@ -58,8 +58,8 @@ const FAQ_DATA = [
                 a: 'The Room Visualizer lets you preview your custom frame against different wall textures and paint colors (such as Linen, Slate, Brick, Dark Wood, and Light Plaster) so you can see how your frame will look in a real room environment before buying.'
             },
             {
-                q: 'Can I order public-domain art prints instead of uploading my own photos?',
-                a: 'Yes! Visit our "Public Domain Art" page to browse artwork from open-access museum collections, ready for custom framing.'
+                q: 'Can I order museum art prints instead of uploading my own photos?',
+                a: 'Yes! Visit our "Museum Art" page to browse artwork from open-access museum collections, ready for custom framing.'
             },
             {
                 q: "How is my frame's price calculated?",

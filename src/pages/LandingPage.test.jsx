@@ -109,7 +109,7 @@ describe('phone home page', () => {
         expect(screen.queryByRole('button', { name: 'Next slide' })).not.toBeInTheDocument();
         expect(screen.queryByText(/Prodigi/i)).not.toBeInTheDocument();
 
-        fireEvent.click(screen.getByRole('button', { name: 'Browse Public Domain Art' }));
+        fireEvent.click(screen.getByRole('button', { name: 'Browse Museum Art' }));
         expect(navigate).toHaveBeenCalledWith('/curated-art');
 
         const hero = screen.getByRole('heading', { name: 'Frame moments that matter' }).closest('section');
@@ -132,7 +132,7 @@ describe('phone home page', () => {
         expect(onStartFraming).toHaveBeenLastCalledWith({});
         fireEvent.click(screen.getByRole('button', { name: /Museum Masterpieces/ }));
         expect(onStartFraming).toHaveBeenLastCalledWith(expect.objectContaining({ openMetArt: true }));
-        fireEvent.click(screen.getByRole('button', { name: 'Public Domain Art' }));
+        fireEvent.click(screen.getByRole('button', { name: 'Museum Art' }));
         expect(navigate).toHaveBeenCalledWith('/curated-art');
 
         expect(screen.getAllByRole('button').filter(button => button.hasAttribute('aria-pressed'))).toHaveLength(7);

@@ -155,7 +155,7 @@ const MetArtPage = ({ setProductMode, setSelectedFrame, setSelectedSize, navigat
                                 Met Museum Collection
                             </h1>
                             <p className="text-sm text-stone-500 font-light max-w-lg leading-relaxed">
-                                Statically served public domain masterpieces from the Metropolitan Museum of Art. Ready to be previewed and framed.
+                                Masterpieces from the Metropolitan Museum of Art Open Access collection, ready to be previewed and framed.
                             </p>
                         </div>
                         <div className="shrink-0 text-right">

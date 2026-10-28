@@ -92,7 +92,7 @@ export function getLocalAiResponse(userMessage) {
 
     // 13. Curated Art Catalog
     if (matchAny(text, ['curated art', 'inspiration', 'art', 'met', 'museum', 'poster', 'posters', 'album', 'albums'])) {
-        return "You can order artwork ready for custom framing from our Public Domain Art catalogue, including open-access museum masterpieces and other public-domain collections.";
+        return "You can order artwork ready for custom framing from our Museum Art catalogue, featuring open-access museum masterpieces and historical prints.";
     }
 
     // 14. Multi-photo Collage

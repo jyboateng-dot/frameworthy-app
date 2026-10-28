@@ -259,7 +259,7 @@ export default function LandingPage({ onStartFraming, navigate, setSelectedFrame
                                                     onClick={handleCuratedArtClick}
                                                     className="px-5 py-3.5 sm:px-6 sm:py-4 rounded-full bg-white/15 hover:bg-white/25 backdrop-blur-md text-white text-xs sm:text-sm font-semibold border border-white/20 transition-all"
                                                 >
-                                                    Browse Public Domain Art
+                                                    Browse Museum Art
                                                 </button>
                                             </div>
                                         </div>
@@ -368,7 +368,7 @@ export default function LandingPage({ onStartFraming, navigate, setSelectedFrame
                         </div>
                     </button>
 
-                    {/* Secondary 2-Stack Cards: Museum Masterpieces & Public Domain Art */}
+                    {/* Secondary 2-Stack Cards: Museum Masterpieces & Museum Art */}
                     <div className="lg:col-span-5 xl:col-span-4 flex flex-col sm:grid sm:grid-cols-2 lg:flex lg:flex-col gap-3.5 lg:gap-4">
                         {/* Museum Masterpieces */}
                         <button
@@ -396,14 +396,14 @@ export default function LandingPage({ onStartFraming, navigate, setSelectedFrame
                             </div>
                         </button>
 
-                        {/* Public Domain Art */}
+                        {/* Museum Art */}
                         <button
                             onClick={handleCuratedArtClick}
                             className="group relative flex-1 flex flex-col justify-end h-[190px] sm:h-[205px] overflow-hidden rounded-3xl text-left shadow-sm hover:shadow-xl transition-all"
                         >
                             <img
                                 src="/landing_carousel/slide-curated-collections.webp"
-                                alt="Public Domain Art"
+                                alt="Museum Art"
                                 loading="lazy"
                                 decoding="async"
                                 className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.04]"
@@ -414,7 +414,7 @@ export default function LandingPage({ onStartFraming, navigate, setSelectedFrame
                                     <Images size={15} /> Curated Art
                                 </div>
                                 <h3 className="text-xl sm:text-2xl font-bold text-white mb-1">
-                                    Public Domain Art
+                                    Museum Art
                                 </h3>
                                 <p className="text-white/80 text-xs sm:text-sm line-clamp-2">
                                     Explore vintage posters, botanicals, Japanese woodblocks, and gallery prints.
