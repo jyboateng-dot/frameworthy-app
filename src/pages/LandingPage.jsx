@@ -370,14 +370,14 @@ export default function LandingPage({ onStartFraming, navigate, setSelectedFrame
 
                     {/* Secondary 2-Stack Cards: Museum Masterpieces & Museum Art */}
                     <div className="lg:col-span-5 xl:col-span-4 flex flex-col sm:grid sm:grid-cols-2 lg:flex lg:flex-col gap-3.5 lg:gap-4">
-                        {/* Museum Masterpieces */}
+                        {/* Historic Masterpieces */}
                         <button
                             onClick={handleMuseumMasterpiecesClick}
                             className="group relative flex-1 flex flex-col justify-end h-[190px] sm:h-[205px] overflow-hidden rounded-3xl text-left shadow-sm hover:shadow-xl transition-all"
                         >
                             <img
                                 src="/landing_carousel/slide-museum-masterpieces.webp"
-                                alt="Museum Masterpieces"
+                                alt="Historic Masterpieces"
                                 loading="lazy"
                                 decoding="async"
                                 className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.04]"
@@ -388,7 +388,7 @@ export default function LandingPage({ onStartFraming, navigate, setSelectedFrame
                                     <Landmark size={15} /> The Met Archive
                                 </div>
                                 <h3 className="text-xl sm:text-2xl font-bold text-white mb-1">
-                                    Museum Masterpieces
+                                    Historic Masterpieces
                                 </h3>
                                 <p className="text-white/80 text-xs sm:text-sm line-clamp-2">
                                     Browse Van Gogh, Monet, Rembrandt and thousands of public-domain fine art treasures.

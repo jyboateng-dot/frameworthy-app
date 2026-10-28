@@ -130,7 +130,7 @@ describe('phone home page', () => {
 
         fireEvent.click(screen.getAllByRole('button', { name: /Start Framing/ })[0]);
         expect(onStartFraming).toHaveBeenLastCalledWith({});
-        fireEvent.click(screen.getByRole('button', { name: /Museum Masterpieces/ }));
+        fireEvent.click(screen.getByRole('button', { name: /Historic Masterpieces/ }));
         expect(onStartFraming).toHaveBeenLastCalledWith(expect.objectContaining({ openMetArt: true }));
         fireEvent.click(screen.getByRole('button', { name: 'Museum Art' }));
         expect(navigate).toHaveBeenCalledWith('/curated-art');
