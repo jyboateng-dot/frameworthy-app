@@ -46,23 +46,24 @@ const RoomThumbnailRail = ({
             data-testid="room-thumbnail-rail"
             role="tablist"
             aria-label="Room views"
-            className={`w-[88px] sm:w-[94px] shrink-0 h-full bg-[#faf9f8] border-r border-stone-200/80 flex flex-col items-center py-4 px-2 gap-3 overflow-y-auto select-none custom-scrollbar z-20 ${className}`}
+            className={`w-[88px] sm:w-[94px] shrink-0 h-full bg-[#faf9f8] border-r border-stone-200/80 flex flex-col items-center py-4 px-2 overflow-y-auto select-none custom-scrollbar z-20 ${className}`}
         >
-            {SCENE_OPTIONS.map((option) => {
-                const isActive = option.id === activeId;
-                const key = option.id ?? 'close-up';
+            <div className="my-auto flex flex-col items-center gap-3 w-full shrink-0">
+                {SCENE_OPTIONS.map((option) => {
+                    const isActive = option.id === activeId;
+                    const key = option.id ?? 'close-up';
 
-                return (
-                    <button
-                        key={key}
-                        type="button"
-                        role="tab"
-                        aria-selected={isActive}
-                        aria-label={option.name}
-                        title={option.name}
-                        onClick={() => onSelect(option.id)}
-                        className="group flex flex-col items-center gap-1 w-full shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-stone-800 focus-visible:ring-offset-2 rounded-lg"
-                    >
+                    return (
+                        <button
+                            key={key}
+                            type="button"
+                            role="tab"
+                            aria-selected={isActive}
+                            aria-label={option.name}
+                            title={option.name}
+                            onClick={() => onSelect(option.id)}
+                            className="group flex flex-col items-center gap-1 w-full shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-stone-800 focus-visible:ring-offset-2 rounded-lg"
+                        >
                         {/* Thumbnail image / card */}
                         <div
                             className={`relative w-[72px] h-[50px] rounded-lg overflow-hidden transition-all duration-200 ${
@@ -163,6 +164,7 @@ const RoomThumbnailRail = ({
                     </button>
                 );
             })}
+            </div>
         </aside>
     );
 };
