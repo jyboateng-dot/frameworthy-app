@@ -91,7 +91,7 @@ const MetArtPage = ({ setProductMode, setSelectedFrame, setSelectedSize, navigat
 
     const currentArtworks = useMemo(() => {
         if (!activeCategory || !MET_LOCAL_COLLECTIONS[activeCategory]) return [];
-        return MET_LOCAL_COLLECTIONS[activeCategory].filter(isMetArtworkPrintable);
+        return MET_LOCAL_COLLECTIONS[activeCategory];
     }, [activeCategory]);
 
     const handleCategoryChange = (cat) => {

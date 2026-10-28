@@ -28,7 +28,7 @@ const CATEGORY_LABELS = {
     met: 'Met Museum',
     albums: 'Album Artwork',
     movies: 'Movie Poster',
-    museum: 'Artists & Masterpieces'
+    museum: 'Historic Masterpieces'
 };
 
 // Unlike every other bucket below (small static arrays bundled into the
@@ -74,7 +74,7 @@ function flattenMet() {
     const seen = new Map();
     Object.values(MET_LOCAL_COLLECTIONS).forEach(list => {
         (list || []).forEach(a => {
-            if (!seen.has(a.id) && isMetArtworkPrintable(a)) seen.set(a.id, a);
+            if (!seen.has(a.id) && Boolean(a.image)) seen.set(a.id, a);
         });
     });
     return Array.from(seen.values());

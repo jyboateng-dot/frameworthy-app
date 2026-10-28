@@ -31,6 +31,7 @@ import CollectionPagination from '../components/common/CollectionPagination';
 
 const OPEN_COLLECTION_SECTIONS = [
     { id: 'originals', label: 'Original Paintings' },
+    { id: 'museum', label: 'Historic Masterpieces' },
     { id: 'met', label: 'Met Museum Collection' },
     ...[
         'paris-musees',
@@ -44,7 +45,6 @@ const OPEN_COLLECTION_SECTIONS = [
         return { id: source.id, label: source.name };
     }),
     ...ARCHIVAL_SOURCES
-        .filter(source => ['biodiversity-heritage-library', 'nasa-open-media'].includes(source.id))
         .map(source => ({ id: source.id, label: source.name })),
 ];
 

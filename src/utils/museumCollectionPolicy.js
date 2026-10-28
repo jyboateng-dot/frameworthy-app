@@ -32,5 +32,6 @@ export function isFramableMuseumArtwork(sourceId, record) {
     // NASA's archival endpoint is explicitly queried with media_type=image,
     // so its curated category can safely accept the returned space imagery.
     if (sourceId === 'nasa-open-media') return true;
+    if (sourceId === 'library-of-congress') return true;
     return false;
 }

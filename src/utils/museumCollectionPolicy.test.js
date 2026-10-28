@@ -20,6 +20,11 @@ describe('museum collection policy', () => {
         expect(isFramableMuseumArtwork('national-gallery-of-art', { classification: 'Painting' })).toBe(false);
     });
 
+    it('keeps archival feeds including NASA and Library of Congress with images', () => {
+        expect(isFramableMuseumArtwork('nasa-open-media', { image })).toBe(true);
+        expect(isFramableMuseumArtwork('library-of-congress', { image })).toBe(true);
+    });
+
     it('rejects records whose known pixel dimensions cannot support 5x7 at 75 native DPI (< 375x525)', () => {
         expect(isFramableMuseumArtwork('national-gallery-of-art', {
             image,

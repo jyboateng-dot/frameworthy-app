@@ -92,7 +92,7 @@ async function smithsonianCommonsFallback(page) {
     const params = new URLSearchParams({
         action: 'query',
         generator: 'search',
-        gsrsearch: 'incategory:"Images from the Smithsonian Institution" fileres:>1500 (painting OR artwork OR portrait OR oil OR watercolor OR illustration)',
+        gsrsearch: 'incategory:"Images from the Smithsonian Institution" (painting OR artwork OR portrait OR oil OR watercolor OR illustration)',
         gsrnamespace: '6',
         gsrlimit: String(PAGE_SIZE),
         gsroffset: String(offset),
@@ -199,7 +199,7 @@ async function parisCommonsFallback(page) {
     const params = new URLSearchParams({
         action: 'query',
         generator: 'search',
-        gsrsearch: 'incategory:Images_from_Paris_Musées fileres:>1500 (peinture OR tableau OR portrait OR huile)',
+        gsrsearch: 'incategory:Images_from_Paris_Musées (peinture OR tableau OR portrait OR huile)',
         gsrnamespace: '6',
         gsrlimit: String(PAGE_SIZE),
         gsroffset: String(offset),
@@ -245,7 +245,7 @@ async function artInstituteOfChicago(page) {
     const params = new URLSearchParams({
         action: 'query',
         generator: 'search',
-        gsrsearch: '"Art Institute of Chicago" fileres:>1500 (painting OR artwork OR oil OR portrait OR canvas)',
+        gsrsearch: '"Art Institute of Chicago" (painting OR artwork OR oil OR portrait OR canvas)',
         gsrnamespace: '6',
         gsrlimit: String(PAGE_SIZE),
         gsroffset: String(offset),
@@ -291,7 +291,7 @@ async function rijksmuseum(page) {
     const params = new URLSearchParams({
         action: 'query',
         generator: 'search',
-        gsrsearch: 'incategory:"Paintings in the Rijksmuseum Amsterdam" fileres:>1500',
+        gsrsearch: 'incategory:"Paintings in the Rijksmuseum Amsterdam"',
         gsrnamespace: '6',
         gsrlimit: String(PAGE_SIZE),
         gsroffset: String(offset),
@@ -329,14 +329,13 @@ async function rijksmuseum(page) {
 }
 
 async function biodiversityHeritageLibrary(page) {
-    // Query high-resolution BHL botanical & natural-history plates hosted on
-    // Wikimedia Commons with a strict >=2000px resolution filter so every
-    // returned plate meets fine-art print DPI requirements.
+    // Query BHL botanical & natural-history plates hosted on Wikimedia Commons.
+    // Replicate Real-ESRGAN super-resolution handles upscaling to 300 DPI print quality.
     const offset = (page - 1) * PAGE_SIZE;
     const params = new URLSearchParams({
         action: 'query',
         generator: 'search',
-        gsrsearch: 'incategory:Files_from_the_Biodiversity_Heritage_Library fileres:>2000 filetype:bitmap (drawing OR illustration OR plate OR lithograph OR watercolor)',
+        gsrsearch: 'incategory:Files_from_the_Biodiversity_Heritage_Library filetype:bitmap (drawing OR illustration OR plate OR lithograph OR watercolor)',
         gsrnamespace: '6',
         gsrlimit: String(PAGE_SIZE),
         gsroffset: String(offset),
@@ -352,7 +351,6 @@ async function biodiversityHeritageLibrary(page) {
     const artworks = pages.map(item => {
         const info = item.imageinfo?.[0];
         if (!info || !info.url) return null;
-        if (Math.min(Number(info.width) || 0, Number(info.height) || 0) < 1500) return null;
         const meta = info.extmetadata || {};
         const rawTitle = meta.ObjectName?.value || item.title.replace(/^File:/, '').replace(/\.[^.]+$/, '').replace(/\bBHL\d+\b/gi, '').trim();
         const title = rawTitle.replace(/<[^>]*>?/gm, '').trim() || 'Biodiversity Heritage Library Plate';

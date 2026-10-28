@@ -75,13 +75,13 @@ export function isPaintingOrPortraitCategory(categoryName = '') {
 export function getSortedMetCategories(collections = {}) {
     const stats = {};
     for (const [cat, items] of Object.entries(collections || {})) {
-        const printable = (items || []).filter(isMetArtworkPrintable);
-        if (!printable.length) continue;
+        const validItems = (items || []).filter(item => Boolean(item?.image));
+        if (!validItems.length) continue;
         let maxArea = 0;
         let maxDim = 0;
         let totalArea = 0;
         let count = 0;
-        for (const item of printable) {
+        for (const item of validItems) {
             const px = getMetArtworkPixelSize(item);
             const size = maxFramePrintSize(px);
             if (size) {
@@ -96,7 +96,7 @@ export function getSortedMetCategories(collections = {}) {
             }
         }
         stats[cat] = {
-            count,
+            count: count || validItems.length,
             maxArea,
             maxDim,
             avgArea: count ? totalArea / count : 0,

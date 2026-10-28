@@ -183,7 +183,7 @@ const MuseumArtPage = ({ setProductMode, setSelectedSize, navigate, isSubPage = 
     if (loadError) {
         return (
             <div className="w-full flex flex-col items-center justify-center py-20 text-stone-400">
-                <p className="text-sm font-medium">Couldn't load Artists & Masterpieces.</p>
+                <p className="text-sm font-medium">Couldn't load Historic Masterpieces.</p>
                 <p className="text-xs text-stone-500 mt-1">Please try again in a moment.</p>
             </div>
         );
@@ -197,7 +197,7 @@ const MuseumArtPage = ({ setProductMode, setSelectedSize, navigate, isSubPage = 
                         <div>
                             <p className="text-[9px] uppercase tracking-[0.3em] text-stone-500 font-bold mb-1">Artists Collection</p>
                             <h1 className="font-serif font-light text-2xl md:text-3xl text-stone-900 tracking-tight leading-none mb-2">
-                                Artists & Masterpieces
+                                Historic Masterpieces
                             </h1>
                             <p className="text-sm text-stone-500 font-light max-w-lg leading-relaxed">
                                 Masterpieces recreated by hand. High quality prints ready to be framed.
