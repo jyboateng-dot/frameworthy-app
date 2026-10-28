@@ -2549,13 +2549,11 @@ const CustomizeFramePage = ({
 
                 </div>
 
-                {/* Navigation stays anchored to the pane throughout scene changes.
-                    On desktop (isSideBySide), the left thumbnail panel controls view selection,
-                    keeping the visualizer plain canvas clean of floating arrow overlays. */}
+                {/* Navigation stays anchored to the pane throughout scene changes. */}
                 <SceneArrowCarousel
                     activeId={roomSceneId}
                     onSelect={selectRoomScene}
-                    hidden={isSideBySide || (isHovered && activeRoom) || isFullScreen || isMaxZoom || isZoomSettling}
+                    hidden={(isHovered && activeRoom) || isFullScreen || isMaxZoom || isZoomSettling}
                     motionClass={CHROME_MOTION}
                     // Mobile visualizer panes are stacked below the header;
                     // 22% places the arrows near their visual centre while
