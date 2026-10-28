@@ -1,16 +1,33 @@
 import React from 'react';
 import { describe, expect, it, vi } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import CustomizeFramePage from './CustomizeFramePage';
 import { DEFAULT_DEMO_IMAGE, FRAME_SIZES, FRAME_STYLES, MAT_COLORS } from '../../data/constants';
 
 if (typeof window !== 'undefined') {
     window.scrollTo = vi.fn();
+    window.matchMedia = window.matchMedia || vi.fn().mockImplementation((query) => ({
+        matches: false,
+        media: query,
+        onchange: null,
+        addListener: vi.fn(),
+        removeListener: vi.fn(),
+        addEventListener: vi.fn(),
+        removeEventListener: vi.fn(),
+        dispatchEvent: vi.fn(),
+    }));
     window.ResizeObserver = class {
         observe() {}
         unobserve() {}
         disconnect() {}
+    };
+    window.Image = class {
+        set src(v) {
+            this._src = v;
+            queueMicrotask(() => this.onload?.());
+        }
+        get src() { return this._src; }
     };
 }
 
@@ -158,5 +175,49 @@ describe('CustomizeFramePage mounting', () => {
         const selectedButton = screen.getByRole('button', { name: /24 × 30/i });
         expect(selectedButton).toBeInTheDocument();
         expect(selectedButton).toHaveAttribute('aria-pressed', 'true');
+    });
+
+    it('renders room thumbnail rail to the left of the visualizer on larger screens (desktop)', async () => {
+        window.innerWidth = 1200;
+        window.dispatchEvent(new Event('resize'));
+
+        const setRoomSceneId = vi.fn();
+        render(
+            <MemoryRouter initialEntries={['/frame/customize']}>
+                <CustomizeFramePage
+                    {...defaultProps}
+                    roomSceneId={null}
+                    setRoomSceneId={setRoomSceneId}
+                />
+            </MemoryRouter>
+        );
+
+        // The thumbnail rail is present on desktop
+        const rail = screen.getByTestId('room-thumbnail-rail');
+        expect(rail).toBeInTheDocument();
+
+        // Clicking a room thumbnail in the left panel switches scene
+        const loftThumb = screen.getByRole('tab', { name: 'Studio Loft' });
+        expect(loftThumb).toBeInTheDocument();
+        fireEvent.click(loftThumb);
+        await waitFor(() => {
+            expect(setRoomSceneId).toHaveBeenCalledWith('studio-loft');
+        });
+    });
+
+    it('does not render room thumbnail rail on mobile/small screens', () => {
+        window.innerWidth = 375;
+        window.dispatchEvent(new Event('resize'));
+
+        render(
+            <MemoryRouter initialEntries={['/frame/customize']}>
+                <CustomizeFramePage
+                    {...defaultProps}
+                    roomSceneId={null}
+                />
+            </MemoryRouter>
+        );
+
+        expect(screen.queryByTestId('room-thumbnail-rail')).not.toBeInTheDocument();
     });
 });

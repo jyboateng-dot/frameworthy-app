@@ -24,6 +24,7 @@ import { ENABLE_CLOSE_UP_SIZE_PROGRESSION, getCloseUpSize } from '../../utils/cl
 import SceneCarousel from '../../components/framing/SceneCarousel';
 import SceneArrowCarousel from '../../components/framing/SceneArrowCarousel';
 import SceneDotThumb from '../../components/framing/SceneDotThumb';
+import RoomThumbnailRail from '../../components/framing/RoomThumbnailRail';
 import PageMeta from '../../components/common/PageMeta';
 import { useHoverDropdown, isHoverCapable } from '../../hooks/useHoverDropdown';
 import { getFrameRail, getRailTextureStyle, getRailShading } from '../../utils/frameRail';
@@ -1442,7 +1443,7 @@ const CustomizeFramePage = ({
             roomSceneTransitionRef.current = window.setTimeout(() => {
                 setDepartingRoomSceneId(null);
                 setDepartingWasCloseUp(false);
-            }, window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : ROOM_SCENE_TRANSITION_MS + 1000);
+            }, window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches ? 0 : ROOM_SCENE_TRANSITION_MS + 1000);
             setRoomSceneId(sceneId);
         });
     };
@@ -2196,7 +2197,7 @@ const CustomizeFramePage = ({
     // whole strip of scenes (Close-Up included) transitions consistently.
     const renderPlainBackdrop = (phase) => (
         <div
-            key="backdrop-plain"
+            key={`backdrop-plain-${phase}`}
             onAnimationEnd={finishRoomSceneTransition}
             className={`absolute inset-0 pointer-events-none z-[1] ${phase === 'outgoing' ? 'room-scene-slide-out' : 'room-scene-slide-in'} ${
                 isHovered || isMaxZoom || isFullScreen ? 'opacity-0' : 'opacity-100'
@@ -2316,16 +2317,32 @@ const CustomizeFramePage = ({
                         // stays in view while the customization panel underneath scrolls.
                         // Desktop side-by-side already keeps it in view (fixed-height row,
                         // panel scrolls in its own container), so sticky is a no-op there.
-                        : `shrink-0 flex flex-col border-r border-stone-200 ${isSideBySide ? 'w-[70%] h-full' : 'w-full sticky top-[calc(2.9375rem+env(safe-area-inset-top,0px))] z-30'}`
+                        // On desktop, flex-row accommodates the left thumbnail panel alongside
+                        // the visualizer canvas.
+                        : `shrink-0 flex border-r border-stone-200 ${isSideBySide ? 'w-[70%] h-full flex-row' : 'w-full flex-col sticky top-[calc(2.9375rem+env(safe-area-inset-top,0px))] z-30'}`
                 }
             >
+            {/* Desktop thumbnail rail docked to the left of the visualizer */}
+            {isSideBySide && !isFullScreen && (
+                <RoomThumbnailRail
+                    activeId={roomSceneId}
+                    onSelect={selectRoomScene}
+                    wallColor={wallColor}
+                    uploadedImage={uploadedImage}
+                    selectedFrame={selectedFrame}
+                    matWidth={matWidth}
+                    matColor={matColor}
+                    outerFrameWidthCm={outerFrameWidthCm}
+                    outerFrameHeightCm={outerFrameHeightCm}
+                />
+            )}
             <div
                 ref={visualizerPaneRef}
                 data-testid="visualizer-pane"
                 className={`flex items-center justify-center transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${isMaxZoom ? 'overflow-auto' : 'overflow-hidden'} ${paneVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-95'} ${
                     isFullScreen
                         ? 'fixed inset-0 z-[250]'
-                        : `relative w-full ${isSideBySide ? 'flex-1 min-h-0' : ''}`
+                        : `relative ${isSideBySide ? 'flex-1 min-w-0 min-h-0' : 'w-full'}`
                 }`}
                 style={{
                     backgroundColor: wallColor.hex,
@@ -2372,112 +2389,90 @@ const CustomizeFramePage = ({
                     }`}
                 >
 
-                {/* Room scene — pill + dropdown, mirroring the wall-colour picker.
-                    Sits where the unit/measurement control used to (that
-                moved into the Dimensions panel section), so this corner
-                    stays a single pill instead of stacking two.
-                    !roomSceneId guards the "try a room scene" invite below:
-                    roomSceneId now survives picking a new image (it's hoisted
-                    to App.jsx — see its declaration there), so a customer
-                    already in a room scene shouldn't be invited to try one,
-                    which is what showSceneHint alone would do — it's reset
-                    to true for every fresh artwork regardless of whether a
-                    scene is already active. */}
-                {showSceneHint && hasImage && !roomSceneId && !isFullScreen && !isMaxZoom ? (
-                    <aside
-                        aria-label="Room scene preview hint"
-                        onMouseEnter={() => {
-                            if (sceneHintTimeoutRef.current) window.clearTimeout(sceneHintTimeoutRef.current);
-                        }}
-                        onMouseLeave={() => {
-                            if (showSceneHint) {
-                                sceneHintTimeoutRef.current = window.setTimeout(() => {
-                                    setShowSceneHint(false);
-                                }, 2000);
-                            }
-                        }}
-                        className="relative z-20 flex w-[min(18.5rem,calc(100vw-1rem))] items-center gap-1.5 rounded-2xl border border-stone-200/90 bg-white/95 p-1.5 pr-2 font-sans shadow-lg shadow-stone-900/10 backdrop-blur transition-all duration-300"
-                    >
-                        <button
-                            type="button"
-                            onClick={openScenePickerFromHint}
-                            className="flex min-w-0 flex-1 items-center gap-1.5 rounded-xl text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-stone-700"
+                {/* Room scene — on larger screens (isSideBySide), room views are moved
+                    to the dedicated left thumbnail panel (like Dunelm/e-commerce galleries),
+                    leaving the visualizer and plain view completely alone and clean.
+                    On mobile, the compact indicator / hint remains in the top toolbar. */}
+                {!isSideBySide ? (
+                    showSceneHint && hasImage && !roomSceneId && !isFullScreen && !isMaxZoom ? (
+                        <aside
+                            aria-label="Room scene preview hint"
+                            onMouseEnter={() => {
+                                if (sceneHintTimeoutRef.current) window.clearTimeout(sceneHintTimeoutRef.current);
+                            }}
+                            onMouseLeave={() => {
+                                if (showSceneHint) {
+                                    sceneHintTimeoutRef.current = window.setTimeout(() => {
+                                        setShowSceneHint(false);
+                                    }, 2000);
+                                }
+                            }}
+                            className="relative z-20 flex w-[min(18.5rem,calc(100vw-1rem))] items-center gap-1.5 rounded-2xl border border-stone-200/90 bg-white/95 p-1.5 pr-2 font-sans shadow-lg shadow-stone-900/10 backdrop-blur transition-all duration-300"
                         >
-                            <span className="relative h-11 w-[4.125rem] shrink-0 overflow-hidden rounded-lg bg-stone-100 sm:h-[3.25rem] sm:w-[5.125rem]" style={{ containerType: 'inline-size' }}>
-                                <img
-                                    src={sceneHintPreview?.image}
-                                    alt=""
-                                    aria-hidden="true"
-                                    className="absolute inset-0 h-full w-full object-cover object-center"
-                                />
-                                {uploadedImage && (
-                                    <span
-                                        data-testid="hint-frame-preview"
-                                        className="absolute -translate-x-1/2 -translate-y-1/2 rounded-[1px] shadow-[1px_2px_4px_rgba(0,0,0,0.4)]"
-                                        style={{
-                                            left: `${sceneHintPreview?.hang?.x ?? 50}%`,
-                                            top: `min(${sceneHintPreview?.hang?.y ?? 50}%, calc(60% - ${hintFrameHalfHeightCqw}cqw))`,
-                                            width: `${hintFrameWidthPct}%`,
-                                            aspectRatio: `${outerFrameWidthCm} / ${outerFrameHeightCm}`,
-                                            backgroundColor: selectedFrame?.baseColor || '#24211f'
-                                        }}
-                                    >
-                                        <span className="absolute inset-[1px]" style={{ backgroundColor: matWidth !== 'none' ? (matColor?.hex || '#fff') : '#fff' }}>
-                                            <span className="absolute inset-[2px] bg-cover bg-center" style={{ backgroundImage: `url(${uploadedImage})` }} />
+                            <button
+                                type="button"
+                                onClick={openScenePickerFromHint}
+                                className="flex min-w-0 flex-1 items-center gap-1.5 rounded-xl text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-stone-700"
+                            >
+                                <span className="relative h-11 w-[4.125rem] shrink-0 overflow-hidden rounded-lg bg-stone-100 sm:h-[3.25rem] sm:w-[5.125rem]" style={{ containerType: 'inline-size' }}>
+                                    <img
+                                        src={sceneHintPreview?.image}
+                                        alt=""
+                                        aria-hidden="true"
+                                        className="absolute inset-0 h-full w-full object-cover object-center"
+                                    />
+                                    {uploadedImage && (
+                                        <span
+                                            data-testid="hint-frame-preview"
+                                            className="absolute -translate-x-1/2 -translate-y-1/2 rounded-[1px] shadow-[1px_2px_4px_rgba(0,0,0,0.4)]"
+                                            style={{
+                                                left: `${sceneHintPreview?.hang?.x ?? 50}%`,
+                                                top: `min(${sceneHintPreview?.hang?.y ?? 50}%, calc(60% - ${hintFrameHalfHeightCqw}cqw))`,
+                                                width: `${hintFrameWidthPct}%`,
+                                                aspectRatio: `${outerFrameWidthCm} / ${outerFrameHeightCm}`,
+                                                backgroundColor: selectedFrame?.baseColor || '#24211f'
+                                            }}
+                                        >
+                                            <span className="absolute inset-[1px]" style={{ backgroundColor: matWidth !== 'none' ? (matColor?.hex || '#fff') : '#fff' }}>
+                                                <span className="absolute inset-[2px] bg-cover bg-center" style={{ backgroundImage: `url(${uploadedImage})` }} />
+                                            </span>
                                         </span>
+                                    )}
+                                </span>
+                                <span className="min-w-0 flex-1 py-0.5">
+                                    <span className="block font-serif font-light tracking-tight text-[13.5px] leading-4 text-stone-900 sm:text-[14.5px]">
+                                        See your frame in context
                                     </span>
-                                )}
-                            </span>
-                            <span className="min-w-0 flex-1 py-0.5">
-                                <span className="block font-serif font-light tracking-tight text-[13.5px] leading-4 text-stone-900 sm:text-[14.5px]">
-                                    See your frame in context
+                                    <span className="mt-1 flex items-center gap-1 text-[11.5px] font-semibold tracking-tight text-stone-700 transition-colors hover:text-stone-950">
+                                        Try a room scene
+                                        <span aria-hidden="true" className="text-sm leading-none">→</span>
+                                    </span>
                                 </span>
-                                <span className="mt-1 flex items-center gap-1 text-[11.5px] font-semibold tracking-tight text-stone-700 transition-colors hover:text-stone-950">
-                                    Try a room scene
-                                    <span aria-hidden="true" className="text-sm leading-none">→</span>
-                                </span>
-                            </span>
-                        </button>
-                        <button
-                            type="button"
-                            onClick={dismissSceneHint}
-                            aria-label="Dismiss hint"
-                            className="self-start p-1 text-stone-400 hover:text-stone-700 rounded-full transition-colors"
-                        >
-                            <X size={13} />
-                        </button>
-                    </aside>
+                            </button>
+                            <button
+                                type="button"
+                                onClick={dismissSceneHint}
+                                aria-label="Dismiss hint"
+                                className="self-start p-1 text-stone-400 hover:text-stone-700 rounded-full transition-colors"
+                            >
+                                <X size={13} />
+                            </button>
+                        </aside>
+                    ) : (
+                        <SceneDotThumb
+                            activeId={roomSceneId}
+                            onSelect={selectRoomScene}
+                            framePreview={activeRoom && uploadedImage ? {
+                                leftPct: 50,
+                                topPct: 42,
+                                widthPct: 14,
+                                aspectRatio: `${outerFrameWidthCm} / ${outerFrameHeightCm}`,
+                                frameColor: selectedFrame?.baseColor || '#24211f',
+                            } : null}
+                        />
+                    )
                 ) : (
-                    // The position indicator itself — a row of dots, one per
-                    // scene, where only the active one reveals its room
-                    // thumbnail. Arrows (SceneArrowCarousel below) move the
-                    // selection; this is the one place that shows it.
-                    <SceneDotThumb
-                        activeId={roomSceneId}
-                        onSelect={selectRoomScene}
-                        // Deliberately NOT roomPlacement's own leftPct/topPct/
-                        // widthPct — those are each room's true physical hang
-                        // point and size relative to ITS OWN wall span, so
-                        // they differ scene to scene (a wide loft wall makes
-                        // the same frame a smaller %, and each room's hang.x/
-                        // y was calibrated against its own furniture shot at
-                        // its own framing). At full visualizer size that
-                        // accuracy is the point; shrunk to an 18px dot it
-                        // just reads as the mark landing in a different
-                        // spot, at a different size, in every thumbnail. One
-                        // shared size and position instead — every scene's
-                        // mark sits the same distance from its own reference
-                        // furniture (sofa, table, bed, console, desk), so
-                        // scanning across the row reads as one consistent
-                        // mark repeated, not five different placements.
-                        framePreview={activeRoom && uploadedImage ? {
-                            leftPct: 50,
-                            topPct: 42,
-                            widthPct: 14,
-                            aspectRatio: `${outerFrameWidthCm} / ${outerFrameHeightCm}`,
-                            frameColor: selectedFrame?.baseColor || '#24211f',
-                        } : null}
-                    />
+                    <div aria-hidden="true" />
                 )}
 
                 {/* Empty flexible middle column — keeps the wall-colour pill
@@ -2554,11 +2549,13 @@ const CustomizeFramePage = ({
 
                 </div>
 
-                {/* Navigation stays anchored to the pane throughout scene changes. */}
+                {/* Navigation stays anchored to the pane throughout scene changes.
+                    On desktop (isSideBySide), the left thumbnail panel controls view selection,
+                    keeping the visualizer plain canvas clean of floating arrow overlays. */}
                 <SceneArrowCarousel
                     activeId={roomSceneId}
                     onSelect={selectRoomScene}
-                    hidden={(isHovered && activeRoom) || isFullScreen || isMaxZoom || isZoomSettling}
+                    hidden={isSideBySide || (isHovered && activeRoom) || isFullScreen || isMaxZoom || isZoomSettling}
                     motionClass={CHROME_MOTION}
                     // Mobile visualizer panes are stacked below the header;
                     // 22% places the arrows near their visual centre while
