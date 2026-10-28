@@ -296,8 +296,7 @@ const CustomizeFramePage = ({
     // Also recognises the previous URL shape so an already-open dev session
     // immediately adopts the orientation-aware crop after hot reload.
     const isPlaceholder = uploadedImage === DEFAULT_DEMO_IMAGE
-        || uploadedImage?.includes('images.unsplash.com/photo-1526045478516-99145907023c')
-        || uploadedImage?.includes('met_collection/Vincent_van_Gogh/met_436535');
+        || uploadedImage?.includes('images.unsplash.com/photo-1526045478516-99145907023c');
     const hasImage = Boolean((uploadedImage && !isPlaceholder) || productionImage || (collageImages && collageImages.length > 0));
 
     // Core State

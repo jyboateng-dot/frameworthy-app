@@ -1,13 +1,15 @@
-// The Frame Studio's starting demo artwork, shown before a user picks their
-// own image. Uses Vincent van Gogh's iconic "Wheat Field with Cypresses"
-// from the Metropolitan Museum of Art collection, sized dynamically by orientation.
-const DEFAULT_DEMO_IMAGE_BASE = 'https://ik.imagekit.io/jybooboo187/met_collection/Vincent_van_Gogh/met_436535.jpg';
+// The Frame Studio's starting demo photo, shown before a user picks their
+// own image. It's landscape-shaped — shared as a named constant (rather
+// than inlined separately in App.jsx) so CustomizeFramePage's orientation
+// auto-detect effect can recognize it and skip overriding the intended
+// portrait default with this placeholder's own shape.
+const DEFAULT_DEMO_IMAGE_BASE = 'https://images.unsplash.com/photo-1526045478516-99145907023c?auto=format&fit=crop&q=80&sat=-20&con=-10';
 export const getDemoImageForOrientation = (orientation = 'portrait') => (
     orientation === 'square'
-        ? `${DEFAULT_DEMO_IMAGE_BASE}?tr=w-1400,h-1400,fo-auto`
+        ? `${DEFAULT_DEMO_IMAGE_BASE}&w=1400&h=1400`
         : orientation === 'landscape'
-            ? `${DEFAULT_DEMO_IMAGE_BASE}?tr=w-1600,h-1000,fo-auto`
-            : `${DEFAULT_DEMO_IMAGE_BASE}?tr=w-1000,h-1600,fo-auto`
+            ? `${DEFAULT_DEMO_IMAGE_BASE}&w=1600&h=1000`
+            : `${DEFAULT_DEMO_IMAGE_BASE}&w=1000&h=1600`
 );
 export const DEFAULT_DEMO_IMAGE = getDemoImageForOrientation('landscape');
 
