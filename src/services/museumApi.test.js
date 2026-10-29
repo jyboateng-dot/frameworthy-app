@@ -43,6 +43,9 @@ describe('museum snapshot prefetching', () => {
             }).mockResolvedValueOnce({
                 ok: true,
                 json: async () => ({ data: [], info: { total: 0 } }),
+            }).mockResolvedValueOnce({
+                ok: true,
+                json: async () => ({ data: [], info: { total: 0 } }),
             });
         vi.stubGlobal('fetch', fetch);
         const { fetchMuseumArtworks, prefetchMuseumSnapshot } = await import('./museumApi.js');
@@ -50,7 +53,7 @@ describe('museum snapshot prefetching', () => {
         await prefetchMuseumSnapshot('cleveland-museum-of-art');
         await expect(fetchMuseumArtworks('cleveland-museum-of-art')).resolves.toEqual({ artworks: [], total: 0 });
 
-        expect(fetch).toHaveBeenCalledTimes(3);
+        expect(fetch).toHaveBeenCalledTimes(4);
         expect(fetch.mock.calls[1][0]).toContain('openaccess-api.clevelandart.org');
     });
 
@@ -208,6 +211,10 @@ describe('museum snapshot prefetching', () => {
                     }],
                     pagination: { total: 1 },
                 }),
+            })
+            .mockResolvedValueOnce({
+                ok: true,
+                json: async () => ({ data: [], pagination: { total: 0 } }),
             })
             .mockResolvedValueOnce({
                 ok: true,

@@ -102,7 +102,7 @@ async function generateChicago() {
     console.log('Fetching Art Institute of Chicago masterpieces...');
     const [googleArtPages, categorySearchPages, nighthawks] = await Promise.all([
         fetchCommonsCategory('Category:Google_Art_Project_works_in_The_Art_Institute_of_Chicago', 100),
-        fetchCommonsSearch('incategory:Paintings_in_the_Art_Institute_of_Chicago fileres:>1500', 100),
+        fetchCommonsSearch('incategory:Paintings_in_the_Art_Institute_of_Chicago OR incategory:Drawings_in_the_Art_Institute_of_Chicago OR incategory:Prints_in_the_Art_Institute_of_Chicago', 100),
         fetchSpecificFile('Nighthawks_by_Edward_Hopper_1942.jpg'),
     ]);
 
@@ -143,7 +143,7 @@ async function generateChicago() {
         if (!info || !info.url) continue;
         const width = Number(info.width) || 0;
         const height = Number(info.height) || 0;
-        if (width < 1200 || height < 1200) continue;
+        if (width < 400 || height < 400) continue;
 
         const meta = info.extmetadata || {};
         const title = cleanTitle(meta.ObjectName?.value, page.title);
@@ -200,9 +200,9 @@ async function generateChicago() {
 async function generateParis() {
     console.log('Fetching Paris Musées masterpieces from Commons...');
     const [set1, set2, set3] = await Promise.all([
-        fetchCommonsSearch('incategory:Images_from_Paris_Musées fileres:>1500 (peinture OR tableau)', 100),
-        fetchCommonsSearch('incategory:Images_from_Paris_Musées fileres:>1500 (portrait OR huile)', 100),
-        fetchCommonsSearch('incategory:Images_from_Paris_Musées fileres:>1500 (Petit Palais OR Carnavalet)', 100),
+        fetchCommonsSearch('incategory:Images_from_Paris_Musées (peinture OR tableau OR dessin OR estampe OR gravure OR aquarelle OR pastel OR gouache OR lithographie)', 100),
+        fetchCommonsSearch('incategory:Images_from_Paris_Musées (portrait OR huile OR "arts graphiques")', 100),
+        fetchCommonsSearch('incategory:Images_from_Paris_Musées (Petit Palais OR Carnavalet)', 100),
     ]);
 
     const combined = [...set1, ...set2, ...set3];
@@ -229,7 +229,7 @@ async function generateParis() {
         if (!info || !info.url) continue;
         const width = Number(info.width) || 0;
         const height = Number(info.height) || 0;
-        if (width < 1200 || height < 1200) continue;
+        if (width < 400 || height < 400) continue;
 
         const meta = info.extmetadata || {};
         const title = cleanTitle(meta.ObjectName?.value, page.title);

@@ -8,6 +8,11 @@ describe('museum collection policy', () => {
         expect(isFramableMuseumArtwork('national-gallery-of-art', { image, classification: 'Painting' })).toBe(true);
         expect(isFramableMuseumArtwork('cleveland-museum-of-art', { image, type: 'Drawing' })).toBe(true);
         expect(isFramableMuseumArtwork('paris-musees', { image, objectType: 'Estampe' })).toBe(true);
+        expect(isFramableMuseumArtwork('paris-musees', { image, objectType: 'Pastel' })).toBe(true);
+        expect(isFramableMuseumArtwork('paris-musees', { image, objectType: 'Gouache' })).toBe(true);
+        expect(isFramableMuseumArtwork('paris-musees', { image, objectType: 'Gravure' })).toBe(true);
+        expect(isFramableMuseumArtwork('paris-musees', { image, objectType: 'Lithographie' })).toBe(true);
+        expect(isFramableMuseumArtwork('paris-musees', { image, objectType: 'Dessin, Arts graphiques' })).toBe(true);
     });
 
     it('rejects photographic portraits and non-art objects', () => {

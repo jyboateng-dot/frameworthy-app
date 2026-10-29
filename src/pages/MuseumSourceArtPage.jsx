@@ -29,6 +29,10 @@ const MuseumSourceArtPage = ({ sourceId, setProductMode, setSelectedSize, naviga
     const source = [...MUSEUM_SOURCES, ...ARCHIVAL_SOURCES].find(item => item.id === sourceId);
     const [page, setPage] = useState(1);
 
+    useEffect(() => {
+        setPage(1);
+    }, [sourceId]);
+
     const cacheKey = `${sourceId}_${page}`;
     const [state, setState] = useState(() => {
         const cached = sourceArtCache.get(cacheKey);
@@ -84,8 +88,15 @@ const MuseumSourceArtPage = ({ sourceId, setProductMode, setSelectedSize, naviga
         });
     };
 
-    if (!source) return null;
     const totalPages = Math.max(1, Math.ceil(viewState.total / 24));
+
+    useEffect(() => {
+        if (viewState.status === 'ready' && totalPages > 0 && page > totalPages) {
+            setPage(totalPages);
+        }
+    }, [viewState.status, totalPages, page]);
+
+    if (!source) return null;
 
     return (
         <div className={isSubPage ? 'text-stone-900' : 'min-h-screen bg-[#faf9f8] text-stone-900'} style={{ fontFamily: "'Inter', sans-serif" }}>
@@ -115,7 +126,20 @@ const MuseumSourceArtPage = ({ sourceId, setProductMode, setSelectedSize, naviga
                 {viewState.status === 'ready' && (
                     <>
                         {viewState.artworks.length === 0 ? (
-                            <p className="py-20 text-center text-sm text-stone-500">No artwork with a usable public image was returned.</p>
+                            <div className="py-20 text-center flex flex-col items-center justify-center gap-4">
+                                <p className="text-sm text-stone-500">
+                                    {page > 1 ? "You've reached the end of this collection." : 'No artwork with a usable public image was returned.'}
+                                </p>
+                                {page > 1 && (
+                                    <button
+                                        type="button"
+                                        onClick={() => setPage(1)}
+                                        className="px-4 py-2 text-xs font-medium tracking-wide uppercase bg-stone-900 text-white rounded hover:bg-stone-800 transition-colors"
+                                    >
+                                        Return to Page 1
+                                    </button>
+                                )}
+                            </div>
                         ) : (
                             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-12">
                                 {viewState.artworks.map((artwork, index) => (

@@ -2,7 +2,7 @@ import { getArtworkPixelSize, isArtworkPrintableAtMinDpi } from './museumArtwork
 
 // Keep only flat visual art that can reasonably be offered as framed artwork.
 // A portrait is a subject, not a medium: photographs and sculptures remain out.
-const ART_TYPES = /\b(painting|drawing|print|engraving|etching|lithograph|illustration|watercolou?r|portrait miniature|peinture|dessin|estampe|aquarelle)\b/i;
+const ART_TYPES = /\b(painting|drawing|print|engraving|etching|lithograph|illustration|watercolou?r|portrait miniature|peinture|tableau|dessin|estampe|gravure|aquarelle|pastel|gouache|lithographie|eau-forte|arts graphiques|affiche|huile)\b/i;
 const PAINTING_MEDIA = /\b(oil|tempera|acrylic|gouache|watercolou?r|ink|charcoal|pastel|graphite|pencil)\b/i;
 
 export function isFramableMuseumArtwork(sourceId, record) {

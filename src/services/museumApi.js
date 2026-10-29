@@ -26,7 +26,7 @@ async function fetchArtInstitute(page) {
     }
     const fetchType = async (type) => {
         const params = new URLSearchParams({
-            page: String(page), limit: String(PAGE_SIZE / 2),
+            page: String(page), limit: String(PAGE_SIZE / 3),
             fields: 'id,title,artist_display,image_id,thumbnail,dimensions,date_display,is_public_domain,artwork_type_title',
         });
         params.set('query[bool][must][0][term][is_public_domain]', 'true');
@@ -34,10 +34,14 @@ async function fetchArtInstitute(page) {
         return getJson(`https://api.artic.edu/api/v1/artworks/search?${params}`);
     };
     try {
-        const [paintings, drawings] = await Promise.all([fetchType('Painting'), fetchType('Drawing')]);
+        const [paintings, drawings, prints] = await Promise.all([
+            fetchType('Painting'),
+            fetchType('Drawing'),
+            fetchType('Print'),
+        ]);
         const source = sourceById('art-institute-of-chicago');
         return {
-            artworks: [...(paintings.data || []), ...(drawings.data || [])].filter(item => item.image_id).map(item => {
+            artworks: [...(paintings.data || []), ...(drawings.data || []), ...(prints.data || [])].filter(item => item.image_id).map(item => {
                 const masterWidth = Number(item.thumbnail?.width) || 4000;
                 const masterHeight = Number(item.thumbnail?.height) || null;
                 return normalizeMuseumArtwork({
@@ -49,7 +53,7 @@ async function fetchArtInstitute(page) {
                     imageHeight: masterHeight,
                 }, source);
             }),
-            total: (paintings.pagination?.total || 0) + (drawings.pagination?.total || 0),
+            total: (paintings.pagination?.total || 0) + (drawings.pagination?.total || 0) + (prints.pagination?.total || 0),
         };
     } catch {
         return fetchServerCollection('art-institute-of-chicago', page);
@@ -57,30 +61,39 @@ async function fetchArtInstitute(page) {
 }
 
 async function fetchCleveland(page) {
-    const fetchType = (type) => {
-        const params = new URLSearchParams({
-            cc0: '', has_image: '1', type,
-            limit: String(PAGE_SIZE / 2), skip: String((page - 1) * PAGE_SIZE / 2),
-        });
-        return getJson(`https://openaccess-api.clevelandart.org/api/artworks?${params}`);
-    };
-    const [paintings, drawings] = await Promise.all([fetchType('Painting'), fetchType('Drawing')]);
-    const source = sourceById('cleveland-museum-of-art');
-    return {
-        artworks: [...(paintings.data || []), ...(drawings.data || [])].filter(item => item.images?.web?.url).map(item => {
-            const printImg = item.images.print || {};
-            const webImg = item.images.web || {};
-            return normalizeMuseumArtwork({
-                ...item,
-                artist: item.creators?.map(creator => creator.description).filter(Boolean).join(', '),
-                image: webImg.url,
-                fullRes: printImg.url || item.images.original?.url || webImg.url,
-                imageWidth: Number(printImg.width || webImg.width) || null,
-                imageHeight: Number(printImg.height || webImg.height) || null,
-            }, source);
-        }),
-        total: (paintings.info?.total || 0) + (drawings.info?.total || 0),
-    };
+    try {
+        const fetchType = (type) => {
+            const limit = Math.floor(PAGE_SIZE / 3);
+            const params = new URLSearchParams({
+                cc0: '', has_image: '1', type,
+                limit: String(limit), skip: String((page - 1) * limit),
+            });
+            return getJson(`https://openaccess-api.clevelandart.org/api/artworks?${params}`);
+        };
+        const [paintings, drawings, prints] = await Promise.all([
+            fetchType('Painting'),
+            fetchType('Drawing'),
+            fetchType('Print'),
+        ]);
+        const source = sourceById('cleveland-museum-of-art');
+        return {
+            artworks: [...(paintings.data || []), ...(drawings.data || []), ...(prints.data || [])].filter(item => item.images?.web?.url).map(item => {
+                const printImg = item.images.print || {};
+                const webImg = item.images.web || {};
+                return normalizeMuseumArtwork({
+                    ...item,
+                    artist: item.creators?.map(creator => creator.description).filter(Boolean).join(', '),
+                    image: webImg.url,
+                    fullRes: printImg.url || item.images.original?.url || webImg.url,
+                    imageWidth: Number(printImg.width || webImg.width) || null,
+                    imageHeight: Number(printImg.height || webImg.height) || null,
+                }, source);
+            }),
+            total: (paintings.info?.total || 0) + (drawings.info?.total || 0) + (prints.info?.total || 0),
+        };
+    } catch {
+        return fetchServerCollection('cleveland-museum-of-art', page);
+    }
 }
 
 function firstEnglishName(items = []) {
@@ -95,7 +108,7 @@ async function fetchRijks(page) {
         return fetchServerCollection('rijksmuseum', page);
     }
     try {
-        const search = await getJson('https://data.rijksmuseum.nl/search/collection?imageAvailable=true&type=painting');
+        const search = await getJson('https://data.rijksmuseum.nl/search/collection?imageAvailable=true');
         const offset = (page - 1) * PAGE_SIZE;
         const identifiers = (search.orderedItems || []).slice(offset, offset + PAGE_SIZE);
         if (!identifiers.length) {
@@ -178,7 +191,11 @@ async function fetchNasa(page) {
     return fetchServerCollection('nasa-open-media', page);
 }
 
-const PARIS_OPEN_ART_TYPE_IDS = [330958, 167983, 330934, 167938, 166238];
+const PARIS_OPEN_ART_TYPE_IDS = [
+    166168, 166238, 330934, 167938, 167983, 330958, 213549, 214341,
+    214461, 214484, 214499, 25, 130627, 130658, 349077, 307019,
+    307699, 358254, 350951, 430913,
+];
 const PARIS_PUBLIC_TOKEN = '9a695903-3959-4413-8a65-7427ac729efe';
 
 async function fetchParis(page) {
