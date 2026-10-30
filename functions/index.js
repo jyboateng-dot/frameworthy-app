@@ -950,7 +950,11 @@ exports.proxyArtInstituteImage = onRequest({ region: 'us-central1', memory: '512
     }
     try {
         const upstream = await fetch(`https://www.artic.edu/iiif/2/${imageId}/full/${width},/0/default.jpg`, {
-            headers: { 'User-Agent': 'FrameWorthy/1.0', Referer: 'https://www.artic.edu/' },
+            headers: {
+                'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36',
+                Referer: 'https://www.artic.edu/',
+                Accept: 'image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8',
+            },
             signal: AbortSignal.timeout(25_000),
         });
         if (!upstream.ok) {
