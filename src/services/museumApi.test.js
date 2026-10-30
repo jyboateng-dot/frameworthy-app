@@ -17,7 +17,7 @@ describe('museum snapshot prefetching', () => {
                     { id: 'snapshot-art', title: 'Snapshot art', image: 'https://example.test/art.jpg', classification: 'Painting' },
                     { id: 'object', title: 'Vase', image: 'https://example.test/vase.jpg', classification: 'Ceramic' },
                 ],
-                total: 1,
+                total: 2,
             }),
         });
         vi.stubGlobal('fetch', fetch);
@@ -31,19 +31,13 @@ describe('museum snapshot prefetching', () => {
             id: 'national-gallery-of-art:snapshot-art',
             sourceId: 'national-gallery-of-art',
         });
-        expect(result.artworks).toHaveLength(1);
+        expect(result.artworks).toHaveLength(2);
     });
 
     it('falls through to the live loader when a warmed snapshot is unavailable', async () => {
         const fetch = vi.fn()
             .mockResolvedValueOnce({ ok: false })
             .mockResolvedValueOnce({
-                ok: true,
-                json: async () => ({ data: [], info: { total: 0 } }),
-            }).mockResolvedValueOnce({
-                ok: true,
-                json: async () => ({ data: [], info: { total: 0 } }),
-            }).mockResolvedValueOnce({
                 ok: true,
                 json: async () => ({ data: [], info: { total: 0 } }),
             });
@@ -53,7 +47,7 @@ describe('museum snapshot prefetching', () => {
         await prefetchMuseumSnapshot('cleveland-museum-of-art');
         await expect(fetchMuseumArtworks('cleveland-museum-of-art')).resolves.toEqual({ artworks: [], total: 0 });
 
-        expect(fetch).toHaveBeenCalledTimes(4);
+        expect(fetch).toHaveBeenCalledTimes(2);
         expect(fetch.mock.calls[1][0]).toContain('openaccess-api.clevelandart.org');
     });
 
@@ -211,14 +205,6 @@ describe('museum snapshot prefetching', () => {
                     }],
                     pagination: { total: 1 },
                 }),
-            })
-            .mockResolvedValueOnce({
-                ok: true,
-                json: async () => ({ data: [], pagination: { total: 0 } }),
-            })
-            .mockResolvedValueOnce({
-                ok: true,
-                json: async () => ({ data: [], pagination: { total: 0 } }),
             });
         vi.stubGlobal('fetch', fetch);
         const { fetchMuseumArtworks } = await import('./museumApi.js');

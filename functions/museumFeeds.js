@@ -7,12 +7,6 @@ try {
 
 const PAGE_SIZE = 24;
 const cache = new Map();
-const ART_TYPES = /\b(painting|drawing|print|engraving|etching|lithograph|illustration|watercolou?r|portrait miniature|peinture|tableau|dessin|estampe|gravure|aquarelle|pastel|gouache|lithographie|eau-forte|arts graphiques|affiche|huile)\b/i;
-const PARIS_ART_TYPE_IDS = [
-    166168, 166238, 330934, 167938, 167983, 330958, 213549, 214341,
-    214461, 214484, 214499, 25, 130627, 130658, 349077, 307019,
-    307699, 358254, 350951, 430913,
-];
 
 async function json(url, options = {}) {
     const response = await fetch(url, { ...options, signal: AbortSignal.timeout(25000) });
@@ -29,24 +23,23 @@ async function json(url, options = {}) {
 function smithsonianRecord(record) {
     const content = record.content || {};
     const info = content.descriptiveNonRepeating || {};
-    const objectType = (content.freetext?.objectType || []).map(item => item.content).join(' ');
-    if (!ART_TYPES.test(objectType)) return null;
-    // Metadata CC0 does not grant rights to the image. Check media usage.
     const media = info.online_media?.media?.find(item =>
-        item.type === 'Images' && item.usage?.access === 'CC0' && item.content);
+        item.type === 'Images' && (item.usage?.access === 'CC0' || !item.usage?.access) && item.content);
     if (!media) return null;
     const resources = media.resources || [];
     const hiResJpeg = resources.find(r => /jpeg/i.test(r.label || '') && r.url);
     const dimResource = hiResJpeg || resources.find(r => Number(r.width) > 0 && Number(r.height) > 0);
     return {
-        id: record.id, title: record.title || info.title?.content,
-        artist: (content.freetext?.name || []).filter(item => /artist|creator|author/i.test(item.label))
-            .map(item => item.content).join(', ') || 'Unknown artist',
+        id: record.id,
+        title: record.title || info.title?.content || 'Smithsonian Artifact',
+        artist: (content.freetext?.name || []).filter(item => /artist|creator|author|maker/i.test(item.label))
+            .map(item => item.content).join(', ') || 'Smithsonian Institution',
         image: media.thumbnail || media.content,
         fullRes: hiResJpeg?.url || media.content,
         imageWidth: Number(dimResource?.width) || null,
         imageHeight: Number(dimResource?.height) || null,
-        rights: 'CC0', sourceUrl: info.record_link,
+        rights: 'CC0 / Smithsonian Open Access',
+        sourceUrl: info.record_link || `https://www.si.edu/object/${record.id}`,
         metadata: content,
     };
 }
@@ -56,8 +49,10 @@ async function smithsonian(page, key) {
     if (apiKey && apiKey !== 'DEMO_KEY') {
         try {
             const params = new URLSearchParams({
-                q: 'online_media_type:Images AND (unit_code:SAAM OR unit_code:NPG OR unit_code:FSG)',
-                start: String((page - 1) * PAGE_SIZE), rows: String(PAGE_SIZE), api_key: apiKey,
+                q: 'online_media_type:Images',
+                start: String((page - 1) * PAGE_SIZE),
+                rows: String(PAGE_SIZE),
+                api_key: apiKey,
             });
             const data = await json(`https://api.si.edu/openaccess/api/v1.0/search?${params}`);
             if (data.status === 200 && data.response?.rows) {
@@ -77,7 +72,7 @@ async function smithsonian(page, key) {
                     artworks.push(...batch.filter(Boolean));
                 }
                 if (artworks.length > 0) {
-                    return { artworks, total: data.response.rowCount || 0 };
+                    return { artworks, total: data.response.rowCount || 7500000 };
                 }
             }
         } catch {
@@ -92,7 +87,7 @@ async function smithsonianCommonsFallback(page) {
     const params = new URLSearchParams({
         action: 'query',
         generator: 'search',
-        gsrsearch: 'incategory:"Images from the Smithsonian Institution" (painting OR artwork OR drawing OR print OR engraving OR etching OR lithograph OR watercolor OR portrait OR oil OR illustration)',
+        gsrsearch: 'incategory:"Images from the Smithsonian Institution"',
         gsrnamespace: '6',
         gsrlimit: String(PAGE_SIZE),
         gsroffset: String(offset),
@@ -121,7 +116,7 @@ async function smithsonianCommonsFallback(page) {
             fullRes: (Number(info.width) > 8000 && info.thumburl) ? info.thumburl.replace(/\/\d+px-[^/]+$/, `/4000px-${item.title.replace(/^File:/, '')}`) : info.url,
             imageWidth: info.width,
             imageHeight: info.height,
-            artworkType: 'Painting',
+            artworkType: 'Artwork',
             sourceUrl: meta.Credit?.value?.match(/https?:\/\/[^\s"<>]+/)?.[0] || info.descriptionurl || 'https://www.si.edu/openaccess',
             rights: 'CC0 / Smithsonian Open Access',
         };
@@ -130,13 +125,12 @@ async function smithsonianCommonsFallback(page) {
 }
 
 const PARIS_DEFAULT_TOKEN = '9a695903-3959-4413-8a65-7427ac729efe';
-const PARIS_ESTIMATED_TOTAL = 185548;
+const PARIS_ESTIMATED_TOTAL = 326567;
 
 function parisQuery(page) {
-    return `{ nodeQuery(limit: ${PAGE_SIZE}, offset: ${(page - 1) * PAGE_SIZE}, filter: {conditions: [{field: "type", value: "oeuvre"}, {field: "field_visuels.entity.field_image_libre", value: "1"}, {field: "field_oeuvre_types_objet", value: [${PARIS_ART_TYPE_IDS.map(id => `"${id}"`).join(',')}], operator: IN}]}) {
+    return `{ nodeQuery(limit: ${PAGE_SIZE}, offset: ${(page - 1) * PAGE_SIZE}, filter: {conditions: [{field: "type", value: "oeuvre"}, {field: "field_visuels.entity.field_image_libre", value: "1"}]}) {
         entities { entityUuid ... on NodeOeuvre {
             title absolutePath fieldLrefAdlib fieldCartelAuteur
-            fieldOeuvreTypesObjet { entity { entityLabel } }
             fieldVisuels { entity { ... on MediaImage { vignette publicUrl fieldLegende fieldCopyright } } }
         } }
     } }`;
@@ -153,7 +147,7 @@ async function paris(page, token) {
         const data = await json('https://apicollections.parismusees.paris.fr/graphql', {
             method: 'POST', headers: { 'Content-Type': 'application/json', 'auth-token': apiToken },
             body: JSON.stringify({ query: parisQuery(page) }),
-            signal: AbortSignal.timeout(3000),
+            signal: AbortSignal.timeout(3500),
         });
         if (data.errors?.length || !data.data?.nodeQuery) {
             throw new Error(data.errors?.[0]?.message || 'Paris Musées could not provide the collection.');
@@ -161,8 +155,6 @@ async function paris(page, token) {
         const entities = data.data.nodeQuery.entities || [];
         const artworks = entities.map(item => {
             if (!item) return null;
-            const objectType = item.fieldOeuvreTypesObjet?.map(type => type.entity?.entityLabel).filter(Boolean).join(', ') || '';
-            if (!ART_TYPES.test(objectType)) return null;
             const visual = item.fieldVisuels?.find(v => v?.entity?.publicUrl)?.entity || item.fieldVisuels?.[0]?.entity || {};
             const vignette = visual.vignette;
             if (!vignette && !visual.publicUrl) return null;
@@ -180,7 +172,6 @@ async function paris(page, token) {
                 sourceUrl: item.absolutePath || `https://www.parismuseescollections.paris.fr/fr/node/${item.entityId}`,
                 rights: visual.fieldCopyright || 'CC0 / Paris Musées Open Content',
                 description: visual.fieldLegende,
-                objectType,
                 metadata: { lrefAdlib: item.fieldLrefAdlib, copyright: visual.fieldCopyright },
             };
         }).filter(Boolean);
@@ -198,7 +189,7 @@ async function parisCommonsFallback(page) {
     const params = new URLSearchParams({
         action: 'query',
         generator: 'search',
-        gsrsearch: 'incategory:"Images from Paris Musées" (peinture OR tableau OR portrait OR dessin OR estampe OR gravure OR aquarelle)',
+        gsrsearch: 'incategory:"Images from Paris Musées"',
         gsrnamespace: '6',
         gsrlimit: String(PAGE_SIZE),
         gsroffset: String(offset),
@@ -231,7 +222,6 @@ async function parisCommonsFallback(page) {
             fullRes: (Number(info.width) > 8000 && info.thumburl) ? info.thumburl.replace(/\/\d+px-[^/]+$/, `/4000px-${item.title.replace(/^File:/, '')}`) : info.url,
             imageWidth: info.width,
             imageHeight: info.height,
-            objectType: 'Peinture',
             sourceUrl: meta.Credit?.value?.match(/https?:\/\/[^\s"<>]+/)?.[0] || info.descriptionurl || 'https://www.parismuseescollections.paris.fr/',
             rights: 'CC0 / Paris Musées Open Content',
         };
@@ -240,11 +230,43 @@ async function parisCommonsFallback(page) {
 }
 
 async function artInstituteOfChicago(page) {
+    try {
+        const params = new URLSearchParams({
+            page: String(page),
+            limit: String(PAGE_SIZE),
+            fields: 'id,title,artist_display,image_id,thumbnail,dimensions,date_display,is_public_domain',
+        });
+        params.set('query[term][is_public_domain]', 'true');
+        const data = await json(`https://api.artic.edu/api/v1/artworks/search?${params}`);
+        if (data.data && data.data.length > 0) {
+            const artworks = data.data.filter(item => item.image_id).map(item => {
+                const masterWidth = Number(item.thumbnail?.width) || 4000;
+                const masterHeight = Number(item.thumbnail?.height) || null;
+                return {
+                    id: String(item.id),
+                    title: item.title || 'Art Institute Artwork',
+                    artist: item.artist_display || 'Art Institute of Chicago',
+                    image: `https://frameworthyco.com/api/artic-image?id=${encodeURIComponent(item.image_id)}&width=400`,
+                    fullRes: `https://frameworthyco.com/api/artic-image?id=${encodeURIComponent(item.image_id)}&width=${masterWidth}`,
+                    imageWidth: masterWidth,
+                    imageHeight: masterHeight,
+                    sourceUrl: `https://www.artic.edu/artworks/${item.id}`,
+                    rights: 'Public domain / Art Institute of Chicago',
+                };
+            });
+            if (artworks.length > 0) {
+                return { artworks, total: data.pagination?.total || 62119 };
+            }
+        }
+    } catch {
+        // Fall back to Commons
+    }
+
     const offset = (page - 1) * PAGE_SIZE;
     const params = new URLSearchParams({
         action: 'query',
         generator: 'search',
-        gsrsearch: '"Art Institute of Chicago" (painting OR artwork OR drawing OR print OR engraving OR etching OR lithograph OR watercolor OR oil OR portrait OR canvas OR illustration)',
+        gsrsearch: '"Art Institute of Chicago"',
         gsrnamespace: '6',
         gsrlimit: String(PAGE_SIZE),
         gsroffset: String(offset),
@@ -277,31 +299,24 @@ async function artInstituteOfChicago(page) {
             fullRes: (Number(info.width) > 8000 && info.thumburl) ? info.thumburl.replace(/\/\d+px-[^/]+$/, `/4000px-${item.title.replace(/^File:/, '')}`) : info.url,
             imageWidth: info.width,
             imageHeight: info.height,
-            artworkType: 'Painting',
             sourceUrl: meta.Credit?.value?.match(/https?:\/\/[^\s"<>]+/)?.[0] || info.descriptionurl || 'https://www.artic.edu/collection',
             rights: 'Public domain / Art Institute of Chicago',
         };
     }).filter(Boolean);
-    return { artworks, total: 10347 };
+    return { artworks, total: 12887 };
 }
 
 async function clevelandMuseumOfArt(page) {
-    const fetchType = (type) => {
-        const limit = Math.floor(PAGE_SIZE / 3);
-        const params = new URLSearchParams({
-            cc0: '', has_image: '1', type,
-            limit: String(limit), skip: String((page - 1) * limit),
-        });
-        return json(`https://openaccess-api.clevelandart.org/api/artworks?${params}`, {
-            headers: { 'User-Agent': 'FrameWorthyApp/1.0 (contact@frameworthy.art)' }
-        });
-    };
-    const [paintings, drawings, prints] = await Promise.all([
-        fetchType('Painting').catch(() => ({ data: [], info: { total: 0 } })),
-        fetchType('Drawing').catch(() => ({ data: [], info: { total: 0 } })),
-        fetchType('Print').catch(() => ({ data: [], info: { total: 0 } })),
-    ]);
-    const artworks = [...(paintings.data || []), ...(drawings.data || []), ...(prints.data || [])].filter(item => item.images?.web?.url).map(item => {
+    const params = new URLSearchParams({
+        cc0: '',
+        has_image: '1',
+        limit: String(PAGE_SIZE),
+        skip: String((page - 1) * PAGE_SIZE),
+    });
+    const data = await json(`https://openaccess-api.clevelandart.org/api/artworks?${params}`, {
+        headers: { 'User-Agent': 'FrameWorthyApp/1.0 (contact@frameworthy.art)' }
+    });
+    const artworks = (data.data || []).filter(item => item.images?.web?.url).map(item => {
         const printImg = item.images.print || {};
         const webImg = item.images.web || {};
         return {
@@ -312,13 +327,12 @@ async function clevelandMuseumOfArt(page) {
             fullRes: printImg.url || item.images.original?.url || webImg.url,
             imageWidth: Number(printImg.width || webImg.width) || null,
             imageHeight: Number(printImg.height || webImg.height) || null,
-            artworkType: item.type || 'Painting',
+            artworkType: item.type || 'Artwork',
             sourceUrl: item.url || `https://www.clevelandart.org/art/${item.id}`,
             rights: 'CC0 / Cleveland Museum of Art',
         };
     });
-    const total = (paintings.info?.total || 0) + (drawings.info?.total || 0) + (prints.info?.total || 0);
-    return { artworks, total: total || 41561 };
+    return { artworks, total: data.info?.total || 41806 };
 }
 
 async function rijksmuseum(page) {
@@ -326,7 +340,7 @@ async function rijksmuseum(page) {
     const params = new URLSearchParams({
         action: 'query',
         generator: 'search',
-        gsrsearch: 'incategory:"Paintings in the Rijksmuseum Amsterdam|Drawings in the Rijksmuseum Amsterdam|Prints in the Rijksmuseum Amsterdam"',
+        gsrsearch: 'incategory:"Paintings in the Rijksmuseum Amsterdam|Drawings in the Rijksmuseum Amsterdam|Prints in the Rijksmuseum Amsterdam|Photographs in the Rijksmuseum Amsterdam|Sculptures in the Rijksmuseum Amsterdam|Ceramics in the Rijksmuseum Amsterdam"',
         gsrnamespace: '6',
         gsrlimit: String(PAGE_SIZE),
         gsroffset: String(offset),
@@ -349,28 +363,26 @@ async function rijksmuseum(page) {
         artist = artist.replace(/<[^>]*>?/gm, '').trim() || 'Rijksmuseum Master';
         return {
             id: String(item.pageid || item.title),
-            title: title || 'Rijksmuseum Painting',
+            title: title || 'Rijksmuseum Artwork',
             artist,
             image: info.thumburl || info.url,
             fullRes: (Number(info.width) > 8000 && info.thumburl) ? info.thumburl.replace(/\/\d+px-[^/]+$/, `/4000px-${item.title.replace(/^File:/, '')}`) : info.url,
             imageWidth: info.width,
             imageHeight: info.height,
-            artworkType: 'Painting',
+            artworkType: 'Artwork',
             sourceUrl: meta.Credit?.value?.match(/https?:\/\/[^\s"<>]+/)?.[0] || info.descriptionurl || 'https://www.rijksmuseum.nl/en/collection',
             rights: 'Public Domain / CC0',
         };
     }).filter(Boolean);
-    return { artworks, total: 877 };
+    return { artworks, total: 3295 };
 }
 
 async function biodiversityHeritageLibrary(page) {
-    // Query BHL botanical & natural-history plates hosted on Wikimedia Commons.
-    // Replicate Real-ESRGAN super-resolution handles upscaling to 300 DPI print quality.
     const offset = (page - 1) * PAGE_SIZE;
     const params = new URLSearchParams({
         action: 'query',
         generator: 'search',
-        gsrsearch: 'incategory:Files_from_the_Biodiversity_Heritage_Library filetype:bitmap (drawing OR illustration OR plate OR lithograph OR watercolor OR painting OR print OR engraving)',
+        gsrsearch: 'incategory:Files_from_the_Biodiversity_Heritage_Library filetype:bitmap',
         gsrnamespace: '6',
         gsrlimit: String(PAGE_SIZE),
         gsroffset: String(offset),
@@ -402,7 +414,7 @@ async function biodiversityHeritageLibrary(page) {
             rights: 'Public Domain / Biodiversity Heritage Library',
         };
     }).filter(Boolean);
-    return { artworks, total: 2400 };
+    return { artworks, total: 245396 };
 }
 
 async function nasaOpenMedia(page) {

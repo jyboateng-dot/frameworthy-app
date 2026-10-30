@@ -8,7 +8,6 @@ const requestCache = new Map();
 const snapshotCache = new Map();
 const PUBLIC_SITE_ORIGIN = 'https://frameworthyco.com';
 
-
 const artInstituteImageUrl = (imageId, width = 843) =>
     `${PUBLIC_SITE_ORIGIN}/api/artic-image?id=${encodeURIComponent(imageId)}&width=${width}`;
 
@@ -24,36 +23,30 @@ async function fetchArtInstitute(page) {
     if (page > 83) {
         return fetchServerCollection('art-institute-of-chicago', page);
     }
-    const fetchType = async (type) => {
-        const params = new URLSearchParams({
-            page: String(page), limit: String(PAGE_SIZE / 3),
-            fields: 'id,title,artist_display,image_id,thumbnail,dimensions,date_display,is_public_domain,artwork_type_title',
-        });
-        params.set('query[bool][must][0][term][is_public_domain]', 'true');
-        params.set('query[bool][must][1][term][artwork_type_title.keyword]', type);
-        return getJson(`https://api.artic.edu/api/v1/artworks/search?${params}`);
-    };
+    const params = new URLSearchParams({
+        page: String(page),
+        limit: String(PAGE_SIZE),
+        fields: 'id,title,artist_display,image_id,thumbnail,dimensions,date_display,is_public_domain',
+    });
+    params.set('query[term][is_public_domain]', 'true');
     try {
-        const [paintings, drawings, prints] = await Promise.all([
-            fetchType('Painting'),
-            fetchType('Drawing'),
-            fetchType('Print'),
-        ]);
+        const payload = await getJson(`https://api.artic.edu/api/v1/artworks/search?${params}`);
         const source = sourceById('art-institute-of-chicago');
+        const artworks = (payload.data || []).filter(item => item.image_id).map(item => {
+            const masterWidth = Number(item.thumbnail?.width) || 4000;
+            const masterHeight = Number(item.thumbnail?.height) || null;
+            return normalizeMuseumArtwork({
+                ...item,
+                artist_display: item.artist_display,
+                image: artInstituteImageUrl(item.image_id, 400),
+                fullRes: artInstituteImageUrl(item.image_id, masterWidth),
+                imageWidth: masterWidth,
+                imageHeight: masterHeight,
+            }, source);
+        });
         return {
-            artworks: [...(paintings.data || []), ...(drawings.data || []), ...(prints.data || [])].filter(item => item.image_id).map(item => {
-                const masterWidth = Number(item.thumbnail?.width) || 4000;
-                const masterHeight = Number(item.thumbnail?.height) || null;
-                return normalizeMuseumArtwork({
-                    ...item,
-                    artist_display: item.artist_display,
-                    image: artInstituteImageUrl(item.image_id, 400),
-                    fullRes: artInstituteImageUrl(item.image_id, masterWidth),
-                    imageWidth: masterWidth,
-                    imageHeight: masterHeight,
-                }, source);
-            }),
-            total: (paintings.pagination?.total || 0) + (drawings.pagination?.total || 0) + (prints.pagination?.total || 0),
+            artworks,
+            total: payload.pagination?.total || artworks.length,
         };
     } catch {
         return fetchServerCollection('art-institute-of-chicago', page);
@@ -62,34 +55,29 @@ async function fetchArtInstitute(page) {
 
 async function fetchCleveland(page) {
     try {
-        const fetchType = (type) => {
-            const limit = Math.floor(PAGE_SIZE / 3);
-            const params = new URLSearchParams({
-                cc0: '', has_image: '1', type,
-                limit: String(limit), skip: String((page - 1) * limit),
-            });
-            return getJson(`https://openaccess-api.clevelandart.org/api/artworks?${params}`);
-        };
-        const [paintings, drawings, prints] = await Promise.all([
-            fetchType('Painting'),
-            fetchType('Drawing'),
-            fetchType('Print'),
-        ]);
+        const params = new URLSearchParams({
+            cc0: '',
+            has_image: '1',
+            limit: String(PAGE_SIZE),
+            skip: String((page - 1) * PAGE_SIZE),
+        });
+        const payload = await getJson(`https://openaccess-api.clevelandart.org/api/artworks?${params}`);
         const source = sourceById('cleveland-museum-of-art');
+        const artworks = (payload.data || []).filter(item => item.images?.web?.url).map(item => {
+            const printImg = item.images.print || {};
+            const webImg = item.images.web || {};
+            return normalizeMuseumArtwork({
+                ...item,
+                artist: item.creators?.map(creator => creator.description).filter(Boolean).join(', '),
+                image: webImg.url,
+                fullRes: printImg.url || item.images.original?.url || webImg.url,
+                imageWidth: Number(printImg.width || webImg.width) || null,
+                imageHeight: Number(printImg.height || webImg.height) || null,
+            }, source);
+        });
         return {
-            artworks: [...(paintings.data || []), ...(drawings.data || []), ...(prints.data || [])].filter(item => item.images?.web?.url).map(item => {
-                const printImg = item.images.print || {};
-                const webImg = item.images.web || {};
-                return normalizeMuseumArtwork({
-                    ...item,
-                    artist: item.creators?.map(creator => creator.description).filter(Boolean).join(', '),
-                    image: webImg.url,
-                    fullRes: printImg.url || item.images.original?.url || webImg.url,
-                    imageWidth: Number(printImg.width || webImg.width) || null,
-                    imageHeight: Number(printImg.height || webImg.height) || null,
-                }, source);
-            }),
-            total: (paintings.info?.total || 0) + (drawings.info?.total || 0) + (prints.info?.total || 0),
+            artworks,
+            total: payload.info?.total || artworks.length,
         };
     } catch {
         return fetchServerCollection('cleveland-museum-of-art', page);
@@ -102,8 +90,6 @@ function firstEnglishName(items = []) {
 }
 
 async function fetchRijks(page) {
-    // Linked Art collection endpoint provides the first 100 items. Beyond
-    // that, or on any upstream network hiccup, seamlessly use the server feed.
     if (page > 4) {
         return fetchServerCollection('rijksmuseum', page);
     }
@@ -171,16 +157,22 @@ async function fetchServerCollection(sourceId, page) {
     const response = await fetch(`${archivalEndpoint}?source=${encodeURIComponent(sourceId)}&page=${page}`);
     const data = await response.json();
     if (!response.ok) throw new Error(data.error || 'The collection is temporarily unavailable.');
-    return { ...data, artworks: data.artworks
-        .filter(record => isFramableMuseumArtwork(sourceId, record))
-        .map(record => normalizeMuseumArtwork(record, sourceById(sourceId))) };
+    return {
+        ...data,
+        artworks: data.artworks
+            .filter(record => isFramableMuseumArtwork(sourceId, record))
+            .map(record => normalizeMuseumArtwork(record, sourceById(sourceId))),
+    };
 }
 
 async function fetchNga(page) {
     const data = await getJson(`/museum-data/nga/${page}.json`);
-    return { ...data, artworks: data.artworks
-        .filter(record => isFramableMuseumArtwork('national-gallery-of-art', record))
-        .map(record => normalizeMuseumArtwork(record, sourceById('national-gallery-of-art'))) };
+    return {
+        ...data,
+        artworks: data.artworks
+            .filter(record => isFramableMuseumArtwork('national-gallery-of-art', record))
+            .map(record => normalizeMuseumArtwork(record, sourceById('national-gallery-of-art'))),
+    };
 }
 
 async function fetchLibraryOfCongress(page) {
@@ -191,11 +183,6 @@ async function fetchNasa(page) {
     return fetchServerCollection('nasa-open-media', page);
 }
 
-const PARIS_OPEN_ART_TYPE_IDS = [
-    166168, 166238, 330934, 167938, 167983, 330958, 213549, 214341,
-    214461, 214484, 214499, 25, 130627, 130658, 349077, 307019,
-    307699, 358254, 350951, 430913,
-];
 const PARIS_PUBLIC_TOKEN = '9a695903-3959-4413-8a65-7427ac729efe';
 
 async function fetchParis(page) {
@@ -203,7 +190,7 @@ async function fetchParis(page) {
         return await fetchServerCollection('paris-musees', page);
     } catch (serverErr) {
         // Fall back directly to the open GraphQL API (CORS enabled) if server function is unreachable
-        const query = `{ nodeQuery(limit: ${PAGE_SIZE}, offset: ${(page - 1) * PAGE_SIZE}, filter: {conditions: [{field: "type", value: "oeuvre"}, {field: "field_visuels.entity.field_image_libre", value: "1"}, {field: "field_oeuvre_types_objet", value: [${PARIS_OPEN_ART_TYPE_IDS.map(id => `"${id}"`).join(',')}], operator: IN}]}) {
+        const query = `{ nodeQuery(limit: ${PAGE_SIZE}, offset: ${(page - 1) * PAGE_SIZE}, filter: {conditions: [{field: "type", value: "oeuvre"}, {field: "field_visuels.entity.field_image_libre", value: "1"}]}) {
             entities { entityUuid ... on NodeOeuvre {
                 title absolutePath fieldLrefAdlib fieldCartelAuteur
                 fieldOeuvreTypesObjet { entity { entityLabel } }
@@ -264,10 +251,6 @@ export async function fetchMuseumArtworks(sourceId, page = 1) {
     const existing = requestCache.get(requestKey);
     if (existing) return existing;
 
-    // A prefetched snapshot may still be in flight. Resolve it before using a
-    // live loader, so switching to a warmed source reuses the same response.
-    // `null` is an intentional cache value for sources/pages without a local
-    // snapshot and must always fall through to the source's live loader.
     const snapshot = snapshotCache.get(requestKey) || fetchMuseumSnapshot(sourceId, page);
     snapshotCache.set(requestKey, snapshot);
     const request = snapshot.then(data => data || fetchMuseumArtworksLive(sourceId, page));
@@ -294,7 +277,7 @@ async function fetchMuseumSnapshot(sourceId, page) {
             }
         }
     } catch {
-        // A missing or failed snapshot is not a failed collection request.
+        // A missing or failed snapshot falls back to the live loader.
     }
     return null;
 }
@@ -305,9 +288,6 @@ async function fetchMuseumArtworksLive(sourceId, page) {
     return loader(page);
 }
 
-// Warm only local snapshots during idle time. This avoids adding network/API
-// pressure while making the next category switch instant where a snapshot is
-// available; categories without a snapshot still use their normal live loader.
 export function prefetchMuseumSnapshot(sourceId, page = 1) {
     const requestKey = `${sourceId}:${page}`;
     if (snapshotCache.has(requestKey)) return snapshotCache.get(requestKey);
@@ -315,4 +295,3 @@ export function prefetchMuseumSnapshot(sourceId, page = 1) {
     snapshotCache.set(requestKey, snapshot);
     return snapshot;
 }
-
