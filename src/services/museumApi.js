@@ -32,37 +32,7 @@ async function getJson(url) {
 }
 
 async function fetchArtInstitute(page) {
-    if (page > 41) {
-        return fetchServerCollection('art-institute-of-chicago', page);
-    }
-    const params = new URLSearchParams({
-        page: String(page),
-        limit: String(PAGE_SIZE),
-        fields: 'id,title,artist_display,image_id,thumbnail,dimensions,date_display,is_public_domain',
-    });
-    params.set('query[term][is_public_domain]', 'true');
-    try {
-        const payload = await getJson(`https://api.artic.edu/api/v1/artworks/search?${params}`);
-        const source = sourceById('art-institute-of-chicago');
-        const artworks = (payload.data || []).filter(item => item.image_id).map(item => {
-            const masterWidth = Number(item.thumbnail?.width) || 4000;
-            const masterHeight = Number(item.thumbnail?.height) || null;
-            return normalizeMuseumArtwork({
-                ...item,
-                artist_display: item.artist_display,
-                image: artInstituteImageUrl(item.image_id, 400),
-                fullRes: artInstituteImageUrl(item.image_id, masterWidth),
-                imageWidth: masterWidth,
-                imageHeight: masterHeight,
-            }, source);
-        });
-        return {
-            artworks,
-            total: payload.pagination?.total || artworks.length,
-        };
-    } catch {
-        return fetchServerCollection('art-institute-of-chicago', page);
-    }
+    return fetchServerCollection('art-institute-of-chicago', page);
 }
 
 async function fetchCleveland(page) {

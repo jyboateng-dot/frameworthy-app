@@ -189,21 +189,23 @@ describe('museum snapshot prefetching', () => {
         });
     });
 
-    it('uses the master IIIF width rather than a 2400px cap for Art Institute of Chicago', async () => {
+    it('uses the master image width rather than a 2400px cap for Art Institute of Chicago', async () => {
         const fetch = vi.fn()
             .mockResolvedValueOnce({ ok: false })
             .mockResolvedValueOnce({
                 ok: true,
                 json: async () => ({
-                    data: [{
-                        id: 28560,
+                    artworks: [{
+                        id: '28560',
                         title: 'The Bedroom',
-                        artist_display: 'Vincent van Gogh',
-                        image_id: '6644829f-f292-c5c4-a73c-0356a6fdbf0d',
-                        thumbnail: { width: 12614, height: 9875 },
-                        artwork_type_title: 'Painting',
+                        artist: 'Vincent van Gogh',
+                        image: 'https://upload.wikimedia.org/bedroom.jpg',
+                        fullRes: 'https://upload.wikimedia.org/bedroom_master.jpg',
+                        imageWidth: 12614,
+                        imageHeight: 9875,
+                        artworkType: 'Painting',
                     }],
-                    pagination: { total: 1 },
+                    total: 1,
                 }),
             });
         vi.stubGlobal('fetch', fetch);
@@ -215,7 +217,7 @@ describe('museum snapshot prefetching', () => {
             id: 'art-institute-of-chicago:28560',
             imageWidth: 12614,
             imageHeight: 9875,
-            fullRes: 'https://frameworthyco.com/api/artic-image?id=6644829f-f292-c5c4-a73c-0356a6fdbf0d&width=12614',
+            fullRes: 'https://upload.wikimedia.org/bedroom_master.jpg',
         });
     });
 });

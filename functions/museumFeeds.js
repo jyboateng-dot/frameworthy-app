@@ -158,47 +158,11 @@ async function parisCommonsFallback(page) {
 }
 
 async function artInstituteOfChicago(page) {
-    // Official Art Institute API enforces max from+size <= 1000 (page 41).
-    // For page <= 41, query official API. For page > 41, use Wikimedia Commons.
-    if (page <= 41) {
-        try {
-            const params = new URLSearchParams({
-                page: String(page),
-                limit: String(PAGE_SIZE),
-                fields: 'id,title,artist_display,image_id,thumbnail,dimensions,date_display,is_public_domain',
-            });
-            params.set('query[term][is_public_domain]', 'true');
-            const data = await json(`https://api.artic.edu/api/v1/artworks/search?${params}`, { signal: AbortSignal.timeout(3000) });
-            if (data.data && data.data.length > 0) {
-                const artworks = data.data.filter(item => item.image_id).map(item => {
-                    const masterWidth = Number(item.thumbnail?.width) || 4000;
-                    const masterHeight = Number(item.thumbnail?.height) || null;
-                    return {
-                        id: String(item.id),
-                        title: item.title || 'Art Institute Artwork',
-                        artist: item.artist_display || 'Art Institute of Chicago',
-                        image: `https://frameworthyco.com/api/artic-image?id=${encodeURIComponent(item.image_id)}&width=400`,
-                        fullRes: `https://frameworthyco.com/api/artic-image?id=${encodeURIComponent(item.image_id)}&width=${masterWidth}`,
-                        imageWidth: masterWidth,
-                        imageHeight: masterHeight,
-                        sourceUrl: `https://www.artic.edu/artworks/${item.id}`,
-                        rights: 'Public domain / Art Institute of Chicago',
-                    };
-                });
-                if (artworks.length > 0) {
-                    return { artworks, total: MAX_COMMONS_TOTAL };
-                }
-            }
-        } catch {
-            // Fall through to Commons
-        }
-    }
-
     const offset = Math.min((page - 1) * PAGE_SIZE, MAX_COMMONS_OFFSET);
     const params = new URLSearchParams({
         action: 'query',
         generator: 'search',
-        gsrsearch: '"Art Institute of Chicago"',
+        gsrsearch: 'incategory:"Google_Art_Project_works_in_The_Art_Institute_of_Chicago|Paintings_in_the_Art_Institute_of_Chicago|Drawings_in_the_Art_Institute_of_Chicago|Prints_in_the_Art_Institute_of_Chicago"',
         gsrnamespace: '6',
         gsrlimit: String(PAGE_SIZE),
         gsroffset: String(offset),
@@ -216,13 +180,19 @@ async function artInstituteOfChicago(page) {
         const info = item.imageinfo?.[0];
         if (!info || !info.url) return null;
         const meta = info.extmetadata || {};
-        const rawTitle = meta.ObjectName?.value || item.title.replace(/^File:/, '').replace(/\.[^.]+$/, '').replace(/ - Google Art Project.*$/i, '').trim();
-        const title = rawTitle.replace(/<[^>]*>?/gm, '').replace(/^(English|French|Français)\s*:\s*/i, '').trim();
+        let rawTitle = meta.ObjectName?.value || '';
+        rawTitle = rawTitle.split(/\btitle QS:/i)[0].replace(/<[^>]*>?/gm, '').trim();
+        const fallbackTitle = item.title.replace(/^File:/, '').replace(/\.[^.]+$/, '').replace(/ - Google Art Project.*$/i, '').trim();
+        let title = rawTitle;
+        if (!title || title.includes('undefined') || /(German|French|Italian|Spanish|Dutch):/i.test(title) || title.length < 2) {
+            title = fallbackTitle;
+        }
+        title = title.replace(/^(English|French|Français)\s*:\s*/i, '').replace(/\s*\(cropped\)$/i, '').trim();
         let artist = meta.Artist?.value?.split(/<br\s*\/?>/i)[0] || '';
         artist = artist.replace(/<[^>]*>?/gm, '').trim();
         if (!artist || artist.toLowerCase() === 'unknown artist') {
             const m = item.title.replace(/^File:/, '').match(/^([^-]+)\s*-\s*/);
-            artist = m ? m[1].trim() : 'Master Artist';
+            artist = m ? m[1].trim() : 'Art Institute of Chicago';
         }
         return {
             id: String(item.pageid || item.title),
@@ -232,6 +202,7 @@ async function artInstituteOfChicago(page) {
             fullRes: (Number(info.width) > 8000 && info.thumburl) ? info.thumburl.replace(/\/\d+px-[^/]+$/, `/4000px-${item.title.replace(/^File:/, '')}`) : info.url,
             imageWidth: info.width,
             imageHeight: info.height,
+            artworkType: 'Artwork',
             sourceUrl: meta.Credit?.value?.match(/https?:\/\/[^\s"<>]+/)?.[0] || info.descriptionurl || 'https://www.artic.edu/collection',
             rights: 'Public domain / Art Institute of Chicago',
         };
