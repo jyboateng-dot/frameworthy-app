@@ -33,6 +33,7 @@ const OPEN_COLLECTION_SECTIONS = [
     { id: 'originals', label: 'Original Paintings' },
     { id: 'museum', label: 'Historic Masterpieces' },
     { id: 'met', label: 'Met Museum Collection' },
+    { id: 'library-of-congress', label: 'Library of Congress' },
     ...[
         'paris-musees',
         'art-institute-of-chicago',
@@ -45,6 +46,7 @@ const OPEN_COLLECTION_SECTIONS = [
         return { id: source.id, label: source.name };
     }),
     ...ARCHIVAL_SOURCES
+        .filter(source => source.id !== 'library-of-congress')
         .map(source => ({ id: source.id, label: source.name })),
 ];
 
