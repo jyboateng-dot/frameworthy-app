@@ -18,6 +18,17 @@ function cleanString(html, fallback = '') {
 }
 
 function cleanTitle(titleHtml, fileTitle) {
+    if (/Le Sommeil/i.test(fileTitle)) return 'Le Sommeil (The Sleepers)';
+    if (/Nymphe et faune.*Baiser/i.test(fileTitle)) return 'Nymphe et faune (The Kiss)';
+    if (/Le Baiser.*PPS1061\(2\)/i.test(fileTitle)) return 'Le Baiser (High Relief Study)';
+    if (/Le Baiser/i.test(fileTitle)) return 'Le Baiser (The Kiss)';
+    if (/H[eé]ro et L[eé]andre.*PPG5384/i.test(fileTitle)) return 'Héro et Léandre (Embossed Relief)';
+    if (/H[eé]ro et L[eé]andre/i.test(fileTitle)) return 'Héro et Léandre';
+    if (/Couple enlac[eé]/i.test(fileTitle)) return 'Couple enlacé couché dans un paysage';
+    if (/La Musique.*PPS1069/i.test(fileTitle)) return 'La Musique (Intertwined Figures)';
+    if (/La Treille/i.test(fileTitle)) return 'La Treille';
+    if (/Les amants dans la campagne/i.test(fileTitle)) return 'Les amants dans la campagne';
+
     const rawFile = fileTitle.replace(/^File:/, '').replace(/\.[^.]+$/, '').replace(/ - Google Art Project.*$/i, '').trim();
     let parts = rawFile.split(/\s*-\s*/);
     let fallbackTitle = parts.length > 1 ? parts.slice(1).join(' - ').trim() : rawFile;
@@ -32,6 +43,13 @@ function cleanTitle(titleHtml, fileTitle) {
 }
 
 function cleanArtist(artistHtml, fileTitle) {
+    if (artistHtml?.includes('Desbois, Jules') || fileTitle.includes('Desbois')) return 'Jules Desbois';
+    if (artistHtml?.includes('Roche, Pierre') || fileTitle.includes('Roche')) return 'Pierre Roche';
+    if (artistHtml?.includes('Dalou, Aimé-Jules') || fileTitle.includes('Dalou')) return 'Aimé-Jules Dalou';
+    if (artistHtml?.includes('Roussel, Ker-Xavier') || fileTitle.includes('Roussel')) return 'Ker-Xavier Roussel';
+    if (artistHtml?.includes('Courbet, Gustave') || fileTitle.includes('Courbet')) return 'Gustave Courbet';
+    if (artistHtml?.includes('Bigot, Alexandre') || fileTitle.includes('Bigot')) return 'Alexandre Bigot';
+
     const rawFile = fileTitle.replace(/^File:/, '').replace(/\.[^.]+$/, '').trim();
     const match = rawFile.match(/^([^-]+)\s*-\s*/);
     const fallbackArtist = match ? match[1].trim() : 'Master Artist';
@@ -199,32 +217,59 @@ async function generateChicago() {
 
 async function generateParis() {
     console.log('Fetching Paris Musées masterpieces from Commons...');
+    const featuredFiles = [
+        'Gustave Courbet - Le Sommeil (1866), Paris, Petit Palais.jpg',
+        'Le Baiser, PPS1061.jpg',
+        'Héro et Léandre, PPG5383.jpg',
+        'Nymphe et faune, dit le Baiser, PPS334.jpg',
+        'Couple enlacé couché dans un paysage, PPD3607.jpg',
+        'Le Baiser, PPS1061(2).jpg',
+        'Héro et Léandre, PPG5384.jpg',
+        'La Treille, PPS1064(2).jpg',
+        'La Musique, PPS1069(5).jpg',
+        'Les amants dans la campagne. Sentiments du jeune âge, PPP733(1).jpg',
+        'Le baiser, ODUT1624.jpg',
+    ];
+    const featuredPages = (await Promise.all(featuredFiles.map(fetchSpecificFile))).filter(Boolean);
+
     const [set1, set2, set3] = await Promise.all([
         fetchCommonsSearch('incategory:Images_from_Paris_Musées (peinture OR tableau OR dessin OR estampe OR gravure OR aquarelle OR pastel OR gouache OR lithographie)', 100),
         fetchCommonsSearch('incategory:Images_from_Paris_Musées (portrait OR huile OR "arts graphiques")', 100),
         fetchCommonsSearch('incategory:Images_from_Paris_Musées (Petit Palais OR Carnavalet)', 100),
     ]);
 
-    const combined = [...set1, ...set2, ...set3];
+    const combined = [...featuredPages, ...set1, ...set2, ...set3];
     const seenTitles = new Set();
     const artworks = [];
 
     const PRIORITY_TERMS = [
+        'Le Sommeil',
+        'Le Baiser',
+        'Héro et Léandre',
+        'Couple enlacé',
+        'Nymphe et faune',
+        'La Treille',
+        'La Musique',
+        'Les amants dans la campagne',
+        'Desbois',
+        'Pierre Roche',
+        'Roussel',
         'Courbet',
         'Théophile Gautier',
-        'Jeanne Samary',
-        'Victor Hugo',
-        'Petit Palais',
-        'Carnavalet',
+        'Delacroix',
+        'Cezanne',
         'Corot',
         'Pissarro',
         'Degas',
-        'Lehmann',
+        'Redon',
+        'Jeanne Samary',
+        'Victor Hugo',
         'Marie de Flavigny',
     ];
 
     for (const page of combined) {
         if (/-x\d+-y\d+/i.test(page.title || '')) continue;
+        if (/invitation|exposition universelle|façade|porte sur|vestibule|construction du petit palais|vue intérieure|jeton|monnaie|fouilles|défilé du 14 juillet/i.test(page.title || '')) continue;
         const info = page.imageinfo?.[0];
         if (!info || !info.url) continue;
         const width = Number(info.width) || 0;
@@ -234,6 +279,8 @@ async function generateParis() {
         const meta = info.extmetadata || {};
         const title = cleanTitle(meta.ObjectName?.value, page.title);
         const artist = cleanArtist(meta.Artist?.value, page.title);
+
+        if (/invitation|exposition universelle|façade|porte sur|vestibule|construction du petit palais|vue intérieure|jeton|monnaie|fouilles|défilé du 14 juillet/i.test(title)) continue;
 
         const key = `${title}::${artist}`.toLowerCase();
         if (seenTitles.has(key)) continue;
@@ -284,7 +331,6 @@ async function generateParis() {
 }
 
 async function main() {
-    await generateChicago();
     await generateParis();
     console.log('All museum snapshots generated successfully!');
 }
