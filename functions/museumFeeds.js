@@ -49,28 +49,7 @@ function smithsonianRecord(record) {
     };
 }
 
-async function smithsonian(page, key) {
-    const apiKey = key || process.env.SMITHSONIAN_API_KEY;
-    if (apiKey && apiKey !== 'DEMO_KEY' && page <= 50) {
-        try {
-            const params = new URLSearchParams({
-                q: 'online_media_type:Images',
-                start: String((page - 1) * PAGE_SIZE),
-                rows: String(PAGE_SIZE),
-                api_key: apiKey,
-            });
-            const data = await json(`https://api.si.edu/openaccess/api/v1.0/search?${params}`, { signal: AbortSignal.timeout(3000) });
-            if (data.status === 200 && data.response?.rows) {
-                const rows = data.response.rows || [];
-                const artworks = rows.map(smithsonianRecord).filter(Boolean);
-                if (artworks.length > 0) {
-                    return { artworks, total: MAX_COMMONS_TOTAL };
-                }
-            }
-        } catch {
-            // Fall back to fast Commons mirror
-        }
-    }
+async function smithsonian(page) {
     return smithsonianCommonsFallback(page);
 }
 
@@ -83,6 +62,7 @@ async function smithsonianCommonsFallback(page) {
         gsrnamespace: '6',
         gsrlimit: String(PAGE_SIZE),
         gsroffset: String(offset),
+        gsrsort: 'create_timestamp_desc',
         prop: 'imageinfo',
         iiprop: 'url|dimensions|extmetadata',
         iiurlwidth: '800',
@@ -91,7 +71,7 @@ async function smithsonianCommonsFallback(page) {
     const data = await json(`https://commons.wikimedia.org/w/api.php?${params}`, {
         headers: { 'User-Agent': 'FrameWorthyApp/1.0 (contact@frameworthy.art)' }
     });
-    const pages = Object.values(data.query?.pages || {});
+    const pages = Object.values(data.query?.pages || {}).sort((a, b) => (a.index || 0) - (b.index || 0));
     const artworks = pages.map(item => {
         const info = item.imageinfo?.[0];
         if (!info || !info.url) return null;
@@ -127,49 +107,7 @@ function parisQuery(page) {
     } }`;
 }
 
-async function paris(page, token) {
-    const apiToken = token || process.env.PARIS_MUSEES_API_TOKEN || PARIS_DEFAULT_TOKEN;
-    // Paris Musées Drupal GraphQL endpoint times out for deep offsets.
-    // Query it only for the initial pages; use fast Commons for deep pages.
-    if (page <= 3 && apiToken) {
-        try {
-            const data = await json('https://apicollections.parismusees.paris.fr/graphql', {
-                method: 'POST', headers: { 'Content-Type': 'application/json', 'auth-token': apiToken },
-                body: JSON.stringify({ query: parisQuery(page) }),
-                signal: AbortSignal.timeout(2500),
-            });
-            if (!data.errors?.length && data.data?.nodeQuery?.entities) {
-                const entities = data.data.nodeQuery.entities || [];
-                const artworks = entities.map(item => {
-                    if (!item) return null;
-                    const visual = item.fieldVisuels?.find(v => v?.entity?.publicUrl)?.entity || item.fieldVisuels?.[0]?.entity || {};
-                    const vignette = visual.vignette;
-                    if (!vignette && !visual.publicUrl) return null;
-                    const rawPreview = vignette || visual.publicUrl;
-                    const image = /^https?:\/\//i.test(rawPreview) ? rawPreview : `https://parismuseescollections.paris.fr${rawPreview}`;
-                    const fullRes = visual.publicUrl
-                        ? (/^https?:\/\//i.test(visual.publicUrl) ? visual.publicUrl : `https://www.parismuseescollections.paris.fr${visual.publicUrl}`)
-                        : image;
-                    return {
-                        id: String(item.entityUuid || item.entityId),
-                        title: item.title || 'Paris Musées Artwork',
-                        artist: item.fieldCartelAuteur || 'Paris Musées',
-                        image,
-                        fullRes,
-                        sourceUrl: item.absolutePath || `https://www.parismuseescollections.paris.fr/fr/node/${item.entityId}`,
-                        rights: visual.fieldCopyright || 'CC0 / Paris Musées Open Content',
-                        description: visual.fieldLegende,
-                        metadata: { lrefAdlib: item.fieldLrefAdlib, copyright: visual.fieldCopyright },
-                    };
-                }).filter(Boolean);
-                if (artworks.length > 0) {
-                    return { artworks, total: MAX_COMMONS_TOTAL };
-                }
-            }
-        } catch {
-            // Fall back to high-resolution Commons mirror
-        }
-    }
+async function paris(page) {
     return parisCommonsFallback(page);
 }
 
@@ -182,6 +120,7 @@ async function parisCommonsFallback(page) {
         gsrnamespace: '6',
         gsrlimit: String(PAGE_SIZE),
         gsroffset: String(offset),
+        gsrsort: 'create_timestamp_desc',
         prop: 'imageinfo',
         iiprop: 'url|dimensions|extmetadata',
         iiurlwidth: '800',
@@ -190,7 +129,7 @@ async function parisCommonsFallback(page) {
     const data = await json(`https://commons.wikimedia.org/w/api.php?${params}`, {
         headers: { 'User-Agent': 'FrameWorthyApp/1.0 (contact@frameworthy.art)' }
     });
-    const pages = Object.values(data.query?.pages || {});
+    const pages = Object.values(data.query?.pages || {}).sort((a, b) => (a.index || 0) - (b.index || 0));
     const artworks = pages.map(item => {
         const info = item.imageinfo?.[0];
         if (!info || !info.url) return null;
@@ -263,6 +202,7 @@ async function artInstituteOfChicago(page) {
         gsrnamespace: '6',
         gsrlimit: String(PAGE_SIZE),
         gsroffset: String(offset),
+        gsrsort: 'create_timestamp_desc',
         prop: 'imageinfo',
         iiprop: 'url|dimensions|extmetadata',
         iiurlwidth: '800',
@@ -271,7 +211,7 @@ async function artInstituteOfChicago(page) {
     const data = await json(`https://commons.wikimedia.org/w/api.php?${params}`, {
         headers: { 'User-Agent': 'FrameWorthyApp/1.0 (contact@frameworthy.art)' }
     });
-    const pages = Object.values(data.query?.pages || {});
+    const pages = Object.values(data.query?.pages || {}).sort((a, b) => (a.index || 0) - (b.index || 0));
     const artworks = pages.map(item => {
         const info = item.imageinfo?.[0];
         if (!info || !info.url) return null;
@@ -341,6 +281,7 @@ async function rijksmuseum(page) {
         gsrnamespace: '6',
         gsrlimit: String(PAGE_SIZE),
         gsroffset: String(offset),
+        gsrsort: 'create_timestamp_desc',
         prop: 'imageinfo',
         iiprop: 'url|dimensions|extmetadata',
         iiurlwidth: '800',
@@ -349,7 +290,7 @@ async function rijksmuseum(page) {
     const data = await json(`https://commons.wikimedia.org/w/api.php?${params}`, {
         headers: { 'User-Agent': 'FrameWorthyApp/1.0 (contact@frameworthy.art)' }
     });
-    const pages = Object.values(data.query?.pages || {});
+    const pages = Object.values(data.query?.pages || {}).sort((a, b) => (a.index || 0) - (b.index || 0));
     const artworks = pages.map(item => {
         const info = item.imageinfo?.[0];
         if (!info || !info.url) return null;
@@ -383,6 +324,7 @@ async function biodiversityHeritageLibrary(page) {
         gsrnamespace: '6',
         gsrlimit: String(PAGE_SIZE),
         gsroffset: String(offset),
+        gsrsort: 'create_timestamp_desc',
         prop: 'imageinfo',
         iiprop: 'url|dimensions|extmetadata',
         iiurlwidth: '800',
@@ -391,7 +333,7 @@ async function biodiversityHeritageLibrary(page) {
     const data = await json(`https://commons.wikimedia.org/w/api.php?${params}`, {
         headers: { 'User-Agent': 'FrameWorthyApp/1.0 (contact@frameworthy.art)' },
     });
-    const pages = Object.values(data.query?.pages || {});
+    const pages = Object.values(data.query?.pages || {}).sort((a, b) => (a.index || 0) - (b.index || 0));
     const artworks = pages.map(item => {
         const info = item.imageinfo?.[0];
         if (!info || !info.url) return null;
@@ -450,6 +392,7 @@ async function libraryOfCongress(page) {
         gsrnamespace: '6',
         gsrlimit: String(PAGE_SIZE),
         gsroffset: String(offset),
+        gsrsort: 'create_timestamp_desc',
         prop: 'imageinfo',
         iiprop: 'url|dimensions|extmetadata',
         iiurlwidth: '800',
@@ -458,7 +401,7 @@ async function libraryOfCongress(page) {
     const data = await json(`https://commons.wikimedia.org/w/api.php?${params}`, {
         headers: { 'User-Agent': 'FrameWorthyApp/1.0 (contact@frameworthy.art)' }
     });
-    const pages = Object.values(data.query?.pages || {});
+    const pages = Object.values(data.query?.pages || {}).sort((a, b) => (a.index || 0) - (b.index || 0));
     const artworks = pages.map(item => {
         const info = item.imageinfo?.[0];
         if (!info || !info.url) return null;

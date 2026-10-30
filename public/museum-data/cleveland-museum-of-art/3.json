@@ -1,95 +1,16 @@
 {
   "artworks": [
     {
-      "id": "171296",
-      "title": "Vale of Kashmir",
-      "artist": "Robert S. Duncanson (American, 1821–1872)",
-      "image": "https://openaccess-cdn.clevelandart.org/2014.12/2014.12_web.jpg",
-      "fullRes": "https://openaccess-cdn.clevelandart.org/2014.12/2014.12_print.jpg",
-      "imageWidth": 3400,
-      "imageHeight": 1857,
-      "rights": "CC0",
-      "sourceUrl": "https://clevelandart.org/art/2014.12",
-      "date": "1867",
-      "medium": "oil on canvas",
-      "dimensions": {
-        "framed": {
-          "height": 0.949,
-          "height_inch": 37,
-          "height_inch_fraction": 0.375,
-          "width": 1.546,
-          "width_inch": 60,
-          "width_inch_fraction": 0.875,
-          "depth": 0.121,
-          "depth_inch": 4,
-          "depth_inch_fraction": 0.75
-        },
-        "unframed": {
-          "height": 0.73,
-          "height_inch": 28,
-          "height_inch_fraction": 0.75,
-          "width": 1.324,
-          "width_inch": 52,
-          "width_inch_fraction": 0.125
-        }
-      }
-    },
-    {
-      "id": "148753",
-      "title": "Violette Heymann",
-      "artist": "Odilon Redon (French, 1840–1916)",
-      "image": "https://openaccess-cdn.clevelandart.org/1926.1976/1926.1976_web.jpg",
-      "fullRes": "https://openaccess-cdn.clevelandart.org/1926.1976/1926.1976_print.jpg",
-      "imageWidth": 3400,
-      "imageHeight": 2665,
-      "rights": "CC0",
-      "sourceUrl": "https://clevelandart.org/art/1926.1976",
-      "date": "1910",
-      "medium": "pastel on gray wove paper",
-      "dimensions": {
-        "unframed": {
-          "height": 0.72,
-          "height_inch": 28,
-          "height_inch_fraction": 0.375,
-          "width": 0.92,
-          "width_inch": 36,
-          "width_inch_fraction": 0.25
-        }
-      }
-    },
-    {
       "id": "106841",
       "title": "Table Fountain",
-      "artist": "Unknown artist",
+      "artist": "Cleveland Master",
       "image": "https://openaccess-cdn.clevelandart.org/1924.859/1924.859_web.jpg",
       "fullRes": "https://openaccess-cdn.clevelandart.org/1924.859/1924.859_print.jpg",
       "imageWidth": 2915,
       "imageHeight": 3400,
-      "rights": "CC0",
+      "artworkType": "Metalwork",
       "sourceUrl": "https://clevelandart.org/art/1924.859",
-      "date": "c. 1320–40",
-      "medium": "gilt-silver and translucent enamels",
-      "dimensions": {
-        "overall": {
-          "height": 0.311,
-          "height_inch": 12,
-          "height_inch_fraction": 0.25,
-          "width": 0.241,
-          "width_inch": 9,
-          "width_inch_fraction": 0.5,
-          "depth": 0.26,
-          "depth_inch": 10,
-          "depth_inch_fraction": 0.25
-        },
-        "No Extent Specified": {
-          "width": 0.022,
-          "width_inch": 0,
-          "width_inch_fraction": 0.875,
-          "length": 0.038,
-          "length_inch": 1,
-          "length_inch_fraction": 0.5
-        }
-      }
+      "rights": "CC0 / Cleveland Museum of Art"
     },
     {
       "id": "135920",
@@ -99,23 +20,9 @@
       "fullRes": "https://openaccess-cdn.clevelandart.org/1959.42/1959.42_print.jpg",
       "imageWidth": 2396,
       "imageHeight": 3400,
-      "rights": "CC0",
+      "artworkType": "Sculpture",
       "sourceUrl": "https://clevelandart.org/art/1959.42",
-      "date": "1502–8",
-      "medium": "lindenwood with polychromy and gilding",
-      "dimensions": {
-        "overall": {
-          "height": 0.938,
-          "height_inch": 36,
-          "height_inch_fraction": 0.9375,
-          "width": 0.385,
-          "width_inch": 15,
-          "width_inch_fraction": 0.1875,
-          "depth": 0.218,
-          "depth_inch": 8,
-          "depth_inch_fraction": 0.5625
-        }
-      }
+      "rights": "CC0 / Cleveland Museum of Art"
     },
     {
       "id": "147938",
@@ -123,33 +30,11 @@
       "artist": "Giovanni Paolo Panini (Italian, 1691–1765)",
       "image": "https://openaccess-cdn.clevelandart.org/1974.39/1974.39_web.jpg",
       "fullRes": "https://openaccess-cdn.clevelandart.org/1974.39/1974.39_print.jpg",
-      "imageWidth": 2648,
+      "imageWidth": 2618,
       "imageHeight": 3400,
-      "rights": "CC0",
+      "artworkType": "Painting",
       "sourceUrl": "https://clevelandart.org/art/1974.39",
-      "date": "1747",
-      "medium": "oil on canvas",
-      "dimensions": {
-        "framed": {
-          "height": 1.475,
-          "height_inch": 58,
-          "height_inch_fraction": 0.0625,
-          "width": 1.2,
-          "width_inch": 47,
-          "width_inch_fraction": 0.25,
-          "depth": 0.05,
-          "depth_inch": 1,
-          "depth_inch_fraction": 0.9375
-        },
-        "unframed": {
-          "height": 1.27,
-          "height_inch": 50,
-          "height_inch_fraction": 0,
-          "width": 0.978,
-          "width_inch": 38,
-          "width_inch_fraction": 0.5
-        }
-      }
+      "rights": "CC0 / Cleveland Museum of Art"
     },
     {
       "id": "128392",
@@ -159,31 +44,9 @@
       "fullRes": "https://openaccess-cdn.clevelandart.org/1951.356/1951.356_print.jpg",
       "imageWidth": 3400,
       "imageHeight": 2605,
-      "rights": "CC0",
+      "artworkType": "Painting",
       "sourceUrl": "https://clevelandart.org/art/1951.356",
-      "date": "1879",
-      "medium": "oil on fabric",
-      "dimensions": {
-        "framed": {
-          "height": 1.66,
-          "height_inch": 65,
-          "height_inch_fraction": 0.375,
-          "width": 2.04,
-          "width_inch": 80,
-          "width_inch_fraction": 0.3125,
-          "depth": 0.165,
-          "depth_inch": 6,
-          "depth_inch_fraction": 0.5
-        },
-        "unframed": {
-          "height": 1.25,
-          "height_inch": 49,
-          "height_inch_fraction": 0.1875,
-          "width": 1.63,
-          "width_inch": 64,
-          "width_inch_fraction": 0.1875
-        }
-      }
+      "rights": "CC0 / Cleveland Museum of Art"
     },
     {
       "id": "128842",
@@ -193,57 +56,21 @@
       "fullRes": "https://openaccess-cdn.clevelandart.org/1951.454/1951.454_print.jpg",
       "imageWidth": 2769,
       "imageHeight": 3400,
-      "rights": "CC0",
+      "artworkType": "Painting",
       "sourceUrl": "https://clevelandart.org/art/1951.454",
-      "date": "1645",
-      "medium": "oil on canvas",
-      "dimensions": {
-        "framed": {
-          "height": 1.403,
-          "height_inch": 55,
-          "height_inch_fraction": 0.25,
-          "width": 1.191,
-          "width_inch": 46,
-          "width_inch_fraction": 0.875,
-          "depth": 0.07,
-          "depth_inch": 2,
-          "depth_inch_fraction": 0.75
-        },
-        "unframed": {
-          "height": 1.14,
-          "height_inch": 44,
-          "height_inch_fraction": 0.875,
-          "width": 0.95,
-          "width_inch": 37,
-          "width_inch_fraction": 0.375
-        }
-      }
+      "rights": "CC0 / Cleveland Museum of Art"
     },
     {
       "id": "98823",
       "title": "Amitabha Triad",
-      "artist": "Unknown artist",
+      "artist": "Cleveland Master",
       "image": "https://openaccess-cdn.clevelandart.org/1918.501/1918.501_web.jpg",
       "fullRes": "https://openaccess-cdn.clevelandart.org/1918.501/1918.501_print.jpg",
       "imageWidth": 3400,
       "imageHeight": 2549,
-      "rights": "CC0",
+      "artworkType": "Sculpture",
       "sourceUrl": "https://clevelandart.org/art/1918.501",
-      "date": "1400s",
-      "medium": "bronze with traces of gilding",
-      "dimensions": {
-        "overall": {
-          "height": 0.406,
-          "height_inch": 16,
-          "height_inch_fraction": 0,
-          "width": 0.165,
-          "width_inch": 6,
-          "width_inch_fraction": 0.5,
-          "depth": 0.546,
-          "depth_inch": 21,
-          "depth_inch_fraction": 0.5
-        }
-      }
+      "rights": "CC0 / Cleveland Museum of Art"
     },
     {
       "id": "153603",
@@ -253,31 +80,9 @@
       "fullRes": "https://openaccess-cdn.clevelandart.org/1987.136/1987.136_print.jpg",
       "imageWidth": 2942,
       "imageHeight": 3400,
-      "rights": "CC0",
+      "artworkType": "Painting",
       "sourceUrl": "https://clevelandart.org/art/1987.136",
-      "date": "c. 1540–45",
-      "medium": "oil on wood",
-      "dimensions": {
-        "framed": {
-          "height": 1.07,
-          "height_inch": 42,
-          "height_inch_fraction": 0.125,
-          "width": 0.97,
-          "width_inch": 38,
-          "width_inch_fraction": 0.1875,
-          "depth": 0.08,
-          "depth_inch": 3,
-          "depth_inch_fraction": 0.125
-        },
-        "unframed": {
-          "height": 0.85,
-          "height_inch": 33,
-          "height_inch_fraction": 0.4375,
-          "width": 0.74,
-          "width_inch": 29,
-          "width_inch_fraction": 0.125
-        }
-      }
+      "rights": "CC0 / Cleveland Museum of Art"
     },
     {
       "id": "155860",
@@ -287,31 +92,9 @@
       "fullRes": "https://openaccess-cdn.clevelandart.org/1991.163/1991.163_print.jpg",
       "imageWidth": 2737,
       "imageHeight": 3400,
-      "rights": "CC0",
+      "artworkType": "Painting",
       "sourceUrl": "https://clevelandart.org/art/1991.163",
-      "date": "1838",
-      "medium": "oil on fabric",
-      "dimensions": {
-        "framed": {
-          "height": 1.065,
-          "height_inch": 41,
-          "height_inch_fraction": 0.9375,
-          "width": 0.905,
-          "width_inch": 35,
-          "width_inch_fraction": 0.625,
-          "depth": 0.09,
-          "depth_inch": 3,
-          "depth_inch_fraction": 0.5625
-        },
-        "unframed": {
-          "height": 0.885,
-          "height_inch": 34,
-          "height_inch_fraction": 0.8125,
-          "width": 0.715,
-          "width_inch": 28,
-          "width_inch_fraction": 0.125
-        }
-      }
+      "rights": "CC0 / Cleveland Museum of Art"
     },
     {
       "id": "160289",
@@ -321,31 +104,9 @@
       "fullRes": "https://openaccess-cdn.clevelandart.org/1998.168/1998.168_print.jpg",
       "imageWidth": 1605,
       "imageHeight": 3400,
-      "rights": "CC0",
+      "artworkType": "Painting",
       "sourceUrl": "https://clevelandart.org/art/1998.168",
-      "date": "1898",
-      "medium": "oil on canvas",
-      "dimensions": {
-        "framed": {
-          "height": 2.49,
-          "height_inch": 98,
-          "height_inch_fraction": 0.0625,
-          "width": 1.34,
-          "width_inch": 52,
-          "width_inch_fraction": 0.75,
-          "depth": 0.095,
-          "depth_inch": 3,
-          "depth_inch_fraction": 0.75
-        },
-        "unframed": {
-          "height": 2.193,
-          "height_inch": 86,
-          "height_inch_fraction": 0.3125,
-          "width": 1.048,
-          "width_inch": 41,
-          "width_inch_fraction": 0.25
-        }
-      }
+      "rights": "CC0 / Cleveland Museum of Art"
     },
     {
       "id": "135538",
@@ -355,23 +116,9 @@
       "fullRes": "https://openaccess-cdn.clevelandart.org/1958.66/1958.66_print.jpg",
       "imageWidth": 2604,
       "imageHeight": 3400,
-      "rights": "CC0",
+      "artworkType": "Sculpture",
       "sourceUrl": "https://clevelandart.org/art/1958.66",
-      "date": "1404–10",
-      "medium": "vizille alabaster",
-      "dimensions": {
-        "overall": {
-          "height": 0.41,
-          "height_inch": 16,
-          "height_inch_fraction": 0.125,
-          "width": 0.127,
-          "width_inch": 5,
-          "width_inch_fraction": 0,
-          "depth": 0.15,
-          "depth_inch": 5,
-          "depth_inch_fraction": 0.875
-        }
-      }
+      "rights": "CC0 / Cleveland Museum of Art"
     },
     {
       "id": "142792",
@@ -381,77 +128,33 @@
       "fullRes": "https://openaccess-cdn.clevelandart.org/1966.49/1966.49_print.jpg",
       "imageWidth": 3400,
       "imageHeight": 2902,
-      "rights": "CC0",
+      "artworkType": "Painting",
       "sourceUrl": "https://clevelandart.org/art/1966.49",
-      "date": "1909",
-      "medium": "oil on canvas",
-      "dimensions": {
-        "framed": {
-          "height": 1.075,
-          "height_inch": 42,
-          "height_inch_fraction": 0.3125,
-          "width": 1.21,
-          "width_inch": 47,
-          "width_inch_fraction": 0.625,
-          "depth": 0.07,
-          "depth_inch": 2,
-          "depth_inch_fraction": 0.75
-        },
-        "unframed": {
-          "height": 0.805,
-          "height_inch": 31,
-          "height_inch_fraction": 0.6875,
-          "width": 0.94,
-          "width_inch": 37,
-          "width_inch_fraction": 0
-        }
-      }
+      "rights": "CC0 / Cleveland Museum of Art"
     },
     {
       "id": "283088",
       "title": "Icon of the New Testament Trinity",
-      "artist": "Unknown artist",
+      "artist": "Cleveland Master",
       "image": "https://openaccess-cdn.clevelandart.org/2016.32/2016.32_web.jpg",
       "fullRes": "https://openaccess-cdn.clevelandart.org/2016.32/2016.32_print.jpg",
       "imageWidth": 3400,
       "imageHeight": 1990,
-      "rights": "CC0",
+      "artworkType": "Painting",
       "sourceUrl": "https://clevelandart.org/art/2016.32",
-      "date": "c. 1450",
-      "medium": "Tempera and gold on wood panel (poplar)",
-      "dimensions": {
-        "No Extent Specified": {
-          "height": 0.355,
-          "height_inch": 14,
-          "height_inch_fraction": 0,
-          "width": 0.625,
-          "width_inch": 24,
-          "width_inch_fraction": 0.625,
-          "depth": 0.027,
-          "depth_inch": 1,
-          "depth_inch_fraction": 0.0625
-        }
-      }
+      "rights": "CC0 / Cleveland Museum of Art"
     },
     {
       "id": "145412",
       "title": "Portrait of Hottō Enmyō Kokushi",
-      "artist": "Unknown artist",
+      "artist": "Cleveland Master",
       "image": "https://openaccess-cdn.clevelandart.org/1970.67/1970.67_web.jpg",
       "fullRes": "https://openaccess-cdn.clevelandart.org/1970.67/1970.67_print.jpg",
       "imageWidth": 2561,
       "imageHeight": 3400,
-      "rights": "CC0",
+      "artworkType": "Sculpture",
       "sourceUrl": "https://clevelandart.org/art/1970.67",
-      "date": "c. 1295–1315",
-      "medium": "Hinoki cypress wood with lacquer, metal staples and fittings",
-      "dimensions": {
-        "overall": {
-          "height": 0.914,
-          "height_inch": 36,
-          "height_inch_fraction": 0
-        }
-      }
+      "rights": "CC0 / Cleveland Museum of Art"
     },
     {
       "id": "103366",
@@ -461,31 +164,9 @@
       "fullRes": "https://openaccess-cdn.clevelandart.org/1921.428/1921.428_print.jpg",
       "imageWidth": 2805,
       "imageHeight": 3400,
-      "rights": "CC0",
+      "artworkType": "Painting",
       "sourceUrl": "https://clevelandart.org/art/1921.428",
-      "date": "c. 1803–5",
-      "medium": "oil on canvas",
-      "dimensions": {
-        "framed": {
-          "height": 0.9,
-          "height_inch": 35,
-          "height_inch_fraction": 0.4375,
-          "width": 0.78,
-          "width_inch": 30,
-          "width_inch_fraction": 0.6875,
-          "depth": 0.08,
-          "depth_inch": 3,
-          "depth_inch_fraction": 0.125
-        },
-        "unframed": {
-          "height": 0.738,
-          "height_inch": 29,
-          "height_inch_fraction": 0.0625,
-          "width": 0.61,
-          "width_inch": 24,
-          "width_inch_fraction": 0
-        }
-      }
+      "rights": "CC0 / Cleveland Museum of Art"
     },
     {
       "id": "119143",
@@ -495,23 +176,9 @@
       "fullRes": "https://openaccess-cdn.clevelandart.org/1940.129/1940.129_print.jpg",
       "imageWidth": 2599,
       "imageHeight": 3400,
-      "rights": "CC0",
+      "artworkType": "Sculpture",
       "sourceUrl": "https://clevelandart.org/art/1940.129",
-      "date": "1443–45",
-      "medium": "salins alabaster",
-      "dimensions": {
-        "overall": {
-          "height": 0.41,
-          "height_inch": 16,
-          "height_inch_fraction": 0.125,
-          "width": 0.203,
-          "width_inch": 8,
-          "width_inch_fraction": 0,
-          "depth": 0.124,
-          "depth_inch": 4,
-          "depth_inch_fraction": 0.875
-        }
-      }
+      "rights": "CC0 / Cleveland Museum of Art"
     },
     {
       "id": "138885",
@@ -520,24 +187,10 @@
       "image": "https://openaccess-cdn.clevelandart.org/1963.256/1963.256_web.jpg",
       "fullRes": "https://openaccess-cdn.clevelandart.org/1963.256/1963.256_print.jpg",
       "imageWidth": 3400,
-      "imageHeight": 2432,
-      "rights": "CC0",
+      "imageHeight": 2306,
+      "artworkType": "Bound Volume",
       "sourceUrl": "https://clevelandart.org/art/1963.256",
-      "date": "c. 1500",
-      "medium": "ink, tempera, and gold on vellum",
-      "dimensions": {
-        "codex": {
-          "height": 0.235,
-          "height_inch": 9,
-          "height_inch_fraction": 0.25,
-          "width": 0.173,
-          "width_inch": 6,
-          "width_inch_fraction": 0.8125,
-          "depth": 0.048,
-          "depth_inch": 1,
-          "depth_inch_fraction": 0.875
-        }
-      }
+      "rights": "CC0 / Cleveland Museum of Art"
     },
     {
       "id": "140078",
@@ -547,105 +200,45 @@
       "fullRes": "https://openaccess-cdn.clevelandart.org/1963.91/1963.91_print.jpg",
       "imageWidth": 3400,
       "imageHeight": 2438,
-      "rights": "CC0",
+      "artworkType": "Painting",
       "sourceUrl": "https://clevelandart.org/art/1963.91",
-      "date": "c. 1830–31",
-      "medium": "oil on fabric",
-      "dimensions": {
-        "framed": {
-          "height": 1.3,
-          "height_inch": 51,
-          "height_inch_fraction": 0.1875,
-          "width": 1.675,
-          "width_inch": 65,
-          "width_inch_fraction": 0.9375,
-          "depth": 0.095,
-          "depth_inch": 3,
-          "depth_inch_fraction": 0.75
-        },
-        "unframed": {
-          "height": 0.976,
-          "height_inch": 38,
-          "height_inch_fraction": 0.4375,
-          "width": 1.358,
-          "width_inch": 53,
-          "width_inch_fraction": 0.4375
-        }
-      }
+      "rights": "CC0 / Cleveland Museum of Art"
     },
     {
       "id": "142560",
       "title": "Standing Buddha",
-      "artist": "Unknown artist",
+      "artist": "Cleveland Master",
       "image": "https://openaccess-cdn.clevelandart.org/1966.30/1966.30_web.jpg",
       "fullRes": "https://openaccess-cdn.clevelandart.org/1966.30/1966.30_print.jpg",
       "imageWidth": 2589,
       "imageHeight": 3400,
-      "rights": "CC0",
+      "artworkType": "Sculpture",
       "sourceUrl": "https://clevelandart.org/art/1966.30",
-      "date": "c. 900",
-      "medium": "brass with silver and copper inlay",
-      "dimensions": {
-        "overall": {
-          "height": 0.981,
-          "height_inch": 38,
-          "height_inch_fraction": 0.625
-        },
-        "base": {
-          "width": 0.282,
-          "width_inch": 11,
-          "width_inch_fraction": 0.125
-        }
-      }
+      "rights": "CC0 / Cleveland Museum of Art"
     },
     {
       "id": "129799",
       "title": "Backrest of a Litter",
-      "artist": "Unknown artist",
+      "artist": "Cleveland Master",
       "image": "https://openaccess-cdn.clevelandart.org/1952.233/1952.233_web.jpg",
       "fullRes": "https://openaccess-cdn.clevelandart.org/1952.233/1952.233_print.jpg",
       "imageWidth": 3400,
       "imageHeight": 2310,
-      "rights": "CC0",
+      "artworkType": "Sculpture",
       "sourceUrl": "https://clevelandart.org/art/1952.233",
-      "date": "1185–1275 (radiocarbon date, 95.4% probability)",
-      "medium": "mixed media:  wood, gold alloy, pigment, shell inlay",
-      "dimensions": {
-        "overall": {
-          "height": 0.604,
-          "height_inch": 23,
-          "height_inch_fraction": 0.75,
-          "width": 0.95,
-          "width_inch": 37,
-          "width_inch_fraction": 0.375
-        }
-      }
+      "rights": "CC0 / Cleveland Museum of Art"
     },
     {
       "id": "148021",
       "title": "Eleven-Headed Bodhisattva of Compassion (Avalokiteshvara)",
-      "artist": "Unknown artist",
+      "artist": "Cleveland Master",
       "image": "https://openaccess-cdn.clevelandart.org/1975.101/1975.101_web.jpg",
       "fullRes": "https://openaccess-cdn.clevelandart.org/1975.101/1975.101_print.jpg",
       "imageWidth": 2310,
       "imageHeight": 3400,
-      "rights": "CC0",
+      "artworkType": "Sculpture",
       "sourceUrl": "https://clevelandart.org/art/1975.101",
-      "date": "around 1000",
-      "medium": "gilt bronze with silver and copper inlay",
-      "dimensions": {
-        "overall": {
-          "height": 0.394,
-          "height_inch": 15,
-          "height_inch_fraction": 0.5,
-          "width": 0.14,
-          "width_inch": 5,
-          "width_inch_fraction": 0.5,
-          "depth": 0.076,
-          "depth_inch": 3,
-          "depth_inch_fraction": 0
-        }
-      }
+      "rights": "CC0 / Cleveland Museum of Art"
     },
     {
       "id": "122349",
@@ -655,42 +248,9 @@
       "fullRes": "https://openaccess-cdn.clevelandart.org/1942.645/1942.645_print.jpg",
       "imageWidth": 2960,
       "imageHeight": 3400,
-      "rights": "CC0",
+      "artworkType": "Painting",
       "sourceUrl": "https://clevelandart.org/art/1942.645",
-      "date": "c. 1761",
-      "medium": "oil on canvas",
-      "dimensions": {
-        "framed": {
-          "height": 2.245,
-          "height_inch": 88,
-          "height_inch_fraction": 0.375,
-          "width": 2.013,
-          "width_inch": 79,
-          "width_inch_fraction": 0.25,
-          "depth": 0.114,
-          "depth_inch": 4,
-          "depth_inch_fraction": 0.5
-        },
-        "unframed": {
-          "height": 1.96,
-          "height_inch": 77,
-          "height_inch_fraction": 0.1875,
-          "width": 1.7,
-          "width_inch": 66,
-          "width_inch_fraction": 0.9375
-        },
-        "former": {
-          "height": 2.235,
-          "height_inch": 88,
-          "height_inch_fraction": 0,
-          "width": 1.98,
-          "width_inch": 77,
-          "width_inch_fraction": 0.9375,
-          "depth": 0.09,
-          "depth_inch": 3,
-          "depth_inch_fraction": 0.5625
-        }
-      }
+      "rights": "CC0 / Cleveland Museum of Art"
     },
     {
       "id": "119132",
@@ -700,24 +260,34 @@
       "fullRes": "https://openaccess-cdn.clevelandart.org/1940.128/1940.128_print.jpg",
       "imageWidth": 2596,
       "imageHeight": 3400,
-      "rights": "CC0",
+      "artworkType": "Sculpture",
       "sourceUrl": "https://clevelandart.org/art/1940.128",
-      "date": "1404–1410",
-      "medium": "vizille alabaster",
-      "dimensions": {
-        "overall": {
-          "height": 0.417,
-          "height_inch": 16,
-          "height_inch_fraction": 0.4375,
-          "width": 0.166,
-          "width_inch": 6,
-          "width_inch_fraction": 0.5625,
-          "depth": 0.117,
-          "depth_inch": 4,
-          "depth_inch_fraction": 0.625
-        }
-      }
+      "rights": "CC0 / Cleveland Museum of Art"
+    },
+    {
+      "id": "98627",
+      "title": "The Age of Bronze",
+      "artist": "Auguste Rodin (French, 1840–1917)",
+      "image": "https://openaccess-cdn.clevelandart.org/1918.328/1918.328_web.jpg",
+      "fullRes": "https://openaccess-cdn.clevelandart.org/1918.328/1918.328_print.jpg",
+      "imageWidth": 1930,
+      "imageHeight": 3400,
+      "artworkType": "Sculpture",
+      "sourceUrl": "https://clevelandart.org/art/1918.328",
+      "rights": "CC0 / Cleveland Museum of Art"
+    },
+    {
+      "id": "145450",
+      "title": "Interior of a Church",
+      "artist": "Emanuel de Witte (Dutch, c. 1617–1692)",
+      "image": "https://openaccess-cdn.clevelandart.org/1971.1/1971.1_web.jpg",
+      "fullRes": "https://openaccess-cdn.clevelandart.org/1971.1/1971.1_print.jpg",
+      "imageWidth": 2938,
+      "imageHeight": 3400,
+      "artworkType": "Painting",
+      "sourceUrl": "https://clevelandart.org/art/1971.1",
+      "rights": "CC0 / Cleveland Museum of Art"
     }
   ],
-  "total": 41561
+  "total": 41806
 }

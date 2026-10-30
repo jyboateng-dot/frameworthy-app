@@ -13,7 +13,7 @@ const KNOWN_SNAPSHOT_PAGES = {
     'art-institute-of-chicago': 3,
     'cleveland-museum-of-art': 3,
     'paris-musees': 4,
-    rijksmuseum: 2,
+    rijksmuseum: 3,
     'smithsonian-open-access': 3,
     'biodiversity-heritage-library': 3,
     'nasa-open-media': 3,
@@ -96,70 +96,8 @@ async function fetchCleveland(page) {
     }
 }
 
-function firstEnglishName(items = []) {
-    const names = items.filter(item => item?.type === 'Name' && item.content);
-    return names.find(item => item.language?.some(language => language.id?.endsWith('300388256'))) || names[0] || null;
-}
-
 async function fetchRijks(page) {
-    if (page > 2) {
-        return fetchServerCollection('rijksmuseum', page);
-    }
-    try {
-        const search = await getJson('https://data.rijksmuseum.nl/search/collection?imageAvailable=true');
-        const offset = (page - 1) * PAGE_SIZE;
-        const identifiers = (search.orderedItems || []).slice(offset, offset + PAGE_SIZE);
-        if (!identifiers.length) {
-            return fetchServerCollection('rijksmuseum', page);
-        }
-        const source = sourceById('rijksmuseum');
-        const artworks = await Promise.all(identifiers.map(async item => {
-            try {
-                const object = await getJson(`${item.id}?_profile=la-framed`);
-                const visualId = object.shows?.find(visual => visual.type === 'VisualItem')?.id;
-                if (!visualId) return null;
-                const visual = await getJson(`${visualId.replace('id.rijksmuseum.nl', 'data.rijksmuseum.nl')}?_profile=la-framed`);
-                const digitalId = visual.digitally_shown_by?.[0]?.id;
-                if (!digitalId) return null;
-                const digital = await getJson(`${digitalId.replace('id.rijksmuseum.nl', 'data.rijksmuseum.nl')}?_profile=la-framed`);
-                const image = digital.access_point?.find(access => access.id?.includes('iiif.micr.io'))?.id;
-                if (!image) return null;
-                let imageWidth = null;
-                let imageHeight = null;
-                try {
-                    const infoUrl = image.replace(/\/full\/.*$/, '/info.json');
-                    if (infoUrl !== image) {
-                        const info = await getJson(infoUrl);
-                        imageWidth = Number(info.width) || null;
-                        imageHeight = Number(info.height) || null;
-                    }
-                } catch {
-                    // IIIF info.json is optional metadata enrichment.
-                }
-                const title = firstEnglishName(object.identified_by)?.content || 'Untitled artwork';
-                const artist = object.produced_by?.part?.flatMap(part => part.carried_out_by || [])
-                    .flatMap(person => person.notation || [])
-                    .find(notation => notation['@language'] === 'en')?.['@value'] || 'Unknown artist';
-                return normalizeMuseumArtwork({
-                    id: item.id,
-                    title,
-                    artist,
-                    image,
-                    fullRes: image,
-                    imageWidth,
-                    imageHeight,
-                    rights: object.subject_of?.find(subject => subject.subject_to)?.subject_to,
-                }, source);
-            } catch {
-                return null;
-            }
-        }));
-        const valid = artworks.filter(Boolean);
-        if (!valid.length) return fetchServerCollection('rijksmuseum', page);
-        return { artworks: valid, total: search.partOf?.totalItems || 0 };
-    } catch {
-        return fetchServerCollection('rijksmuseum', page);
-    }
+    return fetchServerCollection('rijksmuseum', page);
 }
 
 async function fetchServerCollection(sourceId, page) {

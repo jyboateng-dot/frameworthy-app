@@ -1,74 +1,6 @@
 {
   "artworks": [
     {
-      "id": "138359",
-      "title": "Wineglass and a Bowl of Fruit",
-      "artist": "Willem Kalf (Dutch, 1619–1693)",
-      "image": "https://openaccess-cdn.clevelandart.org/1962.292/1962.292_web.jpg",
-      "fullRes": "https://openaccess-cdn.clevelandart.org/1962.292/1962.292_print.jpg",
-      "imageWidth": 2844,
-      "imageHeight": 3400,
-      "rights": "CC0",
-      "sourceUrl": "https://clevelandart.org/art/1962.292",
-      "date": "1663",
-      "medium": "oil on canvas",
-      "dimensions": {
-        "framed": {
-          "height": 0.81,
-          "height_inch": 31,
-          "height_inch_fraction": 0.875,
-          "width": 0.705,
-          "width_inch": 27,
-          "width_inch_fraction": 0.75,
-          "depth": 0.075,
-          "depth_inch": 2,
-          "depth_inch_fraction": 0.9375
-        },
-        "unframed": {
-          "height": 0.603,
-          "height_inch": 23,
-          "height_inch_fraction": 0.75,
-          "width": 0.502,
-          "width_inch": 19,
-          "width_inch_fraction": 0.75
-        }
-      }
-    },
-    {
-      "id": "98268",
-      "title": "George Washington at Princeton",
-      "artist": "Charles Willson Peale (American, born The Thirteen Colonies, 1741–1827), Workshop",
-      "image": "https://openaccess-cdn.clevelandart.org/1917.946/1917.946_web.jpg",
-      "fullRes": "https://openaccess-cdn.clevelandart.org/1917.946/1917.946_print.jpg",
-      "imageWidth": 3135,
-      "imageHeight": 3400,
-      "rights": "CC0",
-      "sourceUrl": "https://clevelandart.org/art/1917.946",
-      "date": "c. 1779",
-      "medium": "oil on canvas",
-      "dimensions": {
-        "framed": {
-          "height": 1.53,
-          "height_inch": 60,
-          "height_inch_fraction": 0.25,
-          "width": 1.44,
-          "width_inch": 56,
-          "width_inch_fraction": 0.6875,
-          "depth": 0.07,
-          "depth_inch": 2,
-          "depth_inch_fraction": 0.75
-        },
-        "unframed": {
-          "height": 1.31,
-          "height_inch": 51,
-          "height_inch_fraction": 0.5625,
-          "width": 1.216,
-          "width_inch": 47,
-          "width_inch_fraction": 0.875
-        }
-      }
-    },
-    {
       "id": "122351",
       "title": "The Burning of the Houses of Lords and Commons, 16 October 1834",
       "artist": "Joseph Mallord William Turner (British, 1775–1851)",
@@ -76,31 +8,9 @@
       "fullRes": "https://openaccess-cdn.clevelandart.org/1942.647/1942.647_print.jpg",
       "imageWidth": 3400,
       "imageHeight": 2525,
-      "rights": "CC0",
+      "artworkType": "Painting",
       "sourceUrl": "https://clevelandart.org/art/1942.647",
-      "date": "1835",
-      "medium": "oil on canvas",
-      "dimensions": {
-        "framed": {
-          "height": 1.235,
-          "height_inch": 48,
-          "height_inch_fraction": 0.625,
-          "width": 1.535,
-          "width_inch": 60,
-          "width_inch_fraction": 0.4375,
-          "depth": 0.12,
-          "depth_inch": 4,
-          "depth_inch_fraction": 0.75
-        },
-        "unframed": {
-          "height": 0.92,
-          "height_inch": 36,
-          "height_inch_fraction": 0.25,
-          "width": 1.232,
-          "width_inch": 48,
-          "width_inch_fraction": 0.5
-        }
-      }
+      "rights": "CC0 / Cleveland Museum of Art"
     },
     {
       "id": "126769",
@@ -110,31 +20,9 @@
       "fullRes": "https://openaccess-cdn.clevelandart.org/1949.186/1949.186_print.jpg",
       "imageWidth": 3400,
       "imageHeight": 3046,
-      "rights": "CC0",
+      "artworkType": "Painting",
       "sourceUrl": "https://clevelandart.org/art/1949.186",
-      "date": "1908",
-      "medium": "oil on fabric",
-      "dimensions": {
-        "framed": {
-          "height": 1.83,
-          "height_inch": 72,
-          "height_inch_fraction": 0.0625,
-          "width": 2.03,
-          "width_inch": 79,
-          "width_inch_fraction": 0.9375,
-          "depth": 0.045,
-          "depth_inch": 1,
-          "depth_inch_fraction": 0.75
-        },
-        "unframed": {
-          "height": 1.7,
-          "height_inch": 66,
-          "height_inch_fraction": 0.9375,
-          "width": 1.895,
-          "width_inch": 74,
-          "width_inch_fraction": 0.625
-        }
-      }
+      "rights": "CC0 / Cleveland Museum of Art"
     },
     {
       "id": "149410",
@@ -144,31 +32,9 @@
       "fullRes": "https://openaccess-cdn.clevelandart.org/1978.63/1978.63_print.jpg",
       "imageWidth": 2646,
       "imageHeight": 3400,
-      "rights": "CC0",
+      "artworkType": "Painting",
       "sourceUrl": "https://clevelandart.org/art/1978.63",
-      "date": "1889",
-      "medium": "oil on canvas",
-      "dimensions": {
-        "framed": {
-          "height": 1.238,
-          "height_inch": 48,
-          "height_inch_fraction": 0.75,
-          "width": 1.06,
-          "width_inch": 41,
-          "width_inch_fraction": 0.75,
-          "depth": 0.07,
-          "depth_inch": 2,
-          "depth_inch_fraction": 0.75
-        },
-        "unframed": {
-          "height": 0.925,
-          "height_inch": 36,
-          "height_inch_fraction": 0.4375,
-          "width": 0.724,
-          "width_inch": 28,
-          "width_inch_fraction": 0.5
-        }
-      }
+      "rights": "CC0 / Cleveland Museum of Art"
     },
     {
       "id": "135661",
@@ -178,31 +44,9 @@
       "fullRes": "https://openaccess-cdn.clevelandart.org/1959.190/1959.190_print.jpg",
       "imageWidth": 2838,
       "imageHeight": 3400,
-      "rights": "CC0",
+      "artworkType": "Painting",
       "sourceUrl": "https://clevelandart.org/art/1959.190",
-      "date": "c. 1615",
-      "medium": "oil on canvas",
-      "dimensions": {
-        "framed": {
-          "height": 2.61,
-          "height_inch": 102,
-          "height_inch_fraction": 0.75,
-          "width": 2.25,
-          "width_inch": 88,
-          "width_inch_fraction": 0.5625,
-          "depth": 0.11,
-          "depth_inch": 4,
-          "depth_inch_fraction": 0.3125
-        },
-        "unframed": {
-          "height": 2.16,
-          "height_inch": 85,
-          "height_inch_fraction": 0.0625,
-          "width": 1.787,
-          "width_inch": 70,
-          "width_inch_fraction": 0.375
-        }
-      }
+      "rights": "CC0 / Cleveland Museum of Art"
     },
     {
       "id": "135214",
@@ -212,65 +56,21 @@
       "fullRes": "https://openaccess-cdn.clevelandart.org/1958.23/1958.23_print.jpg",
       "imageWidth": 2264,
       "imageHeight": 3400,
-      "rights": "CC0",
+      "artworkType": "Painting",
       "sourceUrl": "https://clevelandart.org/art/1958.23",
-      "date": "1868–73",
-      "medium": "oil on fabric",
-      "dimensions": {
-        "framed": {
-          "height": 0.995,
-          "height_inch": 39,
-          "height_inch_fraction": 0.1875,
-          "width": 0.73,
-          "width_inch": 28,
-          "width_inch_fraction": 0.75,
-          "depth": 0.08,
-          "depth_inch": 3,
-          "depth_inch_fraction": 0.125
-        },
-        "unframed": {
-          "height": 0.836,
-          "height_inch": 32,
-          "height_inch_fraction": 0.9375,
-          "width": 0.568,
-          "width_inch": 22,
-          "width_inch_fraction": 0.375
-        }
-      }
+      "rights": "CC0 / Cleveland Museum of Art"
     },
     {
       "id": "97155",
       "title": "Portrait of a Couple",
-      "artist": "Unknown artist",
+      "artist": "Cleveland Master",
       "image": "https://openaccess-cdn.clevelandart.org/1916.793/1916.793_web.jpg",
       "fullRes": "https://openaccess-cdn.clevelandart.org/1916.793/1916.793_print.jpg",
       "imageWidth": 3400,
       "imageHeight": 2415,
-      "rights": "CC0",
+      "artworkType": "Painting",
       "sourceUrl": "https://clevelandart.org/art/1916.793",
-      "date": "c. 1580–88",
-      "medium": "oil on canvas",
-      "dimensions": {
-        "framed": {
-          "height": 1.32,
-          "height_inch": 51,
-          "height_inch_fraction": 0.9375,
-          "width": 1.73,
-          "width_inch": 68,
-          "width_inch_fraction": 0.125,
-          "depth": 0.105,
-          "depth_inch": 4,
-          "depth_inch_fraction": 0.125
-        },
-        "unframed": {
-          "height": 0.998,
-          "height_inch": 39,
-          "height_inch_fraction": 0.3125,
-          "width": 1.405,
-          "width_inch": 55,
-          "width_inch_fraction": 0.3125
-        }
-      }
+      "rights": "CC0 / Cleveland Museum of Art"
     },
     {
       "id": "134072",
@@ -280,144 +80,9 @@
       "fullRes": "https://openaccess-cdn.clevelandart.org/1956.578/1956.578_print.jpg",
       "imageWidth": 3400,
       "imageHeight": 2576,
-      "rights": "CC0",
+      "artworkType": "Painting",
       "sourceUrl": "https://clevelandart.org/art/1956.578",
-      "date": "1892",
-      "medium": "oil on canvas",
-      "dimensions": {
-        "framed": {
-          "height": 1.114,
-          "height_inch": 43,
-          "height_inch_fraction": 0.875,
-          "width": 1.375,
-          "width_inch": 54,
-          "width_inch_fraction": 0.125,
-          "depth": 0.121,
-          "depth_inch": 4,
-          "depth_inch_fraction": 0.75
-        },
-        "unframed": {
-          "height": 0.81,
-          "height_inch": 31,
-          "height_inch_fraction": 0.875,
-          "width": 1.06,
-          "width_inch": 41,
-          "width_inch_fraction": 0.75
-        },
-        "former": {
-          "height": 1.01,
-          "height_inch": 39,
-          "height_inch_fraction": 0.75,
-          "width": 1.27,
-          "width_inch": 50,
-          "width_inch_fraction": 0,
-          "depth": 0.076,
-          "depth_inch": 3,
-          "depth_inch_fraction": 0
-        }
-      }
-    },
-    {
-      "id": "124089",
-      "title": "Portrait of a Woman",
-      "artist": "Rembrandt van Rijn (Dutch, 1606–1669), Studio",
-      "image": "https://openaccess-cdn.clevelandart.org/1944.90/1944.90_web.jpg",
-      "fullRes": "https://openaccess-cdn.clevelandart.org/1944.90/1944.90_print.jpg",
-      "imageWidth": 2789,
-      "imageHeight": 3400,
-      "rights": "CC0",
-      "sourceUrl": "https://clevelandart.org/art/1944.90",
-      "date": "1635 or earlier",
-      "medium": "oil on wood",
-      "dimensions": {
-        "framed": {
-          "height": 0.978,
-          "height_inch": 38,
-          "height_inch_fraction": 0.5,
-          "width": 0.838,
-          "width_inch": 33,
-          "width_inch_fraction": 0,
-          "depth": 0.064,
-          "depth_inch": 2,
-          "depth_inch_fraction": 0.5
-        },
-        "unframed": {
-          "height": 0.775,
-          "height_inch": 30,
-          "height_inch_fraction": 0.5,
-          "width": 0.648,
-          "width_inch": 25,
-          "width_inch_fraction": 0.5
-        }
-      }
-    },
-    {
-      "id": "136510",
-      "title": "Water Lilies (Agapanthus)",
-      "artist": "Claude Monet (French, 1840–1926)",
-      "image": "https://openaccess-cdn.clevelandart.org/1960.81/1960.81_web.jpg",
-      "fullRes": "https://openaccess-cdn.clevelandart.org/1960.81/1960.81_print.jpg",
-      "imageWidth": 3400,
-      "imageHeight": 1581,
-      "rights": "CC0",
-      "sourceUrl": "https://clevelandart.org/art/1960.81",
-      "date": "c. 1915–26",
-      "medium": "oil on canvas",
-      "dimensions": {
-        "framed": {
-          "height": 2.049,
-          "height_inch": 80,
-          "height_inch_fraction": 0.6875,
-          "width": 4.303,
-          "width_inch": 169,
-          "width_inch_fraction": 0.4375,
-          "depth": 0.06,
-          "depth_inch": 2,
-          "depth_inch_fraction": 0.375
-        },
-        "unframed": {
-          "height": 2.013,
-          "height_inch": 79,
-          "height_inch_fraction": 0.25,
-          "width": 4.256,
-          "width_inch": 167,
-          "width_inch_fraction": 0.5625
-        }
-      }
-    },
-    {
-      "id": "155783",
-      "title": "The Power of Music",
-      "artist": "William Sidney Mount (American, 1807–1868)",
-      "image": "https://openaccess-cdn.clevelandart.org/1991.110/1991.110_web.jpg",
-      "fullRes": "https://openaccess-cdn.clevelandart.org/1991.110/1991.110_print.jpg",
-      "imageWidth": 3400,
-      "imageHeight": 2745,
-      "rights": "CC0",
-      "sourceUrl": "https://clevelandart.org/art/1991.110",
-      "date": "1847",
-      "medium": "oil on canvas",
-      "dimensions": {
-        "framed": {
-          "height": 0.67,
-          "height_inch": 26,
-          "height_inch_fraction": 0.375,
-          "width": 0.78,
-          "width_inch": 30,
-          "width_inch_fraction": 0.6875,
-          "depth": 0.075,
-          "depth_inch": 2,
-          "depth_inch_fraction": 0.9375
-        },
-        "unframed": {
-          "height": 0.434,
-          "height_inch": 17,
-          "height_inch_fraction": 0.0625,
-          "width": 0.535,
-          "width_inch": 21,
-          "width_inch_fraction": 0.0625
-        }
-      }
+      "rights": "CC0 / Cleveland Museum of Art"
     },
     {
       "id": "125249",
@@ -427,31 +92,45 @@
       "fullRes": "https://openaccess-cdn.clevelandart.org/1947.209/1947.209_print.jpg",
       "imageWidth": 3400,
       "imageHeight": 2713,
-      "rights": "CC0",
+      "artworkType": "Painting",
       "sourceUrl": "https://clevelandart.org/art/1947.209",
-      "date": "1889",
-      "medium": "oil on fabric",
-      "dimensions": {
-        "framed": {
-          "height": 1.045,
-          "height_inch": 41,
-          "height_inch_fraction": 0.125,
-          "width": 1.245,
-          "width_inch": 49,
-          "width_inch_fraction": 0,
-          "depth": 0.076,
-          "depth_inch": 3,
-          "depth_inch_fraction": 0
-        },
-        "unframed": {
-          "height": 0.734,
-          "height_inch": 28,
-          "height_inch_fraction": 0.875,
-          "width": 0.918,
-          "width_inch": 36,
-          "width_inch_fraction": 0.125
-        }
-      }
+      "rights": "CC0 / Cleveland Museum of Art"
+    },
+    {
+      "id": "124089",
+      "title": "Portrait of a Woman",
+      "artist": "Rembrandt van Rijn (Dutch, 1606–1669), Studio",
+      "image": "https://openaccess-cdn.clevelandart.org/1944.90/1944.90_web.jpg",
+      "fullRes": "https://openaccess-cdn.clevelandart.org/1944.90/1944.90_print.jpg",
+      "imageWidth": 2789,
+      "imageHeight": 3400,
+      "artworkType": "Painting",
+      "sourceUrl": "https://clevelandart.org/art/1944.90",
+      "rights": "CC0 / Cleveland Museum of Art"
+    },
+    {
+      "id": "136510",
+      "title": "Water Lilies (Agapanthus)",
+      "artist": "Claude Monet (French, 1840–1926)",
+      "image": "https://openaccess-cdn.clevelandart.org/1960.81/1960.81_web.jpg",
+      "fullRes": "https://openaccess-cdn.clevelandart.org/1960.81/1960.81_print.jpg",
+      "imageWidth": 3400,
+      "imageHeight": 1581,
+      "artworkType": "Painting",
+      "sourceUrl": "https://clevelandart.org/art/1960.81",
+      "rights": "CC0 / Cleveland Museum of Art"
+    },
+    {
+      "id": "155783",
+      "title": "The Power of Music",
+      "artist": "William Sidney Mount (American, 1807–1868)",
+      "image": "https://openaccess-cdn.clevelandart.org/1991.110/1991.110_web.jpg",
+      "fullRes": "https://openaccess-cdn.clevelandart.org/1991.110/1991.110_print.jpg",
+      "imageWidth": 3400,
+      "imageHeight": 2745,
+      "artworkType": "Painting",
+      "sourceUrl": "https://clevelandart.org/art/1991.110",
+      "rights": "CC0 / Cleveland Museum of Art"
     },
     {
       "id": "136911",
@@ -461,31 +140,9 @@
       "fullRes": "https://openaccess-cdn.clevelandart.org/1961.39/1961.39_print.jpg",
       "imageWidth": 3400,
       "imageHeight": 2093,
-      "rights": "CC0",
+      "artworkType": "Painting",
       "sourceUrl": "https://clevelandart.org/art/1961.39",
-      "date": "1837",
-      "medium": "oil on canvas",
-      "dimensions": {
-        "framed": {
-          "height": 1.254,
-          "height_inch": 49,
-          "height_inch_fraction": 0.375,
-          "width": 1.867,
-          "width_inch": 73,
-          "width_inch_fraction": 0.5,
-          "depth": 0.092,
-          "depth_inch": 3,
-          "depth_inch_fraction": 0.625
-        },
-        "unframed": {
-          "height": 0.995,
-          "height_inch": 39,
-          "height_inch_fraction": 0.1875,
-          "width": 1.604,
-          "width_inch": 63,
-          "width_inch_fraction": 0.125
-        }
-      }
+      "rights": "CC0 / Cleveland Museum of Art"
     },
     {
       "id": "147017",
@@ -495,31 +152,9 @@
       "fullRes": "https://openaccess-cdn.clevelandart.org/1972.48/1972.48_print.jpg",
       "imageWidth": 3400,
       "imageHeight": 2629,
-      "rights": "CC0",
+      "artworkType": "Painting",
       "sourceUrl": "https://clevelandart.org/art/1972.48",
-      "date": "1828",
-      "medium": "oil on canvas",
-      "dimensions": {
-        "framed": {
-          "height": 0.89,
-          "height_inch": 35,
-          "height_inch_fraction": 0.0625,
-          "width": 1.055,
-          "width_inch": 41,
-          "width_inch_fraction": 0.5625,
-          "depth": 0.115,
-          "depth_inch": 4,
-          "depth_inch_fraction": 0.5
-        },
-        "unframed": {
-          "height": 0.606,
-          "height_inch": 23,
-          "height_inch_fraction": 0.875,
-          "width": 0.781,
-          "width_inch": 30,
-          "width_inch_fraction": 0.75
-        }
-      }
+      "rights": "CC0 / Cleveland Museum of Art"
     },
     {
       "id": "143602",
@@ -529,31 +164,9 @@
       "fullRes": "https://openaccess-cdn.clevelandart.org/1967.63/1967.63_print.jpg",
       "imageWidth": 3400,
       "imageHeight": 2565,
-      "rights": "CC0",
+      "artworkType": "Painting",
       "sourceUrl": "https://clevelandart.org/art/1967.63",
-      "date": "c. 1660–70",
-      "medium": "oil on canvas",
-      "dimensions": {
-        "framed": {
-          "height": 1.23,
-          "height_inch": 48,
-          "height_inch_fraction": 0.4375,
-          "width": 1.57,
-          "width_inch": 61,
-          "width_inch_fraction": 0.8125,
-          "depth": 0.095,
-          "depth_inch": 3,
-          "depth_inch_fraction": 0.75
-        },
-        "unframed": {
-          "height": 0.992,
-          "height_inch": 39,
-          "height_inch_fraction": 0.0625,
-          "width": 1.31,
-          "width_inch": 51,
-          "width_inch_fraction": 0.5625
-        }
-      }
+      "rights": "CC0 / Cleveland Museum of Art"
     },
     {
       "id": "135539",
@@ -563,23 +176,9 @@
       "fullRes": "https://openaccess-cdn.clevelandart.org/1958.67/1958.67_print.jpg",
       "imageWidth": 2598,
       "imageHeight": 3400,
-      "rights": "CC0",
+      "artworkType": "Sculpture",
       "sourceUrl": "https://clevelandart.org/art/1958.67",
-      "date": "1404–10",
-      "medium": "vizille alabaster",
-      "dimensions": {
-        "overall": {
-          "height": 0.411,
-          "height_inch": 16,
-          "height_inch_fraction": 0.1875,
-          "width": 0.176,
-          "width_inch": 6,
-          "width_inch_fraction": 0.9375,
-          "depth": 0.11,
-          "depth_inch": 4,
-          "depth_inch_fraction": 0.3125
-        }
-      }
+      "rights": "CC0 / Cleveland Museum of Art"
     },
     {
       "id": "149768",
@@ -589,28 +188,9 @@
       "fullRes": "https://openaccess-cdn.clevelandart.org/1979.80/1979.80_print.jpg",
       "imageWidth": 1145,
       "imageHeight": 3400,
-      "rights": "CC0",
+      "artworkType": "Painting",
       "sourceUrl": "https://clevelandart.org/art/1979.80",
-      "date": "c. 1445",
-      "medium": "oil on panel",
-      "dimensions": {
-        "unframed": {
-          "height": 0.402,
-          "height_inch": 15,
-          "height_inch_fraction": 0.8125,
-          "width": 0.125,
-          "width_inch": 4,
-          "width_inch_fraction": 0.9375
-        },
-        "painted surface": {
-          "height": 0.396,
-          "height_inch": 15,
-          "height_inch_fraction": 0.5625,
-          "width": 0.115,
-          "width_inch": 4,
-          "width_inch_fraction": 0.5
-        }
-      }
+      "rights": "CC0 / Cleveland Museum of Art"
     },
     {
       "id": "156112",
@@ -620,57 +200,21 @@
       "fullRes": "https://openaccess-cdn.clevelandart.org/1991.45/1991.45_print.jpg",
       "imageWidth": 2720,
       "imageHeight": 3400,
-      "rights": "CC0",
+      "artworkType": "Furniture and woodwork",
       "sourceUrl": "https://clevelandart.org/art/1991.45",
-      "date": "c. 1907",
-      "medium": "inlaid wood (mahogany?), cast and gilded bronze mounts, inlays of ivory or bone, metal, and mother-of-pearl (marine mussels or pearl oysters)",
-      "dimensions": {
-        "overall": {
-          "height": 0.715,
-          "height_inch": 28,
-          "height_inch_fraction": 0.125,
-          "width": 0.671,
-          "width_inch": 26,
-          "width_inch_fraction": 0.4375,
-          "depth": 0.413,
-          "depth_inch": 16,
-          "depth_inch_fraction": 0.25
-        }
-      }
+      "rights": "CC0 / Cleveland Museum of Art"
     },
     {
       "id": "111811",
       "title": "Nataraja, Shiva as the Lord of Dance",
-      "artist": "Unknown artist",
+      "artist": "Cleveland Master",
       "image": "https://openaccess-cdn.clevelandart.org/1930.331/1930.331_web.jpg",
       "fullRes": "https://openaccess-cdn.clevelandart.org/1930.331/1930.331_print.jpg",
       "imageWidth": 2720,
       "imageHeight": 3400,
-      "rights": "CC0",
+      "artworkType": "Sculpture",
       "sourceUrl": "https://clevelandart.org/art/1930.331",
-      "date": "1000s",
-      "medium": "Bronze",
-      "dimensions": {
-        "overall": {
-          "height": 1.13,
-          "height_inch": 44,
-          "height_inch_fraction": 0.5,
-          "width": 1.02,
-          "width_inch": 40,
-          "width_inch_fraction": 0.1875,
-          "depth": 0.3,
-          "depth_inch": 11,
-          "depth_inch_fraction": 0.8125
-        },
-        "base": {
-          "width": 0.35,
-          "width_inch": 13,
-          "width_inch_fraction": 0.75,
-          "depth": 0.24,
-          "depth_inch": 9,
-          "depth_inch_fraction": 0.4375
-        }
-      }
+      "rights": "CC0 / Cleveland Museum of Art"
     },
     {
       "id": "149665",
@@ -680,31 +224,9 @@
       "fullRes": "https://openaccess-cdn.clevelandart.org/1979.57/1979.57_print.jpg",
       "imageWidth": 2498,
       "imageHeight": 3400,
-      "rights": "CC0",
+      "artworkType": "Painting",
       "sourceUrl": "https://clevelandart.org/art/1979.57",
-      "date": "1881",
-      "medium": "oil on fabric",
-      "dimensions": {
-        "framed": {
-          "height": 1.321,
-          "height_inch": 52,
-          "height_inch_fraction": 0,
-          "width": 1.029,
-          "width_inch": 40,
-          "width_inch_fraction": 0.5,
-          "depth": 0.083,
-          "depth_inch": 3,
-          "depth_inch_fraction": 0.25
-        },
-        "unframed": {
-          "height": 1.11,
-          "height_inch": 43,
-          "height_inch_fraction": 0.6875,
-          "width": 0.82,
-          "width_inch": 32,
-          "width_inch_fraction": 0.3125
-        }
-      }
+      "rights": "CC0 / Cleveland Museum of Art"
     },
     {
       "id": "155665",
@@ -714,27 +236,9 @@
       "fullRes": "https://openaccess-cdn.clevelandart.org/1991.1/1991.1_print.jpg",
       "imageWidth": 3165,
       "imageHeight": 3400,
-      "rights": "CC0",
+      "artworkType": "Ceramic",
       "sourceUrl": "https://clevelandart.org/art/1991.1",
-      "date": "c. 400 BCE",
-      "medium": "ceramic",
-      "dimensions": {
-        "diameter of mouth": {
-          "width": 0.499,
-          "width_inch": 19,
-          "width_inch_fraction": 0.625
-        },
-        "overall": {
-          "height": 0.505,
-          "height_inch": 19,
-          "height_inch_fraction": 0.875
-        },
-        "diameter of foot": {
-          "width": 0.22,
-          "width_inch": 8,
-          "width_inch_fraction": 0.6875
-        }
-      }
+      "rights": "CC0 / Cleveland Museum of Art"
     },
     {
       "id": "122338",
@@ -744,57 +248,46 @@
       "fullRes": "https://openaccess-cdn.clevelandart.org/1942.635/1942.635_print.jpg",
       "imageWidth": 2815,
       "imageHeight": 3400,
-      "rights": "CC0",
+      "artworkType": "Painting",
       "sourceUrl": "https://clevelandart.org/art/1942.635",
-      "date": "c. 1480",
-      "medium": "oil on wood",
-      "dimensions": {
-        "framed": {
-          "height": 0.752,
-          "height_inch": 29,
-          "height_inch_fraction": 0.625,
-          "width": 0.69,
-          "width_inch": 27,
-          "width_inch_fraction": 0.1875,
-          "depth": 0.085,
-          "depth_inch": 3,
-          "depth_inch_fraction": 0.375
-        },
-        "unframed": {
-          "height": 0.502,
-          "height_inch": 19,
-          "height_inch_fraction": 0.75,
-          "width": 0.415,
-          "width_inch": 16,
-          "width_inch_fraction": 0.3125
-        }
-      }
+      "rights": "CC0 / Cleveland Museum of Art"
     },
     {
       "id": "123985",
       "title": "The Wade Cup with Animated Script",
-      "artist": "Unknown artist",
+      "artist": "Cleveland Master",
       "image": "https://openaccess-cdn.clevelandart.org/1944.485/1944.485_web.jpg",
       "fullRes": "https://openaccess-cdn.clevelandart.org/1944.485/1944.485_print.jpg",
       "imageWidth": 3400,
       "imageHeight": 3000,
-      "rights": "CC0",
+      "artworkType": "Metalwork",
       "sourceUrl": "https://clevelandart.org/art/1944.485",
-      "date": "1200–1221",
-      "medium": "brass inlaid with silver",
-      "dimensions": {
-        "diameter": {
-          "width": 0.161,
-          "width_inch": 6,
-          "width_inch_fraction": 0.3125
-        },
-        "overall": {
-          "height": 0.115,
-          "height_inch": 4,
-          "height_inch_fraction": 0.5
-        }
-      }
+      "rights": "CC0 / Cleveland Museum of Art"
+    },
+    {
+      "id": "171296",
+      "title": "Vale of Kashmir",
+      "artist": "Robert S. Duncanson (American, 1821–1872)",
+      "image": "https://openaccess-cdn.clevelandart.org/2014.12/2014.12_web.jpg",
+      "fullRes": "https://openaccess-cdn.clevelandart.org/2014.12/2014.12_print.jpg",
+      "imageWidth": 3400,
+      "imageHeight": 1857,
+      "artworkType": "Painting",
+      "sourceUrl": "https://clevelandart.org/art/2014.12",
+      "rights": "CC0 / Cleveland Museum of Art"
+    },
+    {
+      "id": "148753",
+      "title": "Violette Heymann",
+      "artist": "Odilon Redon (French, 1840–1916)",
+      "image": "https://openaccess-cdn.clevelandart.org/1926.1976/1926.1976_web.jpg",
+      "fullRes": "https://openaccess-cdn.clevelandart.org/1926.1976/1926.1976_print.jpg",
+      "imageWidth": 3400,
+      "imageHeight": 2665,
+      "artworkType": "Drawing",
+      "sourceUrl": "https://clevelandart.org/art/1926.1976",
+      "rights": "CC0 / Cleveland Museum of Art"
     }
   ],
-  "total": 41561
+  "total": 41806
 }
