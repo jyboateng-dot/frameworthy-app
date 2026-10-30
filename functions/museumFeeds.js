@@ -6,10 +6,15 @@ try {
 }
 
 const PAGE_SIZE = 24;
+// MediaWiki CirrusSearch supports up to 10,000 search results (416 pages of 24)
+const MAX_COMMONS_OFFSET = 9960;
+const MAX_COMMONS_TOTAL = 9984;
+
 const cache = new Map();
 
 async function json(url, options = {}) {
-    const response = await fetch(url, { ...options, signal: AbortSignal.timeout(25000) });
+    const signal = options.signal || AbortSignal.timeout(10000);
+    const response = await fetch(url, { ...options, signal });
     if (!response.ok) {
         const error = new Error(response.status === 429
             ? 'The museum is receiving too many requests. Please try again shortly.'
@@ -46,7 +51,7 @@ function smithsonianRecord(record) {
 
 async function smithsonian(page, key) {
     const apiKey = key || process.env.SMITHSONIAN_API_KEY;
-    if (apiKey && apiKey !== 'DEMO_KEY') {
+    if (apiKey && apiKey !== 'DEMO_KEY' && page <= 50) {
         try {
             const params = new URLSearchParams({
                 q: 'online_media_type:Images',
@@ -54,36 +59,23 @@ async function smithsonian(page, key) {
                 rows: String(PAGE_SIZE),
                 api_key: apiKey,
             });
-            const data = await json(`https://api.si.edu/openaccess/api/v1.0/search?${params}`);
+            const data = await json(`https://api.si.edu/openaccess/api/v1.0/search?${params}`, { signal: AbortSignal.timeout(3000) });
             if (data.status === 200 && data.response?.rows) {
-                const artworks = [];
                 const rows = data.response.rows || [];
-                for (let offset = 0; offset < rows.length; offset += 3) {
-                    const batch = await Promise.all(rows.slice(offset, offset + 3).map(async row => {
-                        const existing = smithsonianRecord(row);
-                        if (existing) return existing;
-                        try {
-                            const detail = await json(`https://api.si.edu/openaccess/api/v1.0/content/${encodeURIComponent(row.url)}?api_key=${encodeURIComponent(apiKey)}`);
-                            return smithsonianRecord(detail.response || {});
-                        } catch {
-                            return null;
-                        }
-                    }));
-                    artworks.push(...batch.filter(Boolean));
-                }
+                const artworks = rows.map(smithsonianRecord).filter(Boolean);
                 if (artworks.length > 0) {
-                    return { artworks, total: data.response.rowCount || 7500000 };
+                    return { artworks, total: MAX_COMMONS_TOTAL };
                 }
             }
         } catch {
-            // Fall back to high-res Smithsonian CC0 mirror on Wikimedia Commons
+            // Fall back to fast Commons mirror
         }
     }
     return smithsonianCommonsFallback(page);
 }
 
 async function smithsonianCommonsFallback(page) {
-    const offset = (page - 1) * PAGE_SIZE;
+    const offset = Math.min((page - 1) * PAGE_SIZE, MAX_COMMONS_OFFSET);
     const params = new URLSearchParams({
         action: 'query',
         generator: 'search',
@@ -121,11 +113,10 @@ async function smithsonianCommonsFallback(page) {
             rights: 'CC0 / Smithsonian Open Access',
         };
     }).filter(Boolean);
-    return { artworks, total: 16283 };
+    return { artworks, total: MAX_COMMONS_TOTAL };
 }
 
 const PARIS_DEFAULT_TOKEN = '9a695903-3959-4413-8a65-7427ac729efe';
-const PARIS_ESTIMATED_TOTAL = 326567;
 
 function parisQuery(page) {
     return `{ nodeQuery(limit: ${PAGE_SIZE}, offset: ${(page - 1) * PAGE_SIZE}, filter: {conditions: [{field: "type", value: "oeuvre"}, {field: "field_visuels.entity.field_image_libre", value: "1"}]}) {
@@ -138,54 +129,52 @@ function parisQuery(page) {
 
 async function paris(page, token) {
     const apiToken = token || process.env.PARIS_MUSEES_API_TOKEN || PARIS_DEFAULT_TOKEN;
-    try {
-        if (!apiToken) {
-            const error = new Error('The Paris Musées collection is awaiting connection credentials.');
-            error.status = 503;
-            throw error;
+    // Paris Musées Drupal GraphQL endpoint times out for deep offsets.
+    // Query it only for the initial pages; use fast Commons for deep pages.
+    if (page <= 3 && apiToken) {
+        try {
+            const data = await json('https://apicollections.parismusees.paris.fr/graphql', {
+                method: 'POST', headers: { 'Content-Type': 'application/json', 'auth-token': apiToken },
+                body: JSON.stringify({ query: parisQuery(page) }),
+                signal: AbortSignal.timeout(2500),
+            });
+            if (!data.errors?.length && data.data?.nodeQuery?.entities) {
+                const entities = data.data.nodeQuery.entities || [];
+                const artworks = entities.map(item => {
+                    if (!item) return null;
+                    const visual = item.fieldVisuels?.find(v => v?.entity?.publicUrl)?.entity || item.fieldVisuels?.[0]?.entity || {};
+                    const vignette = visual.vignette;
+                    if (!vignette && !visual.publicUrl) return null;
+                    const rawPreview = vignette || visual.publicUrl;
+                    const image = /^https?:\/\//i.test(rawPreview) ? rawPreview : `https://parismuseescollections.paris.fr${rawPreview}`;
+                    const fullRes = visual.publicUrl
+                        ? (/^https?:\/\//i.test(visual.publicUrl) ? visual.publicUrl : `https://www.parismuseescollections.paris.fr${visual.publicUrl}`)
+                        : image;
+                    return {
+                        id: String(item.entityUuid || item.entityId),
+                        title: item.title || 'Paris Musées Artwork',
+                        artist: item.fieldCartelAuteur || 'Paris Musées',
+                        image,
+                        fullRes,
+                        sourceUrl: item.absolutePath || `https://www.parismuseescollections.paris.fr/fr/node/${item.entityId}`,
+                        rights: visual.fieldCopyright || 'CC0 / Paris Musées Open Content',
+                        description: visual.fieldLegende,
+                        metadata: { lrefAdlib: item.fieldLrefAdlib, copyright: visual.fieldCopyright },
+                    };
+                }).filter(Boolean);
+                if (artworks.length > 0) {
+                    return { artworks, total: MAX_COMMONS_TOTAL };
+                }
+            }
+        } catch {
+            // Fall back to high-resolution Commons mirror
         }
-        const data = await json('https://apicollections.parismusees.paris.fr/graphql', {
-            method: 'POST', headers: { 'Content-Type': 'application/json', 'auth-token': apiToken },
-            body: JSON.stringify({ query: parisQuery(page) }),
-            signal: AbortSignal.timeout(3500),
-        });
-        if (data.errors?.length || !data.data?.nodeQuery) {
-            throw new Error(data.errors?.[0]?.message || 'Paris Musées could not provide the collection.');
-        }
-        const entities = data.data.nodeQuery.entities || [];
-        const artworks = entities.map(item => {
-            if (!item) return null;
-            const visual = item.fieldVisuels?.find(v => v?.entity?.publicUrl)?.entity || item.fieldVisuels?.[0]?.entity || {};
-            const vignette = visual.vignette;
-            if (!vignette && !visual.publicUrl) return null;
-            const rawPreview = vignette || visual.publicUrl;
-            const image = /^https?:\/\//i.test(rawPreview) ? rawPreview : `https://parismuseescollections.paris.fr${rawPreview}`;
-            const fullRes = visual.publicUrl
-                ? (/^https?:\/\//i.test(visual.publicUrl) ? visual.publicUrl : `https://www.parismuseescollections.paris.fr${visual.publicUrl}`)
-                : image;
-            return {
-                id: String(item.entityUuid || item.entityId),
-                title: item.title || 'Paris Musées Artwork',
-                artist: item.fieldCartelAuteur || 'Paris Musées',
-                image,
-                fullRes,
-                sourceUrl: item.absolutePath || `https://www.parismuseescollections.paris.fr/fr/node/${item.entityId}`,
-                rights: visual.fieldCopyright || 'CC0 / Paris Musées Open Content',
-                description: visual.fieldLegende,
-                metadata: { lrefAdlib: item.fieldLrefAdlib, copyright: visual.fieldCopyright },
-            };
-        }).filter(Boolean);
-        if (artworks.length > 0) {
-            return { artworks, total: PARIS_ESTIMATED_TOTAL };
-        }
-    } catch {
-        // Fall back to high-resolution Commons CC0 Paris Musées mirror if municipal portal is unreachable/503
     }
     return parisCommonsFallback(page);
 }
 
 async function parisCommonsFallback(page) {
-    const offset = (page - 1) * PAGE_SIZE;
+    const offset = Math.min((page - 1) * PAGE_SIZE, MAX_COMMONS_OFFSET);
     const params = new URLSearchParams({
         action: 'query',
         generator: 'search',
@@ -226,43 +215,47 @@ async function parisCommonsFallback(page) {
             rights: 'CC0 / Paris Musées Open Content',
         };
     }).filter(Boolean);
-    return { artworks, total: PARIS_ESTIMATED_TOTAL };
+    return { artworks, total: MAX_COMMONS_TOTAL };
 }
 
 async function artInstituteOfChicago(page) {
-    try {
-        const params = new URLSearchParams({
-            page: String(page),
-            limit: String(PAGE_SIZE),
-            fields: 'id,title,artist_display,image_id,thumbnail,dimensions,date_display,is_public_domain',
-        });
-        params.set('query[term][is_public_domain]', 'true');
-        const data = await json(`https://api.artic.edu/api/v1/artworks/search?${params}`);
-        if (data.data && data.data.length > 0) {
-            const artworks = data.data.filter(item => item.image_id).map(item => {
-                const masterWidth = Number(item.thumbnail?.width) || 4000;
-                const masterHeight = Number(item.thumbnail?.height) || null;
-                return {
-                    id: String(item.id),
-                    title: item.title || 'Art Institute Artwork',
-                    artist: item.artist_display || 'Art Institute of Chicago',
-                    image: `https://frameworthyco.com/api/artic-image?id=${encodeURIComponent(item.image_id)}&width=400`,
-                    fullRes: `https://frameworthyco.com/api/artic-image?id=${encodeURIComponent(item.image_id)}&width=${masterWidth}`,
-                    imageWidth: masterWidth,
-                    imageHeight: masterHeight,
-                    sourceUrl: `https://www.artic.edu/artworks/${item.id}`,
-                    rights: 'Public domain / Art Institute of Chicago',
-                };
+    // Official Art Institute API enforces max from+size <= 1000 (page 41).
+    // For page <= 41, query official API. For page > 41, use Wikimedia Commons.
+    if (page <= 41) {
+        try {
+            const params = new URLSearchParams({
+                page: String(page),
+                limit: String(PAGE_SIZE),
+                fields: 'id,title,artist_display,image_id,thumbnail,dimensions,date_display,is_public_domain',
             });
-            if (artworks.length > 0) {
-                return { artworks, total: data.pagination?.total || 62119 };
+            params.set('query[term][is_public_domain]', 'true');
+            const data = await json(`https://api.artic.edu/api/v1/artworks/search?${params}`, { signal: AbortSignal.timeout(3000) });
+            if (data.data && data.data.length > 0) {
+                const artworks = data.data.filter(item => item.image_id).map(item => {
+                    const masterWidth = Number(item.thumbnail?.width) || 4000;
+                    const masterHeight = Number(item.thumbnail?.height) || null;
+                    return {
+                        id: String(item.id),
+                        title: item.title || 'Art Institute Artwork',
+                        artist: item.artist_display || 'Art Institute of Chicago',
+                        image: `https://frameworthyco.com/api/artic-image?id=${encodeURIComponent(item.image_id)}&width=400`,
+                        fullRes: `https://frameworthyco.com/api/artic-image?id=${encodeURIComponent(item.image_id)}&width=${masterWidth}`,
+                        imageWidth: masterWidth,
+                        imageHeight: masterHeight,
+                        sourceUrl: `https://www.artic.edu/artworks/${item.id}`,
+                        rights: 'Public domain / Art Institute of Chicago',
+                    };
+                });
+                if (artworks.length > 0) {
+                    return { artworks, total: MAX_COMMONS_TOTAL };
+                }
             }
+        } catch {
+            // Fall through to Commons
         }
-    } catch {
-        // Fall back to Commons
     }
 
-    const offset = (page - 1) * PAGE_SIZE;
+    const offset = Math.min((page - 1) * PAGE_SIZE, MAX_COMMONS_OFFSET);
     const params = new URLSearchParams({
         action: 'query',
         generator: 'search',
@@ -303,18 +296,21 @@ async function artInstituteOfChicago(page) {
             rights: 'Public domain / Art Institute of Chicago',
         };
     }).filter(Boolean);
-    return { artworks, total: 12887 };
+    return { artworks, total: MAX_COMMONS_TOTAL };
 }
 
 async function clevelandMuseumOfArt(page) {
+    const maxPage = Math.ceil(41806 / PAGE_SIZE); // 1742 pages
+    const clampedPage = Math.max(1, Math.min(page, maxPage));
     const params = new URLSearchParams({
         cc0: '',
         has_image: '1',
         limit: String(PAGE_SIZE),
-        skip: String((page - 1) * PAGE_SIZE),
+        skip: String((clampedPage - 1) * PAGE_SIZE),
     });
     const data = await json(`https://openaccess-api.clevelandart.org/api/artworks?${params}`, {
-        headers: { 'User-Agent': 'FrameWorthyApp/1.0 (contact@frameworthy.art)' }
+        headers: { 'User-Agent': 'FrameWorthyApp/1.0 (contact@frameworthy.art)' },
+        signal: AbortSignal.timeout(6000),
     });
     const artworks = (data.data || []).filter(item => item.images?.web?.url).map(item => {
         const printImg = item.images.print || {};
@@ -336,7 +332,8 @@ async function clevelandMuseumOfArt(page) {
 }
 
 async function rijksmuseum(page) {
-    const offset = (page - 1) * PAGE_SIZE;
+    const maxOffset = Math.floor(3295 / PAGE_SIZE) * PAGE_SIZE;
+    const offset = Math.min((page - 1) * PAGE_SIZE, maxOffset);
     const params = new URLSearchParams({
         action: 'query',
         generator: 'search',
@@ -378,7 +375,7 @@ async function rijksmuseum(page) {
 }
 
 async function biodiversityHeritageLibrary(page) {
-    const offset = (page - 1) * PAGE_SIZE;
+    const offset = Math.min((page - 1) * PAGE_SIZE, MAX_COMMONS_OFFSET);
     const params = new URLSearchParams({
         action: 'query',
         generator: 'search',
@@ -414,11 +411,12 @@ async function biodiversityHeritageLibrary(page) {
             rights: 'Public Domain / Biodiversity Heritage Library',
         };
     }).filter(Boolean);
-    return { artworks, total: 245396 };
+    return { artworks, total: MAX_COMMONS_TOTAL };
 }
 
 async function nasaOpenMedia(page) {
-    const params = new URLSearchParams({ q: 'space photography', media_type: 'image', page_size: String(PAGE_SIZE), page: String(page) });
+    const clampedPage = Math.max(1, Math.min(page, 20));
+    const params = new URLSearchParams({ q: 'space photography', media_type: 'image', page_size: String(PAGE_SIZE), page: String(clampedPage) });
     const data = await json(`https://images-api.nasa.gov/search?${params}`);
     const artworks = (data.collection?.items || []).map(item => {
         const metadata = item.data?.[0] || {};
@@ -439,11 +437,12 @@ async function nasaOpenMedia(page) {
             rights: 'NASA media; verify item-level usage guidance',
         } : null;
     }).filter(Boolean);
-    return { artworks, total: data.collection?.metadata?.total_hits || artworks.length };
+    return { artworks, total: data.collection?.metadata?.total_hits || 468 };
 }
 
 async function libraryOfCongress(page) {
-    const offset = (page - 1) * PAGE_SIZE;
+    const maxOffset = Math.floor(5000 / PAGE_SIZE) * PAGE_SIZE;
+    const offset = Math.min((page - 1) * PAGE_SIZE, maxOffset);
     const params = new URLSearchParams({
         action: 'query',
         generator: 'search',
@@ -483,7 +482,7 @@ async function libraryOfCongress(page) {
 }
 
 async function museumFeed(source, page, env = process.env) {
-    if (!Number.isInteger(page) || page < 1 || page > 10000) {
+    if (!Number.isInteger(page) || page < 1 || page > 50000) {
         const error = new Error('Invalid collection page.'); error.status = 400; throw error;
     }
     const key = `${source}:${page}`;
@@ -499,13 +498,13 @@ async function museumFeed(source, page, env = process.env) {
     else if (source === 'nasa-open-media') value = await nasaOpenMedia(page);
     else if (source === 'library-of-congress') value = await libraryOfCongress(page);
     else { const error = new Error('Unknown collection.'); error.status = 400; throw error; }
-    if (cache.size >= 100) cache.delete(cache.keys().next().value);
-    cache.set(key, { value, expires: Date.now() + 15 * 60 * 1000 });
+    if (cache.size >= 2000) cache.delete(cache.keys().next().value);
+    cache.set(key, { value, expires: Date.now() + 30 * 60 * 1000 });
     return value;
 }
 
 async function archivalFeed(source, page) {
-    if (!Number.isInteger(page) || page < 1 || page > 10000) {
+    if (!Number.isInteger(page) || page < 1 || page > 50000) {
         const error = new Error('Invalid collection page.'); error.status = 400; throw error;
     }
     const key = `archival:${source}:${page}`;
@@ -516,7 +515,8 @@ async function archivalFeed(source, page) {
     else if (source === 'nasa-open-media') value = await nasaOpenMedia(page);
     else if (source === 'library-of-congress') value = await libraryOfCongress(page);
     else { const error = new Error('Unknown archival collection.'); error.status = 400; throw error; }
-    cache.set(key, { value, expires: Date.now() + 15 * 60 * 1000 });
+    if (cache.size >= 2000) cache.delete(cache.keys().next().value);
+    cache.set(key, { value, expires: Date.now() + 30 * 60 * 1000 });
     return value;
 }
 

@@ -20,7 +20,7 @@ exports.museumArtworks = onRequest({
     try {
         const { museumFeed } = require('./museumFeeds');
         const data = await museumFeed(req.query.source, Number(req.query.page || 1));
-        res.set('Cache-Control', 'public, max-age=300').json(data);
+        res.set('Cache-Control', 'public, max-age=1800, s-maxage=86400, stale-while-revalidate=86400').json(data);
     } catch (error) {
         res.status(error.status || 502).json({ error: error.message });
     }
@@ -34,7 +34,7 @@ exports.archivalArtworks = onRequest({
     try {
         const { archivalFeed } = require('./museumFeeds');
         const data = await archivalFeed(req.query.source, Number(req.query.page || 1));
-        res.set('Cache-Control', 'public, max-age=300').json(data);
+        res.set('Cache-Control', 'public, max-age=1800, s-maxage=86400, stale-while-revalidate=86400').json(data);
     } catch (error) {
         res.status(error.status || 502).json({ error: error.message });
     }

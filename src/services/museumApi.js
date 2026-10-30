@@ -8,6 +8,18 @@ const requestCache = new Map();
 const snapshotCache = new Map();
 const PUBLIC_SITE_ORIGIN = 'https://frameworthyco.com';
 
+const KNOWN_SNAPSHOT_PAGES = {
+    'national-gallery-of-art': 1677,
+    'art-institute-of-chicago': 3,
+    'cleveland-museum-of-art': 3,
+    'paris-musees': 4,
+    rijksmuseum: 2,
+    'smithsonian-open-access': 3,
+    'biodiversity-heritage-library': 3,
+    'nasa-open-media': 3,
+    'library-of-congress': 3,
+};
+
 const artInstituteImageUrl = (imageId, width = 843) =>
     `${PUBLIC_SITE_ORIGIN}/api/artic-image?id=${encodeURIComponent(imageId)}&width=${width}`;
 
@@ -20,7 +32,7 @@ async function getJson(url) {
 }
 
 async function fetchArtInstitute(page) {
-    if (page > 83) {
+    if (page > 41) {
         return fetchServerCollection('art-institute-of-chicago', page);
     }
     const params = new URLSearchParams({
@@ -90,7 +102,7 @@ function firstEnglishName(items = []) {
 }
 
 async function fetchRijks(page) {
-    if (page > 4) {
+    if (page > 2) {
         return fetchServerCollection('rijksmuseum', page);
     }
     try {
@@ -155,11 +167,18 @@ async function fetchServerCollection(sourceId, page) {
         ? '/api/archival-artworks'
         : '/api/museum-artworks';
     const response = await fetch(`${archivalEndpoint}?source=${encodeURIComponent(sourceId)}&page=${page}`);
-    const data = await response.json();
-    if (!response.ok) throw new Error(data.error || 'The collection is temporarily unavailable.');
+    let data = {};
+    try {
+        if (typeof response.json === 'function') {
+            data = await response.json();
+        }
+    } catch {
+        data = {};
+    }
+    if (!response.ok) throw new Error(data?.error || 'The collection is temporarily unavailable.');
     return {
         ...data,
-        artworks: data.artworks
+        artworks: (data.artworks || [])
             .filter(record => isFramableMuseumArtwork(sourceId, record))
             .map(record => normalizeMuseumArtwork(record, sourceById(sourceId))),
     };
@@ -260,6 +279,9 @@ export async function fetchMuseumArtworks(sourceId, page = 1) {
 }
 
 async function fetchMuseumSnapshot(sourceId, page) {
+    if (page > (KNOWN_SNAPSHOT_PAGES[sourceId] || 0)) {
+        return null;
+    }
     try {
         const staticUrl = sourceId === 'national-gallery-of-art'
             ? `/museum-data/nga/${page}.json`

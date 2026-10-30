@@ -96,6 +96,22 @@ const MuseumSourceArtPage = ({ sourceId, setProductMode, setSelectedSize, naviga
         }
     }, [viewState.status, totalPages, page]);
 
+    useEffect(() => {
+        if (viewState.status === 'ready' && page < totalPages) {
+            const nextPage = page + 1;
+            const nextKey = `${sourceId}_${nextPage}`;
+            if (!sourceArtCache.has(nextKey)) {
+                fetchMuseumArtworks(sourceId, nextPage)
+                    .then(result => {
+                        sourceArtCache.set(nextKey, result);
+                    })
+                    .catch(() => {
+                        // Prefetch failures are ignored quietly
+                    });
+            }
+        }
+    }, [viewState.status, sourceId, page, totalPages]);
+
     if (!source) return null;
 
     return (
