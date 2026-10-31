@@ -1,17 +1,6 @@
 {
   "artworks": [
     {
-      "id": "202407736",
-      "title": "CramerAndStoll-uitlandsche kapellen supplement- pl. 39 (Mesene bomilcar)",
-      "artist": "Caspar Stoll (between  1725 and 1730 - 1791)",
-      "image": "https://upload.wikimedia.org/wikipedia/commons/7/70/CramerAndStoll-uitlandsche_kapellen_supplement-_pl._39_%28Mesene_bomilcar%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
-      "fullRes": "https://upload.wikimedia.org/wikipedia/commons/7/70/CramerAndStoll-uitlandsche_kapellen_supplement-_pl._39_%28Mesene_bomilcar%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
-      "imageWidth": 359,
-      "imageHeight": 212,
-      "sourceUrl": "https://commons.wikimedia.org/wiki/File:CramerAndStoll-uitlandsche_kapellen_supplement-_pl._39_(Mesene_bomilcar).jpg",
-      "rights": "Public Domain / Biodiversity Heritage Library"
-    },
-    {
       "id": "202381925",
       "title": "CramerAndStoll-uitlandsche kapellen vol. 3- pl 218 (Morpho telemachus)",
       "artist": "Pieter Cramer (1721 - 1776) and Caspar Stoll (between  1725 and 1730 - 1791)",
@@ -67,17 +56,6 @@
       "rights": "Public Domain / Biodiversity Heritage Library"
     },
     {
-      "id": "202372358",
-      "title": "Historia naturalis Brasiliae (Page 42) BHL289005 (cropped) 2",
-      "artist": "Hackius, Franciscus; Laet, Joannes de; Lud. Elzevirium.; Marggraf, Georg; Piso, Willem",
-      "image": "https://thumb.wikimedia.org/wikipedia/commons/thumb/2/23/Historia_naturalis_Brasiliae_%28Page_42%29_BHL289005_%28cropped%29_2.jpg/960px-Historia_naturalis_Brasiliae_%28Page_42%29_BHL289005_%28cropped%29_2.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-      "fullRes": "https://upload.wikimedia.org/wikipedia/commons/2/23/Historia_naturalis_Brasiliae_%28Page_42%29_BHL289005_%28cropped%29_2.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
-      "imageWidth": 2219,
-      "imageHeight": 278,
-      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Historia_naturalis_Brasiliae_(Page_42)_BHL289005_(cropped)_2.jpg",
-      "rights": "Public Domain / Biodiversity Heritage Library"
-    },
-    {
       "id": "202372300",
       "title": "Historia naturalis Brasiliae (Page 42) BHL289005 (cropped)",
       "artist": "Hackius, Franciscus; Laet, Joannes de; Lud. Elzevirium.; Marggraf, Georg; Piso, Willem",
@@ -97,17 +75,6 @@
       "imageWidth": 1886,
       "imageHeight": 427,
       "sourceUrl": "https://commons.wikimedia.org/wiki/File:Historia_naturalis_Brasiliae_(Page_41)_BHL289004_(cropped)_2.jpg",
-      "rights": "Public Domain / Biodiversity Heritage Library"
-    },
-    {
-      "id": "202372238",
-      "title": "Historia naturalis Brasiliae (Page 41) BHL289004 (cropped)",
-      "artist": "Hackius, Franciscus; Laet, Joannes de; Lud. Elzevirium.; Marggraf, Georg; Piso, Willem",
-      "image": "https://thumb.wikimedia.org/wikipedia/commons/thumb/3/35/Historia_naturalis_Brasiliae_%28Page_41%29_BHL289004_%28cropped%29.jpg/960px-Historia_naturalis_Brasiliae_%28Page_41%29_BHL289004_%28cropped%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-      "fullRes": "https://upload.wikimedia.org/wikipedia/commons/3/35/Historia_naturalis_Brasiliae_%28Page_41%29_BHL289004_%28cropped%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
-      "imageWidth": 1948,
-      "imageHeight": 351,
-      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Historia_naturalis_Brasiliae_(Page_41)_BHL289004_(cropped).jpg",
       "rights": "Public Domain / Biodiversity Heritage Library"
     },
     {

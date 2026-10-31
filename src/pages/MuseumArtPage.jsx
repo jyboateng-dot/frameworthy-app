@@ -5,6 +5,11 @@ import { useUnit } from '../context/UnitContext';
 import { useWishlist } from '../context/WishlistContext';
 import { getThumbnailUrl } from '../services/storage';
 import CollectionPagination from '../components/common/CollectionPagination';
+import { maxFramePrintSize } from '../utils/maxFramePrintSize';
+import { recommendFrameSize } from '../utils/museumArtwork';
+
+// In-memory dimension cache for Historic Masterpieces images
+const MASTERPIECE_PIXEL_CACHE = new Map();
 
 // Bymuseum's own artist browser (bymuseum.com/artists/) is a two-tier
 // thing — a paginated index of portrait+bio artist cards, then a filtered
@@ -51,9 +56,26 @@ const MuseumProductCard = ({ product, onGetThis }) => {
     const { toggleWishlist, isInWishlist } = useWishlist();
     const liked = isInWishlist(product.id);
     const [hovered, setHovered] = useState(false);
+    const [pixelSize, setPixelSize] = useState(() => (
+        (product.imageWidth && product.imageHeight)
+            ? { w: Number(product.imageWidth), h: Number(product.imageHeight) }
+            : MASTERPIECE_PIXEL_CACHE.get(product.id) || null
+    ));
 
-    // Default dimensions for ByMuseum art
-    const dims = '40 x 50 cm';
+    const maxSize = useMemo(() => {
+        if (pixelSize) return maxFramePrintSize(pixelSize);
+        // Standard ByMuseum 40x50cm / 16x20in reproduction fallback
+        return maxFramePrintSize({ w: 1600, h: 2000 });
+    }, [pixelSize]);
+
+    const handleImageLoad = (e) => {
+        const w = e.target.naturalWidth;
+        const h = e.target.naturalHeight;
+        if (w > 0 && h > 0) {
+            MASTERPIECE_PIXEL_CACHE.set(product.id, { w, h });
+            setPixelSize({ w, h });
+        }
+    };
 
     return (
         <div
@@ -66,6 +88,7 @@ const MuseumProductCard = ({ product, onGetThis }) => {
                     src={getThumbnailUrl(product.image)}
                     alt={product.title}
                     loading="lazy"
+                    onLoad={handleImageLoad}
                     className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.03]"
                 />
                 <div className={`absolute inset-0 bg-stone-50/20 flex items-center justify-center gap-3 transition-opacity duration-300 ${hovered ? 'opacity-100' : 'opacity-0'}`}>
@@ -90,7 +113,11 @@ const MuseumProductCard = ({ product, onGetThis }) => {
                 {product.artist && (
                     <p className="text-[10px] text-stone-500 font-light truncate" title={product.artist}>{product.artist}</p>
                 )}
-                <p className="text-[10px] text-stone-500 font-light leading-snug">{formatDimensions(dims, unit, product.orientation)}</p>
+                {maxSize && (
+                    <p className="text-[10px] text-stone-500 font-light leading-snug">
+                        Available up to {formatDimensions(maxSize.label, unit, maxSize.orientation)}
+                    </p>
+                )}
                 <div className="flex items-center gap-2 text-[10px] uppercase tracking-wider mt-1">
                     <button onClick={() => onGetThis(product)} className="text-stone-900 hover:text-stone-700 font-bold transition-colors duration-150">Get This</button>
                 </div>
@@ -150,11 +177,25 @@ const MuseumArtPage = ({ setProductMode, setSelectedSize, navigate, isSubPage = 
     const handleGetThis = (product) => {
         setProductMode('frame');
 
+        const pixelSize = (product.imageWidth && product.imageHeight)
+            ? { w: Number(product.imageWidth), h: Number(product.imageHeight) }
+            : MASTERPIECE_PIXEL_CACHE.get(product.id) || null;
+
+        const maxSize = maxFramePrintSize(pixelSize);
+        const recSize = recommendFrameSize(pixelSize ? { imageWidth: pixelSize.w, imageHeight: pixelSize.h } : {});
+        const sizeObj = recSize || maxSize || findSizeByDimension('40 x 50 cm') || FRAME_SIZES.find(s => s.id === '16x20') || FRAME_SIZES[0];
+
+        if (sizeObj && setSelectedSize) setSelectedSize(sizeObj);
+        const orientation = sizeObj?.orientation || maxSize?.orientation || (pixelSize ? (pixelSize.w >= pixelSize.h ? 'landscape' : 'portrait') : (product.orientation || 'portrait'));
+
         navigate('/frame/customize', {
             state: {
                 presetImage: product.image,
                 presetTitle: product.artist ? `${product.title} — ${product.artist}` : product.title,
-                orientation: product.orientation || 'portrait'
+                initialSize: sizeObj || null,
+                imageWidth: pixelSize?.w || null,
+                imageHeight: pixelSize?.h || null,
+                orientation
             }
         });
     };

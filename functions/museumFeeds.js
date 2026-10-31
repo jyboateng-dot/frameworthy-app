@@ -12,6 +12,17 @@ const MAX_COMMONS_TOTAL = 9984;
 
 const cache = new Map();
 
+// 2D fine art mediums: paintings, drawings, prints, portraits, illustrations
+const ART_TYPES = /\b(painting|drawing|print|engraving|etching|lithograph|illustration|watercolou?r|portrait|portrait miniature|peinture|tableau|dessin|estampe|gravure|aquarelle|pastel|gouache|lithographie|eau-forte|arts graphiques|affiche|huile)\b/i;
+const PAINTING_MEDIA = /\b(oil|tempera|acrylic|gouache|watercolou?r|ink|charcoal|pastel|graphite|pencil)\b/i;
+
+// 75 DPI native print floor backed by 4x Replicate Real-ESRGAN super-resolution to 300 DPI
+const MIN_PRINT_DPI = 75;
+function isPrintableDpi(w, h) {
+    if (!w || !h) return true;
+    return Math.min(w, h) >= 5 * MIN_PRINT_DPI && Math.max(w, h) >= 7 * MIN_PRINT_DPI;
+}
+
 async function json(url, options = {}) {
     const signal = options.signal || AbortSignal.timeout(10000);
     const response = await fetch(url, { ...options, signal });
@@ -28,12 +39,17 @@ async function json(url, options = {}) {
 function smithsonianRecord(record) {
     const content = record.content || {};
     const info = content.descriptiveNonRepeating || {};
+    const objectType = (content.freetext?.objectType || []).map(item => item.content).join(' ');
+    if (objectType && !ART_TYPES.test(objectType)) return null;
     const media = info.online_media?.media?.find(item =>
         item.type === 'Images' && (item.usage?.access === 'CC0' || !item.usage?.access) && item.content);
     if (!media) return null;
     const resources = media.resources || [];
     const hiResJpeg = resources.find(r => /jpeg/i.test(r.label || '') && r.url);
     const dimResource = hiResJpeg || resources.find(r => Number(r.width) > 0 && Number(r.height) > 0);
+    const width = Number(dimResource?.width) || null;
+    const height = Number(dimResource?.height) || null;
+    if (width && height && !isPrintableDpi(width, height)) return null;
     return {
         id: record.id,
         title: record.title || info.title?.content || 'Smithsonian Artifact',
@@ -41,8 +57,8 @@ function smithsonianRecord(record) {
             .map(item => item.content).join(', ') || 'Smithsonian Institution',
         image: media.thumbnail || media.content,
         fullRes: hiResJpeg?.url || media.content,
-        imageWidth: Number(dimResource?.width) || null,
-        imageHeight: Number(dimResource?.height) || null,
+        imageWidth: width,
+        imageHeight: height,
         rights: 'CC0 / Smithsonian Open Access',
         sourceUrl: info.record_link || `https://www.si.edu/object/${record.id}`,
         metadata: content,
@@ -58,7 +74,7 @@ async function smithsonianCommonsFallback(page) {
     const params = new URLSearchParams({
         action: 'query',
         generator: 'search',
-        gsrsearch: 'incategory:"Images from the Smithsonian Institution"',
+        gsrsearch: 'incategory:"Images from the Smithsonian Institution" (painting OR artwork OR drawing OR print OR engraving OR etching OR lithograph OR watercolor OR portrait OR oil OR illustration)',
         gsrnamespace: '6',
         gsrlimit: String(PAGE_SIZE),
         gsroffset: String(offset),
@@ -75,6 +91,7 @@ async function smithsonianCommonsFallback(page) {
     const artworks = pages.map(item => {
         const info = item.imageinfo?.[0];
         if (!info || !info.url) return null;
+        if (!isPrintableDpi(Number(info.width), Number(info.height))) return null;
         const meta = info.extmetadata || {};
         const rawTitle = meta.ObjectName?.value || item.title.replace(/^File:/, '').replace(/\.[^.]+$/, '').trim();
         const title = rawTitle.replace(/<[^>]*>?/gm, '').trim();
@@ -116,7 +133,7 @@ async function parisCommonsFallback(page) {
     const params = new URLSearchParams({
         action: 'query',
         generator: 'search',
-        gsrsearch: 'incategory:"Images from Paris Musées"',
+        gsrsearch: 'incategory:"Images from Paris Musées" (painting OR artwork OR drawing OR print OR engraving OR etching OR lithograph OR watercolor OR portrait OR oil OR illustration OR peinture OR tableau OR dessin OR estampe OR gravure OR aquarelle OR pastel OR gouache)',
         gsrnamespace: '6',
         gsrlimit: String(PAGE_SIZE),
         gsroffset: String(offset),
@@ -133,6 +150,7 @@ async function parisCommonsFallback(page) {
     const artworks = pages.map(item => {
         const info = item.imageinfo?.[0];
         if (!info || !info.url) return null;
+        if (!isPrintableDpi(Number(info.width), Number(info.height))) return null;
         const meta = info.extmetadata || {};
         const rawTitle = meta.ObjectName?.value || item.title.replace(/^File:/, '').replace(/\.[^.]+$/, '').trim();
         const title = rawTitle.replace(/<[^>]*>?/gm, '').replace(/^(English|French|Français)\s*:\s*/i, '').trim();
@@ -179,6 +197,7 @@ async function artInstituteOfChicago(page) {
     const artworks = pages.map(item => {
         const info = item.imageinfo?.[0];
         if (!info || !info.url) return null;
+        if (!isPrintableDpi(Number(info.width), Number(info.height))) return null;
         const meta = info.extmetadata || {};
         let rawTitle = meta.ObjectName?.value || '';
         rawTitle = rawTitle.split(/\btitle QS:/i)[0].replace(/<[^>]*>?/gm, '').trim();
@@ -211,19 +230,35 @@ async function artInstituteOfChicago(page) {
 }
 
 async function clevelandMuseumOfArt(page) {
-    const maxPage = Math.ceil(41806 / PAGE_SIZE); // 1742 pages
-    const clampedPage = Math.max(1, Math.min(page, maxPage));
-    const params = new URLSearchParams({
-        cc0: '',
-        has_image: '1',
-        limit: String(PAGE_SIZE),
-        skip: String((clampedPage - 1) * PAGE_SIZE),
-    });
-    const data = await json(`https://openaccess-api.clevelandart.org/api/artworks?${params}`, {
-        headers: { 'User-Agent': 'FrameWorthyApp/1.0 (contact@frameworthy.art)' },
-        signal: AbortSignal.timeout(6000),
-    });
-    const artworks = (data.data || []).filter(item => item.images?.web?.url).map(item => {
+    const fetchType = (type) => {
+        const limit = Math.floor(PAGE_SIZE / 3); // 8 of each type = 24 items per page
+        const params = new URLSearchParams({
+            cc0: '',
+            has_image: '1',
+            type,
+            limit: String(limit),
+            skip: String((page - 1) * limit),
+        });
+        return json(`https://openaccess-api.clevelandart.org/api/artworks?${params}`, {
+            headers: { 'User-Agent': 'FrameWorthyApp/1.0 (contact@frameworthy.art)' },
+            signal: AbortSignal.timeout(6000),
+        });
+    };
+    const [paintings, drawings, prints] = await Promise.all([
+        fetchType('Painting').catch(() => ({ data: [], info: { total: 3907 } })),
+        fetchType('Drawing').catch(() => ({ data: [], info: { total: 2000 } })),
+        fetchType('Print').catch(() => ({ data: [], info: { total: 10918 } })),
+    ]);
+    const total = (paintings.info?.total || 3907) + (drawings.info?.total || 2000) + (prints.info?.total || 10918);
+    const combined = [...(paintings.data || []), ...(drawings.data || []), ...(prints.data || [])];
+    const artworks = combined.filter(item => {
+        if (!item.images?.web?.url) return false;
+        const printImg = item.images.print || {};
+        const webImg = item.images.web || {};
+        const w = Number(printImg.width || webImg.width) || null;
+        const h = Number(printImg.height || webImg.height) || null;
+        return isPrintableDpi(w, h);
+    }).map(item => {
         const printImg = item.images.print || {};
         const webImg = item.images.web || {};
         return {
@@ -239,7 +274,7 @@ async function clevelandMuseumOfArt(page) {
             rights: 'CC0 / Cleveland Museum of Art',
         };
     });
-    return { artworks, total: data.info?.total || 41806 };
+    return { artworks, total };
 }
 
 async function rijksmuseum(page) {
@@ -248,7 +283,7 @@ async function rijksmuseum(page) {
     const params = new URLSearchParams({
         action: 'query',
         generator: 'search',
-        gsrsearch: 'incategory:"Paintings in the Rijksmuseum Amsterdam|Drawings in the Rijksmuseum Amsterdam|Prints in the Rijksmuseum Amsterdam|Photographs in the Rijksmuseum Amsterdam|Sculptures in the Rijksmuseum Amsterdam|Ceramics in the Rijksmuseum Amsterdam"',
+        gsrsearch: 'incategory:"Paintings in the Rijksmuseum Amsterdam|Drawings in the Rijksmuseum Amsterdam|Prints in the Rijksmuseum Amsterdam"',
         gsrnamespace: '6',
         gsrlimit: String(PAGE_SIZE),
         gsroffset: String(offset),
@@ -265,6 +300,7 @@ async function rijksmuseum(page) {
     const artworks = pages.map(item => {
         const info = item.imageinfo?.[0];
         if (!info || !info.url) return null;
+        if (!isPrintableDpi(Number(info.width), Number(info.height))) return null;
         const meta = info.extmetadata || {};
         const rawTitle = meta.ObjectName?.value || item.title.replace(/^File:/, '').replace(/\.[^.]+$/, '').replace(/Rijksmuseum\s*[A-Z0-9-]+/gi, '').trim();
         const title = rawTitle.replace(/<[^>]*>?/gm, '').trim();
@@ -308,6 +344,7 @@ async function biodiversityHeritageLibrary(page) {
     const artworks = pages.map(item => {
         const info = item.imageinfo?.[0];
         if (!info || !info.url) return null;
+        if (!isPrintableDpi(Number(info.width), Number(info.height))) return null;
         const meta = info.extmetadata || {};
         const rawTitle = meta.ObjectName?.value || item.title.replace(/^File:/, '').replace(/\.[^.]+$/, '').replace(/\bBHL\d+\b/gi, '').trim();
         const title = rawTitle.replace(/<[^>]*>?/gm, '').trim() || 'Biodiversity Heritage Library Plate';
@@ -336,14 +373,17 @@ async function nasaOpenMedia(page) {
         const links = item.links || [];
         const preview = links.find(link => link.rel === 'preview')?.href || links.find(link => link.render === 'image')?.href;
         const fullRes = links.find(link => link.rel === 'canonical')?.href || links.find(link => link.render === 'image' && link.width > 800)?.href || preview;
+        const width = links.find(link => link.href === fullRes)?.width;
+        const height = links.find(link => link.href === fullRes)?.height;
+        if (!isPrintableDpi(width, height)) return null;
         return preview ? {
             id: metadata.nasa_id || item.href,
             title: metadata.title || 'NASA image',
             artist: metadata.secondary_creator || metadata.center || 'NASA',
             image: preview,
             fullRes,
-            imageWidth: links.find(link => link.href === fullRes)?.width,
-            imageHeight: links.find(link => link.href === fullRes)?.height,
+            imageWidth: width,
+            imageHeight: height,
             description: metadata.description,
             date: metadata.date_created,
             sourceUrl: `https://images.nasa.gov/details/${metadata.nasa_id}`,
@@ -376,6 +416,7 @@ async function libraryOfCongress(page) {
     const artworks = pages.map(item => {
         const info = item.imageinfo?.[0];
         if (!info || !info.url) return null;
+        if (!isPrintableDpi(Number(info.width), Number(info.height))) return null;
         const meta = info.extmetadata || {};
         const rawTitle = meta.ObjectName?.value || item.title.replace(/^File:/, '').replace(/\.[^.]+$/, '').replace(/LOC\s*\d+/i, '').trim();
         const title = rawTitle.replace(/<[^>]*>?/gm, '').trim();

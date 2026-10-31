@@ -25,18 +25,6 @@
       "rights": "CC0 / Smithsonian Open Access"
     },
     {
-      "id": "158156398",
-      "title": "Cedrelospermum nervosum as Banksites lineatulus holotype USNM P36860 img3",
-      "artist": "Cynthia Walden",
-      "image": "https://upload.wikimedia.org/wikipedia/commons/c/cf/Cedrelospermum_nervosum_as_Banksites_lineatulus_holotype_USNM_P36860_img3.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
-      "fullRes": "https://upload.wikimedia.org/wikipedia/commons/c/cf/Cedrelospermum_nervosum_as_Banksites_lineatulus_holotype_USNM_P36860_img3.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
-      "imageWidth": 327,
-      "imageHeight": 276,
-      "artworkType": "Artwork",
-      "sourceUrl": "http://n2t.net/ark:/65665/m3cbf0112a-913b-42c3-9027-2272038dbaed",
-      "rights": "CC0 / Smithsonian Open Access"
-    },
-    {
       "id": "158156320",
       "title": "Cedrelospermum nervosum as Banksites lineatulus holotype USNM P36860 img2",
       "artist": "Cynthia Walden",
@@ -97,18 +85,6 @@
       "rights": "CC0 / Smithsonian Open Access"
     },
     {
-      "id": "158011133",
-      "title": "Platycarya castaneopsis as Quercus castanoides USNM P5294 img2",
-      "artist": "Curt Breckenridge",
-      "image": "https://thumb.wikimedia.org/wikipedia/commons/thumb/7/73/Platycarya_castaneopsis_as_Quercus_castanoides_USNM_P5294_img2.jpg/960px-Platycarya_castaneopsis_as_Quercus_castanoides_USNM_P5294_img2.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-      "fullRes": "https://upload.wikimedia.org/wikipedia/commons/7/73/Platycarya_castaneopsis_as_Quercus_castanoides_USNM_P5294_img2.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
-      "imageWidth": 1082,
-      "imageHeight": 956,
-      "artworkType": "Artwork",
-      "sourceUrl": "http://n2t.net/ark:/65665/391f18fb3-cc02-4964-9366-e88c9246c5d2",
-      "rights": "CC0 / Smithsonian Open Access"
-    },
-    {
       "id": "158011132",
       "title": "Platycarya castaneopsis as Quercus castanoides USNM P5294 img3",
       "artist": "Curt Breckenridge",
@@ -116,6 +92,18 @@
       "fullRes": "https://upload.wikimedia.org/wikipedia/commons/d/d1/Platycarya_castaneopsis_as_Quercus_castanoides_USNM_P5294_img3.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
       "imageWidth": 662,
       "imageHeight": 726,
+      "artworkType": "Artwork",
+      "sourceUrl": "http://n2t.net/ark:/65665/391f18fb3-cc02-4964-9366-e88c9246c5d2",
+      "rights": "CC0 / Smithsonian Open Access"
+    },
+    {
+      "id": "158011133",
+      "title": "Platycarya castaneopsis as Quercus castanoides USNM P5294 img2",
+      "artist": "Curt Breckenridge",
+      "image": "https://thumb.wikimedia.org/wikipedia/commons/thumb/7/73/Platycarya_castaneopsis_as_Quercus_castanoides_USNM_P5294_img2.jpg/960px-Platycarya_castaneopsis_as_Quercus_castanoides_USNM_P5294_img2.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+      "fullRes": "https://upload.wikimedia.org/wikipedia/commons/7/73/Platycarya_castaneopsis_as_Quercus_castanoides_USNM_P5294_img2.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+      "imageWidth": 1082,
+      "imageHeight": 956,
       "artworkType": "Artwork",
       "sourceUrl": "http://n2t.net/ark:/65665/391f18fb3-cc02-4964-9366-e88c9246c5d2",
       "rights": "CC0 / Smithsonian Open Access"
@@ -157,18 +145,6 @@
       "rights": "CC0 / Smithsonian Open Access"
     },
     {
-      "id": "158008049",
-      "title": "Celastrus winchesteri as Juglans winchesteri holotype USNM P36583 img2",
-      "artist": "Cynthia Walden",
-      "image": "https://upload.wikimedia.org/wikipedia/commons/a/a8/Celastrus_winchesteri_as_Juglans_winchesteri_holotype_USNM_P36583_img2.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
-      "fullRes": "https://upload.wikimedia.org/wikipedia/commons/a/a8/Celastrus_winchesteri_as_Juglans_winchesteri_holotype_USNM_P36583_img2.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
-      "imageWidth": 927,
-      "imageHeight": 1164,
-      "artworkType": "Artwork",
-      "sourceUrl": "http://n2t.net/ark:/65665/m3d68fc8fd-075c-4a34-b6c1-08a614311120",
-      "rights": "CC0 / Smithsonian Open Access"
-    },
-    {
       "id": "158008048",
       "title": "Celastrus winchesteri as Juglans winchesteri holotype USNM P36583 img1",
       "artist": "Cynthia Walden",
@@ -188,6 +164,18 @@
       "fullRes": "https://upload.wikimedia.org/wikipedia/commons/4/47/Celastrus_winchesteri_as_Juglans_winchesteri_holotype_USNM_P36583_img3.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
       "imageWidth": 654,
       "imageHeight": 1128,
+      "artworkType": "Artwork",
+      "sourceUrl": "http://n2t.net/ark:/65665/m3d68fc8fd-075c-4a34-b6c1-08a614311120",
+      "rights": "CC0 / Smithsonian Open Access"
+    },
+    {
+      "id": "158008049",
+      "title": "Celastrus winchesteri as Juglans winchesteri holotype USNM P36583 img2",
+      "artist": "Cynthia Walden",
+      "image": "https://upload.wikimedia.org/wikipedia/commons/a/a8/Celastrus_winchesteri_as_Juglans_winchesteri_holotype_USNM_P36583_img2.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+      "fullRes": "https://upload.wikimedia.org/wikipedia/commons/a/a8/Celastrus_winchesteri_as_Juglans_winchesteri_holotype_USNM_P36583_img2.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+      "imageWidth": 927,
+      "imageHeight": 1164,
       "artworkType": "Artwork",
       "sourceUrl": "http://n2t.net/ark:/65665/m3d68fc8fd-075c-4a34-b6c1-08a614311120",
       "rights": "CC0 / Smithsonian Open Access"

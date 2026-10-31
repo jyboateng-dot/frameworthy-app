@@ -31,7 +31,7 @@ describe('museum snapshot prefetching', () => {
             id: 'national-gallery-of-art:snapshot-art',
             sourceId: 'national-gallery-of-art',
         });
-        expect(result.artworks).toHaveLength(2);
+        expect(result.artworks).toHaveLength(1);
     });
 
     it('falls through to the live loader when a warmed snapshot is unavailable', async () => {

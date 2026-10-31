@@ -1,18 +1,6 @@
 {
   "artworks": [
     {
-      "id": "98043227",
-      "title": "The Four Accomplishments",
-      "artist": "Kano Shigenobu",
-      "image": "https://upload.wikimedia.org/wikipedia/commons/4/4c/Kan%C3%B4_Tsunenobu_-_The_Four_Accomplishments_-_1995.275_-_Art_Institute_of_Chicago.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
-      "fullRes": "https://upload.wikimedia.org/wikipedia/commons/4/4c/Kan%C3%B4_Tsunenobu_-_The_Four_Accomplishments_-_1995.275_-_Art_Institute_of_Chicago.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
-      "imageWidth": 843,
-      "imageHeight": 200,
-      "artworkType": "Artwork",
-      "sourceUrl": "https://www.artic.edu/artworks/142524",
-      "rights": "Public domain / Art Institute of Chicago"
-    },
-    {
       "id": "98043203",
       "title": "The Lion Tamer",
       "artist": "Sadiqi Beg",
@@ -226,18 +214,6 @@
       "imageHeight": 1420,
       "artworkType": "Artwork",
       "sourceUrl": "https://www.artic.edu/artworks/50983",
-      "rights": "Public domain / Art Institute of Chicago"
-    },
-    {
-      "id": "98039277",
-      "title": "Flowers and Insects",
-      "artist": "Chai Zhenyi / Chai Jinyi",
-      "image": "https://upload.wikimedia.org/wikipedia/commons/0/04/Chai_Zhenyi_-_Flowers_and_Insects_-_1954.104_-_Art_Institute_of_Chicago.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
-      "fullRes": "https://upload.wikimedia.org/wikipedia/commons/0/04/Chai_Zhenyi_-_Flowers_and_Insects_-_1954.104_-_Art_Institute_of_Chicago.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
-      "imageWidth": 843,
-      "imageHeight": 161,
-      "artworkType": "Artwork",
-      "sourceUrl": "https://www.artic.edu/artworks/80215",
       "rights": "Public domain / Art Institute of Chicago"
     },
     {

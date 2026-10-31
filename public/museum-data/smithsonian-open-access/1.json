@@ -1,18 +1,6 @@
 {
   "artworks": [
     {
-      "id": "201812382",
-      "title": "Macginicarpa manchesteri as Sparganium stygium USNM P 4224 part",
-      "artist": "Curt Breckenridge",
-      "image": "https://thumb.wikimedia.org/wikipedia/commons/thumb/0/05/Macginicarpa_manchesteri_as_Sparganium_stygium_USNM_P_4224_part.jpg/960px-Macginicarpa_manchesteri_as_Sparganium_stygium_USNM_P_4224_part.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-      "fullRes": "https://upload.wikimedia.org/wikipedia/commons/0/05/Macginicarpa_manchesteri_as_Sparganium_stygium_USNM_P_4224_part.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
-      "imageWidth": 2579,
-      "imageHeight": 3174,
-      "artworkType": "Artwork",
-      "sourceUrl": "http://n2t.net/ark:/65665/3dd5f01ac-c9d7-4091-8306-dd40e08f3f7b",
-      "rights": "CC0 / Smithsonian Open Access"
-    },
-    {
       "id": "201812381",
       "title": "Macginicarpa manchesteri as Sparganium stygium P 4224 counterpart",
       "artist": "Curt Breckenridge",
@@ -32,6 +20,18 @@
       "fullRes": "https://upload.wikimedia.org/wikipedia/commons/5/50/Macginicarpa_manchesteri_as_Sparganium_stygium_USNM_P_4224.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
       "imageWidth": 5616,
       "imageHeight": 3744,
+      "artworkType": "Artwork",
+      "sourceUrl": "http://n2t.net/ark:/65665/3dd5f01ac-c9d7-4091-8306-dd40e08f3f7b",
+      "rights": "CC0 / Smithsonian Open Access"
+    },
+    {
+      "id": "201812382",
+      "title": "Macginicarpa manchesteri as Sparganium stygium USNM P 4224 part",
+      "artist": "Curt Breckenridge",
+      "image": "https://thumb.wikimedia.org/wikipedia/commons/thumb/0/05/Macginicarpa_manchesteri_as_Sparganium_stygium_USNM_P_4224_part.jpg/960px-Macginicarpa_manchesteri_as_Sparganium_stygium_USNM_P_4224_part.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+      "fullRes": "https://upload.wikimedia.org/wikipedia/commons/0/05/Macginicarpa_manchesteri_as_Sparganium_stygium_USNM_P_4224_part.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+      "imageWidth": 2579,
+      "imageHeight": 3174,
       "artworkType": "Artwork",
       "sourceUrl": "http://n2t.net/ark:/65665/3dd5f01ac-c9d7-4091-8306-dd40e08f3f7b",
       "rights": "CC0 / Smithsonian Open Access"
