@@ -5,6 +5,7 @@ import { CAROUSEL_SLIDES } from '../data/landingCarouselSlides';
 import { openExternalLinkFromEvent as openExternalLink } from '../utils/nativeLinks';
 import PageMeta from '../components/common/PageMeta';
 import MobileLanding from './landing/MobileLanding';
+import PhotoUploadModal from '../components/PhotoUploadModal';
 
 // Phones get their own home page layout (see MobileLanding); tablets and
 // desktops use the modern 4-step fit-to-pc layout below.
@@ -46,6 +47,7 @@ export default function LandingPage({ onStartFraming, navigate, setSelectedFrame
     const [currentSlide, setCurrentSlide] = useState(0);
     const [loadedSlides, setLoadedSlides] = useState(() => new Set([0, 1]));
     const [isPaused, setIsPaused] = useState(false);
+    const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
     const isPhone = useIsPhone();
 
     useEffect(() => {
@@ -161,7 +163,18 @@ export default function LandingPage({ onStartFraming, navigate, setSelectedFrame
         return (
             <>
                 {pageMeta}
-                <MobileLanding navigate={navigate} onStartFraming={onStartFraming} onSelectFrame={handleFrameSelect} />
+                <MobileLanding
+                    navigate={navigate}
+                    onStartFraming={onStartFraming}
+                    onSelectFrame={handleFrameSelect}
+                    onOpenUploadModal={() => setIsUploadModalOpen(true)}
+                />
+                <PhotoUploadModal
+                    isOpen={isUploadModalOpen}
+                    onClose={() => setIsUploadModalOpen(false)}
+                    navigate={navigate}
+                    onStartFraming={onStartFraming}
+                />
             </>
         );
     }
@@ -341,7 +354,7 @@ export default function LandingPage({ onStartFraming, navigate, setSelectedFrame
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-3.5 lg:gap-4">
                     {/* Primary Large Card: User Upload */}
                     <button
-                        onClick={() => startFraming()}
+                        onClick={() => setIsUploadModalOpen(true)}
                         className="group relative lg:col-span-7 xl:col-span-8 flex flex-col justify-end h-[340px] sm:h-[390px] lg:h-[430px] overflow-hidden rounded-3xl text-left shadow-sm hover:shadow-xl transition-all"
                     >
                         <img
@@ -691,6 +704,13 @@ export default function LandingPage({ onStartFraming, navigate, setSelectedFrame
                     </div>
                 </div>
             </section>
+
+            <PhotoUploadModal
+                isOpen={isUploadModalOpen}
+                onClose={() => setIsUploadModalOpen(false)}
+                navigate={navigate}
+                onStartFraming={onStartFraming}
+            />
         </div>
     );
 }

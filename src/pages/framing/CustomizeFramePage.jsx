@@ -546,6 +546,70 @@ const CustomizeFramePage = ({
     const isSideBySide = windowSize.width >= 1024;
     
     // The visualizer height is now calculated dynamically further down to fit the frame
+
+    // Takes a picked image File (from the device dialog OR the cloud-storage
+    // picker) and drops it into the studio: instant local preview now, then a
+    // background upload to the cloud image host for the print-quality version.
+    const applyImageFile = async (file, customTitle = '') => {
+        if (!file) return;
+        setIsPreset(false);
+        setPresetTitle(customTitle);
+        setIsAlbumArt(false);
+        setIsAlbumPoster(false);
+        setIsMoviePoster(false);
+        setIsMoviePosterPrint(false);
+        setPosterData(null);
+        knownImageDimensionsRef.current = null;
+        if (setProductionImage) setProductionImage(null);
+        // Canvas glazing (Traditional/Floater) hides matting entirely — a
+        // real physical constraint for whichever photo it was chosen for,
+        // but glassType lives above this page and survives a fresh upload,
+        // so a canvas choice made for a previous photo was silently
+        // carrying over and hiding matting for an unrelated new one. A new
+        // upload is a new configuration; it shouldn't inherit a glazing
+        // decision that was about a different picture.
+        setGlassType('standard');
+        setIsUploading(true);
+        try {
+            // Instantly generate local URL for immediate visual rendering in the frame studio
+            const localUrl = URL.createObjectURL(file);
+            const localDimensionsPromise = loadImageCached(localUrl)
+                .then((img) => (
+                    img?.naturalWidth > 0 && img?.naturalHeight > 0
+                        ? { w: img.naturalWidth, h: img.naturalHeight }
+                        : null
+                ))
+                .catch(() => null);
+            setUploadedImage(localUrl);
+            setShowSceneHint(true);
+            setIsUploading(false); // Stop spinner immediately once local preview is ready
+
+            // Perform cloud upload asynchronously in the background so the UI is never blocked
+            setIsCloudUploadPending(true);
+            Promise.all([uploadImageToCloud(file), localDimensionsPromise])
+                .then(([cloudUrl, dims]) => {
+                    if (dims) {
+                        knownImageDimensionsRef.current = { url: cloudUrl, ...dims };
+                        setImageNaturalSize(dims);
+                    } else if (knownImageDimensionsRef.current?.url === localUrl) {
+                        knownImageDimensionsRef.current = {
+                            ...knownImageDimensionsRef.current,
+                            url: cloudUrl,
+                        };
+                    }
+                    setUploadedImage(cloudUrl);
+                    if (setProductionImage) setProductionImage(cloudUrl);
+                })
+                .catch(error => {
+                    console.warn('Background cloud upload failed, falling back to local preview:', error);
+                    setFitError('The print file upload did not finish. Please choose the image again.');
+                })
+                .finally(() => setIsCloudUploadPending(false));
+        } catch (error) {
+            console.error('Failed to create local preview:', error);
+            setIsUploading(false);
+        }
+    };
     
     // Canonical interpretation of an Inspiration selection ("Get This" from any
     // category). This is THE single place that maps a selection's state object
@@ -556,6 +620,17 @@ const CustomizeFramePage = ({
     // automatically regardless of which entry point led here.
     const applyInspirationSelection = (state) => {
         if (!state) return;
+
+        if (state.uploadedFile) {
+            const title = state.presetTitle || (state.uploadedFile.name ? state.uploadedFile.name.replace(/\.[^.]+$/, '') : '');
+            applyImageFile(state.uploadedFile, title);
+            if (state.orientation) setOrientation(state.orientation);
+            if (state.initialSize) {
+                const { size: sizeToApply } = clampSizeToValidRange(state.initialSize);
+                setSelectedSize(sizeToApply);
+            }
+            return;
+        }
 
         if (Number(state.imageWidth) > 0 && Number(state.imageHeight) > 0) {
             const dims = { w: Number(state.imageWidth), h: Number(state.imageHeight) };
@@ -1562,70 +1637,6 @@ const CustomizeFramePage = ({
         setGlassType(nextGlassType);
         if (nextMatWidth !== 'none') setMatColor(MAT_COLORS.find(color => color.id === nextMatColorId) || MAT_COLORS[0]);
     }, [setMatWidth, setGlassType, setMatColor]);
-
-    // Takes a picked image File (from the device dialog OR the cloud-storage
-    // picker) and drops it into the studio: instant local preview now, then a
-    // background upload to the cloud image host for the print-quality version.
-    const applyImageFile = async (file) => {
-        if (!file) return;
-        setIsPreset(false);
-        setPresetTitle('');
-        setIsAlbumArt(false);
-        setIsAlbumPoster(false);
-        setIsMoviePoster(false);
-        setIsMoviePosterPrint(false);
-        setPosterData(null);
-        knownImageDimensionsRef.current = null;
-        if (setProductionImage) setProductionImage(null);
-        // Canvas glazing (Traditional/Floater) hides matting entirely — a
-        // real physical constraint for whichever photo it was chosen for,
-        // but glassType lives above this page and survives a fresh upload,
-        // so a canvas choice made for a previous photo was silently
-        // carrying over and hiding matting for an unrelated new one. A new
-        // upload is a new configuration; it shouldn't inherit a glazing
-        // decision that was about a different picture.
-        setGlassType('standard');
-        setIsUploading(true);
-        try {
-            // Instantly generate local URL for immediate visual rendering in the frame studio
-            const localUrl = URL.createObjectURL(file);
-            const localDimensionsPromise = loadImageCached(localUrl)
-                .then((img) => (
-                    img?.naturalWidth > 0 && img?.naturalHeight > 0
-                        ? { w: img.naturalWidth, h: img.naturalHeight }
-                        : null
-                ))
-                .catch(() => null);
-            setUploadedImage(localUrl);
-            setShowSceneHint(true);
-            setIsUploading(false); // Stop spinner immediately once local preview is ready
-
-            // Perform cloud upload asynchronously in the background so the UI is never blocked
-            setIsCloudUploadPending(true);
-            Promise.all([uploadImageToCloud(file), localDimensionsPromise])
-                .then(([cloudUrl, dims]) => {
-                    if (dims) {
-                        knownImageDimensionsRef.current = { url: cloudUrl, ...dims };
-                        setImageNaturalSize(dims);
-                    } else if (knownImageDimensionsRef.current?.url === localUrl) {
-                        knownImageDimensionsRef.current = {
-                            ...knownImageDimensionsRef.current,
-                            url: cloudUrl,
-                        };
-                    }
-                    setUploadedImage(cloudUrl);
-                    if (setProductionImage) setProductionImage(cloudUrl);
-                })
-                .catch(error => {
-                    console.warn('Background cloud upload failed, falling back to local preview:', error);
-                    setFitError('The print file upload did not finish. Please choose the image again.');
-                })
-                .finally(() => setIsCloudUploadPending(false));
-        } catch (error) {
-            console.error('Failed to create local preview:', error);
-            setIsUploading(false);
-        }
-    };
 
     // Builds a fair representation of the configured item — artwork + mat +
     // a flat frame-color border, matching the visualizer's layout — and

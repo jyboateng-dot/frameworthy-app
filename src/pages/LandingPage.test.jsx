@@ -65,6 +65,25 @@ describe('home catalogue and carousel', () => {
             vi.useRealTimers();
         }
     });
+
+    it('opens photo upload modal instead of navigating immediately when clicking the photo tile', () => {
+        const onStartFraming = vi.fn();
+        const navigate = vi.fn();
+        render(<LandingPage onStartFraming={onStartFraming} navigate={navigate} />);
+
+        expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+        fireEvent.click(screen.getByRole('heading', { name: 'Your own photo or artwork' }));
+
+        expect(screen.getByRole('dialog')).toBeInTheDocument();
+        expect(screen.getByRole('heading', { name: /Upload your photo or artwork/i })).toBeInTheDocument();
+        expect(navigate).not.toHaveBeenCalled();
+        expect(onStartFraming).not.toHaveBeenCalled();
+
+        // Closing the modal returns user to landing page without navigating
+        fireEvent.click(screen.getByRole('button', { name: /Close photo upload dialog/i }));
+        expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+        expect(navigate).not.toHaveBeenCalled();
+    });
 });
 
 describe('phone home page', () => {
@@ -141,5 +160,23 @@ describe('phone home page', () => {
         fireEvent.click(screen.getByRole('heading', { name: /Natural/ }));
         expect(setSelectedFrame).toHaveBeenCalledWith(floatFrames.find(frame => frame.id.endsWith('-natural')));
         expect(navigate).toHaveBeenCalledWith('/frame/customize');
+    });
+
+    it('opens photo upload modal on mobile when clicking the own photo tile', () => {
+        const onStartFraming = vi.fn();
+        const navigate = vi.fn();
+        renderOnPhone({ onStartFraming, navigate });
+
+        expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+        fireEvent.click(screen.getByText('Your own photo or artwork'));
+
+        expect(screen.getByRole('dialog')).toBeInTheDocument();
+        expect(screen.getByRole('heading', { name: /Upload your photo or artwork/i })).toBeInTheDocument();
+        expect(navigate).not.toHaveBeenCalled();
+        expect(onStartFraming).not.toHaveBeenCalled();
+
+        fireEvent.click(screen.getByRole('button', { name: /Close photo upload dialog/i }));
+        expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+        expect(navigate).not.toHaveBeenCalled();
     });
 });

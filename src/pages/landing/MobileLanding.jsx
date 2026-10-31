@@ -85,7 +85,7 @@ function SectionHeading({ eyebrow, title, children }) {
     );
 }
 
-export default function MobileLanding({ navigate, onStartFraming, onSelectFrame }) {
+export default function MobileLanding({ navigate, onStartFraming, onSelectFrame, onOpenUploadModal }) {
     const [heroIndex, setHeroIndex] = useState(0);
     const [activeCategory, setActiveCategory] = useState(PRODIGI_FRAME_CATEGORIES[0]);
     const touchStartX = useRef(null);
@@ -208,7 +208,7 @@ export default function MobileLanding({ navigate, onStartFraming, onSelectFrame 
                 </SectionHeading>
                 <div className="flex flex-col gap-3">
                     <button
-                        onClick={() => startFraming()}
+                        onClick={() => (onOpenUploadModal ? onOpenUploadModal() : startFraming())}
                         className="group relative flex h-40 w-full items-end overflow-hidden rounded-2xl text-left shadow-sm active:scale-[0.99] transition-transform"
                     >
                         <img src="/landing_carousel/slide-upload.webp" alt="" loading="lazy" decoding="async" className="absolute inset-0 h-full w-full object-cover" />
