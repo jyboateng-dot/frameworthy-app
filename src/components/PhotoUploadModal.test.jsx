@@ -21,6 +21,8 @@ describe('PhotoUploadModal', () => {
         expect(screen.getByRole('heading', { name: /Upload your photo or artwork/i })).toBeInTheDocument();
         expect(screen.getByText(/Choose a photo from your device/i)).toBeInTheDocument();
         expect(screen.getByRole('button', { name: /Browse photos/i })).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: /Google Drive/i })).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: /Dropbox/i })).toBeInTheDocument();
         expect(screen.getByRole('button', { name: /Paste image link/i })).toBeInTheDocument();
     });
 
@@ -120,6 +122,24 @@ describe('PhotoUploadModal', () => {
                 uploadedFile: fakeFile,
                 presetTitle: 'downloaded-art',
             }));
+        });
+    });
+
+    it('displays configuration guidance when clicking Google Drive without API credentials', async () => {
+        render(<PhotoUploadModal isOpen={true} onClose={vi.fn()} />);
+        fireEvent.click(screen.getByRole('button', { name: /Google Drive/i }));
+
+        await waitFor(() => {
+            expect(screen.getByRole('alert')).toHaveTextContent(/Google Drive is not configured yet/i);
+        });
+    });
+
+    it('displays configuration guidance when clicking Dropbox without API credentials', async () => {
+        render(<PhotoUploadModal isOpen={true} onClose={vi.fn()} />);
+        fireEvent.click(screen.getByRole('button', { name: /Dropbox/i }));
+
+        await waitFor(() => {
+            expect(screen.getByRole('alert')).toHaveTextContent(/Dropbox is not configured yet/i);
         });
     });
 });

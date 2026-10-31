@@ -129,13 +129,22 @@ export default function PhotoUploadModal({
 
     const handleCloudImport = async (provider) => {
         const providerName = provider === 'drive' ? 'Google Drive' : 'Dropbox';
+        setError('');
+
+        if (!ARTWORK_IMPORT_SOURCES[provider]?.available) {
+            const requiredVars = provider === 'drive'
+                ? 'VITE_GOOGLE_CLIENT_ID and VITE_GOOGLE_DRIVE_API_KEY'
+                : 'VITE_DROPBOX_APP_KEY';
+            setError(`${providerName} is not configured yet (missing ${requiredVars} in environment). Please upload directly from your device or paste an image link.`);
+            return;
+        }
+
         setIsLoading(true);
         setLoadingMessage(`Opening ${providerName}...`);
-        setError('');
         try {
             const normalized = await importArtworkFromCloud(provider);
             if (normalized?.file) {
-                await processArtworkFile(normalized.file);
+                processArtworkFile(normalized.file);
             }
         } catch (err) {
             if (err?.message !== 'No image was selected.') {
@@ -166,8 +175,6 @@ export default function PhotoUploadModal({
     };
 
     if (!isOpen) return null;
-
-    const hasCloudSources = ARTWORK_IMPORT_SOURCES.drive.available || ARTWORK_IMPORT_SOURCES.dropbox.available;
 
     return (
         <div
@@ -271,29 +278,25 @@ export default function PhotoUploadModal({
                     </div>
 
                     {/* Cloud Sources & Direct Link */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                        {ARTWORK_IMPORT_SOURCES.drive.available && (
-                            <button
-                                type="button"
-                                onClick={() => handleCloudImport('drive')}
-                                disabled={isLoading}
-                                className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-stone-200 hover:border-stone-300 hover:bg-stone-50 text-xs sm:text-sm font-semibold text-stone-700 transition-colors disabled:opacity-50"
-                            >
-                                <HardDrive size={16} className="text-stone-500" />
-                                Google Drive
-                            </button>
-                        )}
-                        {ARTWORK_IMPORT_SOURCES.dropbox.available && (
-                            <button
-                                type="button"
-                                onClick={() => handleCloudImport('dropbox')}
-                                disabled={isLoading}
-                                className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-stone-200 hover:border-stone-300 hover:bg-stone-50 text-xs sm:text-sm font-semibold text-stone-700 transition-colors disabled:opacity-50"
-                            >
-                                <Cloud size={16} className="text-stone-500" />
-                                Dropbox
-                            </button>
-                        )}
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                        <button
+                            type="button"
+                            onClick={() => handleCloudImport('drive')}
+                            disabled={isLoading}
+                            className="flex items-center justify-center gap-2 px-3 py-3 rounded-xl border border-stone-200 hover:border-stone-300 hover:bg-stone-50 text-xs sm:text-sm font-semibold text-stone-700 transition-colors disabled:opacity-50"
+                        >
+                            <HardDrive size={16} className="text-stone-500" />
+                            Google Drive
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => handleCloudImport('dropbox')}
+                            disabled={isLoading}
+                            className="flex items-center justify-center gap-2 px-3 py-3 rounded-xl border border-stone-200 hover:border-stone-300 hover:bg-stone-50 text-xs sm:text-sm font-semibold text-stone-700 transition-colors disabled:opacity-50"
+                        >
+                            <Cloud size={16} className="text-stone-500" />
+                            Dropbox
+                        </button>
                         <button
                             type="button"
                             onClick={() => {
@@ -301,11 +304,11 @@ export default function PhotoUploadModal({
                                 setError('');
                             }}
                             disabled={isLoading}
-                            className={`flex items-center justify-center gap-2 px-4 py-3 rounded-xl border transition-colors text-xs sm:text-sm font-semibold ${
+                            className={`flex items-center justify-center gap-2 px-3 py-3 rounded-xl border transition-colors text-xs sm:text-sm font-semibold ${
                                 showUrlInput
                                     ? 'border-stone-900 bg-stone-900 text-white'
                                     : 'border-stone-200 hover:border-stone-300 hover:bg-stone-50 text-stone-700'
-                            } ${hasCloudSources ? '' : 'sm:col-span-2'} disabled:opacity-50`}
+                            } disabled:opacity-50`}
                         >
                             <Link2 size={16} className={showUrlInput ? 'text-white' : 'text-stone-500'} />
                             Paste image link
