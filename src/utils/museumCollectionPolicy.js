@@ -17,19 +17,25 @@ export function isFramableMuseumArtwork(sourceId, record) {
     if (sourceId === 'rijksmuseum') return true; // Source query is paintings, drawings, prints.
     if (sourceId === 'national-gallery-of-art') return ART_TYPES.test(record.classification || '');
     if (sourceId === 'cleveland-museum-of-art') {
-        if (record.type) return ART_TYPES.test(record.type);
-        return PAINTING_MEDIA.test(record.medium || record.technique || '');
+        const type = record.type || record.artworkType;
+        if (type && !/^artwork$/i.test(type)) return ART_TYPES.test(type);
+        if (record.medium || record.technique) return PAINTING_MEDIA.test(record.medium || record.technique);
+        return Boolean(record.rights?.includes('Cleveland') || record.sourceUrl?.includes('clevelandart.org'));
     }
     if (sourceId === 'art-institute-of-chicago') {
-        if (record.artworkType || record.artwork_type_title) return ART_TYPES.test(record.artworkType || record.artwork_type_title);
-        if (record.type || record.classification || record.medium) return ART_TYPES.test(record.type || record.classification || record.medium);
-        return record.rights?.includes('Art Institute') || false;
+        const type = record.artworkType || record.artwork_type_title || record.type || record.classification || record.medium;
+        if (type && !/^artwork$/i.test(type)) return ART_TYPES.test(type);
+        return Boolean(record.rights?.includes('Art Institute') || record.sourceUrl?.includes('artic.edu'));
     }
     if (sourceId === 'smithsonian-open-access') {
         const type = record.metadata?.freetext?.objectType?.map(item => item.content).join(' ') || record.objectType || record.artworkType || '';
-        return ART_TYPES.test(type);
+        if (type && !/^artwork$/i.test(type)) return ART_TYPES.test(type);
+        return Boolean(record.rights?.includes('Smithsonian') || record.sourceUrl?.includes('si.edu'));
     }
-    if (sourceId === 'paris-musees') return ART_TYPES.test(record.objectType || '');
+    if (sourceId === 'paris-musees') {
+        if (record.objectType && !/^artwork$/i.test(record.objectType)) return ART_TYPES.test(record.objectType);
+        return Boolean(record.rights?.includes('Paris Musées') || record.sourceUrl?.includes('parismusees'));
+    }
     if (sourceId === 'biodiversity-heritage-library') {
         if (record.rights === 'Public Domain / Biodiversity Heritage Library') return true;
         return /\b(drawn|drawing|illustrat(?:ion|ed)|painting|painted|plate|print|engraving|lithograph|watercolou?r)\b/i.test(record.title || '');

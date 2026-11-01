@@ -105,12 +105,12 @@ const InspirationPage = ({ setProductMode, setSelectedFrame, setSelectedSize, na
     useEffect(() => {
         const sourceIds = OPEN_COLLECTION_SECTIONS.map(section => section.id)
             .filter(sourceId => [...MUSEUM_SOURCES, ...ARCHIVAL_SOURCES].some(source => source.id === sourceId));
-        const warm = () => sourceIds.forEach(sourceId => prefetchMuseumSnapshot(sourceId));
-        if ('requestIdleCallback' in window) {
-            const id = window.requestIdleCallback(warm, { timeout: 1200 });
-            return () => window.cancelIdleCallback(id);
-        }
-        const id = window.setTimeout(warm, 250);
+        const warm = () => {
+            sourceIds.forEach(sourceId => prefetchMuseumSnapshot(sourceId, 1));
+            import('./MuseumArtPage').then(mod => mod.prefetchHistoricMasterpieces?.()).catch(() => {});
+            import('./MetArtPage').catch(() => {});
+        };
+        const id = window.setTimeout(warm, 50);
         return () => window.clearTimeout(id);
     }, []);
     // A result picked from the cross-category Search tab that needs its
@@ -241,6 +241,15 @@ const InspirationPage = ({ setProductMode, setSelectedFrame, setSelectedSize, na
                         {sections.map(s => (
                             <React.Fragment key={s.id}>
                                 <button
+                                    onMouseEnter={() => {
+                                        if (s.id === 'museum') {
+                                            import('./MuseumArtPage').then(mod => mod.prefetchHistoricMasterpieces?.()).catch(() => {});
+                                        } else if (s.id === 'met') {
+                                            import('./MetArtPage').catch(() => {});
+                                        } else if ([...MUSEUM_SOURCES, ...ARCHIVAL_SOURCES].some(src => src.id === s.id)) {
+                                            prefetchMuseumSnapshot(s.id, 1);
+                                        }
+                                    }}
                                     onClick={() => {
                                         setCurrentSection(s.id);
                                         sessionStorage.setItem('fw_insp_section', s.id);

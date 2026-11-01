@@ -34,7 +34,7 @@ function buildShuffledMetCollection() {
 
 const SHUFFLED_MET_ARTWORKS = buildShuffledMetCollection();
 
-const MetProductCard = ({ product, onGetThis }) => {
+const MetProductCard = ({ product, onGetThis, prioritizeImage = false, fetchPriority = 'auto' }) => {
     const { unit } = useUnit();
     const { toggleWishlist, isInWishlist } = useWishlist();
     const liked = isInWishlist(product.id);
@@ -55,7 +55,9 @@ const MetProductCard = ({ product, onGetThis }) => {
                 <img
                     src={getThumbnailUrl(product.image)}
                     alt={product.title}
-                    loading="lazy"
+                    loading={prioritizeImage ? 'eager' : 'lazy'}
+                    fetchPriority={fetchPriority}
+                    decoding="async"
                     className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.03]" 
                 />
                 <div className={`absolute inset-0 bg-stone-50/20 flex items-center justify-center gap-3 transition-opacity duration-300 ${hovered ? 'opacity-100' : 'opacity-0'}`}>
@@ -173,11 +175,13 @@ const MetArtPage = ({ setProductMode, setSelectedSize, navigate, isSubPage = fal
 
             <main className="max-w-[2560px] mx-auto px-6 md:px-12 pt-8 pb-12">
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-12">
-                    {paginatedArtworks.map(product => (
+                    {paginatedArtworks.map((product, index) => (
                         <MetProductCard 
                             key={product.id}
                             product={product}
                             onGetThis={handleGetThis}
+                            prioritizeImage={index < 4}
+                            fetchPriority={index === 0 ? 'high' : 'auto'}
                         />
                     ))}
                 </div>

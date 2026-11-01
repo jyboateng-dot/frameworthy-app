@@ -168,6 +168,7 @@ async function parisCommonsFallback(page) {
             fullRes: (Number(info.width) > 8000 && info.thumburl) ? info.thumburl.replace(/\/\d+px-[^/]+$/, `/4000px-${item.title.replace(/^File:/, '')}`) : info.url,
             imageWidth: info.width,
             imageHeight: info.height,
+            objectType: 'Peinture',
             sourceUrl: meta.Credit?.value?.match(/https?:\/\/[^\s"<>]+/)?.[0] || info.descriptionurl || 'https://www.parismuseescollections.paris.fr/',
             rights: 'CC0 / Paris Musées Open Content',
         };

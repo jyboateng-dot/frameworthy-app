@@ -23,12 +23,33 @@ const shuffleArray = (array) => {
 };
 
 let cachedShuffledProducts = null;
+let inflightMasterpiecesPromise = null;
 
 export function __resetMuseumArtCacheForTests() {
     cachedShuffledProducts = null;
+    inflightMasterpiecesPromise = null;
 }
 
-const MuseumProductCard = ({ product, onGetThis }) => {
+export function prefetchHistoricMasterpieces() {
+    if (cachedShuffledProducts) return Promise.resolve(cachedShuffledProducts);
+    if (inflightMasterpiecesPromise) return inflightMasterpiecesPromise;
+    inflightMasterpiecesPromise = fetch(DATA_URL)
+        .then(res => {
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            return res.json();
+        })
+        .then(data => {
+            const list = Array.isArray(data) ? shuffleArray(data) : [];
+            cachedShuffledProducts = list;
+            return list;
+        })
+        .finally(() => {
+            inflightMasterpiecesPromise = null;
+        });
+    return inflightMasterpiecesPromise;
+}
+
+const MuseumProductCard = ({ product, onGetThis, prioritizeImage = false, fetchPriority = 'auto' }) => {
     const { unit } = useUnit();
     const { toggleWishlist, isInWishlist } = useWishlist();
     const liked = isInWishlist(product.id);
@@ -71,7 +92,9 @@ const MuseumProductCard = ({ product, onGetThis }) => {
                 <img
                     src={getThumbnailUrl(product.image)}
                     alt={product.title}
-                    loading="lazy"
+                    loading={prioritizeImage ? 'eager' : 'lazy'}
+                    fetchPriority={fetchPriority}
+                    decoding="async"
                     onLoad={handleImageLoad}
                     className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.03]"
                 />
@@ -124,13 +147,9 @@ const MuseumArtPage = ({ setProductMode, setSelectedSize, navigate, isSubPage = 
             return undefined;
         }
         let cancelled = false;
-        fetch(DATA_URL)
-            .then(res => { if (!res.ok) throw new Error(`HTTP ${res.status}`); return res.json(); })
-            .then(data => {
-                if (cancelled) return;
-                const list = Array.isArray(data) ? shuffleArray(data) : [];
-                cachedShuffledProducts = list;
-                setProducts(list);
+        prefetchHistoricMasterpieces()
+            .then(list => {
+                if (!cancelled) setProducts(list);
             })
             .catch(() => { if (!cancelled) setLoadError(true); });
         return () => { cancelled = true; };
@@ -231,11 +250,13 @@ const MuseumArtPage = ({ setProductMode, setSelectedSize, navigate, isSubPage = 
                 ) : (
                     <>
                         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-12">
-                            {paginatedArtworks.map(product => (
+                            {paginatedArtworks.map((product, index) => (
                                 <MuseumProductCard
                                     key={product.id}
                                     product={product}
                                     onGetThis={handleGetThis}
+                                    prioritizeImage={index < 4}
+                                    fetchPriority={index === 0 ? 'high' : 'auto'}
                                 />
                             ))}
                         </div>

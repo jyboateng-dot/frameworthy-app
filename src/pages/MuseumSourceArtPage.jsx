@@ -4,7 +4,7 @@ import { FRAME_SIZES, formatDimensions } from '../data/constants';
 import { useUnit } from '../context/UnitContext';
 import { useWishlist } from '../context/WishlistContext';
 import { getThumbnailUrl } from '../services/storage';
-import { fetchMuseumArtworks } from '../services/museumApi';
+import { fetchMuseumArtworks, getCachedMuseumArtworks } from '../services/museumApi';
 import { MUSEUM_SOURCES } from '../data/museumSources';
 import { ARCHIVAL_SOURCES } from '../data/archivalSources';
 import CollectionPagination from '../components/common/CollectionPagination';
@@ -35,12 +35,16 @@ const MuseumSourceArtPage = ({ sourceId, setProductMode, setSelectedSize, naviga
 
     const cacheKey = `${sourceId}_${page}`;
     const [state, setState] = useState(() => {
-        const cached = sourceArtCache.get(cacheKey);
+        const cached = sourceArtCache.get(cacheKey) || getCachedMuseumArtworks(sourceId, page);
+        if (cached) sourceArtCache.set(cacheKey, cached);
         return cached
             ? { key: cacheKey, status: 'ready', ...cached, error: '' }
             : { key: cacheKey, status: 'loading', artworks: [], total: 0, error: '' };
     });
-    const cachedPage = sourceArtCache.get(cacheKey);
+    const cachedPage = sourceArtCache.get(cacheKey) || getCachedMuseumArtworks(sourceId, page);
+    if (cachedPage && !sourceArtCache.has(cacheKey)) {
+        sourceArtCache.set(cacheKey, cachedPage);
+    }
     const viewState = cachedPage
         ? { key: cacheKey, status: 'ready', ...cachedPage, error: '' }
         : state.key === cacheKey
@@ -50,9 +54,11 @@ const MuseumSourceArtPage = ({ sourceId, setProductMode, setSelectedSize, naviga
     useEffect(() => {
         let cancelled = false;
         const key = `${sourceId}_${page}`;
-        const cached = sourceArtCache.get(key);
+        const cached = sourceArtCache.get(key) || getCachedMuseumArtworks(sourceId, page);
 
-        if (!cached) {
+        if (cached) {
+            sourceArtCache.set(key, cached);
+        } else {
             fetchMuseumArtworks(sourceId, page)
                 .then(result => {
                     sourceArtCache.set(key, result);

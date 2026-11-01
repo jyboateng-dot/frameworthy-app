@@ -6,6 +6,7 @@ import { isFramableMuseumArtwork } from '../utils/museumCollectionPolicy';
 const PAGE_SIZE = 24;
 const requestCache = new Map();
 const snapshotCache = new Map();
+const resolvedCache = new Map();
 const PUBLIC_SITE_ORIGIN = 'https://frameworthyco.com';
 
 const KNOWN_SNAPSHOT_PAGES = {
@@ -173,6 +174,10 @@ const LOADERS = {
     'biodiversity-heritage-library': page => fetchServerCollection('biodiversity-heritage-library', page),
 };
 
+export function getCachedMuseumArtworks(sourceId, page = 1) {
+    return resolvedCache.get(`${sourceId}:${page}`) || null;
+}
+
 export async function fetchMuseumArtworks(sourceId, page = 1) {
     const requestKey = `${sourceId}:${page}`;
     const existing = requestCache.get(requestKey);
@@ -180,13 +185,19 @@ export async function fetchMuseumArtworks(sourceId, page = 1) {
 
     const snapshot = snapshotCache.get(requestKey) || fetchMuseumSnapshot(sourceId, page);
     snapshotCache.set(requestKey, snapshot);
-    const request = snapshot.then(data => data || fetchMuseumArtworksLive(sourceId, page));
+    const request = snapshot
+        .then(data => data || fetchMuseumArtworksLive(sourceId, page))
+        .then(result => {
+            if (result) resolvedCache.set(requestKey, result);
+            return result;
+        });
     requestCache.set(requestKey, request);
     request.catch(() => requestCache.delete(requestKey));
     return request;
 }
 
 async function fetchMuseumSnapshot(sourceId, page) {
+    const requestKey = `${sourceId}:${page}`;
     if (page > (KNOWN_SNAPSHOT_PAGES[sourceId] || 0)) {
         return null;
     }
@@ -200,10 +211,12 @@ async function fetchMuseumSnapshot(sourceId, page) {
             if (Array.isArray(data.artworks) && data.artworks.length > 0) {
                 const artworks = data.artworks.filter(record => isFramableMuseumArtwork(sourceId, record));
                 if (!artworks.length) return null;
-                return {
+                const normalized = {
                     ...data,
                     artworks: artworks.map(record => normalizeMuseumArtwork(record, sourceById(sourceId))),
                 };
+                resolvedCache.set(requestKey, normalized);
+                return normalized;
             }
         }
     } catch {
