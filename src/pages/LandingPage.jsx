@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ArrowRight, ChevronRight, ChevronLeft, Upload, Eye, Truck, Landmark, Images, Smartphone, ShieldCheck, CheckCircle2 } from 'lucide-react';
 import { framesForCategory, displayCategoryName, displayFrameName, frameStartingPriceDisplay, frameCategoryDescription, PRODIGI_FRAME_CATEGORIES } from '../data/frameBrowsing';
 import { CAROUSEL_SLIDES } from '../data/landingCarouselSlides';
@@ -64,7 +64,9 @@ export default function LandingPage({ onStartFraming, navigate, setSelectedFrame
                     setTimeout(restore, 150);
                 }
             }
-        } catch (_) {}
+        } catch {
+            // ignore
+        }
     }, []);
 
     const nextSlide = () => {
@@ -121,7 +123,9 @@ export default function LandingPage({ onStartFraming, navigate, setSelectedFrame
         if (slide?.triggersMetArt) {
             try {
                 sessionStorage.setItem('met_art_homepage_scroll', String(scrollY));
-            } catch (_) {}
+            } catch {
+            // ignore
+        }
         }
         const state = slide?.triggersMetArt ? {
             openMetArt: true,
@@ -138,7 +142,9 @@ export default function LandingPage({ onStartFraming, navigate, setSelectedFrame
         const scrollY = typeof window !== 'undefined' ? window.scrollY : 0;
         try {
             sessionStorage.setItem('met_art_homepage_scroll', String(scrollY));
-        } catch (_) {}
+        } catch {
+            // ignore
+        }
         startFraming({
             openMetArt: true,
             returnOnClose: true,

@@ -461,7 +461,6 @@ const CustomizeFramePage = ({
     const targetImageWidthRef = useRef(2400);
     const [committedImageWidthPx, setCommittedImageWidthPx] = useState(2400);
     const [zoneSize, setZoneSize] = useState({ width: 1000, height: 500 }); // Default fallback
-    const [isRendering, setIsRendering] = useState(false);
     const [isImageLoading, setIsImageLoading] = useState(false);
     const [isFrameLoading, setIsFrameLoading] = useState(false);
     // Keep the currently painted frame in place while the next rail images
@@ -478,7 +477,7 @@ const CustomizeFramePage = ({
     // toward (but never quite reaches) full while any of the three loading
     // flags above are true, then snaps to 100% the instant they all clear,
     // holds briefly so that's visible, and only then fades the overlay out.
-    const isVisualizerLoading = isRendering || isImageLoading || isFrameLoading;
+    const isVisualizerLoading = isImageLoading || isFrameLoading;
     const [ringComplete, setRingComplete] = useState(false);
     const [loadingOverlayVisible, setLoadingOverlayVisible] = useState(false);
 
@@ -548,11 +547,6 @@ const CustomizeFramePage = ({
         if (!file) return;
         setIsPreset(false);
         setPresetTitle(customTitle);
-        setIsAlbumArt(false);
-        setIsAlbumPoster(false);
-        setIsMoviePoster(false);
-        setIsMoviePosterPrint(false);
-        setPosterData(null);
         knownImageDimensionsRef.current = null;
         if (setProductionImage) setProductionImage(null);
         // Canvas glazing (Traditional/Floater) hides matting entirely — a
@@ -997,7 +991,9 @@ const CustomizeFramePage = ({
         metReturnRef.current = null;
         try {
             sessionStorage.removeItem('met_art_homepage_scroll');
-        } catch (_) {}
+        } catch {
+            // ignore
+        }
         const pixelSize = getMetArtworkPixelSize(art) || ((art.imageWidth && art.imageHeight) ? { w: art.imageWidth, h: art.imageHeight } : null);
         const maxSize = maxFramePrintSize(pixelSize);
         const recSize = getMetRecommendedSize(art);

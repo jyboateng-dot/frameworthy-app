@@ -1319,7 +1319,9 @@ exports.submitPaidProdigiOrder = onDocumentUpdated({
     // Perform on-demand AI super-resolution for any items requiring upscaling
     let orderItemsUpdated = false;
     let replicateToken = '';
-    try { replicateToken = process.env.REPLICATE_API_TOKEN || replicateApiToken.value(); } catch {}
+    try { replicateToken = process.env.REPLICATE_API_TOKEN || replicateApiToken.value(); } catch {
+        // optional token resolution failed
+    }
 
     for (const item of items) {
         const quality = item.printQuality;

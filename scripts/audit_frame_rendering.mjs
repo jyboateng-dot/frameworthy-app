@@ -50,7 +50,6 @@ function loadFrameStyles() {
         }
     }
     if (end === -1) throw new Error(`unterminated FRAME_STYLES array in ${CONSTANTS_PATH}`);
-    // eslint-disable-next-line no-new-func
     return new Function(`return ${src.slice(open, end + 1)}`)();
 }
 

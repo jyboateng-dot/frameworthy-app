@@ -136,7 +136,6 @@ export default function FrameFitPanel({ image, natural, size, orientation, mat, 
         ? geometry.apertureWidth / geometry.apertureHeight
         : 1;
     const baseW = Math.min(activeNatural?.w || 1000, (activeNatural?.h || 1000) * aspect);
-    const baseH = baseW / aspect;
     const currentZoom = Math.max(1, Math.min(maxZoom, Number(position?.zoom) || 1));
     const cropW = baseW / currentZoom;
     const cropH = cropW / aspect;

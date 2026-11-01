@@ -109,7 +109,9 @@ export default function CropStudioModal({
         e.preventDefault();
         try {
             e.currentTarget.setPointerCapture(e.pointerId);
-        } catch {}
+        } catch {
+            // pointer capture not supported or failed
+        }
 
         setActiveDrag('pan');
         dragStartRef.current = {
@@ -125,7 +127,9 @@ export default function CropStudioModal({
         e.preventDefault();
         try {
             e.currentTarget.setPointerCapture(e.pointerId);
-        } catch {}
+        } catch {
+            // pointer capture not supported or failed
+        }
 
         setActiveDrag(handleId);
         dragStartRef.current = {
@@ -184,7 +188,9 @@ export default function CropStudioModal({
             if (e.currentTarget.hasPointerCapture(e.pointerId)) {
                 e.currentTarget.releasePointerCapture(e.pointerId);
             }
-        } catch {}
+        } catch {
+            // pointer release failed
+        }
     };
 
     // Quick Presets

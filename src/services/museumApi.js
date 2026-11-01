@@ -21,9 +21,6 @@ const KNOWN_SNAPSHOT_PAGES = {
     'library-of-congress': 3,
 };
 
-const artInstituteImageUrl = (imageId, width = 843) =>
-    `${PUBLIC_SITE_ORIGIN}/api/artic-image?id=${encodeURIComponent(imageId)}&width=${width}`;
-
 const sourceById = (sourceId) => [...MUSEUM_SOURCES, ...ARCHIVAL_SOURCES].find(source => source.id === sourceId);
 
 async function getJson(url) {

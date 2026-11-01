@@ -1,7 +1,7 @@
 import { frameGeometry, imageCrop } from './frameFit';
 import { maxMatWidthForSize } from './matting';
 import { doesSizeMeetMinDpi } from './museumArtwork';
-import { minimumPrintDpiForFrame, minimumNativeFloorDpiForFrame } from './printQuality';
+import { minimumNativeFloorDpiForFrame } from './printQuality';
 import {
     isProdigiConfigurationAvailable,
     prodigiMountWidthInForSize,

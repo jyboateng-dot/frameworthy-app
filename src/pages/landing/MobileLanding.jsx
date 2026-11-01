@@ -227,7 +227,9 @@ export default function MobileLanding({ navigate, onStartFraming, onSelectFrame,
                                 const scrollY = typeof window !== 'undefined' ? window.scrollY : 0;
                                 try {
                                     sessionStorage.setItem('met_art_homepage_scroll', String(scrollY));
-                                } catch (_) {}
+                                } catch {
+                                    // ignore
+                                }
                                 startFraming({
                                     openMetArt: true,
                                     returnOnClose: true,

@@ -58,12 +58,6 @@ export default function SmartAlignmentPad({
     const currentY = position?.y ?? 0.5;
     const currentZoom = position?.zoom ?? 1;
 
-    // Check which compass point is currently closest
-    const activePoint = COMPASS_POINTS.reduce((closest, pt) => {
-        const dist = Math.hypot(pt.x - currentX, pt.y - currentY);
-        return dist < closest.dist ? { pt, dist } : closest;
-    }, { pt: null, dist: Infinity }).pt;
-
     const isCloseToPoint = (pt) => Math.hypot(pt.x - currentX, pt.y - currentY) < 0.15;
 
     // Effective DPI
@@ -77,7 +71,9 @@ export default function SmartAlignmentPad({
         setIsMiniDragging(true);
         try {
             e.currentTarget.setPointerCapture(e.pointerId);
-        } catch {}
+        } catch {
+            // pointer capture not supported or failed
+        }
         updateMiniPadFromEvent(e);
     };
 
@@ -93,7 +89,9 @@ export default function SmartAlignmentPad({
             if (e.currentTarget.hasPointerCapture(e.pointerId)) {
                 e.currentTarget.releasePointerCapture(e.pointerId);
             }
-        } catch {}
+        } catch {
+            // pointer release failed
+        }
     };
 
     const updateMiniPadFromEvent = (e) => {

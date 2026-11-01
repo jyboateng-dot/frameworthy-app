@@ -17,7 +17,6 @@ import {
     calculatePromoDiscount,
     calculateFinalTotal,
     computeOrderCostBreakdown,
-    computeItemCostBreakdown,
 } from '../../utils/pricing';
 import Price from '../../components/common/Price';
 import { getThumbnailUrl } from '../../services/storage';
@@ -61,7 +60,7 @@ const CheckoutPage = () => {
     const { unit } = useUnit();
     
     // Only checkout items that were selected in the cart
-    const checkoutItems = cartItems.filter(item => item.isSelected);
+    const checkoutItems = useMemo(() => cartItems.filter(item => item.isSelected), [cartItems]);
     const prodigiDestinations = [...new Set(checkoutItems.map(item => item.prodigi?.destinationCountryCode).filter(Boolean))];
     const hasProdigiItems = prodigiDestinations.length > 0;
     const prodigiDestination = prodigiDestinations[0] || 'GH';

@@ -49,7 +49,6 @@ function loadFrameStyles(src) {
         else if (src[i] === ']') { depth--; if (depth === 0) { end = i; break; } }
     }
     if (end === -1) throw new Error('unterminated FRAME_STYLES array');
-    // eslint-disable-next-line no-new-func
     return new Function(`return ${src.slice(open, end + 1)}`)();
 }
 
