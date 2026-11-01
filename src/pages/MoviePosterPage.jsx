@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Heart, Search, Loader2, Film } from 'lucide-react';
-import { FRAME_SIZES } from '../data/constants';
+import { FRAME_SIZES, formatDimensions } from '../data/constants';
+import { useUnit } from '../context/UnitContext';
 import { useWishlist } from '../context/WishlistContext';
 import { fetchMoviePosterData } from '../utils/moviePoster';
+import { maxFramePrintSize } from '../utils/maxFramePrintSize';
 
 import { MOVIES_LOCAL_COLLECTIONS } from '../data/moviesLocal';
 import { getThumbnailUrl } from '../services/storage';
@@ -69,9 +71,14 @@ function pickBestFrameSize(naturalWidth, naturalHeight) {
 }
 
 const MovieProductCard = ({ product, onGetThis }) => {
+    const { unit } = useUnit();
     const { toggleWishlist, isInWishlist } = useWishlist();
     const liked = isInWishlist(product.id);
     const [hovered, setHovered] = useState(false);
+    const maxSize = useMemo(
+        () => maxFramePrintSize({ w: product.imageWidth || 1600, h: product.imageHeight || 2400 }),
+        [product.imageWidth, product.imageHeight]
+    );
 
     return (
         <div
@@ -106,6 +113,11 @@ const MovieProductCard = ({ product, onGetThis }) => {
             <div className="flex flex-col px-1">
                 <h3 className="text-sm font-bold text-stone-900 leading-tight truncate" title={product.title}>{product.title}</h3>
                 {product.year && <p className="text-xs text-stone-500 truncate mt-0.5">{product.year}</p>}
+                {maxSize && (
+                    <p className="text-[10px] text-stone-500 font-light leading-snug mt-0.5">
+                        Available up to {formatDimensions(maxSize.label, unit, maxSize.orientation)}
+                    </p>
+                )}
                 <div className="flex items-center gap-2 text-[10px] uppercase tracking-wider mt-1">
                     <button onClick={() => onGetThis(product)} className="text-stone-900 hover:text-stone-700 font-bold transition-colors duration-150">Get This</button>
                 </div>

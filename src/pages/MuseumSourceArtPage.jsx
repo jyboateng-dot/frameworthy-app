@@ -177,7 +177,8 @@ const MuseumArtworkCard = ({ artwork, unit, onGetThis, prioritizeImage, fetchPri
     const [imageLoaded, setImageLoaded] = useState(false);
     const [imageError, setImageError] = useState(false);
     const liked = isInWishlist(artwork.id);
-    const maxSize = maxFramePrintSize({ w: artwork.imageWidth, h: artwork.imageHeight });
+    const maxSize = maxFramePrintSize({ w: artwork.imageWidth, h: artwork.imageHeight })
+        || maxFramePrintSize({ w: 1600, h: 2000 });
 
     return (
         <article className="group relative flex flex-col gap-3" onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}>

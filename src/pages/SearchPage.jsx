@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Search as SearchIcon, Loader2, Globe } from 'lucide-react';
-import { FRAME_SIZES, findSizeByDimension, parseCustomSize } from '../data/constants';
+import { FRAME_SIZES, findSizeByDimension, formatDimensions, parseCustomSize } from '../data/constants';
+import { useUnit } from '../context/UnitContext';
 import { DEFAULT_PRODIGI_FRAME } from '../data/frameBrowsing';
 import SOURCE_DIMS from '../data/source_dims.json';
 import WEB_MET_DIMS from '../data/web_met_dims.json';
@@ -89,7 +90,35 @@ function resolveSizeFromDims(dims) {
 }
 
 const ResultCard = ({ result, onGetThis }) => {
+    const { unit } = useUnit();
     const [hovered, setHovered] = useState(false);
+
+    const maxSize = useMemo(() => {
+        const raw = result.raw || {};
+        if (result.category === 'met') {
+            return maxFramePrintSize(getMetArtworkPixelSize(raw)) || maxFramePrintSize({ w: 1600, h: 2000 });
+        }
+        if (result.category === 'albums') {
+            return maxFramePrintSize({ w: raw.imageWidth || 1600, h: raw.imageHeight || 1600 });
+        }
+        if (result.category === 'movies') {
+            return maxFramePrintSize({ w: raw.imageWidth || 1600, h: raw.imageHeight || 2400 });
+        }
+        if (raw.imageWidth && raw.imageHeight) {
+            return maxFramePrintSize({ w: raw.imageWidth, h: raw.imageHeight }) || maxFramePrintSize({ w: 1600, h: 2000 });
+        }
+        if (raw.width && raw.height) {
+            return maxFramePrintSize({ w: raw.width, h: raw.height }) || maxFramePrintSize({ w: 1600, h: 2000 });
+        }
+        return maxFramePrintSize({ w: 1600, h: 2000 });
+    }, [result.category, result.raw]);
+
+    const availableUpToLabel = useMemo(() => {
+        const raw = result.raw || {};
+        if (raw.dims) return formatDimensions(raw.dims, unit);
+        if (maxSize) return formatDimensions(maxSize.label, unit, maxSize.orientation);
+        return null;
+    }, [result.raw, maxSize, unit]);
 
     return (
         <div
@@ -118,7 +147,12 @@ const ResultCard = ({ result, onGetThis }) => {
             </div>
             <div className="flex flex-col px-1">
                 <h3 className="text-sm font-semibold text-stone-900 leading-tight truncate" title={result.title}>{result.title}</h3>
-                {result.subtitle && <p className="text-xs text-stone-500 truncate mt-0.5">{result.subtitle}</p>}
+                {result.subtitle && !result.raw?.dims && <p className="text-xs text-stone-500 truncate mt-0.5">{result.subtitle}</p>}
+                {availableUpToLabel && (
+                    <p className="text-[10px] text-stone-500 font-light leading-snug mt-0.5">
+                        Available up to {availableUpToLabel}
+                    </p>
+                )}
                 <button
                     onClick={() => onGetThis(result)}
                     className="text-left text-[10px] uppercase tracking-wider font-bold text-stone-900 hover:text-stone-700 transition-colors mt-1.5"

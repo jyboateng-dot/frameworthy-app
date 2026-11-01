@@ -79,7 +79,7 @@ const ProductCard = ({ product, onGetThis }) => {
             </div>
             <div className="pt-3 pb-2 border-b border-stone-200">
                 <h3 className="font-serif font-light text-sm text-stone-900 leading-snug mb-1">{product.title}</h3>
-                <p className="text-[10px] text-stone-500 font-light leading-snug mb-2">{formatDimensions(product.dims, unit)}</p>
+                <p className="text-[10px] text-stone-500 font-light leading-snug mb-2">Available up to {formatDimensions(product.dims, unit)}</p>
                 <div className="flex items-center gap-2 text-[10px] uppercase tracking-wider">
                     <button onClick={() => onGetThis(product)} className="text-stone-900 hover:text-stone-700 font-bold transition-colors duration-150">Get This</button>
                 </div>

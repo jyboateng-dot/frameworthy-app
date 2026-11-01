@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Heart, Search, Loader2, Music } from 'lucide-react';
-import { FRAME_SIZES } from '../data/constants';
+import { FRAME_SIZES, formatDimensions } from '../data/constants';
+import { useUnit } from '../context/UnitContext';
 import { useWishlist } from '../context/WishlistContext';
 import { fetchAlbumPosterData } from '../utils/albumPoster';
+import { maxFramePrintSize } from '../utils/maxFramePrintSize';
 
 // We'll import ALBUMS_LOCAL_COLLECTIONS but it might be empty initially until the background script finishes
 import { ALBUMS_LOCAL_COLLECTIONS } from '../data/albumsLocal';
@@ -12,9 +14,14 @@ import CollectionPagination from '../components/common/CollectionPagination';
 const GENRES = ['Pop', 'HipHop', 'Rock', 'R&B', 'Blues', 'Jazz', 'Indie', 'Afro Pop', 'African', 'Reggae', 'Dancehall'];
 
 const AlbumProductCard = ({ product, onGetThis }) => {
+    const { unit } = useUnit();
     const { toggleWishlist, isInWishlist } = useWishlist();
     const liked = isInWishlist(product.id);
     const [hovered, setHovered] = useState(false);
+    const maxSize = useMemo(
+        () => maxFramePrintSize({ w: product.imageWidth || 1600, h: product.imageHeight || 1600 }),
+        [product.imageWidth, product.imageHeight]
+    );
 
     return (
         <div 
@@ -50,6 +57,11 @@ const AlbumProductCard = ({ product, onGetThis }) => {
                 <h3 className="text-sm font-bold text-stone-900 leading-tight truncate" title={product.title}>{product.title}</h3>
                 <p className="text-xs text-stone-500 truncate mt-0.5">{product.artist}</p>
                 {product.year && <p className="text-[10px] text-stone-600 mt-1">{product.year}</p>}
+                {maxSize && (
+                    <p className="text-[10px] text-stone-500 font-light leading-snug mt-0.5">
+                        Available up to {formatDimensions(maxSize.label, unit, maxSize.orientation)}
+                    </p>
+                )}
                 <div className="flex items-center gap-2 text-[10px] uppercase tracking-wider mt-1">
                     <button onClick={() => onGetThis(product)} className="text-stone-900 hover:text-stone-700 font-bold transition-colors duration-150">Get This</button>
                 </div>

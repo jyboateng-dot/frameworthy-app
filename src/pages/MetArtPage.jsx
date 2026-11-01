@@ -20,7 +20,10 @@ const MetProductCard = ({ product, onGetThis }) => {
     const liked = isInWishlist(product.id);
     const [hovered, setHovered] = useState(false);
 
-    const maxSize = useMemo(() => maxFramePrintSize(getMetArtworkPixelSize(product)), [product]);
+    const maxSize = useMemo(
+        () => maxFramePrintSize(getMetArtworkPixelSize(product)) || maxFramePrintSize({ w: 1600, h: 2000 }),
+        [product]
+    );
 
     return (
         <div 
