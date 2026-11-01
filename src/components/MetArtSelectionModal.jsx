@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import MetArtPage from '../pages/MetArtPage';
+import MuseumArtPage from '../pages/MuseumArtPage';
 
 export default function MetArtSelectionModal({ isOpen, onClose, onSelect }) {
     const navigate = useNavigate();
@@ -34,7 +34,7 @@ export default function MetArtSelectionModal({ isOpen, onClose, onSelect }) {
                     <X size={18} />
                 </button>
                 <div className="flex-1 overflow-y-auto overscroll-y-contain">
-                    <MetArtPage isSubPage={true} onSelect={onSelect} navigate={navigate} />
+                    <MuseumArtPage isSubPage={true} onSelect={onSelect} navigate={navigate} disableWindowScroll={true} />
                 </div>
             </div>
         </div>

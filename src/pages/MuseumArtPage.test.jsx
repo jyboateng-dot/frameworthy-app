@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, expect, it, vi, beforeEach } from 'vitest';
-import MuseumArtPage from './MuseumArtPage';
+import MuseumArtPage, { __resetMuseumArtCacheForTests } from './MuseumArtPage';
 import { UnitProvider } from '../context/UnitContext';
 import { WishlistProvider } from '../context/WishlistContext';
 import historicMasterpieces from '../../public/museum-data/historic-masterpieces.json';
@@ -9,6 +9,7 @@ import historicMasterpieces from '../../public/museum-data/historic-masterpieces
 describe('MuseumArtPage (Historic Masterpieces)', () => {
     beforeEach(() => {
         sessionStorage.clear();
+        __resetMuseumArtCacheForTests();
         vi.stubGlobal('fetch', vi.fn((url) => {
             if (url === '/museum-data/historic-masterpieces.json') {
                 return Promise.resolve({
@@ -20,7 +21,7 @@ describe('MuseumArtPage (Historic Masterpieces)', () => {
         }));
     });
 
-    it('loads the 100-piece curated cross-museum Historic Masterpieces collection and filters by artist', async () => {
+    it('presents all 100 curated masterpieces together without subcategories, paginated and with Available up to on every card', async () => {
         const navigate = vi.fn();
         const setProductMode = vi.fn();
         const setSelectedSize = vi.fn();
@@ -40,19 +41,21 @@ describe('MuseumArtPage (Historic Masterpieces)', () => {
         );
 
         await waitFor(() => {
-            expect(screen.getByText('A Woman Seated at a Window')).toBeInTheDocument();
+            expect(screen.getAllByText(/Available up to/i)).toHaveLength(24);
         });
 
         expect(historicMasterpieces).toHaveLength(100);
-        expect(screen.getByRole('button', { name: 'Rembrandt van Rijn' })).toBeInTheDocument();
-        expect(screen.getByRole('button', { name: 'Vincent van Gogh' })).toBeInTheDocument();
-        expect(screen.getByRole('button', { name: 'Claude Monet' })).toBeInTheDocument();
+        // No artist sub-category filter buttons
+        expect(screen.queryByRole('button', { name: 'All' })).not.toBeInTheDocument();
 
-        fireEvent.click(screen.getByRole('button', { name: 'Vincent van Gogh' }));
-
-        await waitFor(() => {
-            expect(screen.getByText('Cypresses')).toBeInTheDocument();
-            expect(screen.getByText('Adeline Ravoux')).toBeInTheDocument();
+        // Simulate 400px thumbnail onLoad and verify Available up to never disappears
+        const images = screen.getAllByRole('img');
+        images.forEach((img) => {
+            Object.defineProperty(img, 'naturalWidth', { value: 400, configurable: true });
+            Object.defineProperty(img, 'naturalHeight', { value: 320, configurable: true });
+            fireEvent.load(img);
         });
+
+        expect(screen.getAllByText(/Available up to/i)).toHaveLength(24);
     });
 });

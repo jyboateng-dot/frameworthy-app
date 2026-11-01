@@ -6,13 +6,33 @@ import { useWishlist } from '../context/WishlistContext';
 import { MET_LOCAL_COLLECTIONS } from '../data/metLocal';
 import { getThumbnailUrl } from '../services/storage';
 import CollectionPagination from '../components/common/CollectionPagination';
-import { getMetArtworkPixelSize, getMetRecommendedSize, isMetArtworkPrintable, getSortedMetCategories } from '../utils/metArtworkSizing';
+import { getMetArtworkPixelSize, getMetRecommendedSize, isPaintingOrPortraitCategory } from '../utils/metArtworkSizing';
 import { maxFramePrintSize } from '../utils/maxFramePrintSize';
 
-const COLLECTION_LABELS = {
-    'Vincent van Gogh': 'Van Gogh',
-    'Modern and Contemporary Art': 'Modern & Contemporary Art'
+const shuffleArray = (array) => {
+    const arr = [...array];
+    for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
 };
+
+function buildShuffledMetCollection() {
+    const seen = new Set();
+    const list = [];
+    for (const [category, items] of Object.entries(MET_LOCAL_COLLECTIONS || {})) {
+        if (!isPaintingOrPortraitCategory(category)) continue;
+        for (const item of (items || [])) {
+            if (!item?.image || seen.has(item.id)) continue;
+            seen.add(item.id);
+            list.push(item);
+        }
+    }
+    return shuffleArray(list);
+}
+
+const SHUFFLED_MET_ARTWORKS = buildShuffledMetCollection();
 
 const MetProductCard = ({ product, onGetThis }) => {
     const { unit } = useUnit();
@@ -69,47 +89,24 @@ const MetProductCard = ({ product, onGetThis }) => {
     );
 };
 
-const MetArtPage = ({ setProductMode, setSelectedFrame, setSelectedSize, navigate, isSubPage = false, onSelect = null, disableWindowScroll = false }) => {
-    // disableWindowScroll is true only inside the in-studio Inspiration
-    // modal, where window isn't the real scroll container — isSubPage
-    // alone isn't enough (it's also true on the real /inspiration route,
-    // where window IS the real scroll container).
+const MetArtPage = ({ setProductMode, setSelectedSize, navigate, isSubPage = false, onSelect = null, disableWindowScroll = false }) => {
     const scrollToTop = () => { if (!disableWindowScroll) window.scrollTo({ top: 0, behavior: 'smooth' }); };
 
-    // Collections sorted such that categories with the biggest max frame sizes appear first
-    const categories = useMemo(() => getSortedMetCategories(MET_LOCAL_COLLECTIONS), []);
-
-    // Initial selected category — persisted so navigating away (e.g. to
-    // customize a selection) and back to Inspiration restores the same
-    // category/page instead of resetting.
-    const [activeCategory, setActiveCategory] = useState(() => {
-        const saved = sessionStorage.getItem('fw_met_category');
-        return (saved && categories.includes(saved)) ? saved : (categories[0] || '');
-    });
     const [currentPage, setCurrentPage] = useState(() => parseInt(sessionStorage.getItem('fw_met_page') || '1', 10));
     const itemsPerPage = 24;
 
-    useEffect(() => { sessionStorage.setItem('fw_met_category', activeCategory || ''); }, [activeCategory]);
     useEffect(() => { sessionStorage.setItem('fw_met_page', currentPage.toString()); }, [currentPage]);
 
-    const currentArtworks = useMemo(() => {
-        if (!activeCategory || !MET_LOCAL_COLLECTIONS[activeCategory]) return [];
-        return MET_LOCAL_COLLECTIONS[activeCategory];
-    }, [activeCategory]);
-
-    const handleCategoryChange = (cat) => {
-        setActiveCategory(cat);
-        setCurrentPage(1);
-    };
+    const currentArtworks = SHUFFLED_MET_ARTWORKS;
 
     const handleGetThis = (product) => {
         if (onSelect) {
             onSelect(product);
             return;
         }
-        setProductMode('frame');
+        if (setProductMode) setProductMode('frame');
         const pixelSize = getMetArtworkPixelSize(product);
-        const maxSize = maxFramePrintSize(pixelSize);
+        const maxSize = maxFramePrintSize(pixelSize) || maxFramePrintSize({ w: 1600, h: 2000 });
         const recSize = getMetRecommendedSize(product);
         const sizeObj = recSize || maxSize;
         const orientation = sizeObj?.orientation || maxSize?.orientation || product.orientation;
@@ -127,16 +124,20 @@ const MetArtPage = ({ setProductMode, setSelectedFrame, setSelectedSize, navigat
         });
     };
 
-    // Pagination
     const totalPages = Math.ceil(currentArtworks.length / itemsPerPage);
     const startIndex = (currentPage - 1) * itemsPerPage;
     const paginatedArtworks = currentArtworks.slice(startIndex, startIndex + itemsPerPage);
 
     useEffect(() => {
+        if (totalPages > 0 && currentPage > totalPages) setCurrentPage(totalPages);
+    }, [totalPages, currentPage]);
+
+    useEffect(() => {
         scrollToTop();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [currentPage]);
 
-    if (categories.length === 0) {
+    if (currentArtworks.length === 0) {
         return (
             <div className="w-full flex flex-col items-center justify-center py-20 text-stone-400">
                 <RefreshCw size={24} className="animate-spin mb-4" />
@@ -148,7 +149,6 @@ const MetArtPage = ({ setProductMode, setSelectedFrame, setSelectedSize, navigat
 
     return (
         <div className={isSubPage ? "text-stone-900" : "min-h-screen bg-[#faf9f8] text-stone-900"} style={{ fontFamily: "'Inter', sans-serif" }}>
-            {/* Header */}
             <header className="border-b border-stone-200">
                 <div className={`max-w-[2560px] mx-auto px-6 md:px-12 pb-4 ${isSubPage ? 'pt-1' : 'pt-8'}`}>
                     <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6">
@@ -164,60 +164,29 @@ const MetArtPage = ({ setProductMode, setSelectedFrame, setSelectedSize, navigat
                         <div className="shrink-0 text-right">
                             <p className="text-[9px] uppercase tracking-[0.28em] text-stone-400 mb-1">COLLECTION</p>
                             <p className="font-serif text-3xl text-stone-900 font-light leading-none">
-                                {categories.length} <span className="text-xs text-stone-500 font-light ml-1">categories</span>
+                                {currentArtworks.length} <span className="text-xs text-stone-500 font-light ml-1">pieces</span>
                             </p>
                         </div>
                     </div>
                 </div>
             </header>
 
-            {/* Categories Navigation */}
-            <div className="bg-[#faf9f8]/95 backdrop-blur-sm border-b border-stone-200 sticky top-12 z-20 py-3 mt-1">
-                <div className="max-w-[2560px] mx-auto px-6 md:px-12 flex items-center gap-2 overflow-x-auto no-scrollbar after:content-[''] after:pr-6 md:after:pr-12">
-                    {categories.map(cat => (
-                        <button
-                            key={cat}
-                            onClick={() => handleCategoryChange(cat)}
-                            className={`flex-shrink-0 px-5 py-2 rounded-full text-xs font-bold whitespace-nowrap transition-all duration-200 ${
-                                activeCategory === cat
-                                    ? 'bg-stone-900 text-white shadow-md'
-                                    : 'bg-stone-50 text-stone-600 hover:bg-stone-100 border border-stone-200'
-                            }`}
-                        >
-                            {COLLECTION_LABELS[cat] || cat}
-                        </button>
+            <main className="max-w-[2560px] mx-auto px-6 md:px-12 pt-8 pb-12">
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-12">
+                    {paginatedArtworks.map(product => (
+                        <MetProductCard 
+                            key={product.id}
+                            product={product}
+                            onGetThis={handleGetThis}
+                        />
                     ))}
                 </div>
-            </div>
 
-            {/* Artwork Grid */}
-            <main className="max-w-[2560px] mx-auto px-6 md:px-12 pt-8 pb-12">
-                {currentArtworks.length === 0 ? (
-                    <div className="w-full flex flex-col items-center justify-center py-24 text-stone-400">
-                        <RefreshCw size={24} className="animate-spin mb-4" />
-                        <p className="text-sm font-medium">Downloading "{COLLECTION_LABELS[activeCategory] || activeCategory}" collection...</p>
-                        <p className="text-xs text-stone-500 mt-1">Please wait, the background downloader is processing this folder.</p>
-                    </div>
-                ) : (
-                    <>
-                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-12">
-                            {paginatedArtworks.map(product => (
-                                <MetProductCard 
-                                    key={product.id}
-                                    product={product}
-                                    onGetThis={handleGetThis}
-                                />
-                            ))}
-                        </div>
-
-                        {/* Pagination */}
-                        <CollectionPagination
-                            currentPage={currentPage}
-                            totalPages={totalPages}
-                            onPageChange={nextPage => { setCurrentPage(nextPage); scrollToTop(); }}
-                        />
-                    </>
-                )}
+                <CollectionPagination
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    onPageChange={nextPage => { setCurrentPage(nextPage); scrollToTop(); }}
+                />
             </main>
         </div>
     );

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Heart, RefreshCw, ChevronDown } from 'lucide-react';
+import { Heart, RefreshCw } from 'lucide-react';
 import { FRAME_SIZES, findSizeByDimension, formatDimensions } from '../data/constants';
 import { useUnit } from '../context/UnitContext';
 import { useWishlist } from '../context/WishlistContext';
@@ -11,56 +11,53 @@ import { recommendFrameSize } from '../utils/museumArtwork';
 // In-memory dimension cache for Historic Masterpieces images
 const MASTERPIECE_PIXEL_CACHE = new Map();
 
-// Bymuseum's own artist browser (bymuseum.com/artists/) is a two-tier
-// thing — a paginated index of portrait+bio artist cards, then a filtered
-// grid per artist. We don't have portrait photos or biographies for any of
-// the 608 artists here (that's a separate content project), so this keeps
-// just the mechanic that our data actually supports: the most-represented
-// artists as quick pills, everyone else in a searchable "More" dropdown —
-// same primary/secondary pattern the old category picker used before
-// Artists & Masterpieces was promoted to its own tab.
-//
-// Curated by hand rather than sorted by count — these are the artists
-// worth surfacing as a first impression, not necessarily the ones with the
-// most pieces in the catalogue. Exact spelling/casing must match the
-// `artist` string in artists_and_masterpieces.json (e.g. "Leonardo da
-// Vinci", lowercase "da") or the pill silently filters to zero results.
-const CURATED_PRIMARY_ARTISTS = [
-    'Rembrandt van Rijn',
-    'Vincent van Gogh',
-    'Claude Monet',
-    'Raphael',
-    'Sandro Botticelli',
-    'Diego Velázquez',
-    'Johannes Vermeer',
-    'Albrecht Dürer',
-];
-
 const DATA_URL = '/museum-data/historic-masterpieces.json';
+
+const shuffleArray = (array) => {
+    const arr = [...array];
+    for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+};
+
+let cachedShuffledProducts = null;
+
+export function __resetMuseumArtCacheForTests() {
+    cachedShuffledProducts = null;
+}
 
 const MuseumProductCard = ({ product, onGetThis }) => {
     const { unit } = useUnit();
     const { toggleWishlist, isInWishlist } = useWishlist();
     const liked = isInWishlist(product.id);
     const [hovered, setHovered] = useState(false);
+    const hasSourceDimensions = Boolean(Number(product.imageWidth) > 0 && Number(product.imageHeight) > 0);
     const [pixelSize, setPixelSize] = useState(() => (
-        (product.imageWidth && product.imageHeight)
+        hasSourceDimensions
             ? { w: Number(product.imageWidth), h: Number(product.imageHeight) }
             : MASTERPIECE_PIXEL_CACHE.get(product.id) || null
     ));
 
     const maxSize = useMemo(() => {
-        if (pixelSize) return maxFramePrintSize(pixelSize);
-        // Standard ByMuseum 40x50cm / 16x20in reproduction fallback
+        if (pixelSize) {
+            const computed = maxFramePrintSize(pixelSize);
+            if (computed) return computed;
+        }
         return maxFramePrintSize({ w: 1600, h: 2000 });
     }, [pixelSize]);
 
     const handleImageLoad = (e) => {
+        if (hasSourceDimensions) return;
         const w = e.target.naturalWidth;
         const h = e.target.naturalHeight;
         if (w > 0 && h > 0) {
-            MASTERPIECE_PIXEL_CACHE.set(product.id, { w, h });
-            setPixelSize({ w, h });
+            // Scale thumbnail dimensions up if transformed by CDN so aspect ratio is preserved for maxFramePrintSize
+            const scale = Math.max(w, h) < 1200 ? 2000 / Math.max(w, h) : 1;
+            const resolved = { w: Math.round(w * scale), h: Math.round(h * scale) };
+            MASTERPIECE_PIXEL_CACHE.set(product.id, resolved);
+            setPixelSize(resolved);
         }
     };
 
@@ -115,62 +112,47 @@ const MuseumProductCard = ({ product, onGetThis }) => {
     );
 };
 
-const MuseumArtPage = ({ setProductMode, setSelectedSize, navigate, isSubPage = false, disableWindowScroll = false }) => {
+const MuseumArtPage = ({ setProductMode, setSelectedSize, navigate, isSubPage = false, onSelect = null, disableWindowScroll = false }) => {
     const scrollToTop = () => { if (!disableWindowScroll) window.scrollTo({ top: 0, behavior: 'smooth' }); };
 
-    const [products, setProducts] = useState(null); // null = still loading
+    const [products, setProducts] = useState(() => cachedShuffledProducts);
     const [loadError, setLoadError] = useState(false);
 
     useEffect(() => {
+        if (cachedShuffledProducts) {
+            setProducts(cachedShuffledProducts);
+            return undefined;
+        }
         let cancelled = false;
         fetch(DATA_URL)
             .then(res => { if (!res.ok) throw new Error(`HTTP ${res.status}`); return res.json(); })
-            .then(data => { if (!cancelled) setProducts(Array.isArray(data) ? data : []); })
+            .then(data => {
+                if (cancelled) return;
+                const list = Array.isArray(data) ? shuffleArray(data) : [];
+                cachedShuffledProducts = list;
+                setProducts(list);
+            })
             .catch(() => { if (!cancelled) setLoadError(true); });
         return () => { cancelled = true; };
     }, []);
 
-    const [activeArtist, setActiveArtist] = useState(() => sessionStorage.getItem('fw_museum_artist') || '');
     const [currentPage, setCurrentPage] = useState(() => parseInt(sessionStorage.getItem('fw_museum_page') || '1', 10));
     const itemsPerPage = 24;
 
     useEffect(() => { sessionStorage.setItem('fw_museum_page', currentPage.toString()); }, [currentPage]);
-    useEffect(() => { sessionStorage.setItem('fw_museum_artist', activeArtist); }, [activeArtist]);
-
-    // Counted from the loaded products themselves rather than a separate
-    // data file — artist attribution already lives on every item (100%
-    // coverage, since only genuine Wikimedia matches survived the DPI
-    // filter), so there's nothing extra to fetch or keep in sync.
-    const { primaryArtists, secondaryArtists } = useMemo(() => {
-        const allArtists = new Set();
-        for (const p of (products || [])) {
-            if (p.artist) allArtists.add(p.artist);
-        }
-        // Curated list first, in the exact order specified — only artists
-        // actually present in the loaded data, so a typo/rename upstream
-        // degrades to "fewer pills" rather than a broken empty pill.
-        const primary = CURATED_PRIMARY_ARTISTS.filter(name => allArtists.has(name));
-        const primarySet = new Set(primary);
-        const secondary = Array.from(allArtists)
-            .filter(name => !primarySet.has(name))
-            .sort((a, b) => a.localeCompare(b));
-        return { primaryArtists: primary, secondaryArtists: secondary };
-    }, [products]);
-
-    const handleArtistChange = (artist) => {
-        setActiveArtist(artist);
-        setCurrentPage(1);
-        scrollToTop();
-    };
 
     const handleGetThis = (product) => {
-        setProductMode('frame');
+        if (onSelect) {
+            onSelect(product);
+            return;
+        }
+        if (setProductMode) setProductMode('frame');
 
         const pixelSize = (product.imageWidth && product.imageHeight)
             ? { w: Number(product.imageWidth), h: Number(product.imageHeight) }
             : MASTERPIECE_PIXEL_CACHE.get(product.id) || null;
 
-        const maxSize = maxFramePrintSize(pixelSize);
+        const maxSize = maxFramePrintSize(pixelSize) || maxFramePrintSize({ w: 1600, h: 2000 });
         const recSize = recommendFrameSize(pixelSize ? { imageWidth: pixelSize.w, imageHeight: pixelSize.h } : {});
         const sizeObj = recSize || maxSize || findSizeByDimension('40 x 50 cm') || FRAME_SIZES.find(s => s.id === '16x20') || FRAME_SIZES[0];
 
@@ -189,18 +171,11 @@ const MuseumArtPage = ({ setProductMode, setSelectedSize, navigate, isSubPage = 
         });
     };
 
-    const allItems = products || [];
-    const items = useMemo(
-        () => activeArtist ? allItems.filter(p => p.artist === activeArtist) : allItems,
-        [allItems, activeArtist]
-    );
+    const items = products || [];
     const totalPages = Math.ceil(items.length / itemsPerPage);
     const startIndex = (currentPage - 1) * itemsPerPage;
     const paginatedArtworks = useMemo(() => items.slice(startIndex, startIndex + itemsPerPage), [items, startIndex]);
 
-    // A page number restored from a previous session (or from before a
-    // dataset shrink) can exceed the current totalPages — without this, the
-    // grid silently renders zero cards instead of showing the empty state.
     useEffect(() => {
         if (totalPages > 0 && currentPage > totalPages) setCurrentPage(totalPages);
     }, [totalPages, currentPage]);
@@ -243,69 +218,11 @@ const MuseumArtPage = ({ setProductMode, setSelectedSize, navigate, isSubPage = 
                 </div>
             </header>
 
-            {primaryArtists.length > 0 && (
-                <div className="bg-[#faf9f8]/95 backdrop-blur-sm border-b border-stone-200 sticky top-0 z-20 py-3">
-                    <div className="max-w-[2560px] mx-auto px-6 md:px-12 flex items-center gap-2 overflow-x-auto no-scrollbar after:content-[''] after:pr-6 md:after:pr-12">
-                        <button
-                            onClick={() => handleArtistChange('')}
-                            className={`flex-shrink-0 px-5 py-2 rounded-full text-xs font-bold whitespace-nowrap transition-all duration-200 ${
-                                activeArtist === ''
-                                    ? 'bg-stone-900 text-white shadow-md'
-                                    : 'bg-stone-50 text-stone-600 hover:bg-stone-100 border border-stone-200'
-                            }`}
-                        >
-                            All
-                        </button>
-                        {primaryArtists.map(artist => (
-                            <button
-                                key={artist}
-                                onClick={() => handleArtistChange(artist)}
-                                className={`flex-shrink-0 px-5 py-2 rounded-full text-xs font-bold whitespace-nowrap transition-all duration-200 ${
-                                    activeArtist === artist
-                                        ? 'bg-stone-900 text-white shadow-md'
-                                        : 'bg-stone-50 text-stone-600 hover:bg-stone-100 border border-stone-200'
-                                }`}
-                            >
-                                {artist}
-                            </button>
-                        ))}
-
-                        {secondaryArtists.length > 0 && (
-                            <div className="relative flex-shrink-0 flex items-center">
-                                <select
-                                    value={secondaryArtists.includes(activeArtist) ? activeArtist : ''}
-                                    onChange={(e) => handleArtistChange(e.target.value)}
-                                    className={`appearance-none w-28 pl-4 pr-6 py-2 rounded-full text-xs font-bold whitespace-nowrap transition-all duration-200 outline-none border cursor-pointer ${
-                                        secondaryArtists.includes(activeArtist)
-                                            ? 'bg-stone-900 text-white border-stone-900 shadow-md'
-                                            : 'bg-stone-50 text-stone-600 hover:bg-stone-100 border-stone-200'
-                                    }`}
-                                >
-                                    <option value="" disabled className="text-stone-400">More Artists</option>
-                                    {secondaryArtists.map(artist => (
-                                        <option key={artist} value={artist} className="text-stone-800 bg-white">
-                                            {artist}
-                                        </option>
-                                    ))}
-                                </select>
-                                <ChevronDown
-                                    size={10}
-                                    strokeWidth={2.5}
-                                    className={`absolute right-2.5 pointer-events-none transition-colors ${
-                                        secondaryArtists.includes(activeArtist) ? 'text-white' : 'text-stone-500'
-                                    }`}
-                                />
-                            </div>
-                        )}
-                    </div>
-                </div>
-            )}
-
             <main className="max-w-[2560px] mx-auto px-6 md:px-12 pt-8 pb-12">
                 {products === null ? (
                     <div className="w-full flex flex-col items-center justify-center py-24 text-stone-400">
                         <RefreshCw size={24} className="animate-spin mb-4" />
-                        <p className="text-sm font-medium">Loading Artists & Masterpieces...</p>
+                        <p className="text-sm font-medium">Loading Historic Masterpieces...</p>
                     </div>
                 ) : items.length === 0 ? (
                     <div className="w-full flex flex-col items-center justify-center py-24 text-stone-400">

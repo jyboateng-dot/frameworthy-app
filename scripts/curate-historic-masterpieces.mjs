@@ -251,7 +251,7 @@ const rijksmuseumRecords = await loadSnapshots('rijksmuseum', [1]);
 const parisRecords = await loadSnapshots('paris-musees', [1]);
 const ngaRecords = await loadSnapshots('national-gallery-of-art', [1, 2, 3, 4]);
 
-const artworks = [
+const unshuffledArtworks = [
     ...select(metRecords, SELECTION.met, SOURCES.met),
     ...select(clevelandRecords, SELECTION.cleveland, SOURCES.cleveland),
     ...select(chicagoRecords, SELECTION.chicago, SOURCES.chicago),
@@ -259,6 +259,26 @@ const artworks = [
     ...select(parisRecords, SELECTION.paris, SOURCES.paris),
     ...select(ngaRecords, SELECTION.nga, SOURCES.nga),
 ];
+
+// Deterministic PRNG (mulberry32) so the default JSON ordering is randomized
+// across museums and artists rather than grouped by source.
+function seededShuffle(items, seed = 0x20261101) {
+    const copy = [...items];
+    let t = seed >>> 0;
+    const rand = () => {
+        t += 0x6D2B79F5;
+        let x = Math.imul(t ^ (t >>> 15), 1 | t);
+        x ^= x + Math.imul(x ^ (x >>> 7), 61 | x);
+        return ((x ^ (x >>> 14)) >>> 0) / 4294967296;
+    };
+    for (let i = copy.length - 1; i > 0; i--) {
+        const j = Math.floor(rand() * (i + 1));
+        [copy[i], copy[j]] = [copy[j], copy[i]];
+    }
+    return copy;
+}
+
+const artworks = seededShuffle(unshuffledArtworks);
 
 if (artworks.length !== 100) throw new Error(`Expected 100 artworks, received ${artworks.length}.`);
 if (new Set(artworks.map(artwork => artwork.id)).size !== artworks.length) throw new Error('The selection contains duplicate artworks.');

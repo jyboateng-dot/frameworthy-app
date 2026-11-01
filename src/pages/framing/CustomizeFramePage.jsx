@@ -1102,8 +1102,8 @@ const CustomizeFramePage = ({
         const sizeObj = recSize || maxSize;
 
         applyInspirationSelection({
-            presetImage: art.image,
-            presetTitle: art.title,
+            presetImage: art.fullRes || art.image,
+            presetTitle: art.artist ? `${art.title} — ${art.artist}` : art.title,
             initialSize: sizeObj,
             orientation: sizeObj?.orientation || maxSize?.orientation || art.orientation,
             imageWidth: pixelSize?.w || art.imageWidth || null,
