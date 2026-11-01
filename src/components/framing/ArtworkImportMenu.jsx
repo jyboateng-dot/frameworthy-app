@@ -19,9 +19,11 @@ export default function ArtworkImportMenu({ isPlaceholder, isUploading, onFile, 
     const rootRef = useRef(null);
     const panelRef = useRef(null);
     const urlInputRef = useRef(null);
+    const importAttempt = useRef(0);
     const busy = Boolean(isUploading || disabled || pendingSource);
 
     const reset = useCallback(() => {
+        importAttempt.current += 1;
         setView('sources');
         setUrl('');
         setPendingSource('');
@@ -86,11 +88,14 @@ export default function ArtworkImportMenu({ isPlaceholder, isUploading, onFile, 
     };
 
     const handleCloudImport = async (provider) => {
+        const attempt = ++importAttempt.current;
         setPendingSource(provider);
         setError('');
         try {
-            finishImport(await importArtworkFromCloud(provider));
+            const artwork = await importArtworkFromCloud(provider);
+            if (attempt === importAttempt.current) finishImport(artwork);
         } catch (importError) {
+            if (attempt !== importAttempt.current) return;
             if (importError.message === 'No image was selected.') {
                 close();
                 return;
@@ -140,6 +145,12 @@ export default function ArtworkImportMenu({ isPlaceholder, isUploading, onFile, 
                         );
                     })}
                     <SourceRow icon={Link2} label="Paste image link" onClick={() => { setView('url'); setError(''); }} />
+                    {pendingSource && (
+                        <div className="px-3 py-2 border-t border-stone-100 text-[11px] text-stone-600">
+                            <p>The picker opens in a separate window. If it did not open, try Chrome or Safari.</p>
+                            <button type="button" onClick={reset} className="mt-1 font-semibold underline text-stone-800">Cancel</button>
+                        </div>
+                    )}
                     {error && <p role="alert" className="px-3 py-2 text-[11px] text-red-600 border-t border-stone-100">{error}</p>}
                 </div>
             ) : (

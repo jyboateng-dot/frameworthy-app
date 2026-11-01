@@ -44,26 +44,50 @@ function loadScript({ src, id, dataset, isReady, canLoad, load }) {
     if (isReady()) return Promise.resolve();
 
     return new Promise((resolve, reject) => {
-        const finish = () => Promise.resolve(load?.()).then(resolve, reject);
+        let script;
+        let settled = false;
+        const cleanup = () => {
+            clearTimeout(timeout);
+            script?.removeEventListener('load', finish);
+            script?.removeEventListener('error', fail);
+        };
+        const fail = () => {
+            if (settled) return;
+            settled = true;
+            cleanup();
+            script?.remove();
+            reject(new Error('Could not load the file picker. Check your connection and try again.'));
+        };
+        const finish = () => {
+            if (settled) return;
+            Promise.resolve().then(() => load?.()).then(() => {
+                if (settled) return;
+                settled = true;
+                cleanup();
+                resolve();
+            }, fail);
+        };
+        const timeout = setTimeout(fail, 15000);
         const existing = document.querySelector(`script[src="${src}"]`);
         if (existing) {
+            script = existing;
             if (isReady() || canLoad?.()) {
                 finish();
                 return;
             }
             existing.addEventListener('load', finish, { once: true });
-            existing.addEventListener('error', reject, { once: true });
+            existing.addEventListener('error', fail, { once: true });
             return;
         }
 
-        const script = document.createElement('script');
+        script = document.createElement('script');
         if (id) script.id = id;
         Object.entries(dataset || {}).forEach(([key, value]) => { script.dataset[key] = value; });
         script.src = src;
         script.async = true;
         script.defer = true;
-        script.onload = finish;
-        script.onerror = () => reject(new Error('Could not load the file picker.'));
+        script.addEventListener('load', finish, { once: true });
+        script.addEventListener('error', fail, { once: true });
         document.head.appendChild(script);
     });
 }
@@ -169,13 +193,17 @@ export function preloadArtworkCloudPickers() {
 async function importFromDropbox() {
     await loadDropbox();
     const picked = await new Promise((resolve, reject) => {
-        window.Dropbox.choose({
-            success: ([file]) => resolve(file),
-            cancel: () => reject(new Error('No image was selected.')),
-            linkType: 'direct',
-            multiselect: false,
-            extensions: DROPBOX_IMAGE_EXTENSIONS,
-        });
+        try {
+            window.Dropbox.choose({
+                success: ([file]) => resolve(file),
+                cancel: () => reject(new Error('No image was selected.')),
+                linkType: 'direct',
+                multiselect: false,
+                extensions: DROPBOX_IMAGE_EXTENSIONS,
+            });
+        } catch (error) {
+            reject(error);
+        }
     });
     const response = await fetch(picked.link);
     if (!response.ok) throw new Error('Could not download that image from Dropbox.');

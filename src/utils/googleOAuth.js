@@ -11,22 +11,36 @@ function loadGis() {
     if (gisLoadPromise) return gisLoadPromise;
 
     gisLoadPromise = new Promise((resolve, reject) => {
-        const existing = document.querySelector(`script[src="${GIS_SCRIPT_SRC}"]`);
-        if (existing) {
-            existing.addEventListener('load', () => resolve());
-            existing.addEventListener('error', () => reject(new Error('Could not load Google’s sign-in script.')));
-            return;
-        }
-        const script = document.createElement('script');
-        script.src = GIS_SCRIPT_SRC;
-        script.async = true;
-        script.defer = true;
-        script.onload = () => resolve();
-        script.onerror = () => {
+        const script = document.querySelector(`script[src="${GIS_SCRIPT_SRC}"]`) || document.createElement('script');
+        let settled = false;
+        const cleanup = () => {
+            clearTimeout(timeout);
+            script.removeEventListener('load', finish);
+            script.removeEventListener('error', fail);
+        };
+        const finish = () => {
+            if (settled) return;
+            settled = true;
+            cleanup();
+            resolve();
+        };
+        const fail = () => {
+            if (settled) return;
+            settled = true;
+            cleanup();
+            script.remove();
             gisLoadPromise = null;
             reject(new Error('Could not load Google’s sign-in script.'));
         };
-        document.head.appendChild(script);
+        const timeout = setTimeout(fail, 15000);
+        script.addEventListener('load', finish, { once: true });
+        script.addEventListener('error', fail, { once: true });
+        if (!script.isConnected) {
+            script.src = GIS_SCRIPT_SRC;
+            script.async = true;
+            script.defer = true;
+            document.head.appendChild(script);
+        }
     });
     return gisLoadPromise;
 }
@@ -67,9 +81,9 @@ function createTokenClient(clientId, scope) {
             entry.pending = null;
             if (!pending) return;
             if (error?.type === 'popup_closed') {
-                pending.reject(new Error('Sign-in window was closed.'));
+                pending.reject(new Error('Google sign-in closed or could not open here. If you are using an in-app browser, open FrameWorthy in Chrome or Safari.'));
             } else if (error?.type === 'popup_failed_to_open') {
-                pending.reject(new Error('Your browser blocked the Google sign-in window — allow pop-ups and try again.'));
+                pending.reject(new Error('Your browser blocked the Google sign-in window. Allow pop-ups or open FrameWorthy in Chrome or Safari.'));
             } else {
                 pending.reject(new Error('Couldn’t sign in with Google.'));
             }

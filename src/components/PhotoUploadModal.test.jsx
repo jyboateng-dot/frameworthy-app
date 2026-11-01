@@ -1,6 +1,6 @@
 import React from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import PhotoUploadModal from './PhotoUploadModal';
 import * as artworkImport from '../services/artworkImport';
 
@@ -177,5 +177,20 @@ describe('PhotoUploadModal', () => {
                 expect(screen.getByRole('alert')).toHaveTextContent(/Dropbox is not configured yet/i);
             });
         }
+    });
+
+    it('lets a user cancel a stalled cloud picker without accepting a late selection', async () => {
+        if (!artworkImport.ARTWORK_IMPORT_SOURCES.dropbox.available) return;
+        let resolvePicker;
+        vi.spyOn(artworkImport, 'importArtworkFromCloud').mockImplementation(() => new Promise((resolve) => { resolvePicker = resolve; }));
+        const onFile = vi.fn();
+        render(<PhotoUploadModal isOpen onClose={vi.fn()} onFile={onFile} />);
+
+        fireEvent.click(screen.getByRole('button', { name: /Dropbox/i }));
+        fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
+        await act(async () => resolvePicker({ file: new File(['pixels'], 'late.png', { type: 'image/png' }) }));
+
+        expect(onFile).not.toHaveBeenCalled();
+        expect(screen.getByRole('button', { name: /Dropbox/i })).toBeEnabled();
     });
 });

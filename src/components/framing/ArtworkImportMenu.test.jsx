@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import ArtworkImportMenu from './ArtworkImportMenu';
 import { importArtworkFromCloud, importArtworkFromUrl } from '../../services/artworkImport';
@@ -72,6 +72,21 @@ describe('ArtworkImportMenu', () => {
         await waitFor(() => {
             expect(screen.queryByRole('menuitem', { name: 'Google Drive' })).not.toBeInTheDocument();
         });
+    });
+
+    it('can leave a stalled cloud picker without importing a later result', async () => {
+        let resolvePicker;
+        importArtworkFromCloud.mockImplementation(() => new Promise((resolve) => { resolvePicker = resolve; }));
+        const onFile = vi.fn();
+        render(<ArtworkImportMenu isPlaceholder onFile={onFile} />);
+
+        fireEvent.click(screen.getByRole('button', { name: 'Upload Image' }));
+        fireEvent.click(screen.getByRole('menuitem', { name: 'Google Drive' }));
+        fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
+        expect(screen.getByRole('menuitem', { name: 'Google Drive' })).toBeEnabled();
+
+        await act(async () => resolvePicker({ file: new File(['pixels'], 'late.png', { type: 'image/png' }) }));
+        expect(onFile).not.toHaveBeenCalled();
     });
 
     it('keeps the source menu anchored to the upload control on small screens', () => {

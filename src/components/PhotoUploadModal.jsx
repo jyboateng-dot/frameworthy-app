@@ -19,21 +19,25 @@ export default function PhotoUploadModal({
     const [isDragging, setIsDragging] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [loadingMessage, setLoadingMessage] = useState('');
+    const [cloudPending, setCloudPending] = useState(false);
     const [error, setError] = useState('');
     const [showUrlInput, setShowUrlInput] = useState(false);
     const [imageUrl, setImageUrl] = useState('');
     const fileInputRef = useRef(null);
     const urlInputRef = useRef(null);
     const modalRef = useRef(null);
+    const cloudAttempt = useRef(0);
 
     const isReplacing = Boolean(onFile && !isPlaceholder);
 
     // Reset state on modal open/close
     useEffect(() => {
         if (!isOpen) {
+            cloudAttempt.current += 1;
             setIsDragging(false);
             setIsLoading(false);
             setLoadingMessage('');
+            setCloudPending(false);
             setError('');
             setShowUrlInput(false);
             setImageUrl('');
@@ -138,6 +142,7 @@ export default function PhotoUploadModal({
     };
 
     const handleCloudImport = async (provider) => {
+        const attempt = ++cloudAttempt.current;
         const providerName = provider === 'drive' ? 'Google Drive' : 'Dropbox';
         setError('');
 
@@ -150,17 +155,21 @@ export default function PhotoUploadModal({
         }
 
         setIsLoading(true);
+        setCloudPending(true);
         setLoadingMessage(`Opening ${providerName}...`);
         try {
             const normalized = await importArtworkFromCloud(provider);
+            if (attempt !== cloudAttempt.current) return;
             if (normalized?.file) {
                 processArtworkFile(normalized.file);
             }
         } catch (err) {
+            if (attempt !== cloudAttempt.current) return;
             if (err?.message !== 'No image was selected.') {
                 setError(err?.message || `Could not import from ${providerName}.`);
             }
             setIsLoading(false);
+            setCloudPending(false);
             setLoadingMessage('');
         }
     };
@@ -372,7 +381,23 @@ export default function PhotoUploadModal({
                     <div className="absolute inset-0 z-30 bg-white/85 backdrop-blur-sm flex flex-col items-center justify-center p-6 text-center animate-in fade-in duration-150">
                         <Loader2 size={32} className="animate-spin text-[#a8892f] mb-3" />
                         <p className="text-sm font-bold text-stone-900">{loadingMessage || 'Loading...'}</p>
-                        <p className="text-xs text-stone-500 mt-1">Calibrating photo for high-resolution framing</p>
+                        <p className="text-xs text-stone-500 mt-1">
+                            {cloudPending ? 'The picker opens in a separate window. If it did not open, try Chrome or Safari.' : 'Calibrating photo for high-resolution framing'}
+                        </p>
+                        {cloudPending && (
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    cloudAttempt.current += 1;
+                                    setCloudPending(false);
+                                    setIsLoading(false);
+                                    setLoadingMessage('');
+                                }}
+                                className="mt-4 text-sm font-semibold underline text-stone-700"
+                            >
+                                Cancel
+                            </button>
+                        )}
                     </div>
                 )}
             </div>
