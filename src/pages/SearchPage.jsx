@@ -33,7 +33,7 @@ const CATEGORY_LABELS = {
 
 // Unlike every other bucket below (small static arrays bundled into the
 // app), Artists & Masterpieces' ~6,940 products live in public/museum-data/
-// and are fetched at runtime — see build_museum_search_index.mjs for why a
+// and are fetched at runtime — see scripts/build_museum_search_index.mjs for why a
 // search-specific index exists separately from the category file
 // MuseumArtPage uses. Fetched once, lazily, only when the Search tab is
 // actually visited.
