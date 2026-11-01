@@ -101,7 +101,7 @@ function pickGoogleDriveFile(token) {
         // value here, DocsViewMode.THUMBNAILS, isn't a real enum member, so it
         // silently fell back to GRID.)
         const view = new pickerApi.DocsView(pickerApi.ViewId.DOCS_IMAGES).setMode(pickerApi.DocsViewMode.LIST);
-        new pickerApi.PickerBuilder()
+        const builder = new pickerApi.PickerBuilder()
             .addView(view)
             .setOAuthToken(token)
             .setDeveloperKey(import.meta.env.VITE_GOOGLE_DRIVE_API_KEY)
@@ -109,9 +109,11 @@ function pickGoogleDriveFile(token) {
             .setCallback((data) => {
                 if (data.action === pickerApi.Action.PICKED) resolve(data.docs[0]);
                 if (data.action === pickerApi.Action.CANCEL) reject(new Error('No image was selected.'));
-            })
-            .build()
-            .setVisible(true);
+            });
+        if (typeof builder.setOrigin === 'function' && typeof window !== 'undefined' && window.location?.origin) {
+            builder.setOrigin(window.location.origin);
+        }
+        builder.build().setVisible(true);
     });
 }
 

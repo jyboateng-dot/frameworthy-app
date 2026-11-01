@@ -99,3 +99,24 @@
 .frame-grid-visible .frame-card:nth-child(12) { animation-delay: 0.82s; }
 .frame-grid-visible .frame-card:nth-child(13) { animation-delay: 0.89s; }
 .frame-grid-visible .frame-card:nth-child(14) { animation-delay: 0.96s; }
+
+/* ── Google Drive Picker Modal Overrides ───────────── */
+/* Google Picker defaults .picker-dialog-bg to solid #fff at z-index 1000,
+   which makes the entire viewport look blank white while the picker iframe loads. */
+.picker-dialog-bg {
+  position: fixed !important;
+  inset: 0 !important;
+  background-color: rgba(12, 10, 9, 0.55) !important;
+  opacity: 1 !important;
+  backdrop-filter: blur(2px);
+  z-index: 2100 !important;
+}
+
+.picker-dialog {
+  position: fixed !important;
+  z-index: 2101 !important;
+  border-radius: 16px !important;
+  overflow: hidden !important;
+  border: 1px solid rgba(214, 211, 209, 0.85) !important;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35) !important;
+}
