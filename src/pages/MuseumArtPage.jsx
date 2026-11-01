@@ -26,30 +26,17 @@ const MASTERPIECE_PIXEL_CACHE = new Map();
 // `artist` string in artists_and_masterpieces.json (e.g. "Leonardo da
 // Vinci", lowercase "da") or the pill silently filters to zero results.
 const CURATED_PRIMARY_ARTISTS = [
-    'Leonardo da Vinci',
-    'Vincent Van Gogh',
-    'Rembrandt',
-    'Gustav Klimt',
+    'Rembrandt van Rijn',
+    'Vincent van Gogh',
     'Claude Monet',
-    'Wassily Kandinsky',
+    'Raphael',
+    'Sandro Botticelli',
+    'Diego Velázquez',
+    'Johannes Vermeer',
+    'Albrecht Dürer',
 ];
 
-// Artists & Masterpieces — a standalone Inspiration category, not a
-// sub-picker inside a broader "Museum Art" section anymore. It used to sit
-// behind a 96-way category browser (Artists & Masterpieces plus 95 subject/
-// decor buckets scraped from bymuseum.com), but those other 95 turned out to
-// have no real title/artist metadata to match against a high-res source, and
-// after filtering out everything that couldn't clear FrameWorthy's print-
-// quality DPI floor, 77 of them were completely empty — dead tabs. Artists &
-// Masterpieces is the one bucket that got the full Wikimedia Commons
-// high-res replacement treatment (real named paintings, real artists, so it
-// was actually matchable), so it's promoted to its own top-level Inspiration
-// tab and the rest were dropped rather than shipped as broken categories.
-//
-// Product data is still fetched on demand rather than bundled — at ~6,940
-// items it's lighter than before but still sizable enough that a single
-// export-const import would ship it to every visitor on page load.
-const DATA_URL = '/museum-data/artists_and_masterpieces.json';
+const DATA_URL = '/museum-data/historic-masterpieces.json';
 
 const MuseumProductCard = ({ product, onGetThis }) => {
     const { unit } = useUnit();
@@ -111,7 +98,9 @@ const MuseumProductCard = ({ product, onGetThis }) => {
             <div className="flex flex-col gap-1 px-1">
                 <h3 className="text-sm text-stone-900 font-medium leading-tight truncate" title={product.title}>{product.title}</h3>
                 {product.artist && (
-                    <p className="text-[10px] text-stone-500 font-light truncate" title={product.artist}>{product.artist}</p>
+                    <p className="text-[10px] text-stone-500 font-light truncate" title={product.artist}>
+                        {product.artist}{product.sourceName ? ` · ${product.sourceName}` : ''}
+                    </p>
                 )}
                 {maxSize && (
                     <p className="text-[10px] text-stone-500 font-light leading-snug">
@@ -190,7 +179,7 @@ const MuseumArtPage = ({ setProductMode, setSelectedSize, navigate, isSubPage = 
 
         navigate('/frame/customize', {
             state: {
-                presetImage: product.image,
+                presetImage: product.fullRes || product.image,
                 presetTitle: product.artist ? `${product.title} — ${product.artist}` : product.title,
                 initialSize: sizeObj || null,
                 imageWidth: pixelSize?.w || null,
@@ -236,12 +225,12 @@ const MuseumArtPage = ({ setProductMode, setSelectedSize, navigate, isSubPage = 
                 <div className={`max-w-[2560px] mx-auto px-6 md:px-12 pb-4 ${isSubPage ? 'pt-1' : 'pt-8'}`}>
                     <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6">
                         <div>
-                            <p className="text-[9px] uppercase tracking-[0.3em] text-stone-500 font-bold mb-1">Artists Collection</p>
+                            <p className="text-[9px] uppercase tracking-[0.3em] text-stone-500 font-bold mb-1">Curated Museum Collection</p>
                             <h1 className="font-serif font-light text-2xl md:text-3xl text-stone-900 tracking-tight leading-none mb-2">
                                 Historic Masterpieces
                             </h1>
                             <p className="text-sm text-stone-500 font-light max-w-lg leading-relaxed">
-                                Masterpieces recreated by hand. High quality prints ready to be framed.
+                                Curated masterpieces from world-renowned museum collections, ready to be framed.
                             </p>
                         </div>
                         <div className="shrink-0 text-right">

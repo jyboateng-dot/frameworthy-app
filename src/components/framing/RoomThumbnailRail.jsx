@@ -22,6 +22,8 @@ const SCENE_OPTIONS = [
         shortName: scene.name,
         isRoom: true,
         image: scene.image,
+        foregroundImage: scene.foregroundImage,
+        wallMaskImage: scene.wallMaskImage,
     })),
 ];
 
@@ -82,6 +84,37 @@ const RoomThumbnailRail = ({
                                         className="absolute inset-0 h-full w-full object-cover object-center"
                                         loading="lazy"
                                     />
+
+                                    {/* Match the selected paint colour in the scene thumbnails.
+                                        A foreground cutout restores furniture above the tint, the
+                                        same layering used by the full-size room visualizer. */}
+                                    <div
+                                        data-testid={`room-wall-tint-${option.id}`}
+                                        aria-hidden="true"
+                                        className="absolute inset-0"
+                                        style={{
+                                            backgroundColor: wallColor?.hex || '#f5f5f4',
+                                            opacity: wallColor?.id === 'pure-white' ? 0.9 : 0.72,
+                                            mixBlendMode: wallColor?.id === 'pure-white' ? 'normal' : 'multiply',
+                                            maskImage: option.foregroundImage ? undefined : `url("${option.wallMaskImage}")`,
+                                            WebkitMaskImage: option.foregroundImage ? undefined : `url("${option.wallMaskImage}")`,
+                                            maskMode: option.foregroundImage ? undefined : 'luminance',
+                                            WebkitMaskMode: option.foregroundImage ? undefined : 'luminance',
+                                            maskSize: 'cover',
+                                            WebkitMaskSize: 'cover',
+                                            maskPosition: 'center',
+                                            WebkitMaskPosition: 'center',
+                                        }}
+                                    />
+                                    {option.foregroundImage && (
+                                        <img
+                                            src={option.foregroundImage}
+                                            alt=""
+                                            aria-hidden="true"
+                                            className="absolute inset-0 h-full w-full object-cover object-center"
+                                            loading="lazy"
+                                        />
+                                    )}
 
                                     {/* Mini framed art preview on the room wall */}
                                     {uploadedImage && (

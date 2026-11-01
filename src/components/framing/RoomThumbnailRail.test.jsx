@@ -84,4 +84,19 @@ describe('RoomThumbnailRail', () => {
         expect(bedroomBtn).toBeInTheDocument();
         expect(bedroomBtn).toHaveAttribute('aria-selected', 'true');
     });
+
+    it('applies the selected wall colour to every room-view thumbnail', () => {
+        render(
+            <RoomThumbnailRail
+                activeId={null}
+                onSelect={mockSelect}
+                wallColor={{ id: 'sage', hex: '#e2e8e0' }}
+            />
+        );
+
+        ROOM_SCENES.forEach((scene) => {
+            const tint = screen.getByTestId(`room-wall-tint-${scene.id}`);
+            expect(tint.style.backgroundColor).toBe('rgb(226, 232, 224)');
+        });
+    });
 });
