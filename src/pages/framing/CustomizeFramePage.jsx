@@ -206,7 +206,7 @@ const FrameMouldingMaterial = ({ side, frame }) => {
 
 const FrameMouldingSide = ({ side, frame, outgoingFrame, isCrossfading, style }) => (
     <div
-        className="absolute z-10 overflow-hidden transition-[top,right,bottom,left,width,height,clip-path] duration-200 ease-out"
+        className="absolute z-10 overflow-hidden transition-[top,right,bottom,left,width,height,clip-path] duration-[420ms] ease-[cubic-bezier(0.37,0,0.63,1)]"
         style={{ ...style, isolation: 'isolate' }}
     >
         <FrameMouldingMaterial side={side} frame={frame} />
@@ -890,13 +890,22 @@ const CustomizeFramePage = ({
     }, [selectedFrame, setSelectedFrame]);
 
 
+    // ── ZOOM MOTION ──
+    // One duration and one time-symmetric curve (x2 = 1 - x1, y2 = 1 - y1)
+    // for everything that moves when the frame zooms in or returns to the
+    // wall, so transitioning back to the room view is the exact visual and
+    // temporal inverse of transitioning into the close-up plain view.
+    const ZOOM_TRANSITION_MS = 420;
+    const ZOOM_MOTION = 'duration-[420ms] ease-[cubic-bezier(0.37,0,0.63,1)]';
+    const CHROME_MOTION = 'duration-[420ms] ease-[cubic-bezier(0.37,0,0.63,1)]';
+
     // isZoomSettling (declared above, next to isHovered/isMaxZoom) — one
-    // ZOOM_MOTION window (260ms, matching ZOOM_MOTION's own duration below)
-    // after any of the three zoom states changes, in either direction.
+    // ZOOM_MOTION window after any of the three zoom states changes, in
+    // either direction.
     useEffect(() => {
         setIsZoomSettling(true);
         window.clearTimeout(zoomSettleTimeoutRef.current);
-        zoomSettleTimeoutRef.current = window.setTimeout(() => setIsZoomSettling(false), 260);
+        zoomSettleTimeoutRef.current = window.setTimeout(() => setIsZoomSettling(false), ZOOM_TRANSITION_MS);
         return () => window.clearTimeout(zoomSettleTimeoutRef.current);
     }, [isHovered, isMaxZoom, isFullScreen]);
 
@@ -928,36 +937,9 @@ const CustomizeFramePage = ({
         return () => clearTimeout(timer);
     });
 
-    // Full-screen visualizer: reset hover/max-zoom on every transition so
-    // zoom state computed against one container size (pane vs. viewport)
-    // never carries over into the other.
-    // Entering/exiting full screen is a mode switch the user wants to happen
-    // right away. Must match the pane's own duration-300 transition class
-    // below (and the dashboard's), since this is also how long enter/exit
-    // waits before actually swapping the docked/full-screen layout.
     const FULL_SCREEN_TRANSITION_MS = 300;
-    // The room images are full visualizer canvases. The assets and their
-    // foreground cutouts are decoded before this begins, so mobile can use
-    // the same composed slide as desktop without flashing between layers.
     const ROOM_SCENE_TRANSITION_MS = 360;
     const ROOM_SCENE_MOTION = 'duration-[360ms] ease-[cubic-bezier(0.22,1,0.36,1)]';
-
-    // ── ZOOM MOTION ──
-    // One duration and one curve for everything that moves when the frame
-    // zooms, because they all move together: the frame used to scale over
-    // 700ms while the room backdrop faded over 500ms and the chrome over
-    // 300ms, so a single gesture appeared to finish three separate times.
-    // That staggering, not the speed, is most of what read as unpolished.
-    //
-    // 260ms on an ease-out quint — quick enough to feel like a direct
-    // response to the pointer, with enough tail that the frame settles
-    // rather than snapping. The old curve (0.16,1,0.3,1) is very nearly a
-    // step function; stretched over 700ms it spent most of that time
-    // almost-arrived, which is the worst of both.
-    const ZOOM_MOTION = 'duration-[260ms] ease-[cubic-bezier(0.22,1,0.36,1)]';
-    // Controls leave faster than the piece grows, so they're gone before it
-    // reaches full size instead of dissolving behind it.
-    const CHROME_MOTION = 'duration-[160ms] ease-out';
 
     const enterFullScreen = () => {
         if (fullScreenCloseTimeoutRef.current) {
@@ -2602,7 +2584,7 @@ const CustomizeFramePage = ({
                 <SceneArrowCarousel
                     activeId={roomSceneId}
                     onSelect={selectRoomScene}
-                    hidden={(isHovered && activeRoom) || isFullScreen || isMaxZoom || isZoomSettling}
+                    hidden={(isHovered && activeRoom) || isFullScreen || isMaxZoom}
                     motionClass={CHROME_MOTION}
                     // Mobile visualizer panes are stacked below the header;
                     // 22% places the arrows near their visual centre while
@@ -3295,7 +3277,7 @@ const CustomizeFramePage = ({
                                     className={`relative select-none transition-[width,margin,transform,box-shadow] ${isTransitioning ? `scene-frame-transition ${ROOM_SCENE_MOTION}` : ZOOM_MOTION} ${
                                         isMaxZoom && !isFullScreen ? 'cursor-zoom-out' : isFullScreen ? '' : 'cursor-zoom-in'
                                     } ${
-                                        isHovered || isMaxZoom || isFullScreen || isZoomedByDefault ? 'z-40' : 'z-10'
+                                        isHovered || isZoomSettling || isMaxZoom || isFullScreen || isZoomedByDefault ? 'z-40' : 'z-10'
                                     }`}
                                     style={{
                                         width: `${adjustedDisplayedFrameWidthPct}%`,
@@ -3427,7 +3409,7 @@ const CustomizeFramePage = ({
                                                 {/* Outer Frame Edge — 4 Mitered 3D Borders */}
                                                 {selectedFrame?.borderImageSource && !getFrameRail(selectedFrame) ? (
                                                     <div 
-                                                        className="absolute inset-0 transition-all duration-300 z-20 pointer-events-none"
+                                                        className={`absolute inset-0 transition-all ${ZOOM_MOTION} z-20 pointer-events-none`}
                                                         style={{
                                                             borderStyle: "solid",
                                                             borderWidth: "1px",
@@ -3451,7 +3433,7 @@ const CustomizeFramePage = ({
                                                         />
                                                     </div>
                                                 ) : (
-                                                <div className="absolute inset-0 transition-all duration-300">
+                                                <div className={`absolute inset-0 transition-all ${ZOOM_MOTION}`}>
                                                     {/* Top */}
                                                     <FrameMouldingSide
                                                         side="top"
@@ -3523,7 +3505,7 @@ const CustomizeFramePage = ({
                                                 )}
                                                 {/* Matting Background */}
                                                 <div
-                                                    className="absolute shadow-[0_2px_5px_rgba(0,0,0,0.15),_0_1px_2px_rgba(0,0,0,0.1)] transition-all duration-300"
+                                                    className={`absolute shadow-[0_2px_5px_rgba(0,0,0,0.15),_0_1px_2px_rgba(0,0,0,0.1)] transition-all ${ZOOM_MOTION}`}
                                                     style={{
                                                         top: `${mouldingPctH}%`,
                                                         bottom: `${mouldingPctH}%`,
@@ -3580,7 +3562,7 @@ const CustomizeFramePage = ({
                                     {/* Artwork Area */}
                                     {!isPreset && (
                                         <div
-                                            className={`absolute overflow-hidden transition-all duration-300 ${isCanvasGlazing && effectiveCanvasMountStyle === 'traditional' ? 'z-[5]' : 'z-20'} ${isCanvasOnly || isCanvasGlazing ? 'shadow-[inset_0_0_0_1px_rgba(255,255,255,0.1)]' : 'shadow-[inset_0_1px_3px_rgba(0,0,0,0.1)]'}`}
+                                            className={`absolute overflow-hidden transition-all ${ZOOM_MOTION} ${isCanvasGlazing && effectiveCanvasMountStyle === 'traditional' ? 'z-[5]' : 'z-20'} ${isCanvasOnly || isCanvasGlazing ? 'shadow-[inset_0_0_0_1px_rgba(255,255,255,0.1)]' : 'shadow-[inset_0_1px_3px_rgba(0,0,0,0.1)]'}`}
                                         style={{
                                             top: isCanvasOnly || isPreset ? '0%' : isCanvasGlazing ? (effectiveCanvasMountStyle === 'floater' ? `${mouldingPctH + floaterGapPctH}%` : `${Math.max(0, mouldingPctH - traditionalOverlapPctH)}%`) : `${mouldingPctH + matPctTop}%`,
                                             bottom: isCanvasOnly || isPreset ? '0%' : isCanvasGlazing ? (effectiveCanvasMountStyle === 'floater' ? `${mouldingPctH + floaterGapPctH}%` : `${Math.max(0, mouldingPctH - traditionalOverlapPctH)}%`) : `${mouldingPctH + matPctBottom}%`,
