@@ -54,6 +54,10 @@ export default function ArtworkImportMenu({ isPlaceholder, isUploading, onFile, 
     }, [close, isOpen]);
 
     useEffect(() => {
+        preloadArtworkCloudPickers();
+    }, []);
+
+    useEffect(() => {
         if (isOpen) preloadArtworkCloudPickers();
     }, [isOpen]);
 

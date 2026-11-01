@@ -57,6 +57,7 @@ function createTokenClient(clientId, scope) {
             }
             tokenCache.set(scope, {
                 token: response.access_token,
+                authUser: response.authuser ?? null,
                 expiresAt: Date.now() + (Number(response.expires_in) || 55 * 60) * 1000,
             });
             pending.resolve(response.access_token);
@@ -112,6 +113,10 @@ export async function getGoogleAccessToken(clientId, scope) {
             reject(error);
         }
     });
+}
+
+export function getGoogleAuthUser(scope) {
+    return tokenCache.get(scope)?.authUser ?? null;
 }
 
 // Exposed for tests only.

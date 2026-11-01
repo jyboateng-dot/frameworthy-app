@@ -1,4 +1,4 @@
-import { getGoogleAccessToken, prepareGoogleAccessToken, _resetGoogleOAuthCache } from './googleOAuth';
+import { getGoogleAccessToken, getGoogleAuthUser, prepareGoogleAccessToken, _resetGoogleOAuthCache } from './googleOAuth';
 
 /** Google Picker grants access only to the Drive file a customer selects. */
 
@@ -7,6 +7,10 @@ const SCOPE = 'https://www.googleapis.com/auth/drive.file';
 
 export function getGoogleDriveAccessToken() {
     return getGoogleAccessToken(CLIENT_ID, SCOPE);
+}
+
+export function getGoogleDriveAuthUser() {
+    return getGoogleAuthUser(SCOPE);
 }
 
 export function preloadGoogleDriveAuth() {

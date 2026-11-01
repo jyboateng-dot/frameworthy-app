@@ -1,4 +1,4 @@
-import { getGoogleDriveAccessToken, preloadGoogleDriveAuth } from '../utils/googleDriveAuth';
+import { getGoogleDriveAccessToken, getGoogleDriveAuthUser, preloadGoogleDriveAuth } from '../utils/googleDriveAuth';
 import { getAppCheckToken } from './firebase';
 
 const MAX_ARTWORK_BYTES = 20 * 1024 * 1024;
@@ -92,7 +92,7 @@ function loadGooglePicker() {
     return googlePickerPromise;
 }
 
-function pickGoogleDriveFile(token) {
+function pickGoogleDriveFile(token, authUser) {
     return new Promise((resolve, reject) => {
         const pickerApi = window.google.picker;
         // LIST mode, not GRID: the drive.file scope grants no access to a file
@@ -101,6 +101,7 @@ function pickGoogleDriveFile(token) {
         // value here, DocsViewMode.THUMBNAILS, isn't a real enum member, so it
         // silently fell back to GRID.)
         const view = new pickerApi.DocsView(pickerApi.ViewId.DOCS_IMAGES).setMode(pickerApi.DocsViewMode.LIST);
+        let picker;
         const builder = new pickerApi.PickerBuilder()
             .addView(view)
             .setOAuthToken(token)
@@ -109,18 +110,27 @@ function pickGoogleDriveFile(token) {
             .setCallback((data) => {
                 if (data.action === pickerApi.Action.PICKED) resolve(data.docs[0]);
                 if (data.action === pickerApi.Action.CANCEL) reject(new Error('No image was selected.'));
+                if (data.action === (pickerApi.Action.ERROR || 'error')) {
+                    picker?.setVisible?.(false);
+                    reject(new Error('Could not open Google Drive picker. Check that third-party cookies are allowed for google.com.'));
+                }
             });
+        if (authUser !== null && authUser !== undefined && typeof builder.setAuthUser === 'function') {
+            builder.setAuthUser(String(authUser));
+        }
         if (typeof builder.setOrigin === 'function' && typeof window !== 'undefined' && window.location?.origin) {
             builder.setOrigin(window.location.origin);
         }
-        builder.build().setVisible(true);
+        picker = builder.build();
+        picker.setVisible(true);
     });
 }
 
 async function importFromGoogleDrive() {
     const token = await getGoogleDriveAccessToken();
+    const authUser = getGoogleDriveAuthUser();
     await loadGooglePicker();
-    const picked = await pickGoogleDriveFile(token);
+    const picked = await pickGoogleDriveFile(token, authUser);
     const response = await fetch(`https://www.googleapis.com/drive/v3/files/${encodeURIComponent(picked.id)}?alt=media`, {
         headers: { Authorization: `Bearer ${token}` },
     });
