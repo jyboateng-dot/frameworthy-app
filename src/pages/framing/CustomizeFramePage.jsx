@@ -2236,7 +2236,7 @@ const CustomizeFramePage = ({
             <div
                 key={`backdrop-${room.id}`}
                 onAnimationEnd={finishRoomSceneTransition}
-                className={`absolute inset-0 pointer-events-none ${layerClass} ${
+                className={`absolute inset-0 pointer-events-none transition-opacity ${ZOOM_MOTION} ${layerClass} ${
                     isHovered || isMaxZoom || isFullScreen ? 'opacity-0' : 'opacity-100'
                 }`}
                 style={{ overflow: 'hidden', isolation: 'isolate', backgroundColor: wallColor.hex, '--room-slide-dir': roomSlideDirection }}
@@ -2272,7 +2272,7 @@ const CustomizeFramePage = ({
     };
 
     const renderRoomForeground = (room, layout, phase = '') => {
-        if (!room || !layout || isHovered || isMaxZoom || isFullScreen) return null;
+        if (!room || !layout) return null;
         // Foreground alpha is the inverse wall mask, preserving object colours
         // and occlusion without covering the painted wall with beige patches.
         const ForegroundScene = room.tintable ? ROOM_SCENE_FOREGROUND_COMPONENTS[room.id] : null;
@@ -2286,7 +2286,9 @@ const CustomizeFramePage = ({
         return (
             <div
                 key={`foreground-${room.id}`}
-                className={`room-scene-foreground absolute inset-0 pointer-events-none ${layerClass}`}
+                className={`room-scene-foreground absolute inset-0 pointer-events-none transition-opacity ${ZOOM_MOTION} ${layerClass} ${
+                    isHovered || isMaxZoom || isFullScreen ? 'opacity-0' : 'opacity-100'
+                }`}
                 style={{ overflow: 'hidden', '--room-slide-dir': roomSlideDirection }}
                 aria-hidden="true"
             >
@@ -2351,6 +2353,41 @@ const CustomizeFramePage = ({
             <div
                 ref={visualizerPaneRef}
                 data-testid="visualizer-pane"
+                onMouseLeave={() => {
+                    if (!hoverEnterTimeoutRef.current && !isHovered) return;
+                    window.clearTimeout(hoverEnterTimeoutRef.current);
+                    hoverEnterTimeoutRef.current = null;
+                    hoverHitBoundsRef.current = null;
+                    setIsHovered(false);
+                    setIsMaxZoom(false);
+                }}
+                onMouseMove={(event) => {
+                    if (!activeRoom || !isHovered || isMaxZoom || isFullScreen) return;
+                    const frameEl = frameRenderRef.current;
+                    if (!frameEl) return;
+                    const rect = frameEl.getBoundingClientRect();
+                    const insideRenderedFrame = (
+                        event.clientX >= rect.left - 2 &&
+                        event.clientX <= rect.right + 2 &&
+                        event.clientY >= rect.top - 2 &&
+                        event.clientY <= rect.bottom + 2
+                    );
+                    const bounds = hoverHitBoundsRef.current;
+                    const insideRestingBounds = Boolean(
+                        isZoomSettling && bounds &&
+                        event.clientX >= bounds.left &&
+                        event.clientX <= bounds.right &&
+                        event.clientY >= bounds.top &&
+                        event.clientY <= bounds.bottom
+                    );
+                    if (!insideRenderedFrame && !insideRestingBounds) {
+                        window.clearTimeout(hoverEnterTimeoutRef.current);
+                        hoverEnterTimeoutRef.current = null;
+                        hoverHitBoundsRef.current = null;
+                        setIsHovered(false);
+                        setIsMaxZoom(false);
+                    }
+                }}
                 className={`flex items-center justify-center transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${isMaxZoom ? 'overflow-auto' : 'overflow-hidden'} ${paneVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-95'} ${
                     isFullScreen
                         ? 'fixed inset-0 z-[250]'
@@ -2637,17 +2674,11 @@ const CustomizeFramePage = ({
                             // Room scenes now anchor the frame via an explicit
                             // top-of-zone pixel distance (roomSceneVerticalOffsetPx
                             // below) instead of a margin-top delta from an assumed
-                            // flex-centred point. That assumption broke — silently
-                            // and by a non-obvious amount — the moment the zone's
-                            // own height stopped tracking the scene's rendered
-                            // height (exactly what 'inset-0 h-full' below does:
-                            // the zone can now be taller than the scene it holds).
-                            // flex-start makes the frame's natural (margin-top: 0)
-                            // position flush with the zone's top, so the offset is
-                            // a direct, unambiguous distance rather than a
-                            // cancellation of a centring point that has to be
-                            // predicted correctly to work at all.
-                            activeRoom && !isHovered && !isMaxZoom && !isFullScreen ? 'justify-start' : 'justify-center'
+                            // flex-centred point. Keep justify-start across both
+                            // the resting room state and the hovered Close-Up
+                            // reveal so entering/leaving hover animates marginTop
+                            // smoothly instead of snapping flex alignment in 0ms.
+                            activeRoom && !isMaxZoom && !isFullScreen ? 'justify-start' : 'justify-center'
                         } ${
                             isFullScreen
                                 // In full-screen mobile the note is a real footer below
@@ -3088,42 +3119,48 @@ const CustomizeFramePage = ({
                                 return overflowTop > 0 ? (overflowTop * 2) + 40 : 0;
                             })();
 
-                            // Plain wall/sofa mode is still pure flex-centring and
-                            // stays exactly as-is. A room scene anchors its backdrop
-                            // to the zone's own top (see the scene backdrop's own
-                            // sceneTop) and — since the zone above now also sets
-                            // justify-start for this case — the frame's natural
-                            // (margin-top: 0) position is flush with that same top,
-                            // not an assumed centre point. So this is a direct
-                            // top-of-zone distance to the hang point's pixel
-                            // position, minus half the frame's own height to land
-                            // its CENTRE (not its top) on the hang point — no
-                            // flex-centring math to predict or cancel out. Reuses
-                            // the same marginTop channel pushDownAmount already
-                            // uses; they never fight over it — the room backdrop
-                            // fades out during hover/max-zoom/full screen (same
-                            // condition gates this to 0 then), which is the only
-                            // time pushDownAmount is ever nonzero.
-                            const roomSceneVerticalOffsetPx = (() => {
-                                if (!roomLayout || !roomPlacement || isHovered || isMaxZoom || isFullScreen) return 0;
-                                const visualTop = computeReferenceAnchoredTop(
+                            // Dynamic Dimension Label Sizing — scales continuously with the
+                            // frame's actual on-screen pixel width (small physical sizes and/or
+                            // narrow browser windows both shrink zoneSize.width), so the label
+                            // never looks oversized or cramped next to a tiny frame. Tailwind
+                            // can't JIT a runtime-computed arbitrary value, so this drives an
+                            // inline font-size rather than a text-[Npx] class.
+                            const baseFrameWidthPx = (adjustedDisplayedFrameWidthPct / 100) * zoneSize.width;
+                            const baseFrameHeightPx = baseFrameWidthPx * (outerFrameHeightCm / Math.max(outerFrameWidthCm, 0.001));
+
+                            const restingRoomVerticalOffsetPx = (roomLayout && roomPlacement)
+                                ? computeReferenceAnchoredTop(
                                     activeRoom,
                                     roomLayout,
                                     renderedFrameHeightPx,
                                     selectedSize?.id,
                                     orientation,
                                     outerFrameHeightCm
-                                );
-                                return visualTop;
+                                )
+                                : 0;
+                            const restingRoomHorizontalOffsetPx = (roomLayout && roomPlacement)
+                                ? (roomLayout.left + (roomPlacement.leftPct / 100 * zoneSize.width) - zoneSize.width / 2)
+                                : 0;
+
+                            // Plain wall/sofa mode is still pure flex-centring and
+                            // stays exactly as-is. A room scene anchors its backdrop
+                            // to the zone's own top and keeps justify-start on the
+                            // zone across both resting and hovered states: in the
+                            // resting room view this places the frame on the wall's
+                            // hang point, and on hover it smoothly interpolates
+                            // marginTop to the vertically-centred Close-Up position
+                            // without a 0ms justify-content jump.
+                            const roomSceneVerticalOffsetPx = (() => {
+                                if (!roomLayout || !roomPlacement || isMaxZoom || isFullScreen) return 0;
+                                if (isHovered) {
+                                    return Math.max(0, (zoneSize.height - baseFrameHeightPx) / 2);
+                                }
+                                return restingRoomVerticalOffsetPx;
                             })();
 
                             const roomSceneHorizontalOffsetPx = (() => {
                                 if (!roomLayout || !roomPlacement || isHovered || isMaxZoom || isFullScreen) return 0;
-                                // The scene itself fills the visualizer even when a short
-                                // viewport caps the artwork's cm-to-pixel scale. Position
-                                // against that full wall, not the capped scale.
-                                const hangX = roomPlacement.leftPct / 100 * zoneSize.width;
-                                return roomLayout.left + hangX - zoneSize.width / 2;
+                                return restingRoomHorizontalOffsetPx;
                             })();
 
                             const pushRightAmount = (() => {
@@ -3134,13 +3171,46 @@ const CustomizeFramePage = ({
                                 return overflowLeft > 0 ? (overflowLeft * 2) + 40 : 0;
                             })();
 
-                            // Dynamic Dimension Label Sizing — scales continuously with the
-                            // frame's actual on-screen pixel width (small physical sizes and/or
-                            // narrow browser windows both shrink zoneSize.width), so the label
-                            // never looks oversized or cramped next to a tiny frame. Tailwind
-                            // can't JIT a runtime-computed arbitrary value, so this drives an
-                            // inline font-size rather than a text-[Npx] class.
-                            const baseFrameWidthPx = (adjustedDisplayedFrameWidthPct / 100) * zoneSize.width;
+                            const getRestingRoomFrameBounds = () => {
+                                const zoneEl = zoneRef.current;
+                                if (!zoneEl || !activeRoom || !roomLayout || !roomPlacement) return null;
+                                const zoneRect = zoneEl.getBoundingClientRect();
+                                const left = zoneRect.left + (zoneRect.width - renderedFrameWidthPx) / 2 + restingRoomHorizontalOffsetPx;
+                                const top = zoneRect.top + restingRoomVerticalOffsetPx;
+                                return {
+                                    left: left - 4,
+                                    top: top - 4,
+                                    right: left + renderedFrameWidthPx + 4,
+                                    bottom: top + renderedFrameHeightPx + 4,
+                                };
+                            };
+
+                            const handleFramePointerEnterOrMove = (event) => {
+                                if (isHovered || isMaxZoom || isFullScreen) return;
+                                if (activeRoom) {
+                                    const restingBounds = getRestingRoomFrameBounds();
+                                    const insideRestingFrame = Boolean(
+                                        restingBounds &&
+                                        event.clientX >= restingBounds.left &&
+                                        event.clientX <= restingBounds.right &&
+                                        event.clientY >= restingBounds.top &&
+                                        event.clientY <= restingBounds.bottom
+                                    );
+                                    if (!insideRestingFrame) {
+                                        if (hoverEnterTimeoutRef.current) {
+                                            window.clearTimeout(hoverEnterTimeoutRef.current);
+                                            hoverEnterTimeoutRef.current = null;
+                                        }
+                                        return;
+                                    }
+                                    hoverHitBoundsRef.current = restingBounds;
+                                }
+                                if (hoverEnterTimeoutRef.current) return;
+                                hoverEnterTimeoutRef.current = window.setTimeout(() => {
+                                    hoverEnterTimeoutRef.current = null;
+                                    setIsHovered(true);
+                                }, 80);
+                            };
 
                             // On-screen preview only — never affects what's stored on the
                             // cart item or sent to print. Inspiration/catalogue selections set
@@ -3184,40 +3254,27 @@ const CustomizeFramePage = ({
 
                             return (
                                 <div
-                                    onMouseEnter={(event) => {
-                                        // Debounced rather than immediate: a room scene's
-                                        // zoomed frame is a much bigger, repositioned box
-                                        // than its resting one, so the instant it commits,
-                                        // the cursor can find itself just outside the new
-                                        // geometry — which fires mouseleave, shrinks it
-                                        // back, puts the cursor back inside the (now
-                                        // resting) frame, and re-fires mouseenter. Requiring
-                                        // the pointer to sit still on the frame for a beat
-                                        // before committing to "hovered" breaks that loop;
-                                        // leaving still exits immediately below, so this
-                                        // only adds a beat of hover-intent, not lag on exit.
-                                        window.clearTimeout(hoverEnterTimeoutRef.current);
-                                        if (activeRoom) {
-                                            const { left, top, right, bottom } = event.currentTarget.getBoundingClientRect();
-                                            // A small cushion includes antialiased frame edges but
-                                            // does not expand the effective target into the wall.
-                                            hoverHitBoundsRef.current = { left: left - 6, top: top - 6, right: right + 6, bottom: bottom + 6 };
-                                        }
-                                        hoverEnterTimeoutRef.current = window.setTimeout(() => {
-                                            setIsHovered(true);
-                                        }, 80);
-                                    }}
+                                    onMouseEnter={handleFramePointerEnterOrMove}
+                                    onMouseMove={handleFramePointerEnterOrMove}
                                     onMouseLeave={(event) => {
                                         // Reverse the enter transition immediately. The same
                                         // ZOOM_MOTION duration/easing then carries the frame,
                                         // scene, and chrome back to their resting geometry, so
                                         // moving away is the exact visual inverse of moving in.
-                                        const bounds = hoverHitBoundsRef.current;
-                                        const remainsInsideStableTarget = activeRoom && bounds &&
-                                            event.clientX >= bounds.left && event.clientX <= bounds.right &&
-                                            event.clientY >= bounds.top && event.clientY <= bounds.bottom;
-                                        if (remainsInsideStableTarget) return;
                                         window.clearTimeout(hoverEnterTimeoutRef.current);
+                                        hoverEnterTimeoutRef.current = null;
+                                        const bounds = hoverHitBoundsRef.current;
+                                        const remainsInsideRestingTargetWhileOpening = (
+                                            activeRoom &&
+                                            isHovered &&
+                                            isZoomSettling &&
+                                            bounds &&
+                                            event.clientX >= bounds.left &&
+                                            event.clientX <= bounds.right &&
+                                            event.clientY >= bounds.top &&
+                                            event.clientY <= bounds.bottom
+                                        );
+                                        if (remainsInsideRestingTargetWhileOpening) return;
                                         hoverHitBoundsRef.current = null;
                                         setIsHovered(false);
                                         setIsMaxZoom(false);
