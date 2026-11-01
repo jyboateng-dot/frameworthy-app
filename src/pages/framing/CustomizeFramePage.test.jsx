@@ -220,4 +220,46 @@ describe('CustomizeFramePage mounting', () => {
 
         expect(screen.queryByTestId('room-thumbnail-rail')).not.toBeInTheDocument();
     });
+
+    it('toggles full screen smoothly without unmounting the sidebar or blanking the visualizer', async () => {
+        window.innerWidth = 1200;
+        window.dispatchEvent(new Event('resize'));
+
+        render(
+            <MemoryRouter initialEntries={['/frame/customize']}>
+                <CustomizeFramePage
+                    {...defaultProps}
+                    roomSceneId="studio-loft"
+                />
+            </MemoryRouter>
+        );
+
+        const visualizerPane = screen.getByTestId('visualizer-pane');
+        expect(visualizerPane).toBeInTheDocument();
+
+        // The dashboard sidebar is mounted in docked view
+        expect(screen.getByText('Start Framing')).toBeInTheDocument();
+
+        // Full screen button is present
+        const fullScreenBtn = screen.getByRole('button', { name: /full screen/i });
+        expect(fullScreenBtn).toBeInTheDocument();
+
+        // Enter full screen
+        fireEvent.click(fullScreenBtn);
+
+        // Sidebar remains mounted behind overlay (zero unmount/remount churn)
+        expect(screen.getByText('Start Framing')).toBeInTheDocument();
+
+        // Full screen button updates label to exit
+        await waitFor(() => {
+            expect(screen.getByRole('button', { name: /exit full screen/i })).toBeInTheDocument();
+        });
+
+        // Press Escape to exit full screen
+        fireEvent.keyDown(window, { key: 'Escape' });
+
+        await waitFor(() => {
+            expect(screen.getByRole('button', { name: /full screen/i })).toBeInTheDocument();
+        });
+    });
 });

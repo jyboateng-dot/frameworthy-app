@@ -380,14 +380,10 @@ const CustomizeFramePage = ({
     const [isFullScreen, setIsFullScreen] = useState(false);
     // Keep navigation hidden until a zoom transition has settled.
     const [isZoomSettling, setIsZoomSettling] = useState(false);
-    // Decoupled from isFullScreen so entering/exiting can crossfade instead
-    // of hard-cutting: isFullScreen controls which layout (docked vs.
-    // full-screen) is mounted, paneVisible controls that pane's own
-    // opacity/scale, applied to BOTH layouts — see enterFullScreen/
-    // exitFullScreen below. Defaults true because the docked pane needs no
-    // fade-in on the very first render, only right after returning from
-    // full screen.
-    const [paneVisible, setPaneVisible] = useState(true);
+    // Smooth transition phases for full screen: 'idle' | 'entering' | 'active' | 'exiting'
+    const [fullScreenPhase, setFullScreenPhase] = useState('idle');
+    const [dockedVisualizerRect, setDockedVisualizerRect] = useState(null);
+    const placeholderRef = useRef(null);
     const fullScreenCloseTimeoutRef = useRef(null);
     const zoomSettleTimeoutRef = useRef(null);
     const hoverEnterTimeoutRef = useRef(null);
@@ -851,7 +847,6 @@ const CustomizeFramePage = ({
         return () => clearTimeout(timer);
     });
 
-    const FULL_SCREEN_TRANSITION_MS = 300;
     const ROOM_SCENE_TRANSITION_MS = 360;
     const ROOM_SCENE_MOTION = 'duration-[360ms] ease-[cubic-bezier(0.22,1,0.36,1)]';
 
@@ -862,23 +857,19 @@ const CustomizeFramePage = ({
         }
         setIsHovered(false);
         setIsMaxZoom(false);
-        // Fade the CURRENT docked view out first — dashboard included,
-        // since it shares paneVisible — then swap to the full-screen layout
-        // only once that's finished. Mirrors exitFullScreen so both
-        // directions are symmetric: the hard cut (dashboard un/remounting,
-        // fixed vs. relative positioning, which can't itself be animated)
-        // always happens while nothing is visible. This used to flip
-        // isFullScreen instantly in the same tick as paneVisible, which
-        // yanked the dashboard out of the DOM with no fade at all (it can
-        // only fade while still mounted) at the exact instant the pane's
-        // own geometry snapped to full-screen — that combination was the
-        // glitchy entry transition.
-        setPaneVisible(false);
-        fullScreenCloseTimeoutRef.current = setTimeout(() => {
-            setIsFullScreen(true);
-            fullScreenCloseTimeoutRef.current = null;
-        }, FULL_SCREEN_TRANSITION_MS);
+        if (visualizerPaneRef.current) {
+            const rect = visualizerPaneRef.current.getBoundingClientRect();
+            setDockedVisualizerRect({
+                top: rect.top,
+                left: rect.left,
+                width: rect.width,
+                height: rect.height
+            });
+        }
+        setFullScreenPhase('entering');
+        setIsFullScreen(true);
     };
+
     const exitFullScreen = () => {
         if (fullScreenCloseTimeoutRef.current) {
             clearTimeout(fullScreenCloseTimeoutRef.current);
@@ -886,39 +877,41 @@ const CustomizeFramePage = ({
         }
         setIsHovered(false);
         setIsMaxZoom(false);
-        // Returning to a room needs to feel immediate. Mount the docked view
-        // invisibly in this same render, then let the effect below fade it in.
-        // The previous exit first spent a full transition fading out the
-        // full-screen room, then another fading in the docked room, which
-        // made returning feel delayed even though entering felt responsive.
-        setPaneVisible(false);
+        if (placeholderRef.current) {
+            const rect = placeholderRef.current.getBoundingClientRect();
+            setDockedVisualizerRect({
+                top: rect.top,
+                left: rect.left,
+                width: rect.width,
+                height: rect.height
+            });
+        }
+        setFullScreenPhase('exiting');
         setIsFullScreen(false);
+        fullScreenCloseTimeoutRef.current = setTimeout(() => {
+            setFullScreenPhase('idle');
+            setDockedVisualizerRect(null);
+            fullScreenCloseTimeoutRef.current = null;
+        }, ZOOM_TRANSITION_MS);
     };
 
-    // Whichever layout we just switched to (full-screen on enter, docked on
-    // exit) was mounted invisible — see enterFullScreen/exitFullScreen above
-    // — so it can fade in the same way in both directions. Runs on every
-    // isFullScreen flip, not just entering: React bails out harmlessly if
-    // paneVisible is already true (e.g. on initial mount).
-    //
-    // A single requestAnimationFrame isn't reliably enough of a delay
-    // either — it can still land in the same paint as the state change
-    // that mounted the invisible layout, so that starting state never
-    // actually gets painted and the fade-in silently no-ops. The standard
-    // fix is a double rAF: the first callback runs right before a repaint
-    // (guaranteeing the invisible state has been painted by the time it
-    // fires), and only the SECOND rAF — scheduled from inside the first —
-    // reliably lands on the next-next frame, after that paint has happened.
+    // Animate smoothly into full screen layout on the frame following 'entering'
     useEffect(() => {
-        let raf2 = null;
-        const raf1 = requestAnimationFrame(() => {
-            raf2 = requestAnimationFrame(() => setPaneVisible(true));
-        });
-        return () => {
-            cancelAnimationFrame(raf1);
-            if (raf2 !== null) cancelAnimationFrame(raf2);
-        };
-    }, [isFullScreen]);
+        if (fullScreenPhase === 'entering') {
+            let raf2 = null;
+            const raf1 = requestAnimationFrame(() => {
+                raf2 = requestAnimationFrame(() => {
+                    setFullScreenPhase('active');
+                });
+            });
+            return () => {
+                cancelAnimationFrame(raf1);
+                if (raf2 !== null) cancelAnimationFrame(raf2);
+            };
+        }
+    }, [fullScreenPhase]);
+
+    const isFixedFullScreen = fullScreenPhase !== 'idle';
 
     useEffect(() => {
         return () => {
@@ -1182,6 +1175,56 @@ const CustomizeFramePage = ({
         const scale = calculatedHeight > maxHeight ? finalHeight / calculatedHeight : 1;
 
         return { height: finalHeight, scale };
+    })();
+
+    const visualizerStyle = (() => {
+        const base = {
+            backgroundColor: wallColor.hex,
+            touchAction: isMaxZoom ? 'pan-x pan-y' : 'none',
+        };
+        if (!isFixedFullScreen) {
+            return {
+                ...base,
+                height: (!isSideBySide) ? `${visualizerMetrics.height}px` : undefined,
+            };
+        }
+        if (fullScreenPhase === 'entering' && dockedVisualizerRect) {
+            return {
+                ...base,
+                position: 'fixed',
+                top: `${dockedVisualizerRect.top}px`,
+                left: `${dockedVisualizerRect.left}px`,
+                width: `${dockedVisualizerRect.width}px`,
+                height: `${dockedVisualizerRect.height}px`,
+                zIndex: 250,
+                transition: 'none',
+            };
+        }
+        if (fullScreenPhase === 'active') {
+            return {
+                ...base,
+                position: 'fixed',
+                top: 0,
+                left: 0,
+                width: '100vw',
+                height: '100vh',
+                zIndex: 250,
+                transition: `top ${ZOOM_TRANSITION_MS}ms cubic-bezier(0.37,0,0.63,1), left ${ZOOM_TRANSITION_MS}ms cubic-bezier(0.37,0,0.63,1), width ${ZOOM_TRANSITION_MS}ms cubic-bezier(0.37,0,0.63,1), height ${ZOOM_TRANSITION_MS}ms cubic-bezier(0.37,0,0.63,1)`,
+            };
+        }
+        if (fullScreenPhase === 'exiting' && dockedVisualizerRect) {
+            return {
+                ...base,
+                position: 'fixed',
+                top: `${dockedVisualizerRect.top}px`,
+                left: `${dockedVisualizerRect.left}px`,
+                width: `${dockedVisualizerRect.width}px`,
+                height: `${dockedVisualizerRect.height}px`,
+                zIndex: 250,
+                transition: `top ${ZOOM_TRANSITION_MS}ms cubic-bezier(0.37,0,0.63,1), left ${ZOOM_TRANSITION_MS}ms cubic-bezier(0.37,0,0.63,1), width ${ZOOM_TRANSITION_MS}ms cubic-bezier(0.37,0,0.63,1), height ${ZOOM_TRANSITION_MS}ms cubic-bezier(0.37,0,0.63,1)`,
+            };
+        }
+        return base;
     })();
 
     // Physical mat reveal in inches, per edge — see src/utils/matting.js. Shared
@@ -2183,21 +2226,10 @@ const CustomizeFramePage = ({
                 escapes anyway, and this wrapper would otherwise linger as an
                 empty flex child. */}
             <div
-                className={
-                    isFullScreen
-                        ? 'contents'
-                        // Stacked mobile/narrow layout: pin the visualizer just below the
-                        // header instead of letting it scroll away with the page, so it
-                        // stays in view while the customization panel underneath scrolls.
-                        // Desktop side-by-side already keeps it in view (fixed-height row,
-                        // panel scrolls in its own container), so sticky is a no-op there.
-                        // On desktop, flex-row accommodates the left thumbnail panel alongside
-                        // the visualizer canvas.
-                        : `shrink-0 flex border-r border-stone-200 ${isSideBySide ? 'w-[70%] h-full flex-row' : 'w-full flex-col sticky top-[calc(2.9375rem+env(safe-area-inset-top,0px))] z-30'}`
-                }
+                className={`shrink-0 flex border-r border-stone-200 ${isSideBySide ? 'w-[70%] h-full flex-row' : 'w-full flex-col sticky top-[calc(2.9375rem+env(safe-area-inset-top,0px))] z-30'}`}
             >
             {/* Desktop thumbnail rail docked to the left of the visualizer */}
-            {isSideBySide && !isFullScreen && (
+            {isSideBySide && (
                 <RoomThumbnailRail
                     activeId={roomSceneId}
                     onSelect={selectRoomScene}
@@ -2208,6 +2240,18 @@ const CustomizeFramePage = ({
                     matColor={matColor}
                     outerFrameWidthCm={outerFrameWidthCm}
                     outerFrameHeightCm={outerFrameHeightCm}
+                />
+            )}
+            {/* Layout placeholder preserves exact space while visualizer expands to full screen */}
+            {isFixedFullScreen && (
+                <div
+                    ref={placeholderRef}
+                    className={`relative ${isSideBySide ? 'flex-1 min-w-0 min-h-0' : 'w-full'}`}
+                    style={{
+                        height: (!isSideBySide) ? `${visualizerMetrics.height}px` : undefined,
+                        backgroundColor: wallColor.hex
+                    }}
+                    aria-hidden="true"
                 />
             )}
             <div
@@ -2248,18 +2292,12 @@ const CustomizeFramePage = ({
                         setIsMaxZoom(false);
                     }
                 }}
-                className={`flex items-center justify-center transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${isMaxZoom ? 'overflow-auto' : 'overflow-hidden'} ${paneVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-95'} ${
-                    isFullScreen
-                        ? 'fixed inset-0 z-[250]'
+                className={`flex items-center justify-center ${isMaxZoom ? 'overflow-auto' : 'overflow-hidden'} ${
+                    isFixedFullScreen
+                        ? 'overflow-hidden'
                         : `relative ${isSideBySide ? 'flex-1 min-w-0 min-h-0' : 'w-full'}`
                 }`}
-                style={{
-                    backgroundColor: wallColor.hex,
-                    // Keep ordinary visualizer swipes out of the mobile
-                    // customizer's page scroll. Deep zoom remains pannable.
-                    touchAction: isMaxZoom ? 'pan-x pan-y' : 'none',
-                    height: (!isFullScreen && !isSideBySide) ? `${visualizerMetrics.height}px` : undefined
-                }}
+                style={visualizerStyle}
             >
 
                 
@@ -2538,7 +2576,9 @@ const CustomizeFramePage = ({
                             // the resting room state and the hovered Close-Up
                             // reveal so entering/leaving hover animates marginTop
                             // smoothly instead of snapping flex alignment in 0ms.
-                            activeRoom && !isMaxZoom && !isFullScreen ? 'justify-start' : 'justify-center'
+                            // Same during full-screen transitions: keep justify-start while
+                            // settling so marginTop slides continuously into center.
+                            activeRoom && !isMaxZoom && (!isFullScreen || isZoomSettling) ? 'justify-start' : 'justify-center'
                         } ${
                             isFullScreen
                                 // In full-screen mobile the note is a real footer below
@@ -2999,8 +3039,8 @@ const CustomizeFramePage = ({
                             // marginTop to the vertically-centred Close-Up position
                             // without a 0ms justify-content jump.
                             const roomSceneVerticalOffsetPx = (() => {
-                                if (!roomLayout || !roomPlacement || isMaxZoom || isFullScreen) return 0;
-                                if (isHovered) {
+                                if (!roomLayout || !roomPlacement || isMaxZoom) return 0;
+                                if (isHovered || isFullScreen) {
                                     return Math.max(0, (zoneSize.height - baseFrameHeightPx) / 2);
                                 }
                                 return restingRoomVerticalOffsetPx;
@@ -3569,12 +3609,12 @@ const CustomizeFramePage = ({
                     full-screen button — Plain scene hover doesn't zoom
                     anything, so the button has nothing to get out of the
                     way of there. */}
-                {!isFullScreen && selectedFrame?.id !== 'frame-canvas' && (
+                {selectedFrame?.id !== 'frame-canvas' && (
                     <button
                         onClick={() => setIsArOpen(true)}
                         data-testid="visualizer-chrome"
                         className={`group absolute bottom-3.5 left-3.5 sm:bottom-4 sm:left-6 z-30 w-10 h-10 flex items-center justify-center rounded-full border border-stone-200 shadow-sm hover:shadow-md transition-all ${CHROME_MOTION} bg-white/95 backdrop-blur text-stone-700 ${
-                            ((isHovered && activeRoom) || isMaxZoom) ? 'opacity-0 scale-75 pointer-events-none' : 'opacity-100 scale-100'
+                            ((isHovered && activeRoom) || isMaxZoom || isFullScreen) ? 'opacity-0 scale-75 pointer-events-none' : 'opacity-100 scale-100'
                         }`}
                         aria-label="View this frame on your wall in AR"
                     >
@@ -3601,12 +3641,8 @@ const CustomizeFramePage = ({
 
             </div>
 
-            {/* RIGHT: CONFIGURATION DASHBOARD — fades in with the same
-                paneVisible flag as the visualizer pane so it doesn't just
-                hard-pop back in the instant it remounts after a full-screen
-                exit. */}
-            {!isFullScreen && (
-            <div className={`flex flex-col relative shadow-[-10px_0_30px_rgba(0,0,0,0.02)] z-10 transition-all duration-300 ${paneVisible ? 'opacity-100' : 'opacity-0'} ${isSideBySide ? 'w-[30%] flex-none h-[calc(100dvh-47px)] overflow-hidden' : 'w-full flex-1 h-auto'}`} style={{ backgroundColor: wallColor.hex }}>
+            {/* RIGHT: CONFIGURATION DASHBOARD */}
+            <div className={`flex flex-col relative shadow-[-10px_0_30px_rgba(0,0,0,0.02)] z-10 transition-all ${ZOOM_MOTION} ${isSideBySide ? 'w-[30%] flex-none h-[calc(100dvh-47px)] overflow-hidden' : 'w-full flex-1 h-auto'}`} style={{ backgroundColor: wallColor.hex }}>
                 {/* Premium Tint Overlay: Keeps the sidebar 90% white, letting 10% of the wall color bleed through */}
                 <div className="absolute inset-0 bg-white/90" />
                 
@@ -4050,7 +4086,6 @@ const CustomizeFramePage = ({
                     </div>
                 </div>
             </div>
-            )}
 
             {/* Frame Selection Modal — gated here (rather than relying on its
                 own isOpen-guard return null) so it fully unmounts on close,
