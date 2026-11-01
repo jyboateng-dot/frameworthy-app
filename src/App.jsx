@@ -14,10 +14,7 @@ const ProdigiCataloguePage = lazy(() => import('./pages/ProdigiCataloguePage'));
 const CheckoutPage = lazy(() => import('./pages/checkout/CheckoutPage'));
 const SuccessPage = lazy(() => import('./pages/SuccessPage'));
 const InspirationPage = lazy(() => import('./pages/InspirationPage'));
-const PrestigePaintingsPage = lazy(() => import('./pages/PrestigePaintingsPage'));
 const OriginalPaintingsPage = lazy(() => import('./pages/OriginalPaintingsPage'));
-const CanvasArtPage = lazy(() => import('./pages/CanvasArtPage'));
-const GlossyArtPage = lazy(() => import('./pages/GlossyArtPage'));
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage'));
 const AuthPage = lazy(() => import('./pages/AuthPage'));
 const AdminDashboard = lazy(() => import('./pages/admin/AdminDashboard'));
@@ -353,33 +350,6 @@ const AppLayout = () => {
 
         <Route path="/original-paintings" element={
           <OriginalPaintingsPage
-            setProductMode={setProductMode}
-            setSelectedFrame={setSelectedFrame}
-            setSelectedSize={setSelectedSize}
-            navigate={navigate}
-          />
-        } />
-
-        <Route path="/original-paintings-prestige" element={
-          <PrestigePaintingsPage
-            setProductMode={setProductMode}
-            setSelectedFrame={setSelectedFrame}
-            setSelectedSize={setSelectedSize}
-            navigate={navigate}
-          />
-        } />
-
-        <Route path="/canvas-art" element={
-          <CanvasArtPage
-            setProductMode={setProductMode}
-            setSelectedFrame={setSelectedFrame}
-            setSelectedSize={setSelectedSize}
-            navigate={navigate}
-          />
-        } />
-
-        <Route path="/glossy-art" element={
-          <GlossyArtPage
             setProductMode={setProductMode}
             setSelectedFrame={setSelectedFrame}
             setSelectedSize={setSelectedSize}

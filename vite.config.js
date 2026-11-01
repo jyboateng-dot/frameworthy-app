@@ -142,9 +142,7 @@ export default defineConfig({
             if (pkg === 'firebase' || pkg === '@firebase') return 'vendor-firebase';
             if (pkg === 'lucide-react') return 'vendor-icons';
           }
-          if (normalized.includes('/src/data/albumsLocal.js')) return 'catalog-albums';
           if (normalized.includes('/src/data/metLocal.js')) return 'catalog-met';
-          if (normalized.includes('/src/data/moviesLocal.js')) return 'catalog-movies';
           if (normalized.includes('/src/data/web_met_dims.json')) return 'catalog-met-dimensions';
           if (normalized.includes('/src/data/source_dims.json')) return 'catalog-source-dimensions';
           if (normalized.includes('/src/data/frameStrips.json')) return 'catalog-frame-strips';
