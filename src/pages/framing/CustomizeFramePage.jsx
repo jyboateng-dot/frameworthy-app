@@ -3,6 +3,7 @@ import { useLocation } from 'react-router-dom';
 import { Capacitor } from '@capacitor/core';
 import {
     ImagePlus,
+    ImageUp,
     Check,
     Ruler,
     Palette,
@@ -44,7 +45,7 @@ import { useCart } from '../../context/CartContext';
 import { uploadImageToCloud, getThumbnailUrl } from '../../services/storage';
 import FrameSelectionModal from '../../components/FrameSelectionModal';
 import { activeFrameOrDefault, DEFAULT_PRODIGI_FRAME } from '../../data/frameBrowsing';
-import ArtworkImportMenu from '../../components/framing/ArtworkImportMenu';
+import PhotoUploadModal from '../../components/PhotoUploadModal';
 import ArViewer from '../../components/framing/ArViewer';
 import { clearArModelCache } from '../../utils/ar/buildArModel';
 import { renderFrameOrderPreview } from '../../utils/frameOrderPreview';
@@ -377,6 +378,7 @@ const CustomizeFramePage = ({
     // won't survive a page reload, so Add to Cart/Buy Now must wait for it.
     const [isCloudUploadPending, setIsCloudUploadPending] = useState(false);
     const [isFrameModalOpen, setIsFrameModalOpen] = useState(false);
+    const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
     const { open: isWallPickerOpen, setOpen: setIsWallPickerOpen, hoverProps: wallPickerHoverProps, closeOnSelect: closeWallPickerOnSelect, containerRef: wallPickerContainerRef } = useHoverDropdown();
     const [isMetModalOpen, setIsMetModalOpen] = useState(false);
     const metReturnRef = useRef(null);
@@ -3739,11 +3741,43 @@ const CustomizeFramePage = ({
                         </h2>
                         
                         <div className="grid grid-cols-2 gap-3">
-                            <ArtworkImportMenu
-                                isPlaceholder={isPlaceholder}
-                                isUploading={isUploading}
-                                onFile={applyImageFile}
-                            />
+                            <button
+                                type="button"
+                                onClick={() => setIsUploadModalOpen(true)}
+                                disabled={isUploading}
+                                className="w-full h-[72px] border border-stone-200 rounded-xl p-3 flex flex-col items-center justify-center hover:bg-stone-50 hover:border-stone-400 transition-colors text-center disabled:opacity-50"
+                            >
+                                {isUploading ? (
+                                    <>
+                                        <Loader size={16} className="text-stone-500 animate-spin" />
+                                        <span className="mt-1 text-[10px] font-bold uppercase tracking-wider text-stone-700 truncate w-full">
+                                            Uploading…
+                                        </span>
+                                    </>
+                                ) : !isPlaceholder && uploadedImage ? (
+                                    <div className="flex items-center gap-2.5 w-full justify-center">
+                                        <div
+                                            className="w-8 h-8 rounded-lg bg-cover bg-center border border-stone-200 shadow-inner shrink-0"
+                                            style={{ backgroundImage: `url(${getThumbnailUrl(uploadedImage, 80)})` }}
+                                        />
+                                        <div className="text-left min-w-0">
+                                            <span className="block text-[10px] font-bold uppercase tracking-wider text-stone-800 truncate">
+                                                Replace Image
+                                            </span>
+                                            <span className="block text-[10px] text-stone-500 truncate">
+                                                Device, Drive, Link
+                                            </span>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <>
+                                        <ImageUp size={16} className="text-stone-500" />
+                                        <span className="mt-1 text-[10px] font-bold uppercase tracking-wider text-stone-700 truncate w-full">
+                                            Upload Image
+                                        </span>
+                                    </>
+                                )}
+                            </button>
 
                             {/* Inspiration Trigger */}
                             <button
@@ -4172,6 +4206,14 @@ const CustomizeFramePage = ({
                 isOpen={isMetModalOpen} 
                 onClose={handleMetModalClose} 
                 onSelect={handleMetArtSelect}
+            />
+
+            {/* Shared Photo Upload Modal */}
+            <PhotoUploadModal
+                isOpen={isUploadModalOpen}
+                onClose={() => setIsUploadModalOpen(false)}
+                onFile={applyImageFile}
+                isPlaceholder={isPlaceholder}
             />
 
             {/* Auth Modal */}

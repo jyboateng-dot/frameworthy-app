@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { AlertCircle, ArrowRight, Cloud, HardDrive, ImageUp, Link2, Loader2, Upload, X } from 'lucide-react';
+import { AlertCircle, ArrowRight, CheckCircle2, Cloud, HardDrive, ImageUp, Link2, Loader2, Upload, X } from 'lucide-react';
 import {
     ARTWORK_IMPORT_SOURCES,
     importArtworkFromCloud,
@@ -13,6 +13,8 @@ export default function PhotoUploadModal({
     onClose,
     navigate,
     onStartFraming,
+    onFile,
+    isPlaceholder = true,
 }) {
     const [isDragging, setIsDragging] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
@@ -23,6 +25,8 @@ export default function PhotoUploadModal({
     const fileInputRef = useRef(null);
     const urlInputRef = useRef(null);
     const modalRef = useRef(null);
+
+    const isReplacing = Boolean(onFile && !isPlaceholder);
 
     // Reset state on modal open/close
     useEffect(() => {
@@ -55,13 +59,19 @@ export default function PhotoUploadModal({
         }
     }, [showUrlInput]);
 
-    // Process a normalized artwork File and hand off to customizer
+    // Process a normalized artwork File and hand off to customizer or caller
     const processArtworkFile = useCallback((file) => {
         if (!file) return;
         setIsLoading(true);
         setError('');
 
         try {
+            if (typeof onFile === 'function') {
+                onClose?.();
+                onFile(file);
+                return;
+            }
+
             const localUrl = URL.createObjectURL(file);
             const rawName = file.name ? file.name.replace(/\.[^.]+$/, '') : 'Your Photo';
             const title = rawName.trim() || 'Your Photo';
@@ -85,7 +95,7 @@ export default function PhotoUploadModal({
             setIsLoading(false);
             setLoadingMessage('');
         }
-    }, [navigate, onClose, onStartFraming]);
+    }, [navigate, onClose, onFile, onStartFraming]);
 
     const handleFileSelect = async (e) => {
         const file = e.target.files?.[0];
@@ -178,7 +188,7 @@ export default function PhotoUploadModal({
 
     return (
         <div
-            className="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 sm:p-6 animate-in fade-in duration-200"
+            className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-0 sm:p-6 animate-in fade-in duration-200"
             onClick={(e) => {
                 if (modalRef.current && !modalRef.current.contains(e.target)) {
                     onClose?.();
@@ -190,16 +200,19 @@ export default function PhotoUploadModal({
         >
             <div
                 ref={modalRef}
-                className="relative w-full max-w-lg bg-white rounded-3xl shadow-2xl overflow-hidden border border-stone-200/80 animate-in zoom-in-95 duration-200 flex flex-col max-h-[90vh]"
+                className="relative w-full sm:max-w-lg bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden border border-stone-200/80 animate-in slide-in-from-bottom-4 sm:zoom-in-95 duration-200 flex flex-col max-h-[92vh] sm:max-h-[90vh]"
             >
+                {/* Mobile bottom-sheet handle */}
+                <div className="w-10 h-1 rounded-full bg-stone-300 mx-auto mt-2.5 sm:hidden shrink-0" aria-hidden="true" />
+
                 {/* Header */}
-                <div className="flex items-start justify-between p-6 pb-4 border-b border-stone-100">
+                <div className="flex items-start justify-between px-5 pt-4 pb-3.5 sm:p-6 sm:pb-4 border-b border-stone-100">
                     <div>
                         <span className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#a8892f] block mb-1">
-                            Step one
+                            {isReplacing ? 'Update artwork' : 'Step one'}
                         </span>
                         <h2 id="photo-upload-modal-title" className="text-xl sm:text-2xl font-bold tracking-tight text-stone-900">
-                            Upload your photo or artwork
+                            {isReplacing ? 'Replace your photo or artwork' : 'Upload your photo or artwork'}
                         </h2>
                         <p className="text-xs sm:text-sm text-stone-500 mt-1">
                             Choose an image to custom frame with instant live preview.
@@ -216,7 +229,7 @@ export default function PhotoUploadModal({
                 </div>
 
                 {/* Content */}
-                <div className="p-6 overflow-y-auto space-y-4">
+                <div className="p-5 sm:p-6 overflow-y-auto space-y-4">
                     {/* Error Banner */}
                     {error && (
                         <div
@@ -233,7 +246,7 @@ export default function PhotoUploadModal({
                         onDragOver={handleDragOver}
                         onDragLeave={handleDragLeave}
                         onDrop={handleDrop}
-                        className={`relative rounded-2xl border-2 border-dashed p-6 sm:p-8 text-center transition-all ${
+                        className={`relative rounded-2xl border-2 border-dashed p-5 sm:p-7 text-center transition-all ${
                             isDragging
                                 ? 'border-[#c9a84c] bg-[#faf6ea]'
                                 : 'border-stone-300 hover:border-stone-400 bg-stone-50/60'
@@ -254,8 +267,8 @@ export default function PhotoUploadModal({
                         <h3 className="text-sm sm:text-base font-bold text-stone-900 mb-1">
                             {isDragging ? 'Drop your photo here' : 'Choose a photo from your device'}
                         </h3>
-                        <p className="text-xs text-stone-500 mb-4 max-w-xs mx-auto">
-                            Supports high-res JPG, PNG, WebP or HEIC up to 20 MB.
+                        <p className="text-xs text-stone-500 mb-3.5 max-w-xs mx-auto">
+                            Drag and drop an image here, or browse your camera roll and files.
                         </p>
                         <button
                             type="button"
@@ -265,37 +278,53 @@ export default function PhotoUploadModal({
                         >
                             <Upload size={15} /> Browse photos
                         </button>
+                        <div className="mt-3.5 flex flex-wrap items-center justify-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-stone-400">
+                            <span className="px-2 py-0.5 rounded-full bg-white border border-stone-200/80 text-stone-500">JPG</span>
+                            <span className="px-2 py-0.5 rounded-full bg-white border border-stone-200/80 text-stone-500">PNG</span>
+                            <span className="px-2 py-0.5 rounded-full bg-white border border-stone-200/80 text-stone-500">WebP</span>
+                            <span className="px-2 py-0.5 rounded-full bg-white border border-stone-200/80 text-stone-500">HEIC</span>
+                            <span className="px-2 py-0.5 rounded-full bg-white border border-stone-200/80 text-stone-500">Up to 20 MB</span>
+                        </div>
+                    </div>
+
+                    {/* Print Quality Reassurance Callout */}
+                    <div className="flex items-start gap-2.5 rounded-2xl bg-[#faf6ea]/70 border border-[#e9dec0] px-3.5 py-2.5 text-xs text-stone-700">
+                        <CheckCircle2 size={15} className="shrink-0 text-[#a8892f] mt-0.5" />
+                        <p className="leading-relaxed">
+                            <span className="font-semibold text-stone-900">Print quality check included:</span>{' '}
+                            Photos 2000 px or larger on the long edge print sharpest across larger frames. We automatically verify resolution for each size.
+                        </p>
                     </div>
 
                     {/* Secondary Options Divider */}
-                    <div className="relative flex items-center justify-center py-1">
+                    <div className="relative flex items-center justify-center py-0.5">
                         <div className="absolute inset-0 flex items-center">
                             <div className="w-full border-t border-stone-200" />
                         </div>
                         <span className="relative bg-white px-3 text-[11px] font-bold uppercase tracking-wider text-stone-400">
-                            or choose from
+                            or import from
                         </span>
                     </div>
 
                     {/* Cloud Sources & Direct Link */}
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                    <div className="grid grid-cols-3 gap-2">
                         <button
                             type="button"
                             onClick={() => handleCloudImport('drive')}
                             disabled={isLoading}
-                            className="flex items-center justify-center gap-2 px-3 py-3 rounded-xl border border-stone-200 hover:border-stone-300 hover:bg-stone-50 text-xs sm:text-sm font-semibold text-stone-700 transition-colors disabled:opacity-50"
+                            className="flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2 px-2.5 py-2.5 sm:py-3 rounded-xl border border-stone-200 hover:border-stone-300 hover:bg-stone-50 text-xs font-semibold text-stone-700 transition-colors disabled:opacity-50"
                         >
-                            <HardDrive size={16} className="text-stone-500" />
-                            Google Drive
+                            <HardDrive size={15} className="text-stone-500 shrink-0" />
+                            <span className="truncate">Google Drive</span>
                         </button>
                         <button
                             type="button"
                             onClick={() => handleCloudImport('dropbox')}
                             disabled={isLoading}
-                            className="flex items-center justify-center gap-2 px-3 py-3 rounded-xl border border-stone-200 hover:border-stone-300 hover:bg-stone-50 text-xs sm:text-sm font-semibold text-stone-700 transition-colors disabled:opacity-50"
+                            className="flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2 px-2.5 py-2.5 sm:py-3 rounded-xl border border-stone-200 hover:border-stone-300 hover:bg-stone-50 text-xs font-semibold text-stone-700 transition-colors disabled:opacity-50"
                         >
-                            <Cloud size={16} className="text-stone-500" />
-                            Dropbox
+                            <Cloud size={15} className="text-stone-500 shrink-0" />
+                            <span className="truncate">Dropbox</span>
                         </button>
                         <button
                             type="button"
@@ -304,14 +333,14 @@ export default function PhotoUploadModal({
                                 setError('');
                             }}
                             disabled={isLoading}
-                            className={`flex items-center justify-center gap-2 px-3 py-3 rounded-xl border transition-colors text-xs sm:text-sm font-semibold ${
+                            className={`flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2 px-2.5 py-2.5 sm:py-3 rounded-xl border transition-colors text-xs font-semibold ${
                                 showUrlInput
                                     ? 'border-stone-900 bg-stone-900 text-white'
                                     : 'border-stone-200 hover:border-stone-300 hover:bg-stone-50 text-stone-700'
                             } disabled:opacity-50`}
                         >
-                            <Link2 size={16} className={showUrlInput ? 'text-white' : 'text-stone-500'} />
-                            Paste image link
+                            <Link2 size={15} className={`shrink-0 ${showUrlInput ? 'text-white' : 'text-stone-500'}`} />
+                            <span className="truncate">Paste image link</span>
                         </button>
                     </div>
 

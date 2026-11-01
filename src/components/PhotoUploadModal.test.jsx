@@ -26,6 +26,11 @@ describe('PhotoUploadModal', () => {
         expect(screen.getByRole('button', { name: /Paste image link/i })).toBeInTheDocument();
     });
 
+    it('renders replace heading when used in customizer replace mode', () => {
+        render(<PhotoUploadModal isOpen={true} onClose={vi.fn()} onFile={vi.fn()} isPlaceholder={false} />);
+        expect(screen.getByRole('heading', { name: /Replace your photo or artwork/i })).toBeInTheDocument();
+    });
+
     it('calls onClose when close button is clicked', () => {
         const onClose = vi.fn();
         render(<PhotoUploadModal isOpen={true} onClose={onClose} />);
@@ -52,7 +57,6 @@ describe('PhotoUploadModal', () => {
             mimeType: 'image/jpeg',
         });
 
-        // Mock URL.createObjectURL
         const createObjectURLMock = vi.fn().mockReturnValue('blob:http://localhost/mock-blob-uuid');
         window.URL.createObjectURL = createObjectURLMock;
 
@@ -73,6 +77,30 @@ describe('PhotoUploadModal', () => {
                     presetImage: 'blob:http://localhost/mock-blob-uuid',
                 }),
             });
+        });
+    });
+
+    it('hands off selected file directly to onFile when provided (customizer mode)', async () => {
+        const onClose = vi.fn();
+        const onFile = vi.fn();
+        const fakeFile = new File(['dummy content'], 'studio-portrait.jpg', { type: 'image/jpeg' });
+
+        vi.spyOn(artworkImport, 'importArtworkFromDevice').mockResolvedValue({
+            file: fakeFile,
+            source: 'device',
+            name: 'studio-portrait.jpg',
+            mimeType: 'image/jpeg',
+        });
+
+        render(<PhotoUploadModal isOpen={true} onClose={onClose} onFile={onFile} />);
+
+        const fileInput = document.getElementById('photo-upload-file-input');
+        fireEvent.change(fileInput, { target: { files: [fakeFile] } });
+
+        await waitFor(() => {
+            expect(artworkImport.importArtworkFromDevice).toHaveBeenCalledWith(fakeFile);
+            expect(onClose).toHaveBeenCalled();
+            expect(onFile).toHaveBeenCalledWith(fakeFile);
         });
     });
 
@@ -106,11 +134,9 @@ describe('PhotoUploadModal', () => {
 
         render(<PhotoUploadModal isOpen={true} onClose={onClose} onStartFraming={onStartFraming} />);
 
-        // Toggle URL input
         fireEvent.click(screen.getByRole('button', { name: /Paste image link/i }));
         expect(screen.getByLabelText(/Direct image URL/i)).toBeInTheDocument();
 
-        // Type URL and submit
         const urlInput = screen.getByLabelText(/Direct image URL/i);
         fireEvent.change(urlInput, { target: { value: 'https://example.com/art.png' } });
         fireEvent.click(screen.getByRole('button', { name: /Import/i }));
@@ -125,21 +151,31 @@ describe('PhotoUploadModal', () => {
         });
     });
 
-    it('displays configuration guidance when clicking Google Drive without API credentials', async () => {
+    it('handles clicking Google Drive', async () => {
+        const importSpy = vi.spyOn(artworkImport, 'importArtworkFromCloud').mockImplementation(() => new Promise(() => {}));
         render(<PhotoUploadModal isOpen={true} onClose={vi.fn()} />);
         fireEvent.click(screen.getByRole('button', { name: /Google Drive/i }));
 
-        await waitFor(() => {
-            expect(screen.getByRole('alert')).toHaveTextContent(/Google Drive is not configured yet/i);
-        });
+        if (artworkImport.ARTWORK_IMPORT_SOURCES.drive.available) {
+            expect(importSpy).toHaveBeenCalledWith('drive');
+        } else {
+            await waitFor(() => {
+                expect(screen.getByRole('alert')).toHaveTextContent(/Google Drive is not configured yet/i);
+            });
+        }
     });
 
-    it('displays configuration guidance when clicking Dropbox without API credentials', async () => {
+    it('handles clicking Dropbox', async () => {
+        const importSpy = vi.spyOn(artworkImport, 'importArtworkFromCloud').mockImplementation(() => new Promise(() => {}));
         render(<PhotoUploadModal isOpen={true} onClose={vi.fn()} />);
         fireEvent.click(screen.getByRole('button', { name: /Dropbox/i }));
 
-        await waitFor(() => {
-            expect(screen.getByRole('alert')).toHaveTextContent(/Dropbox is not configured yet/i);
-        });
+        if (artworkImport.ARTWORK_IMPORT_SOURCES.dropbox.available) {
+            expect(importSpy).toHaveBeenCalledWith('dropbox');
+        } else {
+            await waitFor(() => {
+                expect(screen.getByRole('alert')).toHaveTextContent(/Dropbox is not configured yet/i);
+            });
+        }
     });
 });
