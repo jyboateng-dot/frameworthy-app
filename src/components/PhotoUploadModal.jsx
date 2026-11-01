@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { AlertCircle, ArrowRight, CheckCircle2, Cloud, HardDrive, ImageUp, Link2, Loader2, Upload, X } from 'lucide-react';
+import { AlertCircle, ArrowRight, Cloud, HardDrive, ImageUp, Link2, Loader2, Upload, X } from 'lucide-react';
 import {
     ARTWORK_IMPORT_SOURCES,
     importArtworkFromCloud,
@@ -285,15 +285,6 @@ export default function PhotoUploadModal({
                             <span className="px-2 py-0.5 rounded-full bg-white border border-stone-200/80 text-stone-500">HEIC</span>
                             <span className="px-2 py-0.5 rounded-full bg-white border border-stone-200/80 text-stone-500">Up to 20 MB</span>
                         </div>
-                    </div>
-
-                    {/* Print Quality Reassurance Callout */}
-                    <div className="flex items-start gap-2.5 rounded-2xl bg-[#faf6ea]/70 border border-[#e9dec0] px-3.5 py-2.5 text-xs text-stone-700">
-                        <CheckCircle2 size={15} className="shrink-0 text-[#a8892f] mt-0.5" />
-                        <p className="leading-relaxed">
-                            <span className="font-semibold text-stone-900">Print quality check included:</span>{' '}
-                            Photos 2000 px or larger on the long edge print sharpest across larger frames. We automatically verify resolution for each size.
-                        </p>
                     </div>
 
                     {/* Secondary Options Divider */}
