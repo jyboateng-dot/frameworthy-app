@@ -50,8 +50,6 @@ import ArViewer from '../../components/framing/ArViewer';
 import { clearArModelCache } from '../../utils/ar/buildArModel';
 import { renderFrameOrderPreview } from '../../utils/frameOrderPreview';
 import MetArtSelectionModal from '../../components/MetArtSelectionModal';
-import { renderAlbumPoster } from '../../utils/albumPoster';
-import { renderMoviePoster } from '../../utils/moviePoster';
 import { useAuth } from '../../context/AuthContext';
 import AuthModal from '../../components/AuthModal';
 import Price from '../../components/common/Price';
@@ -301,11 +299,6 @@ const CustomizeFramePage = ({
     const hasImage = Boolean((uploadedImage && !isPlaceholder) || productionImage || (collageImages && collageImages.length > 0));
 
     // Core State
-    const [isAlbumArt, setIsAlbumArt] = useState(false);
-    const [isAlbumPoster, setIsAlbumPoster] = useState(false);
-    const [isMoviePoster, setIsMoviePoster] = useState(false);
-    const [isMoviePosterPrint, setIsMoviePosterPrint] = useState(false);
-    const [posterData, setPosterData] = useState(null);
     const [prodigiSelection, setProdigiSelection] = useState(null);
     const [wallColor, setWallColor] = useState(WALL_COLORS[0]);
     const knownImageDimensionsRef = useRef(null);
@@ -316,7 +309,7 @@ const CustomizeFramePage = ({
     // dimensions are already known from snapshot metadata.
     useEffect(() => {
         const source = productionImage || (!isPlaceholder ? uploadedImage : null);
-        if (!source || isAlbumPoster || isMoviePosterPrint) return undefined;
+        if (!source) return undefined;
         const known = knownImageDimensionsRef.current;
         if (known && (known.url === uploadedImage || known.url === source) && known.w > 0 && known.h > 0) {
             return undefined;
@@ -333,7 +326,7 @@ const CustomizeFramePage = ({
             })
             .catch(() => {});
         return () => { cancelled = true; };
-    }, [productionImage, uploadedImage, isPlaceholder, isAlbumPoster, isMoviePosterPrint]);
+    }, [productionImage, uploadedImage, isPlaceholder]);
     // null = the plain wall-colour backdrop with the sofa scale cue. Set to a
     // ROOM_SCENES id to swap in a full room, where the artwork is sized
     // against the room's own real-world wall span instead of the sofa.
@@ -648,8 +641,6 @@ const CustomizeFramePage = ({
         }
         if (state.productionImage || state.presetImage) {
             setProductionImage(state.productionImage || state.presetImage);
-        } else if (state.isAlbumPoster || state.isMoviePosterPrint) {
-            setProductionImage(null);
         }
         // Framed Prints is the one category that locks the frame as a fixed
         // part of the product (see isPresetFramedPrint below, which greys out
@@ -691,11 +682,6 @@ const CustomizeFramePage = ({
         setIsPreset(!!state.isPresetFramedPrint);
         setPresetTitle(state.presetTitle || '');
         setPresetDims(state.presetDims || '');
-        setIsAlbumArt(!!state.isAlbumArt);
-        setIsAlbumPoster(!!state.isAlbumPoster);
-        setIsMoviePoster(!!state.isMoviePoster);
-        setIsMoviePosterPrint(!!state.isMoviePosterPrint);
-        setPosterData((state.isAlbumPoster || state.isMoviePosterPrint) ? state.posterData : null);
         setProdigiSelection(state.prodigiSelection || null);
 
         if (state.openMetArt) {
@@ -739,72 +725,6 @@ const CustomizeFramePage = ({
     }, [location.state]);
 
     // --- Effects ---
-
-    // Generate the album/movie poster whenever the source data or size changes.
-    // Mirrors the instant-local-preview + background-cloud-upload pattern used
-    // in handleImageUpload below, so the production image gets set the same way.
-    useEffect(() => {
-        let isMounted = true;
-        if ((isAlbumPoster || isMoviePosterPrint) && posterData && selectedSize) {
-            setIsImageLoading(true);
-            setIsRendering(true);
-            setIsCloudUploadPending(true);
-            // Use standard 300 DPI print resolution for crisp text in both the visualizer and
-            // the final production print — but cap the resulting canvas's total pixel area,
-            // since mobile Safari/WebView impose a hard ceiling around 16.7M px (roughly
-            // 4096x4096) and silently produce a blank canvas past it. A flat 300 DPI already
-            // blows past that for common poster sizes (24x36in @ 300 DPI = 7200x10800 =
-            // 77.76M px), so DPI must scale down with physical size, not stay fixed. This is
-            // This render is also the production asset. The quality check below uses its
-            // actual pixel dimensions and only exposes sizes that remain above the active
-            // paper/canvas minimum after the mobile or desktop canvas cap is applied.
-            //
-            // The 16M cap only exists to protect the memory-constrained mobile case — on a
-            // real desktop browser there's no such ceiling, and capping there too was leaving
-            // poster text visibly soft once zoomed/full-screen (the preview simply didn't have
-            // the pixels to support the on-screen magnification). Raise the budget there.
-            const isMobilePlatform = Capacitor.isNativePlatform() || windowSize.width < 1024;
-            const MAX_CANVAS_PIXELS = isMobilePlatform ? 16_000_000 : 60_000_000;
-            let physW = selectedSize.width, physH = selectedSize.height;
-            if (physW > physH) [physW, physH] = [physH, physW]; // posters always render portrait
-            const idealPixels = (physW * 300) * (physH * 300);
-            const previewDPI = idealPixels > MAX_CANVAS_PIXELS
-                ? Math.floor(300 * Math.sqrt(MAX_CANVAS_PIXELS / idealPixels))
-                : 300;
-            const renderPoster = isAlbumPoster ? renderAlbumPoster : renderMoviePoster;
-            const fileLabel = isAlbumPoster ? 'album-poster.png' : 'movie-poster.png';
-            renderPoster(posterData, selectedSize, previewDPI)
-                .then(dataUrl => {
-                    if (!isMounted) return;
-                    setUploadedImage(dataUrl);
-                    setImageNaturalSize({
-                        w: Math.round(physW * previewDPI),
-                        h: Math.round(physH * previewDPI),
-                    });
-                    setIsRendering(false);
-
-                    fetch(dataUrl)
-                        .then(res => res.blob())
-                        .then(blob => uploadImageToCloud(new File([blob], fileLabel, { type: 'image/png' })))
-                        .then(cloudUrl => {
-                            if (isMounted && setProductionImage) setProductionImage(cloudUrl);
-                        })
-                        .catch(err => {
-                            console.warn('Background poster cloud upload failed, using local render:', err);
-                            if (isMounted) setFitError('The print file upload did not finish. Please try this poster again.');
-                        })
-                        .finally(() => { if (isMounted) setIsCloudUploadPending(false); });
-                })
-                .catch(err => {
-                    console.error('Failed to render poster:', err);
-                    if (isMounted) {
-                        setIsRendering(false);
-                        setIsCloudUploadPending(false);
-                    }
-                });
-        }
-        return () => { isMounted = false; };
-    }, [isAlbumPoster, isMoviePosterPrint, posterData, selectedSize]);
 
     // Track loading states for images and frames
     useEffect(() => {
@@ -1160,8 +1080,7 @@ const CustomizeFramePage = ({
     const railWidthCm = railWidthIn * 2.54;
     const outerFrameWidthCm = innerWidthCm + (railWidthCm + physicalGapIn * 2.54) * 2;
     const outerFrameHeightCm = innerHeightCm + (railWidthCm + physicalGapIn * 2.54) * 2;
-    const fitEnabled = !isPlaceholder && !isPreset && !isAlbumArt && !isAlbumPoster
-        && !isMoviePoster && !isMoviePosterPrint && !isCanvasOnly && !selectedFrame?.isCanvas
+    const fitEnabled = !isPlaceholder && !isPreset && !isCanvasOnly && !selectedFrame?.isCanvas
         && glassType !== 'canvas-traditional' && glassType !== 'canvas-floater'
         && imageNaturalSize?.w > 0 && !(collageImages?.length > 0);
     const fitGeometry = selectedSize ? frameGeometry(selectedSize, orientation, matWidth, railWidthIn) : null;
@@ -1292,11 +1211,7 @@ const CustomizeFramePage = ({
         // (not-yet-cleared) preset payload though, so its presence reliably
         // means the current `uploadedImage` is about to be superseded — skip
         // processing it entirely rather than risk setting orientation based on
-        // a placeholder image that's already obsolete. Album/movie poster
-        // prints don't carry `presetImage` (their image is generated async
-        // from `posterData`), so that must be checked too, or this effect
-        // races the isAlbumPoster/isMoviePosterPrint flags being set true and
-        // auto-detects orientation off the stale placeholder image instead.
+        // a placeholder image that's already obsolete.
         //
         // Checking the actual VALUE (not just presence) is what makes this
         // reliable: location.state (via router navigation) and uploadedImage
@@ -1310,17 +1225,7 @@ const CustomizeFramePage = ({
         // location.state says it should become, it's current, not stale,
         // regardless of whether location.state has cleared yet.
         const pendingPresetImage = location.state?.presetImage;
-        if ((pendingPresetImage && pendingPresetImage !== uploadedImage) || location.state?.posterData) {
-            return;
-        }
-        // Album/movie poster prints are always portrait and are re-generated
-        // at exactly `selectedSize`'s aspect ratio, so orientation-detection
-        // is irrelevant for them — skip entirely rather than decode the
-        // (often 50MB+) generated canvas data URL a second time purely to
-        // compute values this flow never uses. That redundant decode ran on
-        // every single size change, competing with the visible <img> tag's
-        // own decode of the identical string.
-        if (isAlbumPoster || isMoviePosterPrint) {
+        if (pendingPresetImage && pendingPresetImage !== uploadedImage) {
             return;
         }
         // Preset/Inspiration selections (Original Paintings, Canvas Art, etc.)
@@ -1367,14 +1272,10 @@ const CustomizeFramePage = ({
 
             if (isPresetImage) return;
 
-            // Album posters and movie posters are always portrait, regardless of
-            // the source image's actual pixel aspect ratio — don't let
-            // auto-detection override the intentional portrait lock for these
-            // flows. Same reasoning for the starting demo photo itself: it's
-            // landscape-shaped, but nobody has actually chosen it — the app's
-            // own portrait default shouldn't be silently overridden by it on
-            // a fresh session before the user has picked anything.
-            if (!isAlbumPoster && !isMoviePoster && !isMoviePosterPrint && uploadedImage !== DEFAULT_DEMO_IMAGE) {
+            // Starting demo photo itself: it's landscape-shaped, but nobody has
+            // actually chosen it — the app's own portrait default shouldn't be
+            // silently overridden by it on a fresh session before the user has picked anything.
+            if (uploadedImage !== DEFAULT_DEMO_IMAGE) {
                 const isLandscape = img.naturalWidth > img.naturalHeight;
                 setOrientation(isLandscape ? 'landscape' : 'portrait');
             }
@@ -1395,7 +1296,7 @@ const CustomizeFramePage = ({
         return () => {
             cancelled = true;
         };
-    }, [uploadedImage, setOrientation, setSelectedSize, isAlbumPoster, isMoviePoster, isMoviePosterPrint]);
+    }, [uploadedImage, setOrientation, setSelectedSize]);
 
     const dismissSceneHint = () => {
         setShowSceneHint(false);
@@ -1819,18 +1720,6 @@ const CustomizeFramePage = ({
             isPreset,
             presetTitle,
             presetDims,
-            isAlbumArt,
-            isAlbumPoster,
-            isMoviePoster,
-            isMoviePosterPrint,
-            posterMeta: isAlbumPoster && posterData ? {
-                title: posterData.product.title,
-                artist: posterData.product.artist,
-                trackCount: posterData.tracksInfo.tracks.length
-            } : isMoviePosterPrint && posterData ? {
-                title: posterData.movie.title,
-                director: posterData.details.director
-            } : null,
             prodigi: prodigiSelection ? {
                 ...prodigiSelection,
                 sizing: 'fillPrintArea',
@@ -1929,13 +1818,6 @@ const CustomizeFramePage = ({
         });
 
         for (const size of sortedSizes) {
-            // Album posters and movie posters are portrait-or-square — a landscape
-            // canvas doesn't suit their tracklist/cast-list layout, but square
-            // (e.g. 20x20cm) is a valid alternate format alongside true portrait.
-            if ((isAlbumPoster || isMoviePoster || isMoviePosterPrint) && size.height < size.width) {
-                continue;
-            }
-
             const key = `${size.width}x${size.height}`;
             const isAlias = ['sm', 'md', 'lg', 'xl', 'lg-land', 'xl-land', 'Small', 'Medium', 'Large', 'Statement'].includes(size.id);
             if (!sizeSeen.has(key) && !isAlias) {
@@ -1970,7 +1852,7 @@ const CustomizeFramePage = ({
         }
 
         return { finalSizesList, leftColumnCollapsed, rightColumnCollapsed };
-    }, [isAlbumPoster, isMoviePoster, isMoviePosterPrint, prodigiSizes, selectedSize]);
+    }, [prodigiSizes, selectedSize]);
 
     const isImageBelowMinDpi = Boolean(activeImagePixelSize && finalSizesList.length === 0);
     const productionAssetUrl = productionImage || uploadedImage;
@@ -2104,7 +1986,7 @@ const CustomizeFramePage = ({
     const stepFrameStyle = stepCounter++;
     const stepDimensions = stepCounter++;
 
-    const showOrientation = !isPreset && !isAlbumArt && !isAlbumPoster && !isMoviePoster && !isMoviePosterPrint;
+    const showOrientation = !isPreset;
     const stepOrientation = showOrientation ? stepCounter++ : null;
     const stepImagePosition = fitEnabled ? stepCounter++ : null;
     const stepProdigi = selectedFrame?.prodigiProduct ? stepCounter++ : null;
@@ -2792,27 +2674,16 @@ const CustomizeFramePage = ({
                                 // Max possible scale that fits safely inside the visual bounds
                                 let maxScale = Math.min(scaleW, scaleH);
 
-                                // Album/movie poster prints carry small fixed tracklist/metadata
-                                // text (rendered at up to 300 DPI, well beyond what these caps
-                                // need — see the poster-generation effect above), so they can
-                                // safely zoom further than a plain photo before pixelating, and
-                                // doing so is the whole point of zooming/full-screen for them:
-                                // reading that fine print. Regular uploads don't carry that
-                                // fixed small text, so they keep the original, more conservative
-                                // caps.
-                                const isPosterPrint = isAlbumPoster || isMoviePosterPrint;
-
                                 if (isMaxZoom && !isFullScreen) {
                                     // Deep inspection mode: push past boundaries if necessary (but
                                     // don't get completely ridiculous). Skipped in full screen —
                                     // it's already at its largest fit-to-screen size there, so
                                     // there's nothing further for a double-tap to usefully do.
-                                    return Math.max(isPosterPrint ? 5.5 : 3.5, maxScale * (isPosterPrint ? 3 : 2.25));
+                                    return Math.max(3.5, maxScale * 2.25);
                                 }
 
-                                // Cap at 8.0x (16.0x for poster prints) to prevent over-pixelation
-                                // on tiny frames, never shrink below 1.0x.
-                                return Math.max(1.0, Math.min(isPosterPrint ? 16.0 : 8.0, maxScale));
+                                // Cap at 8.0x to prevent over-pixelation on tiny frames, never shrink below 1.0x.
+                                return Math.max(1.0, Math.min(8.0, maxScale));
                             })();
                             // Room-scene hover used to fall in here too, sizing the
                             // frame off the same catalogue-anchor curve as Close-Up
@@ -2877,8 +2748,7 @@ const CustomizeFramePage = ({
                                 const maxZoomWPx = zoneSize.width * 0.85;
                                 const maxZoomHPx = isFullScreen ? Math.max(80, zoneSize.height * 0.90) : zoneSize.height * 0.90;
                                 const maxScale = Math.min(maxZoomWPx / Math.max(baseWPx, 1), maxZoomHPx / Math.max(baseHPx, 1));
-                                const isPosterPrint = isAlbumPoster || isMoviePosterPrint;
-                                const scale = Math.max(1.0, Math.min(isPosterPrint ? 16.0 : 8.0, maxScale));
+                                const scale = Math.max(1.0, Math.min(8.0, maxScale));
                                 return rawPct * scale;
                             };
                             // Anchor roles are FIXED (13/100 always the short
@@ -3910,7 +3780,7 @@ const CustomizeFramePage = ({
                     </section>
 
                     {/* 4. Orientation */}
-                    {!isPreset && !isAlbumArt && !isAlbumPoster && !isMoviePoster && !isMoviePosterPrint && (
+                    {!isPreset && (
                         <section>
                             <h2 className="text-xs font-bold uppercase tracking-wider text-stone-900 mb-3 flex items-center justify-between gap-2">
                                 <span className="flex items-center gap-2">
