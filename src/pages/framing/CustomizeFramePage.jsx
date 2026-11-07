@@ -3672,14 +3672,7 @@ const CustomizeFramePage = ({
                 {/* Premium Tint Overlay: Keeps the sidebar 90% white, letting 10% of the wall color bleed through */}
                 <div className="absolute inset-0 bg-white/90" />
                 
-                <div className={`flex-1 p-5 space-y-6 custom-scrollbar relative z-10 ${isSideBySide ? 'overflow-y-auto pb-4' : 'pb-3 sm:pb-4'}`}>
-                    
-                    {/* Header */}
-                    <div>
-                        <h1 className="text-xl font-serif font-bold text-stone-900 mb-1">Start Framing</h1>
-                        <p className="text-sm text-stone-500">Perfectly customized to your space.</p>
-                    </div>
-
+                <div className={`flex-1 px-5 pt-3.5 space-y-6 custom-scrollbar relative z-10 ${isSideBySide ? 'overflow-y-auto pb-4' : 'pb-3 sm:pb-4'}`}>
                     {/* Only ever appears when clampSizeToValidRange actually
                         had to adjust an Inspiration/Museum/catalogue
                         selection's listed size — a manually-picked or
@@ -3748,7 +3741,7 @@ const CustomizeFramePage = ({
                             <span className="flex items-center gap-2">
                                 <span className="bg-stone-100 text-stone-500 w-5 h-5 rounded-full flex items-center justify-center text-[10px]">{stepDimensions}</span>
                                 <span>
-                                    Dimensions
+                                    Frame Size
                                     <InfoTooltip text="Dimensions show the inner opening size. Every frame is built custom to fit." />
                                 </span>
                                 {/* Unit + measurement-lines control — moved in

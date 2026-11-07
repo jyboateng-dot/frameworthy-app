@@ -7,7 +7,7 @@ test('customizer presents catalogue-backed frame sizes', async ({ page }) => {
     });
     await page.goto('/frame/customize');
 
-    await expect(page.getByRole('heading', { name: /3 Dimensions/ })).toBeVisible();
+    await expect(page.getByRole('heading', { name: /3 Frame Size/ })).toBeVisible();
     await expect(page.getByRole('button', { name: '13 × 18 cm' })).toBeVisible();
     await page.getByRole('button', { name: '20 × 25 cm' }).click();
     await expect(page.getByRole('button', { name: '20 × 25 cm' })).toHaveAttribute('aria-pressed', 'true');

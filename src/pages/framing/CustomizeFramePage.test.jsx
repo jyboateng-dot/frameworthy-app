@@ -104,7 +104,8 @@ describe('CustomizeFramePage mounting', () => {
             </MemoryRouter>
         );
 
-        expect(screen.getByRole('heading', { name: 'Start Framing' })).toBeInTheDocument();
+        expect(screen.getByRole('heading', { name: /Image/i })).toBeInTheDocument();
+        expect(screen.queryByRole('heading', { name: 'Start Framing' })).not.toBeInTheDocument();
     });
 
     it('navigates back to homepage and restores scroll position when closing Met modal opened from homepage', () => {
@@ -238,7 +239,7 @@ describe('CustomizeFramePage mounting', () => {
         expect(visualizerPane).toBeInTheDocument();
 
         // The dashboard sidebar is mounted in docked view
-        expect(screen.getByText('Start Framing')).toBeInTheDocument();
+        expect(screen.getByRole('heading', { name: /Image/i })).toBeInTheDocument();
 
         // Full screen button is present
         const fullScreenBtn = screen.getByRole('button', { name: /full screen/i });
@@ -248,7 +249,7 @@ describe('CustomizeFramePage mounting', () => {
         fireEvent.click(fullScreenBtn);
 
         // Sidebar remains mounted behind overlay (zero unmount/remount churn)
-        expect(screen.getByText('Start Framing')).toBeInTheDocument();
+        expect(screen.getByRole('heading', { name: /Image/i })).toBeInTheDocument();
 
         // Full screen button updates label to exit
         await waitFor(() => {
