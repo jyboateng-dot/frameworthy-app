@@ -3672,7 +3672,7 @@ const CustomizeFramePage = ({
                 {/* Premium Tint Overlay: Keeps the sidebar 90% white, letting 10% of the wall color bleed through */}
                 <div className="absolute inset-0 bg-white/90" />
                 
-                <div className={`flex-1 px-4 sm:px-5 pt-2 sm:pt-3.5 ${isSideBySide ? 'space-y-6' : 'space-y-3.5 sm:space-y-5'} custom-scrollbar relative z-10 ${isSideBySide ? 'overflow-y-auto pb-4' : 'pb-2 sm:pb-4'}`}>
+                <div className={`flex-1 px-4 sm:px-5 pt-2 sm:pt-2.5 space-y-3.5 sm:space-y-4 custom-scrollbar relative z-10 ${isSideBySide ? 'overflow-y-auto pb-3' : 'pb-2 sm:pb-3'}`}>
                     {/* Only ever appears when clampSizeToValidRange actually
                         had to adjust an Inspiration/Museum/catalogue
                         selection's listed size — a manually-picked or
