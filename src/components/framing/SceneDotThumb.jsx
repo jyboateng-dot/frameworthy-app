@@ -1,18 +1,13 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Square } from 'lucide-react';
 import { ROOM_SCENES } from '../../data/roomScenes';
 
 /**
- * Top-left room-scene indicator: a row of small dots, one per scene, where
- * only the active one reveals itself as an actual room-photo thumbnail —
- * everything else stays a minimal dot. As selection moves, the previous
- * active dot shrinks back down and the new one grows into its thumbnail.
- *
- * Replaces both the earlier plain "current room" badge in this corner and
- * SceneArrowCarousel's separate bottom dot strip — this is now the one
- * place that shows which scenes exist and which one you're on, and each
- * dot is still clickable for a direct jump. The active room's name rides
- * alongside the dots, carried over from that earlier badge.
+ * Top-left room-scene indicator: collapsed at rest to just the active room's
+ * name and circular thumbnail, and smoothly expands to reveal the full row of
+ * scene dots whenever the user moves from scene to scene (or taps the pill).
+ * As selection moves, the previous active dot shrinks back down and the new
+ * one grows into its thumbnail; once settled, inactive dots collapse back.
  */
 
 // `short` keeps the pill's footprint down; the full name still carries the
@@ -32,11 +27,36 @@ const OPTIONS = [
 // something to draw the eye to, without a state update inside an effect.
 // Literal class names so Tailwind's scanner keeps them in the build.
 const PULSE_CLASSES = ['ring-2', 'ring-stone-900/70', 'ring-offset-1'];
+const COLLAPSE_DELAY_MS = 1800;
 
 const SceneDotThumb = ({ activeId, onSelect, autoOpenSignal, framePreview, className = '', style }) => {
     const wrapRef = useRef(null);
+    const prevActiveIdRef = useRef(activeId);
+    const collapseTimerRef = useRef(null);
+    const [isExpanded, setIsExpanded] = useState(false);
     const activeOption = OPTIONS.find((o) => o.id === activeId);
     const activeName = activeOption?.short ?? 'Close-Up';
+
+    const expandTemporarily = useCallback((durationMs = COLLAPSE_DELAY_MS) => {
+        setIsExpanded(true);
+        if (collapseTimerRef.current) window.clearTimeout(collapseTimerRef.current);
+        collapseTimerRef.current = window.setTimeout(() => {
+            setIsExpanded(false);
+        }, durationMs);
+    }, []);
+
+    useEffect(() => {
+        if (prevActiveIdRef.current !== activeId) {
+            prevActiveIdRef.current = activeId;
+            expandTemporarily(COLLAPSE_DELAY_MS);
+        }
+    }, [activeId, expandTemporarily]);
+
+    useEffect(() => {
+        return () => {
+            if (collapseTimerRef.current) window.clearTimeout(collapseTimerRef.current);
+        };
+    }, []);
 
     useEffect(() => {
         if (!autoOpenSignal) return;
@@ -52,10 +72,13 @@ const SceneDotThumb = ({ activeId, onSelect, autoOpenSignal, framePreview, class
             ref={wrapRef}
             role="radiogroup"
             aria-label="Room scene"
-            className={`flex items-center gap-[3px] rounded-full border border-stone-200 bg-white/95 px-1.5 py-1 shadow-sm backdrop-blur transition-shadow duration-300 sm:gap-1 ${className}`}
+            onClick={() => {
+                if (!isExpanded) expandTemporarily(2400);
+            }}
+            className={`flex items-center rounded-full border border-stone-200 bg-white/95 px-1.5 py-1 shadow-sm backdrop-blur transition-all duration-300 ${className}`}
             style={style}
         >
-            <span className="whitespace-nowrap pl-0.5 text-[10.5px] font-bold text-stone-700 sm:text-[11px]">
+            <span className="whitespace-nowrap pl-0.5 pr-1 text-[10.5px] font-bold text-stone-700 sm:text-[11px]">
                 {activeName}
             </span>
             {OPTIONS.map((o) => {
@@ -65,7 +88,15 @@ const SceneDotThumb = ({ activeId, onSelect, autoOpenSignal, framePreview, class
                     <button
                         key={key}
                         type="button"
-                        onClick={() => onSelect(o.id)}
+                        onClick={(e) => {
+                            if (!isExpanded) {
+                                e.stopPropagation();
+                                expandTemporarily(2400);
+                                return;
+                            }
+                            expandTemporarily(COLLAPSE_DELAY_MS);
+                            onSelect(o.id);
+                        }}
                         title={o.name}
                         role="radio"
                         aria-checked={isActive}
@@ -77,8 +108,10 @@ const SceneDotThumb = ({ activeId, onSelect, autoOpenSignal, framePreview, class
                         // rather than just growing straight into place.
                         className={`shrink-0 overflow-hidden rounded-full transition-all duration-[420ms] ease-[cubic-bezier(0.34,1.56,0.64,1)] ${
                             isActive
-                                ? 'h-[18px] w-[18px] ring-1 ring-stone-900 sm:h-5 sm:w-5'
-                                : 'h-1.5 w-1.5 bg-stone-300 hover:bg-stone-400'
+                                ? `h-[18px] w-[18px] ring-1 ring-stone-900 sm:h-5 sm:w-5 ${isExpanded ? 'mx-[2px]' : 'ml-0.5 mr-0'}`
+                                : isExpanded
+                                    ? 'mx-[2px] h-1.5 w-1.5 bg-stone-300 opacity-100 hover:bg-stone-400'
+                                    : 'mx-0 h-0 w-0 opacity-0 pointer-events-none border-0 p-0'
                         }`}
                     >
                         {isActive ? (
