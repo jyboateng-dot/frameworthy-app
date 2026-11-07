@@ -426,7 +426,7 @@ const CustomizeFramePage = ({
         ], { duration: 360, easing: 'cubic-bezier(0.22, 1, 0.36, 1)' });
         sceneFrameAnimationRef.current = animation;
         return () => animation.cancel();
-    }, [roomSceneId]);
+    }, [roomSceneId, mobileRoomReturnSceneId]);
 
     useEffect(() => () => {
         window.clearTimeout(roomSceneTransitionRef.current);
@@ -1383,8 +1383,14 @@ const CustomizeFramePage = ({
         if (departingRoomSceneId || departingWasCloseUp) return undefined;
         const sceneOrder = [null, ...ROOM_SCENES.map((scene) => scene.id)];
         const currentIndex = Math.max(0, sceneOrder.indexOf(roomSceneId));
-        const sceneIds = [sceneOrder[(currentIndex - 1 + sceneOrder.length) % sceneOrder.length], sceneOrder[(currentIndex + 1) % sceneOrder.length]]
-            .filter(Boolean);
+        const neighborIds = [
+            sceneOrder[(currentIndex - 1 + sceneOrder.length) % sceneOrder.length],
+            sceneOrder[(currentIndex + 1) % sceneOrder.length],
+        ].filter(Boolean);
+        const remainingIds = ROOM_SCENES
+            .map((scene) => scene.id)
+            .filter((id) => id !== roomSceneId && !neighborIds.includes(id));
+        const sceneIds = [...neighborIds, ...remainingIds];
         if (!sceneIds.length) return undefined;
 
         let cancelled = false;
@@ -1412,13 +1418,15 @@ const CustomizeFramePage = ({
         setDepartingWasCloseUp(false);
     };
 
-    const selectRoomScene = (sceneId) => {
+    const selectRoomScene = (sceneId, directionOverride = null) => {
         const effectiveFromSceneId = mobileRoomReturnSceneId && !roomSceneId ? null : roomSceneId;
         if (sceneId === effectiveFromSceneId && !mobileRoomReturnSceneId) return;
         if (sceneId === null && isMobileRoomCloseUp) {
             setMobileRoomReturnSceneId(null);
             return;
         }
+        sceneFrameBoundsRef.current = (sceneId === null || effectiveFromSceneId === null)
+            ? frameRenderRef.current?.getBoundingClientRect() : null;
         setMobileRoomReturnSceneId(null);
         dismissSceneHint();
         const selectionToken = ++roomSceneSelectionTokenRef.current;
@@ -1428,8 +1436,9 @@ const CustomizeFramePage = ({
         // opacity animation drops frames and makes the transition feel jerky.
         void preloadRoomScene(sceneId).then(() => {
             if (selectionToken !== roomSceneSelectionTokenRef.current) return;
-            sceneFrameBoundsRef.current = (sceneId === null || effectiveFromSceneId === null)
-                ? frameRenderRef.current?.getBoundingClientRect() : null;
+            if (!sceneFrameBoundsRef.current && (sceneId === null || effectiveFromSceneId === null)) {
+                sceneFrameBoundsRef.current = frameRenderRef.current?.getBoundingClientRect() || null;
+            }
             window.clearTimeout(roomSceneTransitionRef.current);
             // Every change — including into or out of Close-Up — retains the
             // outgoing composition just long enough to slide into the next,
@@ -1439,7 +1448,10 @@ const CustomizeFramePage = ({
             const sceneOrder = [null, ...ROOM_SCENES.map((s) => s.id)];
             const fromIndex = sceneOrder.indexOf(effectiveFromSceneId);
             const toIndex = sceneOrder.indexOf(sceneId);
-            setRoomSlideDirection(toIndex >= fromIndex ? 1 : -1);
+            const resolvedDirection = (directionOverride === 1 || directionOverride === -1)
+                ? directionOverride
+                : (toIndex >= fromIndex ? 1 : -1);
+            setRoomSlideDirection(resolvedDirection);
             setDepartingWasCloseUp(effectiveFromSceneId === null);
             setDepartingRoomSceneId(effectiveFromSceneId);
             // animationend performs normal cleanup. This is only a fallback
@@ -1543,12 +1555,12 @@ const CustomizeFramePage = ({
             if (Math.hypot(dx, dy) > 24) {
                 if (!isMaxZoom && !isFullScreen && Math.abs(dx) > Math.abs(dy) * 1.25) {
                     const sceneOrder = [null, ...ROOM_SCENES.map((scene) => scene.id)];
-                    const currentId = mobileRoomReturnSceneId || roomSceneId;
+                    const currentId = mobileRoomReturnSceneId ? null : roomSceneId;
                     const currentIndex = Math.max(0, sceneOrder.indexOf(currentId));
                     const direction = dx < 0 ? 1 : -1;
                     const nextIndex = (currentIndex + direction + sceneOrder.length) % sceneOrder.length;
                     event.preventDefault();
-                    selectRoomScene(sceneOrder[nextIndex]);
+                    selectRoomScene(sceneOrder[nextIndex], direction);
                 }
                 lastTapRef.current = 0;
                 return;

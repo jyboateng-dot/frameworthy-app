@@ -52,6 +52,10 @@ test('mobile rooms slide as aligned layers and keep their foreground mounted', a
         expect(sample.every(layer => layer.name === 'roomSceneSlideIn')).toBe(true);
         expect(new Set(sample.map(layer => layer.transform)).size).toBe(1);
         expect(sample[0].transform).not.toBe('none');
+        // Forward Next arrow (including wrap-around from Home Office -> Close-Up)
+        // always slides in from the right (positive X translation at t=150ms).
+        const tx = Number(sample[0].transform.match(/matrix\([^,]+,[^,]+,[^,]+,[^,]+,\s*([^,]+),/)?.[1]);
+        expect(tx).toBeGreaterThan(0);
         await expect(page.locator('.room-scene-slide-in')).toHaveCount(0);
         expect(await page.evaluate(() => !window.incomingForeground || window.incomingForeground.isConnected)).toBe(true);
     }
@@ -63,4 +67,13 @@ test('mobile rooms slide as aligned layers and keep their foreground mounted', a
             expect(Math.abs(move.start[property] - move.before[property]), JSON.stringify({ property, move })).toBeLessThan(1);
         }
     }
+
+    // Reverse Previous arrow from Close-Up -> Home Office wraps in the reverse direction (from left, negative X)
+    const prev = page.getByRole('button', { name: 'Previous room', exact: true });
+    await prev.click();
+    await expect.poll(() => page.evaluate(() => window.slideSamples.length), { timeout: 15_000 }).toBe(7);
+    const prevSample = await page.evaluate(() => window.slideSamples.at(-1));
+    const prevTx = Number(prevSample[0].transform.match(/matrix\([^,]+,[^,]+,[^,]+,[^,]+,\s*([^,]+),/)?.[1]);
+    expect(prevTx).toBeLessThan(0);
+    await expect(page.locator('.room-scene-slide-in')).toHaveCount(0);
 });

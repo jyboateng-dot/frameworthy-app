@@ -20,7 +20,7 @@ const SceneArrowCarousel = ({ activeId, onSelect, hidden = false, motionClass = 
 
     const go = (dir) => {
         const next = (index + dir + OPTIONS.length) % OPTIONS.length;
-        onSelect(OPTIONS[next].id);
+        onSelect(OPTIONS[next].id, dir);
     };
 
     const hiddenCls = hidden ? 'opacity-0 pointer-events-none' : 'opacity-100';
