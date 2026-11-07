@@ -219,14 +219,14 @@ export default function ProdigiConfigurationPanel({
     return (
         <div className="space-y-5" aria-label="Product configuration">
             <section>
-                        <h2 className="mb-3 flex items-center justify-between gap-3 text-xs font-bold uppercase tracking-wider text-stone-900">
-                            <span className="flex min-w-0 items-center gap-2">
-                                <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-stone-100 text-[10px] text-stone-500">{step}</span>
-                                Mount
-                            </span>
-                            <span className="shrink-0 text-xs font-bold normal-case tabular-nums text-stone-900">
-                                {activeMounted ? mountWidthLabel : 'No Mount'}
-                            </span>
+                        <h2 className="mb-3 flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-stone-900">
+                            <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-stone-100 text-[10px] text-stone-500">{step}</span>
+                            <span>Mount</span>
+                            {activeMounted && (
+                                <span className="inline-flex h-5 shrink-0 items-center rounded-full border border-stone-200 bg-stone-100/80 px-2 text-[10px] font-semibold normal-case tracking-normal tabular-nums text-stone-600">
+                                    {mountWidthLabel}
+                                </span>
+                            )}
                         </h2>
                         {isConfigurablePrintFrame ? <div className="flex rounded-xl bg-stone-100 p-1">
                             {[

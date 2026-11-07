@@ -3908,7 +3908,7 @@ const CustomizeFramePage = ({
                                                 : `${Number(matWidth).toFixed(2)} in`;
                                         return (
                                             <>
-                                                <h2 className="text-xs font-bold uppercase tracking-wider text-stone-900 mb-3 flex items-center gap-3">
+                                                <h2 className="text-xs font-bold uppercase tracking-wider text-stone-900 mb-3 flex items-center gap-2">
                                                     <span className="flex min-w-0 items-center gap-2">
                                                         <span className="bg-stone-100 text-stone-500 w-5 h-5 rounded-full flex shrink-0 items-center justify-center text-[10px]">{stepMatting}</span>
                                                         <span>
@@ -3916,7 +3916,7 @@ const CustomizeFramePage = ({
                                                             <InfoTooltip text="Drag to the far left for no mount. The first step right is a 1 inch mount; each step after adds a quarter inch, up to 8 inches (less on smaller prints, so the mount never overwhelms the artwork)." />
                                                         </span>
                                                     </span>
-                                                    <span className="shrink-0 text-xs font-bold text-stone-900 tabular-nums normal-case">
+                                                    <span className="inline-flex h-5 shrink-0 items-center rounded-full border border-stone-200 bg-stone-100/80 px-2 text-[10px] font-semibold normal-case tracking-normal tabular-nums text-stone-600">
                                                         {widthLabel}
                                                     </span>
                                                 </h2>
