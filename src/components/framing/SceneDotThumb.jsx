@@ -33,30 +33,40 @@ const SceneDotThumb = ({ activeId, onSelect, autoOpenSignal, framePreview, class
     const wrapRef = useRef(null);
     const prevActiveIdRef = useRef(activeId);
     const collapseTimerRef = useRef(null);
+    const isHoveredRef = useRef(false);
     const [isExpanded, setIsExpanded] = useState(false);
     const activeOption = OPTIONS.find((o) => o.id === activeId);
     const activeName = activeOption?.short ?? 'Close-Up';
 
-    const expandTemporarily = useCallback((durationMs = COLLAPSE_DELAY_MS) => {
-        setIsExpanded(true);
-        if (collapseTimerRef.current) window.clearTimeout(collapseTimerRef.current);
+    const clearCollapseTimer = useCallback(() => {
+        if (collapseTimerRef.current) {
+            window.clearTimeout(collapseTimerRef.current);
+            collapseTimerRef.current = null;
+        }
+    }, []);
+
+    const scheduleCollapse = useCallback(() => {
+        clearCollapseTimer();
         collapseTimerRef.current = window.setTimeout(() => {
             setIsExpanded(false);
-        }, durationMs);
-    }, []);
+        }, COLLAPSE_DELAY_MS);
+    }, [clearCollapseTimer]);
+
+    const expandTemporarily = useCallback(() => {
+        setIsExpanded(true);
+        if (!isHoveredRef.current) {
+            scheduleCollapse();
+        }
+    }, [scheduleCollapse]);
 
     useEffect(() => {
         if (prevActiveIdRef.current !== activeId) {
             prevActiveIdRef.current = activeId;
-            expandTemporarily(COLLAPSE_DELAY_MS);
+            expandTemporarily();
         }
     }, [activeId, expandTemporarily]);
 
-    useEffect(() => {
-        return () => {
-            if (collapseTimerRef.current) window.clearTimeout(collapseTimerRef.current);
-        };
-    }, []);
+    useEffect(() => clearCollapseTimer, [clearCollapseTimer]);
 
     useEffect(() => {
         if (!autoOpenSignal) return;
@@ -72,8 +82,17 @@ const SceneDotThumb = ({ activeId, onSelect, autoOpenSignal, framePreview, class
             ref={wrapRef}
             role="radiogroup"
             aria-label="Room scene"
+            onMouseEnter={() => {
+                isHoveredRef.current = true;
+                clearCollapseTimer();
+                setIsExpanded(true);
+            }}
+            onMouseLeave={() => {
+                isHoveredRef.current = false;
+                scheduleCollapse();
+            }}
             onClick={() => {
-                if (!isExpanded) expandTemporarily(2400);
+                if (!isExpanded) expandTemporarily();
             }}
             className={`flex items-center rounded-full border border-stone-200 bg-white/95 px-1.5 py-1 shadow-sm backdrop-blur transition-all duration-300 ${className}`}
             style={style}
@@ -91,10 +110,10 @@ const SceneDotThumb = ({ activeId, onSelect, autoOpenSignal, framePreview, class
                         onClick={(e) => {
                             if (!isExpanded) {
                                 e.stopPropagation();
-                                expandTemporarily(2400);
+                                expandTemporarily();
                                 return;
                             }
-                            expandTemporarily(COLLAPSE_DELAY_MS);
+                            expandTemporarily();
                             onSelect(o.id);
                         }}
                         title={o.name}
