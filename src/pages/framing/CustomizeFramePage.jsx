@@ -378,6 +378,8 @@ const CustomizeFramePage = ({
     const [isHovered, setIsHovered] = useState(false);
     const [isMaxZoom, setIsMaxZoom] = useState(false);
     const [isFullScreen, setIsFullScreen] = useState(false);
+    const isMobileRoomCloseUp = Boolean(mobileRoomReturnSceneId && !roomSceneId);
+    const isRoomZoomed = isHovered || isMobileRoomCloseUp;
     // Keep navigation hidden until a zoom transition has settled.
     const [isZoomSettling, setIsZoomSettling] = useState(false);
     // Smooth transition phases for full screen: 'idle' | 'entering' | 'active' | 'exiting'
@@ -817,7 +819,7 @@ const CustomizeFramePage = ({
         window.clearTimeout(zoomSettleTimeoutRef.current);
         zoomSettleTimeoutRef.current = window.setTimeout(() => setIsZoomSettling(false), ZOOM_TRANSITION_MS);
         return () => window.clearTimeout(zoomSettleTimeoutRef.current);
-    }, [isHovered, isMaxZoom, isFullScreen]);
+    }, [isRoomZoomed, isMaxZoom, isFullScreen]);
 
     // AR models are cached as blob URLs so reopening the preview for a
     // configuration already built is instant. Blob URLs belong to the
@@ -1123,8 +1125,8 @@ const CustomizeFramePage = ({
         // Keep the mobile canvas fixed across Close-Up and rooms. A changing
         // pane height causes ResizeObserver to recalculate frame geometry on
         // every animation tick, fighting the frame's own transition.
-        const activeSceneForMetrics = roomSceneId
-            ? ROOM_SCENES.find((s) => s.id === roomSceneId)
+        const activeSceneForMetrics = (roomSceneId || mobileRoomReturnSceneId)
+            ? ROOM_SCENES.find((s) => s.id === (roomSceneId || mobileRoomReturnSceneId))
             : !isSideBySide ? ROOM_SCENES[0] : null;
         const frameWidthPct = activeSceneForMetrics
             ? (largestOuterWidthCm / (activeSceneForMetrics.wallSpanCm + (activeSceneForMetrics.canvasInsetLeftCm || 0))) * 100
@@ -1411,7 +1413,12 @@ const CustomizeFramePage = ({
     };
 
     const selectRoomScene = (sceneId) => {
-        if (sceneId === roomSceneId) return;
+        const effectiveFromSceneId = mobileRoomReturnSceneId && !roomSceneId ? null : roomSceneId;
+        if (sceneId === effectiveFromSceneId && !mobileRoomReturnSceneId) return;
+        if (sceneId === null && isMobileRoomCloseUp) {
+            setMobileRoomReturnSceneId(null);
+            return;
+        }
         setMobileRoomReturnSceneId(null);
         dismissSceneHint();
         const selectionToken = ++roomSceneSelectionTokenRef.current;
@@ -1421,7 +1428,7 @@ const CustomizeFramePage = ({
         // opacity animation drops frames and makes the transition feel jerky.
         void preloadRoomScene(sceneId).then(() => {
             if (selectionToken !== roomSceneSelectionTokenRef.current) return;
-            sceneFrameBoundsRef.current = (sceneId === null || roomSceneId === null)
+            sceneFrameBoundsRef.current = (sceneId === null || effectiveFromSceneId === null)
                 ? frameRenderRef.current?.getBoundingClientRect() : null;
             window.clearTimeout(roomSceneTransitionRef.current);
             // Every change — including into or out of Close-Up — retains the
@@ -1430,11 +1437,11 @@ const CustomizeFramePage = ({
             // strip. The frame itself stays in its shared calibrated
             // position throughout the transition.
             const sceneOrder = [null, ...ROOM_SCENES.map((s) => s.id)];
-            const fromIndex = sceneOrder.indexOf(roomSceneId);
+            const fromIndex = sceneOrder.indexOf(effectiveFromSceneId);
             const toIndex = sceneOrder.indexOf(sceneId);
             setRoomSlideDirection(toIndex >= fromIndex ? 1 : -1);
-            setDepartingWasCloseUp(roomSceneId === null);
-            setDepartingRoomSceneId(roomSceneId);
+            setDepartingWasCloseUp(effectiveFromSceneId === null);
+            setDepartingRoomSceneId(effectiveFromSceneId);
             // animationend performs normal cleanup. This is only a fallback
             // for interrupted animations; a busy phone must finish its slide
             // before we remove the outgoing layers.
@@ -1509,15 +1516,21 @@ const CustomizeFramePage = ({
         touchGestureStartRef.current = { x: touch.clientX, y: touch.clientY };
     };
 
-    const handleMobileTouchMove = (event) => {
-        if (!window.matchMedia('(hover: none), (pointer: coarse)').matches) return;
-        // The visualizer owns swipes. Let max-zoom retain native panning, but
-        // keep ordinary scene gestures from bubbling into the page's mobile
-        // customizer scroll container.
-        if (isMaxZoom) return;
-        if (event.target.closest?.('button, input, [role="button"]')) return;
-        event.preventDefault();
-    };
+    useEffect(() => {
+        const zone = zoneRef.current;
+        if (!zone) return undefined;
+        const onTouchMove = (event) => {
+            if (!window.matchMedia('(hover: none), (pointer: coarse)').matches) return;
+            // The visualizer owns swipes. Let max-zoom retain native panning, but
+            // keep ordinary scene gestures from bubbling into the page's mobile
+            // customizer scroll container.
+            if (isMaxZoom) return;
+            if (event.target?.closest?.('button, input, [role="button"]')) return;
+            if (event.cancelable) event.preventDefault();
+        };
+        zone.addEventListener('touchmove', onTouchMove, { passive: false });
+        return () => zone.removeEventListener('touchmove', onTouchMove);
+    }, [isMaxZoom]);
 
     const handleMobileGestureEnd = (event) => {
         if (event.target.closest?.('button, input, [role="button"]')) return;
@@ -2055,7 +2068,8 @@ const CustomizeFramePage = ({
     // near-black instead of standing out. Once the wall is dark enough that
     // treatment stops working, switch to plain light text with no blend
     // mode, which stays legible against any solid color.
-    const activeRoom = roomSceneId ? ROOM_SCENES.find((s) => s.id === roomSceneId) : null;
+    const activeRoomSceneId = roomSceneId || mobileRoomReturnSceneId;
+    const activeRoom = activeRoomSceneId ? ROOM_SCENES.find((s) => s.id === activeRoomSceneId) : null;
     // Studio Loft is the neutral first preview shown before a room has been
     // selected from the picker.
     const sceneHintPreview = ROOM_SCENES.find((scene) => scene.id === 'studio-loft') || ROOM_SCENES[0];
@@ -2085,7 +2099,7 @@ const CustomizeFramePage = ({
         : null;
     const roomLayout = computeRoomLayout(activeRoom, zoneSize.width, zoneSize.height);
     const roomCannotFit = Boolean(roomPlacement?.tooTall || roomPlacement?.overflows)
-        && !isHovered && !isMaxZoom && !isFullScreen;
+        && !isRoomZoomed && !isMaxZoom && !isFullScreen;
 
     const wallLuminance = (() => {
         const hex = wallColor.hex.replace('#', '');
@@ -2094,7 +2108,7 @@ const CustomizeFramePage = ({
         const b = parseInt(hex.substring(4, 6), 16);
         return (0.299 * r + 0.587 * g + 0.114 * b) / 255;
     })();
-    const isDarkWall = activeRoom?.image && !isHovered && !isMaxZoom && !isFullScreen ? false : wallLuminance < 0.5;
+    const isDarkWall = activeRoom?.image && !isRoomZoomed && !isMaxZoom && !isFullScreen ? false : wallLuminance < 0.5;
     const wallInkClass = isDarkWall ? 'text-stone-100' : 'text-stone-800';
     const wallInkBorderClass = isDarkWall ? 'border-stone-100' : 'border-stone-800';
     const wallInkBgClass = isDarkWall ? 'bg-stone-100' : 'bg-stone-800';
@@ -2115,7 +2129,7 @@ const CustomizeFramePage = ({
             key={`backdrop-plain-${phase}`}
             onAnimationEnd={finishRoomSceneTransition}
             className={`absolute inset-0 pointer-events-none z-[1] ${phase === 'outgoing' ? 'room-scene-slide-out' : 'room-scene-slide-in'} ${
-                isHovered || isMaxZoom || isFullScreen ? 'opacity-0' : 'opacity-100'
+                isRoomZoomed || isMaxZoom || isFullScreen ? 'opacity-0' : 'opacity-100'
             }`}
             style={{ backgroundColor: wallColor.hex, '--room-slide-dir': roomSlideDirection }}
             aria-hidden="true"
@@ -2140,7 +2154,7 @@ const CustomizeFramePage = ({
                 key={`backdrop-${room.id}`}
                 onAnimationEnd={finishRoomSceneTransition}
                 className={`absolute inset-0 pointer-events-none transition-opacity ${ZOOM_MOTION} ${layerClass} ${
-                    isHovered || isMaxZoom || isFullScreen ? 'opacity-0' : 'opacity-100'
+                    isRoomZoomed || isMaxZoom || isFullScreen ? 'opacity-0' : 'opacity-100'
                 }`}
                 style={{ overflow: 'hidden', isolation: 'isolate', backgroundColor: wallColor.hex, '--room-slide-dir': roomSlideDirection }}
                 aria-hidden="true"
@@ -2190,7 +2204,7 @@ const CustomizeFramePage = ({
             <div
                 key={`foreground-${room.id}`}
                 className={`room-scene-foreground absolute inset-0 pointer-events-none transition-opacity ${ZOOM_MOTION} ${layerClass} ${
-                    isHovered || isMaxZoom || isFullScreen ? 'opacity-0' : 'opacity-100'
+                    isRoomZoomed || isMaxZoom || isFullScreen ? 'opacity-0' : 'opacity-100'
                 }`}
                 style={{ overflow: 'hidden', '--room-slide-dir': roomSlideDirection }}
                 aria-hidden="true"
@@ -2341,7 +2355,7 @@ const CustomizeFramePage = ({
                     leaving the visualizer and plain view completely alone and clean.
                     On mobile, the compact indicator / hint remains in the top toolbar. */}
                 {!isSideBySide ? (
-                    showSceneHint && hasImage && !roomSceneId && !isFullScreen && !isMaxZoom ? (
+                    showSceneHint && hasImage && !roomSceneId && !isMobileRoomCloseUp && !isFullScreen && !isMaxZoom ? (
                         <aside
                             aria-label="Room scene preview hint"
                             onMouseEnter={() => {
@@ -2409,7 +2423,7 @@ const CustomizeFramePage = ({
                         <SceneDotThumb
                             activeId={roomSceneId}
                             onSelect={selectRoomScene}
-                            framePreview={activeRoom && uploadedImage ? {
+                            framePreview={roomSceneId && activeRoom && uploadedImage ? {
                                 leftPct: 50,
                                 topPct: 42,
                                 widthPct: 14,
@@ -2590,7 +2604,6 @@ const CustomizeFramePage = ({
                                 : 'inset-0 h-full'
                         }`}
                         onTouchStart={handleMobileTouchStart}
-                        onTouchMove={handleMobileTouchMove}
                         onTouchEnd={handleMobileGestureEnd}
                     >
 
@@ -2687,7 +2700,7 @@ const CustomizeFramePage = ({
                                 // once those are hidden, so it's always shown as large as
                                 // possible instead of requiring a hover to reveal that. Plain
                                 // wall now joins that list per isZoomedByDefault above.
-                                if (!isHovered && !isMaxZoom && !isFullScreen && !isZoomedByDefault) return 1.0;
+                                if (!isRoomZoomed && !isMaxZoom && !isFullScreen && !isZoomedByDefault) return 1.0;
 
                                 // Calculate unzoomed dimensions in pixels relative to the physical container
                                 const baseWidthPx = (frameWidthPct / 100) * zoneSize.width;
@@ -2903,7 +2916,7 @@ const CustomizeFramePage = ({
                                     viewportWidth: zoneSize.width, viewportHeight: zoneSize.height,
                                 })
                                 : null;
-                            const displayedFrameWidthPct = isHovered || isMaxZoom || isFullScreen || isZoomedByDefault
+                            const displayedFrameWidthPct = isRoomZoomed || isMaxZoom || isFullScreen || isZoomedByDefault
                                 ? frameWidthPct * zoomScale
                                 : frameWidthPct;
                             // isMaxZoom is excluded from isSharedPreviewView by
@@ -2926,7 +2939,7 @@ const CustomizeFramePage = ({
                             // the frame's overall size is room-specific now, but
                             // its moulding shouldn't visibly lurch on top of that.
                             const shouldUseSixtyBySixtyMouldingReference = (
-                                isSharedPreviewView || (isHovered && activeRoom && !isMaxZoom && !isFullScreen)
+                                isSharedPreviewView || (isRoomZoomed && activeRoom && !isMaxZoom && !isFullScreen)
                             );
                             if (shouldUseSixtyBySixtyMouldingReference) {
                                 const SIXTY_CM_INNER = 60;
@@ -3040,14 +3053,14 @@ const CustomizeFramePage = ({
                             // without a 0ms justify-content jump.
                             const roomSceneVerticalOffsetPx = (() => {
                                 if (!roomLayout || !roomPlacement || isMaxZoom) return 0;
-                                if (isHovered || isFullScreen) {
+                                if (isRoomZoomed || isFullScreen) {
                                     return Math.max(0, (zoneSize.height - baseFrameHeightPx) / 2);
                                 }
                                 return restingRoomVerticalOffsetPx;
                             })();
 
                             const roomSceneHorizontalOffsetPx = (() => {
-                                if (!roomLayout || !roomPlacement || isHovered || isMaxZoom || isFullScreen) return 0;
+                                if (!roomLayout || !roomPlacement || isRoomZoomed || isMaxZoom || isFullScreen) return 0;
                                 return restingRoomHorizontalOffsetPx;
                             })();
 
@@ -3074,7 +3087,8 @@ const CustomizeFramePage = ({
                             };
 
                             const handleFramePointerEnterOrMove = (event) => {
-                                if (isHovered || isMaxZoom || isFullScreen) return;
+                                if (isRoomZoomed || isMaxZoom || isFullScreen) return;
+                                if (!window.matchMedia('(hover: hover)').matches) return;
                                 if (activeRoom) {
                                     const restingBounds = getRestingRoomFrameBounds();
                                     const insideRestingFrame = Boolean(
@@ -3136,9 +3150,9 @@ const CustomizeFramePage = ({
                             // changes the preview crop; the uploaded source is untouched.
                             // Keep measurement guides in one predictable place across
                             // Close-Up and room scenes: width below, height on the right.
-                            const dimHorizontalClass = isHovered || isZoomedByDefault ? 'top-full mt-6' : 'top-full mt-4';
-                            const dimVerticalClass = isHovered || isZoomedByDefault ? '-right-6' : '-right-4';
-                            const dimFontSizePx = isHovered || isZoomedByDefault ? 14 : Math.max(8, Math.min(10, baseFrameWidthPx / 12));
+                            const dimHorizontalClass = isRoomZoomed || isZoomedByDefault ? 'top-full mt-6' : 'top-full mt-4';
+                            const dimVerticalClass = isRoomZoomed || isZoomedByDefault ? '-right-6' : '-right-4';
+                            const dimFontSizePx = isRoomZoomed || isZoomedByDefault ? 14 : Math.max(8, Math.min(10, baseFrameWidthPx / 12));
 
                             return (
                                 <div
@@ -3183,7 +3197,7 @@ const CustomizeFramePage = ({
                                     className={`relative select-none transition-[width,margin,transform,box-shadow] ${isTransitioning ? `scene-frame-transition ${ROOM_SCENE_MOTION}` : ZOOM_MOTION} ${
                                         isMaxZoom && !isFullScreen ? 'cursor-zoom-out' : isFullScreen ? '' : 'cursor-zoom-in'
                                     } ${
-                                        isHovered || isZoomSettling || isMaxZoom || isFullScreen || isZoomedByDefault ? 'z-40' : 'z-10'
+                                        isRoomZoomed || isZoomSettling || isMaxZoom || isFullScreen || isZoomedByDefault ? 'z-40' : 'z-10'
                                     }`}
                                     style={{
                                         width: `${adjustedDisplayedFrameWidthPct}%`,
@@ -3193,7 +3207,7 @@ const CustomizeFramePage = ({
                                         marginLeft: `${pushRightAmount}px`,
                                         boxShadow: getFrameWallShadow(
                                             renderedFrame || selectedFrame,
-                                            isHovered || isMaxZoom || isFullScreen || isZoomedByDefault
+                                            isRoomZoomed || isMaxZoom || isFullScreen || isZoomedByDefault
                                         ),
                                         // -11px is a fixed horizontal nudge for the frame's own
                                         // drop shadow (shadow-[...25px_50px...] renders
