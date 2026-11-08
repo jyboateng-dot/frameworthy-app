@@ -1,13 +1,13 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { usePaystackPayment } from 'react-paystack';
+import { PayPalButtons, PayPalScriptProvider } from '@paypal/react-paypal-js';
 import { httpsCallable } from 'firebase/functions';
 import emailjs from '@emailjs/browser';
 import { useCart } from '../../context/CartContext';
 import { useAuth } from '../../context/AuthContext';
 import { createOrder, getUserDeliveryAddresses } from '../../services/db';
 import { functions } from '../../services/firebase';
-import { CreditCard, Ticket, ShieldCheck, Loader, X, Smartphone, Copy, Check, Hammer, Truck } from 'lucide-react';
+import { Ticket, ShieldCheck, Loader, X, Copy, Check, Hammer, Truck } from 'lucide-react';
 import { getItemTitle, getItemSubtitle, generateItemDescription, formatDimensionWithOrientation, getItemCustomizerSpecs } from '../../utils/itemFormatters';
 import { formatDimensions } from '../../data/constants';
 import { useUnit } from '../../context/UnitContext';
@@ -25,27 +25,30 @@ import { quoteCheckoutDestination } from '../../services/checkoutDelivery';
 import { isGbJerseyCountry, isValidDeliveryPostalCode, normalizePostalCode } from '../../utils/deliveryAddress';
 
 const PAYSTACK_PUBLIC_KEY = import.meta.env.VITE_PAYSTACK_PUBLIC_KEY;
+const PAYPAL_CLIENT_ID = import.meta.env.VITE_PAYPAL_CLIENT_ID;
 const EMAILJS_SERVICE_ID = import.meta.env.VITE_EMAILJS_SERVICE_ID;
 const EMAILJS_TEMPLATE_ID = import.meta.env.VITE_EMAILJS_TEMPLATE_ID;
 const EMAILJS_PUBLIC_KEY = import.meta.env.VITE_EMAILJS_PUBLIC_KEY;
 const verifyPaystackPayment = httpsCallable(functions, 'verifyPaystackPayment');
+const createPayPalOrder = httpsCallable(functions, 'createPayPalOrder');
+const capturePayPalOrder = httpsCallable(functions, 'capturePayPalOrder');
 
 // Best-effort — a failed confirmation email shouldn't block checkout, since
 // the order is already paid and verified by this point.
-const sendOrderConfirmationEmail = ({ email, orderId, items, total, address, line2, city, stateOrCounty, postalOrZipCode, phone, promoCode, promoDiscount, unit }) => {
+const sendOrderConfirmationEmail = ({ email, orderId, items, total, address, line2, city, stateOrCounty, postalOrZipCode, phone, promoCode, promoDiscount, unit, currency = 'GHS' }) => {
     if (!EMAILJS_SERVICE_ID || !EMAILJS_TEMPLATE_ID || !EMAILJS_PUBLIC_KEY) return;
 
     const orderItemsText = items
-        .map(item => `${item.quantity || 1}x ${generateItemDescription(item)} (${formatDimensions(item.isPreset && item.presetDims ? item.presetDims : item.selectedSize?.label || 'Custom Size', unit, item.orientation)}) — GHS ${item.totalPrice.toFixed(2)}`)
+        .map(item => `${item.quantity || 1}x ${generateItemDescription(item)} (${formatDimensions(item.isPreset && item.presetDims ? item.presetDims : item.selectedSize?.label || 'Custom Size', unit, item.orientation)}) — ${currency} ${item.totalPrice.toFixed(2)}`)
         .join('\n')
-        + (promoCode ? `\n\nPromo applied: ${promoCode} (- GHS ${promoDiscount.toFixed(2)})` : '');
+        + (promoCode ? `\n\nPromo applied: ${promoCode} (- ${currency} ${promoDiscount.toFixed(2)})` : '');
 
     emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
         email,
         order_id: orderId,
         order_date: new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }),
         order_items: orderItemsText,
-        order_total: `GHS ${total.toFixed(2)}`,
+        order_total: `${currency} ${total.toFixed(2)}`,
         shipping_address: [address, line2, [city, stateOrCounty, postalOrZipCode].filter(Boolean).join(', '), phone].filter(Boolean).join('\n'),
         to_name: email.split('@')[0]
     }, { publicKey: EMAILJS_PUBLIC_KEY }).catch(err => {
@@ -109,7 +112,7 @@ const CheckoutPage = () => {
 
     // Paystack's own popup collects the actual card/mobile money details —
     // this only picks which channel it opens to, passed via `channels` below.
-    const [paymentMethod, setPaymentMethod] = useState('momo');
+    const [paymentMethod] = useState('momo');
 
     const [fullName, setFullName] = useState(user ? user.displayName || '' : '');
     const [email, setEmail] = useState(user ? user.email || '' : '');
@@ -173,6 +176,7 @@ const CheckoutPage = () => {
     }, [user, prodigiDestination]);
 
     const handleAddressSelect = (e) => {
+        setPaypalCheckout(null);
         const val = e.target.value;
         setSelectedAddressId(val);
         if (val === 'new') {
@@ -197,6 +201,7 @@ const CheckoutPage = () => {
 
     const handleFieldChange = (setter) => (e) => {
         deliveryEditedRef.current = true;
+        setPaypalCheckout(null);
         setter(e.target.value);
         if (selectedAddressId !== 'new' && selectedAddressId !== 'custom') {
             setSelectedAddressId('custom');
@@ -205,6 +210,7 @@ const CheckoutPage = () => {
 
     const updateDeliveryAddress = (updates) => {
         deliveryEditedRef.current = true;
+        setPaypalCheckout(null);
         const setters = { line1: setDeliveryAddress, line2: setAddressLine2, city: setCity, stateOrCounty: setStateOrCounty, postalOrZipCode: setPostalOrZipCode };
         Object.entries(updates).forEach(([key, value]) => setters[key]?.(value));
         setSelectedAddressId('custom');
@@ -215,6 +221,7 @@ const CheckoutPage = () => {
         const request = ++destinationRequest.current;
         const snapshot = JSON.stringify(checkoutItems);
         setIsUpdatingCountry(true);
+        setPaypalCheckout(null);
         setCountryError('');
         try {
             const updates = await quoteCheckoutDestination(checkoutItems, countryCode);
@@ -237,6 +244,7 @@ const CheckoutPage = () => {
     };
 
     const [isProcessing, setIsProcessing] = useState(false);
+    const [paypalCheckout, setPaypalCheckout] = useState(null);
     const [error, setError] = useState('');
     // Deliberately closing the Paystack popup isn't a failure — it gets a
     // neutral notice rather than the red error treatment used for real
@@ -266,18 +274,21 @@ const CheckoutPage = () => {
         }
     };
 
-    // Base config only needs the public key — the per-checkout reference,
-    // email, and amount are supplied as an override at call time (see
-    // initializePayment below), since a hook-level config would go stale
-    // across multiple submit attempts within the same page render.
-    const initializePayment = usePaystackPayment({ publicKey: PAYSTACK_PUBLIC_KEY });
+    // Paystack is shelved. Its historical server-side verification remains
+    // deployed solely for existing pending records, but it is no longer
+    // imported or reachable through the customer checkout.
+    const initializePayment = () => {};
 
     const handleCheckoutSubmit = (e) => {
         e.preventDefault();
 
         if (isUpdatingCountry) return;
-        if (isGbpProdigiCheckout) {
-            setError('GBP payment is not available yet. Your configured items remain saved in the cart.');
+        if (checkoutCurrency !== 'GBP') {
+            setError('This order needs a current GBP product quote before it can be paid for.');
+            return;
+        }
+        if (checkoutCurrency === 'GBP' && !PAYPAL_CLIENT_ID) {
+            setError('Online payment is being set up. Your configured items remain saved in the cart.');
             return;
         }
         if (hasMixedCurrencies) {
@@ -386,10 +397,9 @@ const CheckoutPage = () => {
             currency: checkoutCurrency,
             promoCode: appliedPromo?.code || null,
             promoDiscount: appliedPromo ? promoDiscount : 0,
-            paymentMethodDetails: { type: paymentMethod },
-            // Orders always start pending — only the verifyPaystackPayment
-            // Cloud Function (after checking with Paystack server-side) is
-            // allowed to flip this to 'paid'; enforced in firestore.rules too.
+            paymentMethodDetails: { type: checkoutCurrency === 'GBP' ? 'paypal' : paymentMethod },
+            // Orders always start pending. A server-side payment verification
+            // function is the only path allowed to flip this to paid.
             paymentStatus: 'pending'
         };
 
@@ -422,6 +432,13 @@ const CheckoutPage = () => {
                 console.error('Order creation failed:', err);
                 setError('We had trouble starting your order. Please try again.');
                 setIsProcessing(false);
+                return;
+            }
+
+            if (checkoutCurrency === 'GBP') {
+                setPaypalCheckout({ orderId, attemptKey });
+                setIsProcessing(false);
+                setNotice('Your details are saved. Complete payment securely with PayPal below.');
                 return;
             }
 
@@ -525,6 +542,41 @@ const CheckoutPage = () => {
         })();
     };
 
+    const finishPayPalCheckout = async (paypalOrderId) => {
+        if (!paypalCheckout?.orderId) throw new Error('Your checkout session has expired. Please try again.');
+        setIsProcessing(true);
+        setError('');
+        try {
+            const result = await capturePayPalOrder({ orderId: paypalCheckout.orderId, paypalOrderId });
+            if (!result.data?.success) throw new Error('PayPal could not confirm the payment.');
+            sendOrderConfirmationEmail({
+                email,
+                orderId: paypalCheckout.orderId,
+                items: checkoutItems,
+                total: finalTotal,
+                address: deliveryAddress,
+                line2: addressLine2,
+                city,
+                stateOrCounty,
+                postalOrZipCode: normalizePostalCode(postalOrZipCode),
+                phone: phoneNumber,
+                promoCode: appliedPromo?.code || null,
+                promoDiscount: appliedPromo ? promoDiscount : 0,
+                unit,
+                currency: checkoutCurrency,
+            });
+            removeItems(checkoutItems.map(item => item.id));
+            navigate('/success', {
+                state: { orderId: paypalCheckout.orderId, reference: paypalOrderId, email, total: finalTotal, isGuest: !user },
+            });
+        } catch (err) {
+            console.error('PayPal payment capture failed:', err);
+            setError(err.message || 'We could not confirm your PayPal payment. Please try again.');
+            setIsProcessing(false);
+            throw err;
+        }
+    };
+
     if (checkoutItems.length === 0) return null;
 
     return (
@@ -541,7 +593,7 @@ const CheckoutPage = () => {
                     <h2 id="contact-heading" className="mb-4 text-sm font-bold">Contact</h2>
                     <div className="space-y-3">
                         <label className="block text-xs font-medium text-stone-700">Email
-                            <input id="checkout-email" name="email" type="email" autoComplete="email" required value={email} onChange={event => setEmail(event.target.value)} className="mt-1 w-full rounded-lg border border-stone-200 px-3 py-2.5 text-base focus:outline-none focus:ring-2 focus:ring-[#c9a84c]" />
+                            <input id="checkout-email" name="email" type="email" autoComplete="email" required value={email} onChange={event => { setPaypalCheckout(null); setEmail(event.target.value); }} className="mt-1 w-full rounded-lg border border-stone-200 px-3 py-2.5 text-base focus:outline-none focus:ring-2 focus:ring-[#c9a84c]" />
                         </label>
                         <div className="grid gap-3 sm:grid-cols-2">
                             <label className="block text-xs font-medium text-stone-700">Full name
@@ -569,25 +621,45 @@ const CheckoutPage = () => {
                 {(hasMixedCurrencies || prodigiDestinations.length > 1) && <p role="alert" className="rounded-xl bg-amber-50 p-4 text-sm text-amber-900">Your selected items have different currencies or delivery countries. Please choose one destination for all items or check them out separately.</p>}
 
                 {/* Payment Method */}
-                {isGbpProdigiCheckout ? (
-                    <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
-                        <h3 className="font-bold text-sm text-amber-950">Payment coming soon</h3>
-                        <p className="mt-1 text-xs leading-5 text-amber-900">Your items are saved in your cart. Online payment is not available yet.</p>
+                {checkoutCurrency === 'GBP' ? (
+                    <div className="rounded-xl border border-stone-200 bg-white p-4 shadow-sm">
+                        <div className="flex items-center justify-between gap-3">
+                            <div>
+                                <h3 className="text-sm font-bold text-stone-900">Pay securely with PayPal</h3>
+                                <p className="mt-1 text-xs leading-5 text-stone-600">Pay by PayPal or use an eligible card through PayPal’s secure checkout.</p>
+                            </div>
+                            <ShieldCheck size={20} className="shrink-0 text-[#c9a84c]" />
+                        </div>
+                        {!PAYPAL_CLIENT_ID ? (
+                            <p className="mt-3 rounded-lg bg-stone-50 px-3 py-2 text-xs text-stone-600">Online payment is being set up. Please check back shortly.</p>
+                        ) : paypalCheckout ? (
+                            <div className="mt-4 border-t border-stone-100 pt-4">
+                                <PayPalScriptProvider options={{ clientId: PAYPAL_CLIENT_ID, currency: 'GBP', intent: 'capture', components: 'buttons' }}>
+                                    <PayPalButtons
+                                        style={{ layout: 'vertical', shape: 'rect', label: 'paypal', tagline: false }}
+                                        forceReRender={[paypalCheckout.orderId, finalTotal]}
+                                        disabled={isProcessing}
+                                        createOrder={async () => {
+                                            const result = await createPayPalOrder({ orderId: paypalCheckout.orderId });
+                                            if (!result.data?.id) throw new Error('Could not start PayPal checkout.');
+                                            return result.data.id;
+                                        }}
+                                        onApprove={(data) => finishPayPalCheckout(data.orderID)}
+                                        onCancel={() => setNotice('PayPal checkout cancelled — your order is saved, and you can try again whenever you are ready.')}
+                                        onError={(err) => {
+                                            console.error('PayPal checkout error:', err);
+                                            setError('PayPal could not start checkout. Please try again.');
+                                        }}
+                                    />
+                                </PayPalScriptProvider>
+                            </div>
+                        ) : (
+                            <p className="mt-3 text-xs text-stone-500">Enter your delivery details, then choose Continue to PayPal.</p>
+                        )}
                     </div>
-                ) : <div className="bg-white rounded-xl shadow-sm overflow-hidden p-4">
-                    <h3 className="font-bold text-sm text-stone-900 mb-3">Payment Method</h3>
-                    
-                    <div className="grid grid-cols-2 gap-3">
-                        <button type="button" onClick={() => setPaymentMethod('momo')} className={`py-2 rounded border text-sm font-bold flex items-center justify-center gap-2 ${paymentMethod === 'momo' ? 'border-stone-900 bg-stone-900 text-white' : 'border-stone-200 text-stone-600'}`}>
-                            <Smartphone size={16} /> Mobile Money
-                        </button>
-                        <button type="button" onClick={() => setPaymentMethod('card')} className={`py-2 rounded border text-sm font-bold flex items-center justify-center gap-2 ${paymentMethod === 'card' ? 'border-stone-900 bg-stone-900 text-white' : 'border-stone-200 text-stone-600'}`}>
-                            <CreditCard size={16} /> Card
-                        </button>
-                    </div>
-                    <p className="text-xs text-stone-600 mt-3">
-                        You'll enter your {paymentMethod === 'momo' ? 'Mobile Money' : 'card'} details securely on the next step — you can still switch there if you change your mind.
-                    </p>
+                ) : <div className="rounded-xl border border-stone-200 bg-white p-4 shadow-sm">
+                    <h3 className="text-sm font-bold text-stone-900">Online checkout</h3>
+                    <p className="mt-1 text-xs leading-5 text-stone-600">Prices are charged in GBP. Choose a GBP delivery quote to continue.</p>
                 </div>}
 
                 {/* Items Container */}
@@ -839,7 +911,7 @@ const CheckoutPage = () => {
                     <div className="flex flex-col">
                         <div className="text-[10px] text-stone-500 flex items-center gap-1 mb-0.5">
                             <ShieldCheck size={12} className="text-green-600" />
-                            {isGbpProdigiCheckout ? 'GBP quote' : 'Secured by Paystack'}
+                            {checkoutCurrency === 'GBP' ? 'Secured by PayPal' : 'GBP quote required'}
                         </div>
                         <div className="flex items-baseline gap-1">
                             <span className="text-xs font-bold text-stone-800">Total:</span>
@@ -849,11 +921,11 @@ const CheckoutPage = () => {
                     
                     <button 
                         type="submit"
-                        disabled={isProcessing || isGbpProdigiCheckout || hasMixedCurrencies || isUpdatingCountry || prodigiDestinations.length > 1}
+                        disabled={isProcessing || hasMixedCurrencies || isUpdatingCountry || prodigiDestinations.length > 1 || checkoutCurrency !== 'GBP' || (checkoutCurrency === 'GBP' && (!PAYPAL_CLIENT_ID || paypalCheckout))}
                         className="bg-[#c9a84c] text-[#0a0a0a] px-8 py-3 rounded-full font-bold text-sm flex items-center gap-2 disabled:opacity-50 transition-colors shadow-lg shadow-[#c9a84c]/20 hover:bg-[#d4b55c]"
                     >
                         {isProcessing ? <Loader size={16} className="animate-spin" /> : null}
-                        {isProcessing ? 'Processing...' : isGbpProdigiCheckout ? 'Payment coming soon' : 'Pay now'}
+                        {isProcessing ? 'Processing...' : checkoutCurrency === 'GBP' ? (paypalCheckout ? 'PayPal ready' : 'Continue to PayPal') : 'GBP quote required'}
                     </button>
                 </div>
             </form>

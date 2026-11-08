@@ -31,7 +31,7 @@ const SLIDES = [
             'Museum-quality art & iconic prints',
             'Premium frame styles & custom sizing',
             'Realistic room visualizer',
-            'Secure checkout — card & Mobile Money',
+            'Secure checkout — PayPal & eligible cards',
         ],
     },
     {

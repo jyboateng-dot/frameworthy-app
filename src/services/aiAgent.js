@@ -65,9 +65,9 @@ export function getLocalAiResponse(userMessage) {
         return "The current collection delivers to the United Kingdom and Jersey. Standard delivery and applicable tax are included in the live GBP quote, and the delivery estimate is shown for the selected product.";
     }
 
-    // 8. Payment Methods & Paystack
-    if (matchAny(text, ['pay', 'payment', 'payments', 'momo', 'mobile money', 'telecel', 'at money', 'mtn', 'card', 'visa', 'mastercard', 'paystack', 'cedi', 'ghs', 'currency', 'buy', 'checkout'])) {
-        return "Prices are currently quoted in GBP. Online payment for this collection is being connected, and checkout clearly shows when payment is not yet available.";
+    // 8. Payment Methods
+    if (matchAny(text, ['pay', 'payment', 'payments', 'card', 'visa', 'mastercard', 'paypal', 'currency', 'buy', 'checkout'])) {
+        return "Prices are quoted in GBP. PayPal securely processes payment for the current collection, including eligible cards through its checkout.";
     }
 
     // 9. Orders & Status

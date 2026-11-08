@@ -43,11 +43,97 @@ exports.archivalArtworks = onRequest({
 // Stored in Secret Manager via `firebase functions:secrets:set PAYSTACK_SECRET_KEY`
 // — never committed to source, never sent to the client.
 const paystackSecretKey = defineSecret('PAYSTACK_SECRET_KEY');
+// PayPal credentials are deliberately split: the client ID is safe to ship
+// with the checkout button, while the secret is available only to these
+// server-side functions. Configure both through Firebase Secret Manager.
+const paypalClientId = defineSecret('PAYPAL_CLIENT_ID');
+const paypalClientSecret = defineSecret('PAYPAL_CLIENT_SECRET');
+const paypalWebhookId = defineSecret('PAYPAL_WEBHOOK_ID');
 const prodigiApiKey = defineSecret('PRODIGI_API_KEY');
 const prodigiCallbackToken = defineSecret('PRODIGI_CALLBACK_TOKEN');
 const replicateApiToken = defineSecret('REPLICATE_API_TOKEN');
 
 const prodigiEnvironment = () => process.env.PRODIGI_ENVIRONMENT === 'live' ? 'live' : 'sandbox';
+const paypalEnvironment = () => process.env.PAYPAL_ENVIRONMENT === 'live' ? 'live' : 'sandbox';
+const paypalApiBaseUrl = () => paypalEnvironment() === 'live'
+    ? 'https://api-m.paypal.com'
+    : 'https://api-m.sandbox.paypal.com';
+
+const readJson = async (response) => {
+    try {
+        return await response.json();
+    } catch {
+        return null;
+    }
+};
+
+async function getPayPalAccessToken() {
+    let response;
+    try {
+        response = await fetch(`${paypalApiBaseUrl()}/v1/oauth2/token`, {
+            method: 'POST',
+            headers: {
+                Authorization: `Basic ${Buffer.from(`${paypalClientId.value()}:${paypalClientSecret.value()}`).toString('base64')}`,
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: 'grant_type=client_credentials',
+            signal: AbortSignal.timeout(10_000),
+        });
+    } catch (error) {
+        logger.error('PayPal token request failed', { message: error.message });
+        throw new HttpsError('unavailable', 'Could not reach PayPal');
+    }
+
+    const body = await readJson(response);
+    if (!response.ok || !body?.access_token) {
+        logger.error('PayPal token request was rejected', { status: response.status, body });
+        throw new HttpsError('failed-precondition', 'PayPal is not configured correctly');
+    }
+    return body.access_token;
+}
+
+async function callPayPal(path, { method = 'GET', body, requestId } = {}) {
+    const accessToken = await getPayPalAccessToken();
+    let response;
+    try {
+        response = await fetch(`${paypalApiBaseUrl()}${path}`, {
+            method,
+            headers: {
+                Authorization: `Bearer ${accessToken}`,
+                'Content-Type': 'application/json',
+                ...(requestId ? { 'PayPal-Request-Id': requestId } : {}),
+            },
+            ...(body ? { body: JSON.stringify(body) } : {}),
+            signal: AbortSignal.timeout(15_000),
+        });
+    } catch (error) {
+        logger.error('PayPal API request failed', { path, message: error.message });
+        throw new HttpsError('unavailable', 'Could not reach PayPal');
+    }
+    return { response, body: await readJson(response) };
+}
+
+function recomputeServerOrderTotal(orderId, order) {
+    const recomputed = recomputeOrderTotal(order, {
+        prodigiPriceForItem: (item) => {
+            try {
+                const quote = prodigi.verifyRetailQuoteToken(item?.prodigi?.quoteToken, prodigiApiKey.value());
+                const quantity = Number(item?.quantity || 1);
+                if (quote.sku !== item.prodigi.sku || quote.copies !== quantity) return null;
+                const retailTotal = order.currency === 'GBP' ? quote.retailTotalGbp : quote.retailTotalGhs;
+                return Number.isFinite(retailTotal) ? retailTotal / quantity : null;
+            } catch (error) {
+                logger.warn('Invalid Prodigi retail quote on order', { orderId, message: error.message });
+                return null;
+            }
+        },
+    });
+    if (recomputed.error) {
+        logger.error('Could not recompute order total', { orderId, reason: recomputed.error });
+        return null;
+    }
+    return recomputed;
+}
 
 exports.getProdigiQuote = onCall({
     secrets: [prodigiApiKey], region: 'us-central1', timeoutSeconds: 30, maxInstances: 10,
@@ -123,21 +209,9 @@ async function finalizeOrderPayment({ orderId, reference, amount, currency }) {
     // against it would only prove "they paid what they said they'd pay" —
     // a tampered client could claim totalPrice: 1 and pay GHS 1 for a GHS 321
     // frame. The price table in pricing-data.json is the server's own copy.
-    const recomputed = recomputeOrderTotal(order, {
-        prodigiPriceForItem: (item) => {
-            try {
-                const quote = prodigi.verifyRetailQuoteToken(item?.prodigi?.quoteToken, prodigiApiKey.value());
-                const quantity = Number(item?.quantity || 1);
-                if (quote.sku !== item.prodigi.sku || quote.copies !== quantity) return null;
-                return quote.retailTotalGhs / quantity;
-            } catch (error) {
-                logger.warn('Invalid Prodigi retail quote on order', { orderId, message: error.message });
-                return null;
-            }
-        },
-    });
-    if (recomputed.error) {
-        logger.error('Could not recompute order total', { orderId, reference, reason: recomputed.error });
+    const recomputed = recomputeServerOrderTotal(orderId, order);
+    if (!recomputed) {
+        logger.error('Could not recompute order total', { orderId, reference });
         return { ok: false, reason: 'pricing-error' };
     }
 
@@ -342,6 +416,203 @@ exports.paystackWebhook = onRequest({ secrets: [paystackSecretKey, prodigiApiKey
         logger.error('paystackWebhook: unexpected error', { orderId, reference, message: err.message });
         // A genuine transient error (Firestore hiccup) IS worth a retry.
         res.status(500).send('internal error');
+    }
+});
+
+// Creates the PayPal order from the server-computed amount. The browser only
+// receives the resulting PayPal order id; it never gets to choose the amount
+// or currency sent to PayPal.
+exports.createPayPalOrder = onCall({
+    secrets: [paypalClientId, paypalClientSecret, prodigiApiKey], region: 'us-central1', timeoutSeconds: 30, maxInstances: 10,
+}, async (request) => {
+    const { orderId } = request.data || {};
+    if (!orderId || typeof orderId !== 'string') {
+        throw new HttpsError('invalid-argument', 'orderId is required');
+    }
+
+    const orderSnap = await admin.firestore().collection('orders').doc(orderId).get();
+    if (!orderSnap.exists) throw new HttpsError('not-found', 'Order not found');
+    const order = orderSnap.data();
+    if (order.paymentStatus === 'paid') {
+        throw new HttpsError('failed-precondition', 'This order has already been paid');
+    }
+    if (order.currency !== 'GBP') {
+        throw new HttpsError('failed-precondition', 'PayPal checkout is currently available for GBP orders only');
+    }
+
+    const recomputed = recomputeServerOrderTotal(orderId, order);
+    if (!recomputed) throw new HttpsError('failed-precondition', 'Order could not be priced for payment');
+
+    const { response, body } = await callPayPal('/v2/checkout/orders', {
+        method: 'POST',
+        requestId: `fw-create-${orderId}`,
+        body: {
+            intent: 'CAPTURE',
+            purchase_units: [{
+                reference_id: orderId,
+                custom_id: orderId,
+                description: `FrameWorthy order ${orderId}`,
+                amount: { currency_code: 'GBP', value: recomputed.total.toFixed(2) },
+            }],
+            application_context: {
+                brand_name: 'FrameWorthy',
+                user_action: 'PAY_NOW',
+                shipping_preference: 'NO_SHIPPING',
+            },
+        },
+    });
+
+    if (!response.ok || !body?.id) {
+        logger.error('PayPal order creation failed', { orderId, status: response.status, body });
+        throw new HttpsError('unavailable', 'Could not start PayPal checkout');
+    }
+    return { id: body.id };
+});
+
+// Captures a PayPal-approved order and marks the FrameWorthy order paid in
+// one server-controlled flow. Shared by the customer callback and the
+// signed webhook, so a closed browser cannot strand an approved order.
+async function capturePayPalOrderForOrder(orderId, paypalOrderId) {
+
+    const db = admin.firestore();
+    const orderRef = db.collection('orders').doc(orderId);
+    const orderSnap = await orderRef.get();
+    if (!orderSnap.exists) throw new HttpsError('not-found', 'Order not found');
+    const order = orderSnap.data();
+    if (order.paymentStatus === 'paid') return { success: true, alreadyVerified: true };
+    if (order.currency !== 'GBP') throw new HttpsError('failed-precondition', 'PayPal checkout is currently available for GBP orders only');
+
+    const recomputed = recomputeServerOrderTotal(orderId, order);
+    if (!recomputed) throw new HttpsError('failed-precondition', 'Order could not be priced for payment');
+
+    const inspected = await callPayPal(`/v2/checkout/orders/${encodeURIComponent(paypalOrderId)}`);
+    const purchaseUnit = inspected.body?.purchase_units?.[0];
+    if (!inspected.response.ok || purchaseUnit?.custom_id !== orderId
+        || purchaseUnit?.amount?.currency_code !== 'GBP'
+        || Math.round(Number(purchaseUnit?.amount?.value) * 100) !== Math.round(recomputed.total * 100)) {
+        logger.warn('PayPal order did not match FrameWorthy order', { orderId, paypalOrderId });
+        throw new HttpsError('failed-precondition', 'PayPal payment does not match this order');
+    }
+
+    let captured = await callPayPal(`/v2/checkout/orders/${encodeURIComponent(paypalOrderId)}/capture`, {
+        method: 'POST', requestId: `fw-capture-${paypalOrderId}`,
+    });
+    // PayPal may return an idempotency error when a prior capture completed
+    // but the browser never received its response. Fetch the order once more
+    // so a safe retry still finalizes the FrameWorthy order.
+    if (!captured.response.ok) {
+        captured = await callPayPal(`/v2/checkout/orders/${encodeURIComponent(paypalOrderId)}`);
+    }
+
+    const capture = captured.body?.purchase_units?.[0]?.payments?.captures?.[0];
+    if (captured.body?.status !== 'COMPLETED' || capture?.status !== 'COMPLETED'
+        || capture.amount?.currency_code !== 'GBP'
+        || Math.round(Number(capture.amount?.value) * 100) !== Math.round(recomputed.total * 100)) {
+        logger.warn('PayPal capture did not complete', { orderId, paypalOrderId, status: captured.response.status, body: captured.body });
+        throw new HttpsError('failed-precondition', 'PayPal could not confirm this payment');
+    }
+
+    const paymentRef = db.collection('paypalOrders').doc(paypalOrderId);
+    try {
+        await db.runTransaction(async (tx) => {
+            const [paymentSnap, freshOrderSnap] = await Promise.all([tx.get(paymentRef), tx.get(orderRef)]);
+            if (freshOrderSnap.data()?.paymentStatus === 'paid') return;
+            if (paymentSnap.exists && paymentSnap.data().orderId !== orderId) {
+                throw Object.assign(new Error('paypal-order-reused'), { code: 'paypal-order-reused' });
+            }
+            tx.set(paymentRef, {
+                orderId,
+                captureId: capture.id,
+                claimedAt: admin.firestore.FieldValue.serverTimestamp(),
+            });
+            tx.update(orderRef, {
+                paymentStatus: 'paid',
+                paymentProvider: 'paypal',
+                paypalOrderId,
+                paypalCaptureId: capture.id,
+                paypalCapturedAt: admin.firestore.FieldValue.serverTimestamp(),
+            });
+        });
+    } catch (error) {
+        if (error.code === 'paypal-order-reused') {
+            throw new HttpsError('already-exists', 'This PayPal payment has already been used for another order');
+        }
+        throw error;
+    }
+
+    return { success: true, alreadyVerified: false, captureId: capture.id };
+}
+
+exports.capturePayPalOrder = onCall({
+    secrets: [paypalClientId, paypalClientSecret, prodigiApiKey], region: 'us-central1', timeoutSeconds: 30, maxInstances: 10,
+}, async (request) => {
+    const { orderId, paypalOrderId } = request.data || {};
+    if (!orderId || !paypalOrderId || typeof orderId !== 'string' || typeof paypalOrderId !== 'string') {
+        throw new HttpsError('invalid-argument', 'orderId and paypalOrderId are required');
+    }
+    return capturePayPalOrderForOrder(orderId, paypalOrderId);
+});
+
+// PayPal sends this when a buyer approves an order. It is a safety net for
+// the case where the browser closes after approval but before onApprove can
+// call capturePayPalOrder. The event is verified by PayPal before we inspect
+// or capture anything.
+exports.paypalWebhook = onRequest({
+    secrets: [paypalClientId, paypalClientSecret, paypalWebhookId, prodigiApiKey], region: 'us-central1', timeoutSeconds: 30, maxInstances: 10,
+}, async (req, res) => {
+    if (req.method !== 'POST') {
+        res.status(405).send('Method not allowed');
+        return;
+    }
+
+    const verification = await callPayPal('/v1/notifications/verify-webhook-signature', {
+        method: 'POST',
+        body: {
+            auth_algo: req.get('paypal-auth-algo'),
+            cert_url: req.get('paypal-cert-url'),
+            transmission_id: req.get('paypal-transmission-id'),
+            transmission_sig: req.get('paypal-transmission-sig'),
+            transmission_time: req.get('paypal-transmission-time'),
+            webhook_id: paypalWebhookId.value(),
+            webhook_event: req.body,
+        },
+    });
+    if (!verification.response.ok || verification.body?.verification_status !== 'SUCCESS') {
+        logger.warn('paypalWebhook: signature verification failed', { status: verification.response.status });
+        res.status(401).send('Invalid signature');
+        return;
+    }
+
+    if (req.body?.event_type !== 'CHECKOUT.ORDER.APPROVED') {
+        res.status(200).send('ignored');
+        return;
+    }
+
+    const paypalOrderId = req.body?.resource?.id;
+    if (!paypalOrderId || typeof paypalOrderId !== 'string') {
+        logger.warn('paypalWebhook: approved order event missing order id');
+        res.status(200).send('missing order id');
+        return;
+    }
+
+    try {
+        // Derive the internal order id from PayPal itself, not merely the
+        // webhook payload. capturePayPalOrderForOrder verifies it again
+        // before capture, including amount and currency.
+        const inspected = await callPayPal(`/v2/checkout/orders/${encodeURIComponent(paypalOrderId)}`);
+        const orderId = inspected.body?.purchase_units?.[0]?.custom_id;
+        if (!inspected.response.ok || !orderId || typeof orderId !== 'string') {
+            logger.warn('paypalWebhook: approved order could not be matched', { paypalOrderId });
+            res.status(200).send('unmatched order');
+            return;
+        }
+        await capturePayPalOrderForOrder(orderId, paypalOrderId);
+        res.status(200).send('ok');
+    } catch (error) {
+        logger.error('paypalWebhook: capture failed', { paypalOrderId, message: error.message });
+        // Return a retryable status: a temporary PayPal/Firestore failure can
+        // then be delivered again, while capture idempotency keeps retries safe.
+        res.status(500).send('Could not capture order');
     }
 });
 

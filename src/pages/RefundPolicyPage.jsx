@@ -62,7 +62,7 @@ const RefundPolicyPage = ({ navigate }) => (
 
         <LegalSection title="7. Refund Processing Time">
             <p>
-                Approved refunds are issued back to your original payment method via Paystack.
+                Approved refunds are issued back to your original payment method through the payment provider used at checkout.
                 Depending on your bank or mobile money provider, it can take a few business days for
                 the refund to reflect after we process it.
             </p>

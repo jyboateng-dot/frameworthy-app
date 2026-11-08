@@ -40,7 +40,7 @@ const SuccessPage = ({ productMode, setProductMode, navigate }) => {
                 <div className="w-full max-w-sm bg-white border border-stone-200 rounded-xl shadow-sm p-4 mb-8 text-left">
                     {/* Order ID first — it's what the admin dashboard searches
                         on, so it's the fastest way for support to find this
-                        order. The Paystack reference is shown too for
+                        order. The payment reference is also available for
                         payment-side queries. */}
                     <p className="text-[10px] font-bold uppercase tracking-wider text-stone-600 mb-1">
                         Order ID

@@ -58,7 +58,7 @@ export const CAROUSEL_SLIDES = [
     {
         img: '/landing_carousel/frameworthy-checkout.webp',
         title: "Easy, Secure Checkout",
-        text: "Check out as a guest with no account required, review your order before placing it, and complete your payment securely through Paystack."
+        text: "Check out as a guest with no account required, review your order before placing it, and complete your payment securely through PayPal."
     },
     {
         img: '/landing_carousel/slide-delivered-door.webp',

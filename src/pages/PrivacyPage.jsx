@@ -20,7 +20,7 @@ const PrivacyPage = ({ navigate }) => (
             <p><strong>Order &amp; delivery information</strong> — full name, phone number, and delivery address for each order.</p>
             <p><strong>Content you upload</strong> — photos and images you upload to customize a frame.</p>
             <p><strong>Cloud imports</strong> — if you choose an image from Google Drive, Google Picker lets you select the specific file to share with FrameWorthy. We access only that selected image to customize and fulfill your order. We do not browse, edit, or delete other files in your Google Drive.</p>
-            <p><strong>Order &amp; payment history</strong> — the products, customizations, and amounts of orders you place. We do not receive or store your full card number, CVV, or mobile money PIN — those are handled directly by Paystack.</p>
+            <p><strong>Order &amp; payment history</strong> — the products, customizations, and amounts of orders you place. We do not receive or store your full card number or CVV — those are handled directly by PayPal.</p>
             <p><strong>Local device data</strong> — your cart and wishlist are stored in your browser's local storage so they persist between visits, even before you sign in.</p>
         </LegalSection>
 
@@ -38,7 +38,7 @@ const PrivacyPage = ({ navigate }) => (
                 of which processes a limited slice of your data on our behalf:
             </p>
             <p><strong>Firebase (Google)</strong> — account authentication and our order/customer database.</p>
-            <p><strong>Paystack</strong> — secure payment processing for card and mobile money transactions.</p>
+            <p><strong>PayPal</strong> — secure payment processing for PayPal and eligible card transactions.</p>
             <p><strong>ImageKit and Cloudinary</strong> — hosting for the photos you upload, the production files used to print your order, and our image catalogue.</p>
             <p><strong>EmailJS</strong> — sending order confirmations, password resets, and related transactional emails.</p>
             <p>
