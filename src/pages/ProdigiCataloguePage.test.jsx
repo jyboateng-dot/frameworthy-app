@@ -27,7 +27,7 @@ describe('ProdigiCataloguePage', () => {
         expect(screen.getByRole('heading', { name: 'Frame & canvas catalogue' })).toBeInTheDocument();
         expect(screen.getAllByRole('heading', { name: 'Box frame · no mount' })).toHaveLength(2);
         expect(screen.getByText('Estimated total*')).toBeInTheDocument();
-        expect(screen.getByText(/Standard shipping: .* days, tracked/i)).toBeInTheDocument();
+        expect(screen.getByText(/Standard shipping: .* days/i)).toBeInTheDocument();
 
         await user.selectOptions(screen.getByLabelText('Shipping to'), 'GB');
         expect(screen.getByLabelText('Shipping to')).toHaveValue('GB');

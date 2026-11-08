@@ -94,4 +94,38 @@ describe('lookupGuestOrder', () => {
         });
         expect(res.orderId).toBe(ORDER_ID);
     });
+
+    it('returns only the safe Prodigi shipment tracking fields', async () => {
+        await seedGuestOrder({
+            prodigi: {
+                orderId: 'ord_example',
+                status: 'InProgress',
+                shipments: [{
+                    id: 'shp_example',
+                    status: 'Shipped',
+                    carrier: { name: 'Example Courier', service: 'Tracked' },
+                    tracking: { number: 'TRACK123', url: 'https://carrier.example/track/TRACK123' },
+                    items: [{ itemId: 'ori_secret' }],
+                }],
+            },
+        });
+
+        const res = await lookupGuestOrder.run({
+            data: { orderId: ORDER_ID, email: 'guest@example.com' },
+        });
+
+        expect(res.prodigi).toEqual({
+            orderId: 'ord_example',
+            stage: 'InProgress',
+            shipments: [{
+                id: 'shp_example',
+                status: 'Shipped',
+                carrier: 'Example Courier',
+                trackingUrl: 'https://carrier.example/track/TRACK123',
+                trackingNumber: 'TRACK123',
+                dispatchDate: null,
+            }],
+        });
+        expect(JSON.stringify(res)).not.toContain('ori_secret');
+    });
 });

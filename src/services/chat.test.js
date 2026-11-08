@@ -18,7 +18,7 @@ vi.mock('./aiAgent', () => ({
     isHumanHandoffRequested: vi.fn().mockReturnValue(false),
 }));
 // notifyAdminViaEmail now calls the notifyAdminOfChatMessage Cloud Function
-// instead of sending via emailjs directly — mock httpsCallable to return a
+// instead of sending via a browser email client — mock httpsCallable to return a
 // stub so sendMessage's fire-and-forget notification call doesn't throw.
 const notifyAdminOfChatMessageMock = vi.fn().mockResolvedValue({ data: { sent: true } });
 vi.mock('firebase/functions', () => ({

@@ -29,7 +29,7 @@ export const calculateFinalTotal = (subtotal, discount) => Math.max(0, subtotal 
 /**
  * Computes the itemized buildup to the total cost:
  * - Items Subtotal
- * - Delivery / Shipping (Tracked Courier)
+ * - Delivery / Shipping
  * - Tax / VAT
  * - Total
  * Fulfills for United Kingdom & Jersey (GBP) via Prodigi live quote.
@@ -79,7 +79,7 @@ export const computeOrderCostBreakdown = (items = [], currency = 'GBP') => {
             },
             {
                 key: 'delivery',
-                label: 'Tracked Delivery & Packaging',
+                label: 'Delivery & Packaging',
                 amount: hasItemizedQuote ? deliveryCost : 0,
                 badge: hasItemizedQuote ? null : 'Included',
                 description: 'Protective packaging & door-to-door courier',

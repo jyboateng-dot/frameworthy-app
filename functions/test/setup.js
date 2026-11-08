@@ -5,7 +5,7 @@ process.env.PAYPAL_CLIENT_ID = 'test-paypal-client-id';
 process.env.PAYPAL_CLIENT_SECRET = 'test-paypal-client-secret';
 process.env.PAYPAL_WEBHOOK_ID = 'test-paypal-webhook-id';
 process.env.PAYPAL_ENVIRONMENT = 'sandbox';
-process.env.EMAILJS_PRIVATE_KEY = 'test-emailjs-private-key';
+process.env.RESEND_API_KEY = 'test-resend-api-key';
 process.env.GEMINI_API_KEY = 'test-gemini-api-key';
 // Matches the literal value redeemTesterPin.test.js's "master PIN (JYB187)"
 // tests hardcode and assert against — this isn't a real secret value, just

@@ -155,7 +155,7 @@ export const AuthProvider = ({ children }) => {
     // Firebase's own sendPasswordResetEmail — Firebase's built-in auth
     // emails come from a shared, no-reputation noreply@*.firebaseapp.com
     // address that routinely lands in spam; the function instead sends via
-    // the project's own connected Gmail through EmailJS.
+    // the project's verified Resend sending domain.
     const resetPassword = (email) => {
         return sendPasswordResetLink({ email });
     };

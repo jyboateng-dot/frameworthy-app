@@ -616,7 +616,7 @@ export default function LandingPage({ onStartFraming, navigate, setSelectedFrame
                                     <div className="w-8 h-8 rounded-lg bg-stone-50 border border-stone-200/60 flex items-center justify-center shrink-0 mt-0.5">
                                         <Truck size={18} className="text-stone-900" />
                                     </div>
-                                    <span><strong>Fast UK &amp; Jersey delivery:</strong> Direct delivery in 5–7 business days with end-to-end tracking.</span>
+                                    <span><strong>Fast UK &amp; Jersey delivery:</strong> Direct delivery in 5–7 business days.</span>
                                 </li>
                                 <li className="flex items-start gap-3">
                                     <div className="w-8 h-8 rounded-lg bg-stone-50 border border-stone-200/60 flex items-center justify-center shrink-0 mt-0.5">

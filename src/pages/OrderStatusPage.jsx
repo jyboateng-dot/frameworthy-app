@@ -2,8 +2,9 @@ import React, { useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { httpsCallable } from 'firebase/functions';
 import { functions } from '../services/firebase';
-import { Package, Loader, Search, Clock, Truck, CheckCircle } from 'lucide-react';
+import { Package, Loader, Search, Clock, Truck, CheckCircle, ExternalLink } from 'lucide-react';
 import Price from '../components/common/Price';
+import { getCustomerFulfilmentStatus, getProdigiTrackingLinks } from '../utils/prodigiTracking';
 
 // Server-side lookup — guest orders (userId 'guest') can't be read from
 // Firestore directly under the rules, so this goes through the
@@ -56,7 +57,9 @@ const OrderStatusPage = () => {
         }
     };
 
-    const activeStep = result ? Math.max(0, STATUS_STEPS.indexOf(result.status)) : 0;
+    const customerStatus = result ? getCustomerFulfilmentStatus(result) : 'pending';
+    const activeStep = result ? Math.max(0, STATUS_STEPS.indexOf(customerStatus)) : 0;
+    const trackingLinks = getProdigiTrackingLinks(result);
 
     return (
         <div className="min-h-screen bg-[#faf9f8] text-stone-900 font-sans">
@@ -145,6 +148,26 @@ const OrderStatusPage = () => {
                                         </div>
                                     );
                                 })}
+                                {trackingLinks.length > 0 && (
+                                    <div className="mt-5 rounded-lg border border-blue-100 bg-blue-50 p-3">
+                                        <p className="text-xs font-bold uppercase tracking-wider text-blue-900">Delivery tracking</p>
+                                        <div className="mt-2 space-y-2">
+                                            {trackingLinks.map((shipment, index) => (
+                                                <div key={shipment.id || shipment.trackingNumber || index} className="flex flex-wrap items-center justify-between gap-2 text-xs text-blue-900">
+                                                    <span>{shipment.carrier || 'Courier'}{shipment.trackingNumber ? ` · ${shipment.trackingNumber}` : ''}</span>
+                                                    {shipment.trackingUrl && (
+                                                        <a href={shipment.trackingUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 font-bold underline underline-offset-2">
+                                                            Track delivery <ExternalLink size={12} aria-hidden="true" />
+                                                        </a>
+                                                    )}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                                {trackingLinks.length === 0 && result?.prodigi?.orderId && activeStep >= 2 && (
+                                    <p className="mt-5 rounded-lg bg-stone-50 p-3 text-xs text-stone-600">Your courier tracking link will appear here once Prodigi dispatches the parcel.</p>
+                                )}
                             </div>
                         )}
                     </div>

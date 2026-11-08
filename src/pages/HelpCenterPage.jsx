@@ -1,12 +1,8 @@
 import React, { useState } from 'react';
 import { ArrowLeft, Search, MessageCircle, Phone, Mail, FileText, ChevronDown, ArrowRight, Clock, Package, HelpCircle, CheckCircle2 } from 'lucide-react';
-import emailjs from '@emailjs/browser';
 import { useAuth } from '../context/AuthContext';
 import PageMeta from '../components/common/PageMeta';
 
-const EMAILJS_SERVICE_ID = import.meta.env.VITE_EMAILJS_SERVICE_ID;
-const EMAILJS_TEMPLATE_ID = import.meta.env.VITE_EMAILJS_TEMPLATE_ID;
-const EMAILJS_PUBLIC_KEY = import.meta.env.VITE_EMAILJS_PUBLIC_KEY;
 const CONTACT_EMAIL = 'admin@frameworthyco.com';
 
 const FAQ_DATA = [
@@ -136,26 +132,13 @@ const HelpCenterPage = ({ navigate, onOpenChat }) => {
         setFormStatus({ submitting: true, success: false, error: null });
 
         try {
-            if (EMAILJS_SERVICE_ID && EMAILJS_TEMPLATE_ID && EMAILJS_PUBLIC_KEY) {
-                await emailjs.send(
-                    EMAILJS_SERVICE_ID,
-                    EMAILJS_TEMPLATE_ID,
-                    {
-                        user_name: formName || 'Customer',
-                        user_email: formEmail,
-                        order_id: formOrderNum || 'N/A',
-                        subject: formSubject || 'Help Centre Inquiry',
-                        message: formMessage,
-                    },
-                    EMAILJS_PUBLIC_KEY
-                );
-            } else {
-                // Fallback: Open mailto link
-                const mailtoUrl = `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(formSubject || 'Customer Support Request')}&body=${encodeURIComponent(
-                    `Name: ${formName}\nEmail: ${formEmail}\nOrder #: ${formOrderNum}\n\nMessage:\n${formMessage}`
-                )}`;
-                window.location.href = mailtoUrl;
-            }
+            // Support inquiries remain a direct email handoff. Transactional
+            // messages (orders, resets, sharing, and delivery updates) use
+            // the verified Resend sender from Firebase Functions.
+            const mailtoUrl = `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(formSubject || 'Customer Support Request')}&body=${encodeURIComponent(
+                `Name: ${formName}\nEmail: ${formEmail}\nOrder #: ${formOrderNum}\n\nMessage:\n${formMessage}`
+            )}`;
+            window.location.href = mailtoUrl;
 
             setFormStatus({ submitting: false, success: true, error: null });
             setFormSubject('');

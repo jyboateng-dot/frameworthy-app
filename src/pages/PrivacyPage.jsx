@@ -40,7 +40,7 @@ const PrivacyPage = ({ navigate }) => (
             <p><strong>Firebase (Google)</strong> — account authentication and our order/customer database.</p>
             <p><strong>PayPal</strong> — secure payment processing for PayPal and eligible card transactions.</p>
             <p><strong>ImageKit and Cloudinary</strong> — hosting for the photos you upload, the production files used to print your order, and our image catalogue.</p>
-            <p><strong>EmailJS</strong> — sending order confirmations, password resets, and related transactional emails.</p>
+            <p><strong>Resend</strong> — sending order confirmations, password resets, and related transactional emails.</p>
             <p>
                 Each of these providers has its own privacy practices governing the data they process
                 on our behalf.

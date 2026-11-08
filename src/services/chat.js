@@ -12,7 +12,7 @@ const notifyAdminOfChatMessage = httpsCallable(functions, 'notifyAdminOfChatMess
  * explicit human-handoff request) is enforced server-side now — this used to
  * be an in-memory Map here, which reset on every reload and was independent
  * per tab, and the send itself used to happen directly from the browser via
- * emailjs.send() with the public key, which meant a caller could skip this
+ * the email provider directly, which meant a caller could skip this
  * throttle entirely by calling that API directly.
  */
 export const notifyAdminViaEmail = async (text, isHandoff = false) => {

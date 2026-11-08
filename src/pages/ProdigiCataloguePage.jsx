@@ -373,7 +373,7 @@ export default function ProdigiCataloguePage() {
                                     Start Framing
                                 </button>
                             </div>
-                            <p className="mt-4 flex items-center gap-2 text-xs text-stone-600"><PackageCheck size={15} className="text-[#947735]" /> Standard shipping: {selectedMarket.deliveryDays.min === selectedMarket.deliveryDays.max ? `${selectedMarket.deliveryDays.min} days` : `${selectedMarket.deliveryDays.min}–${selectedMarket.deliveryDays.max} days`}{selectedMarket.tracked ? ', tracked' : ''}</p>
+                            <p className="mt-4 flex items-center gap-2 text-xs text-stone-600"><PackageCheck size={15} className="text-[#947735]" /> Standard shipping: {selectedMarket.deliveryDays.min === selectedMarket.deliveryDays.max ? `${selectedMarket.deliveryDays.min} days` : `${selectedMarket.deliveryDays.min}–${selectedMarket.deliveryDays.max} days`}</p>
                             <p className="mt-4 text-[11px] leading-5 text-stone-500">*Catalogue estimate only: applicable taxes, import charges, payment fees, and shipping upgrades may affect the final total. Confirm the live destination-specific price before payment.</p>
                         </aside>
                     </div>

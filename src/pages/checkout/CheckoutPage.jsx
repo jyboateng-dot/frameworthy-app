@@ -2,14 +2,12 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PayPalButtons, PayPalScriptProvider } from '@paypal/react-paypal-js';
 import { httpsCallable } from 'firebase/functions';
-import emailjs from '@emailjs/browser';
 import { useCart } from '../../context/CartContext';
 import { useAuth } from '../../context/AuthContext';
 import { createOrder, getUserDeliveryAddresses } from '../../services/db';
 import { functions } from '../../services/firebase';
-import { Ticket, ShieldCheck, Loader, X, Copy, Check, Hammer, Truck } from 'lucide-react';
+import { Ticket, ShieldCheck, Loader, X, Copy, Check } from 'lucide-react';
 import { getItemTitle, getItemSubtitle, generateItemDescription, formatDimensionWithOrientation, getItemCustomizerSpecs } from '../../utils/itemFormatters';
-import { formatDimensions } from '../../data/constants';
 import { useUnit } from '../../context/UnitContext';
 import {
     calculateSubtotal,
@@ -26,35 +24,9 @@ import { isGbJerseyCountry, isValidDeliveryPostalCode, normalizePostalCode } fro
 
 const PAYSTACK_PUBLIC_KEY = import.meta.env.VITE_PAYSTACK_PUBLIC_KEY;
 const PAYPAL_CLIENT_ID = import.meta.env.VITE_PAYPAL_CLIENT_ID;
-const EMAILJS_SERVICE_ID = import.meta.env.VITE_EMAILJS_SERVICE_ID;
-const EMAILJS_TEMPLATE_ID = import.meta.env.VITE_EMAILJS_TEMPLATE_ID;
-const EMAILJS_PUBLIC_KEY = import.meta.env.VITE_EMAILJS_PUBLIC_KEY;
 const verifyPaystackPayment = httpsCallable(functions, 'verifyPaystackPayment');
 const createPayPalOrder = httpsCallable(functions, 'createPayPalOrder');
 const capturePayPalOrder = httpsCallable(functions, 'capturePayPalOrder');
-
-// Best-effort — a failed confirmation email shouldn't block checkout, since
-// the order is already paid and verified by this point.
-const sendOrderConfirmationEmail = ({ email, orderId, items, total, address, line2, city, stateOrCounty, postalOrZipCode, phone, promoCode, promoDiscount, unit, currency = 'GHS' }) => {
-    if (!EMAILJS_SERVICE_ID || !EMAILJS_TEMPLATE_ID || !EMAILJS_PUBLIC_KEY) return;
-
-    const orderItemsText = items
-        .map(item => `${item.quantity || 1}x ${generateItemDescription(item)} (${formatDimensions(item.isPreset && item.presetDims ? item.presetDims : item.selectedSize?.label || 'Custom Size', unit, item.orientation)}) — ${currency} ${item.totalPrice.toFixed(2)}`)
-        .join('\n')
-        + (promoCode ? `\n\nPromo applied: ${promoCode} (- ${currency} ${promoDiscount.toFixed(2)})` : '');
-
-    emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
-        email,
-        order_id: orderId,
-        order_date: new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }),
-        order_items: orderItemsText,
-        order_total: `${currency} ${total.toFixed(2)}`,
-        shipping_address: [address, line2, [city, stateOrCounty, postalOrZipCode].filter(Boolean).join(', '), phone].filter(Boolean).join('\n'),
-        to_name: email.split('@')[0]
-    }, { publicKey: EMAILJS_PUBLIC_KEY }).catch(err => {
-        console.error('Order confirmation email failed to send:', err);
-    });
-};
 
 const CheckoutPage = () => {
     const navigate = useNavigate();
@@ -249,6 +221,7 @@ const CheckoutPage = () => {
 
     const [isProcessing, setIsProcessing] = useState(false);
     const [paypalCheckout, setPaypalCheckout] = useState(null);
+    const paypalCheckoutRef = useRef(null);
     const [error, setError] = useState('');
     // Deliberately closing the Paystack popup isn't a failure — it gets a
     // neutral notice rather than the red error treatment used for real
@@ -422,7 +395,7 @@ const CheckoutPage = () => {
             email, phoneNumber, city, deliveryAddress, addressLine2, stateOrCounty, normalizedPostalCode, prodigiDestination, fullName
         ].join('|');
 
-        (async () => {
+        return (async () => {
             let orderId;
             try {
                 if (pendingOrderRef.current && pendingOrderRef.current.key === attemptKey) {
@@ -440,10 +413,11 @@ const CheckoutPage = () => {
             }
 
             if (checkoutCurrency === 'GBP') {
+                paypalCheckoutRef.current = { orderId, attemptKey };
                 setPaypalCheckout({ orderId, attemptKey });
                 setIsProcessing(false);
-                setNotice('Your details are saved. Complete payment securely with PayPal below.');
-                return;
+                setNotice('Your details are saved. Continue securely with PayPal below.');
+                return { orderId, attemptKey };
             }
 
             const reference = `FW_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
@@ -495,21 +469,6 @@ const CheckoutPage = () => {
                     try {
                         const result = await verifyPaystackPayment({ reference, orderId });
                         if (result.data?.success) {
-                            sendOrderConfirmationEmail({
-                                email,
-                                orderId,
-                                items: checkoutItems,
-                                total: finalTotal,
-                                address: deliveryAddress,
-                                line2: addressLine2,
-                                city,
-                                stateOrCounty,
-                                postalOrZipCode: normalizedPostalCode,
-                                phone: phoneNumber,
-                                promoCode: appliedPromo?.code || null,
-                                promoDiscount: appliedPromo ? promoDiscount : 0,
-                                unit
-                            });
                             // Only the items just paid for — anything the
                             // customer deselected stays in the cart.
                             paymentCompletedRef.current = true;
@@ -554,22 +513,6 @@ const CheckoutPage = () => {
         try {
             const result = await capturePayPalOrder({ orderId: paypalCheckout.orderId, paypalOrderId });
             if (!result.data?.success) throw new Error('PayPal could not confirm the payment.');
-            sendOrderConfirmationEmail({
-                email,
-                orderId: paypalCheckout.orderId,
-                items: checkoutItems,
-                total: finalTotal,
-                address: deliveryAddress,
-                line2: addressLine2,
-                city,
-                stateOrCounty,
-                postalOrZipCode: normalizePostalCode(postalOrZipCode),
-                phone: phoneNumber,
-                promoCode: appliedPromo?.code || null,
-                promoDiscount: appliedPromo ? promoDiscount : 0,
-                unit,
-                currency: checkoutCurrency,
-            });
             paymentCompletedRef.current = true;
             removeItems(checkoutItems.map(item => item.id));
             navigate('/success', {
@@ -626,43 +569,57 @@ const CheckoutPage = () => {
                 />
                 {(hasMixedCurrencies || prodigiDestinations.length > 1) && <p role="alert" className="rounded-xl bg-amber-50 p-4 text-sm text-amber-900">Your selected items have different currencies or delivery countries. Please choose one destination for all items or check them out separately.</p>}
 
-                {/* Payment Method */}
+                {/* PayPal Express — prominent early payment option, following
+                    the Wix-style checkout pattern. */}
                 {checkoutCurrency === 'GBP' ? (
-                    <div className="rounded-xl border border-stone-200 bg-white p-4 shadow-sm">
-                        <div className="flex items-center justify-between gap-3">
-                            <div>
-                                <h3 className="text-sm font-bold text-stone-900">Pay securely with PayPal</h3>
-                                <p className="mt-1 text-xs leading-5 text-stone-600">Pay by PayPal or use an eligible card through PayPal’s secure checkout.</p>
+                    <section className="relative isolate overflow-hidden rounded-xl border border-[#c9dff0] bg-[#f7fbff] shadow-sm" aria-labelledby="payment-heading">
+                        <div className="flex items-center justify-between gap-3 border-b border-[#dcecf7] px-4 py-3">
+                            <div className="flex min-w-0 items-center gap-3">
+                                <img src="https://www.paypalobjects.com/webstatic/icon/pp32.png" alt="PayPal" className="h-8 w-8 shrink-0 object-contain" />
+                                <div className="min-w-0">
+                                    <h3 id="payment-heading" className="text-sm font-bold text-stone-900">PayPal Express Checkout</h3>
+                                    <p className="mt-0.5 text-xs text-stone-600">Fast, secure checkout by <span className="font-bold text-[#0070ba]">PayPal</span></p>
+                                </div>
                             </div>
-                            <ShieldCheck size={20} className="shrink-0 text-[#c9a84c]" />
+                            <div className="flex shrink-0 flex-col items-end gap-1">
+                                <Price amount={finalTotal} currency={checkoutCurrency} className="text-sm font-bold text-stone-900" />
+                                <span className="inline-flex items-center gap-1 rounded-full bg-white px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-[#27658b] ring-1 ring-inset ring-[#c9dff0]"><ShieldCheck size={12} aria-hidden="true" /> Secure</span>
+                            </div>
                         </div>
-                        {!PAYPAL_CLIENT_ID ? (
-                            <p className="mt-3 rounded-lg bg-stone-50 px-3 py-2 text-xs text-stone-600">Online payment is being set up. Please check back shortly.</p>
-                        ) : paypalCheckout ? (
-                            <div className="mt-4 border-t border-stone-100 pt-4">
-                                <PayPalScriptProvider options={{ clientId: PAYPAL_CLIENT_ID, currency: 'GBP', intent: 'capture', components: 'buttons' }}>
-                                    <PayPalButtons
-                                        style={{ layout: 'vertical', shape: 'rect', label: 'paypal', tagline: false }}
-                                        forceReRender={[paypalCheckout.orderId, finalTotal]}
-                                        disabled={isProcessing}
-                                        createOrder={async () => {
-                                            const result = await createPayPalOrder({ orderId: paypalCheckout.orderId });
-                                            if (!result.data?.id) throw new Error('Could not start PayPal checkout.');
-                                            return result.data.id;
-                                        }}
-                                        onApprove={(data) => finishPayPalCheckout(data.orderID)}
-                                        onCancel={() => setNotice('PayPal checkout cancelled — your order is saved, and you can try again whenever you are ready.')}
-                                        onError={(err) => {
-                                            console.error('PayPal checkout error:', err);
-                                            setError('PayPal could not start checkout. Please try again.');
-                                        }}
-                                    />
-                                </PayPalScriptProvider>
-                            </div>
-                        ) : (
-                            <p className="mt-3 text-xs text-stone-500">Enter your delivery details, then choose Continue to PayPal.</p>
-                        )}
-                    </div>
+                        <div className="bg-white px-4 py-3">
+                            {!PAYPAL_CLIENT_ID ? (
+                                <p className="mt-3 rounded-lg bg-stone-50 px-3 py-2 text-xs text-stone-600">Online payment is being set up. Please check back shortly.</p>
+                            ) : (
+                                <div className="relative z-0 mt-4 border-t border-stone-100 pt-4">
+                                    <PayPalScriptProvider options={{ clientId: PAYPAL_CLIENT_ID, currency: 'GBP', intent: 'capture', components: 'buttons' }}>
+                                        <PayPalButtons
+                                            style={{ layout: 'vertical', shape: 'rect', label: 'paypal', tagline: false }}
+                                            forceReRender={[finalTotal]}
+                                            disabled={isProcessing}
+                                            onClick={async (_, actions) => {
+                                                const result = await handleCheckoutSubmit({ preventDefault: () => {} });
+                                                if (result?.orderId) return actions.resolve();
+                                                return actions.reject();
+                                            }}
+                                            createOrder={async () => {
+                                                const pending = paypalCheckoutRef.current;
+                                                if (!pending?.orderId) throw new Error('Your checkout details need to be completed first.');
+                                                const result = await createPayPalOrder({ orderId: pending.orderId });
+                                                if (!result.data?.id) throw new Error('Could not start PayPal checkout.');
+                                                return result.data.id;
+                                            }}
+                                            onApprove={(data) => finishPayPalCheckout(data.orderID)}
+                                            onCancel={() => setNotice('PayPal checkout cancelled — your order is saved, and you can try again whenever you are ready.')}
+                                            onError={(err) => {
+                                                console.error('PayPal checkout error:', err);
+                                                setError('PayPal could not start checkout. Please try again.');
+                                            }}
+                                        />
+                                    </PayPalScriptProvider>
+                                </div>
+                            )}
+                        </div>
+                    </section>
                 ) : <div className="rounded-xl border border-stone-200 bg-white p-4 shadow-sm">
                     <h3 className="text-sm font-bold text-stone-900">Online checkout</h3>
                     <p className="mt-1 text-xs leading-5 text-stone-600">Prices are charged in GBP. Choose a GBP delivery quote to continue.</p>
@@ -796,18 +753,13 @@ const CheckoutPage = () => {
                     <div className="flex justify-between items-start text-stone-600">
                         <div className="pr-2">
                             <div className="flex items-center gap-1.5">
-                                <span className="text-stone-700">{hasProdigiItems ? 'Tracked Delivery' : 'Delivery'}</span>
+                                <span className="text-stone-700">Delivery</span>
                                 {costBreakdown.deliveryCost === 0 && (
                                     <span className="text-[10px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded bg-stone-100 text-stone-600">
                                         {costBreakdown.isPayOnDelivery ? 'Pay on delivery' : 'Included'}
                                     </span>
                                 )}
                             </div>
-                            <p className="text-[11px] text-stone-500 mt-0.5">
-                                {hasProdigiItems
-                                    ? 'Tracked protective packaging & courier delivery'
-                                    : 'Doorstep courier delivery · paid directly upon arrival'}
-                            </p>
                         </div>
                         <div className="font-medium text-stone-800 shrink-0">
                             {costBreakdown.deliveryCost > 0 ? (
@@ -831,11 +783,6 @@ const CheckoutPage = () => {
                                     </span>
                                 )}
                             </div>
-                            <p className="text-[11px] text-stone-500 mt-0.5">
-                                {hasProdigiItems
-                                    ? 'Standard destination tax'
-                                    : 'All applicable local taxes are included'}
-                            </p>
                         </div>
                         <div className="font-medium text-stone-800 shrink-0">
                             {costBreakdown.taxCost > 0 ? (
@@ -862,16 +809,9 @@ const CheckoutPage = () => {
 
                     <p className="text-xs text-stone-500 pt-0.5">
                         {hasProdigiItems
-                            ? 'Tracked delivery and destination tax are itemized above in your verified quote.'
+                            ? 'Delivery and destination tax are itemized above in your verified quote.'
                             : 'Delivery fee is paid directly to the courier upon arrival.'}
                     </p>
-                </div>
-
-                {/* Trust reassurance, right before the customer commits to paying */}
-                <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1.5 text-[11px] font-medium text-stone-500 px-1">
-                    <span className="flex items-center gap-1"><Hammer size={12} className="text-[#c9a84c]" /> Made to order</span>
-                    <span className="flex items-center gap-1"><Truck size={12} className="text-[#c9a84c]" /> {hasProdigiItems ? 'Tracked delivery' : 'Ships in 5-7 business days'}</span>
-                    <span className="flex items-center gap-1"><ShieldCheck size={12} className="text-[#c9a84c]" /> Quote-backed total</span>
                 </div>
 
                 {notice && (
@@ -912,8 +852,10 @@ const CheckoutPage = () => {
                 {/* Spacer for sticky footer */}
                 <div className="h-4"></div>
 
-                {/* Sticky Footer */}
-                <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-stone-200 px-4 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom,0px))] flex items-center justify-between z-50 shadow-[0_-4px_10px_rgba(0,0,0,0.05)]">
+                {/* Sticky Footer — the embedded PayPal buttons become the only
+                    payment action once the order is ready, so keep the fixed
+                    FrameWorthy bar out of that payment surface. */}
+                {(!paypalCheckout && !(checkoutCurrency === 'GBP' && PAYPAL_CLIENT_ID)) && <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-stone-200 px-4 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom,0px))] flex items-center justify-between z-50 shadow-[0_-4px_10px_rgba(0,0,0,0.05)]">
                     <div className="flex flex-col">
                         <div className="text-[10px] text-stone-500 flex items-center gap-1 mb-0.5">
                             <ShieldCheck size={12} className="text-green-600" />
@@ -933,7 +875,7 @@ const CheckoutPage = () => {
                         {isProcessing ? <Loader size={16} className="animate-spin" /> : null}
                         {isProcessing ? 'Processing...' : checkoutCurrency === 'GBP' ? (paypalCheckout ? 'PayPal ready' : 'Continue to PayPal') : 'GBP quote required'}
                     </button>
-                </div>
+                </div>}
             </form>
         </div>
     );

@@ -54,6 +54,28 @@ const prodigiCallbackToken = defineSecret('PRODIGI_CALLBACK_TOKEN');
 const replicateApiToken = defineSecret('REPLICATE_API_TOKEN');
 
 const prodigiEnvironment = () => process.env.PRODIGI_ENVIRONMENT === 'live' ? 'live' : 'sandbox';
+const prodigiCallbackUrl = () => process.env.PRODIGI_CALLBACK_URL
+    || `https://frameworthyco-9c78c.web.app/api/prodigi-callback?token=${encodeURIComponent(prodigiCallbackToken.value())}`;
+
+// Keep the customer-facing tracking payload intentionally small. Prodigi's
+// shipment object also contains fulfilment and item details that customers do
+// not need in an order-status lookup.
+const publicProdigiShipment = (shipment = {}) => ({
+    id: shipment.id || null,
+    status: shipment.status || null,
+    carrier: typeof shipment.carrier === 'string'
+        ? shipment.carrier
+        : shipment.carrier?.name || shipment.carrier?.service || null,
+    trackingUrl: shipment.tracking?.url || shipment.trackingUrl || null,
+    trackingNumber: shipment.tracking?.number || shipment.trackingNumber || null,
+    dispatchDate: shipment.dispatchDate || null,
+});
+
+const publicProdigiTracking = (prodigi = {}) => ({
+    orderId: prodigi.orderId || null,
+    stage: prodigi.stage || prodigi.status || null,
+    shipments: Array.isArray(prodigi.shipments) ? prodigi.shipments.map(publicProdigiShipment) : [],
+});
 const paypalEnvironment = () => process.env.PAYPAL_ENVIRONMENT === 'live' ? 'live' : 'sandbox';
 const paypalApiBaseUrl = () => paypalEnvironment() === 'live'
     ? 'https://api-m.paypal.com'
@@ -616,27 +638,125 @@ exports.paypalWebhook = onRequest({
     }
 });
 
-// Stored in Secret Manager via `firebase functions:secrets:set EMAILJS_PRIVATE_KEY`.
-// EmailJS's REST API requires this (in addition to the public key, which is
-// safe client-side) to accept sends from a server context with no browser
-// Origin header.
-const emailjsPrivateKey = defineSecret('EMAILJS_PRIVATE_KEY');
+// Resend is the single server-side transactional email provider. Keep the API
+// key in Secret Manager so browser clients cannot impersonate FrameWorthy or
+// burn the account's sending quota.
+const resendApiKey = defineSecret('RESEND_API_KEY');
+const RESEND_FROM_EMAIL = process.env.RESEND_FROM_EMAIL || 'FrameWorthy <orders@frameworthyco.com>';
 
-// These match the values already used client-side in CheckoutPage.jsx — the
-// service and public key are not secrets by EmailJS's own design.
-const EMAILJS_SERVICE_ID = 'service_aefbwot';
-const EMAILJS_RESET_TEMPLATE_ID = 'template_wn39cmf';
-const EMAILJS_STUDIO_TEMPLATE_ID = 'template_hbx1njo';
-const EMAILJS_PUBLIC_KEY = 'O8XgNWf6VmV-veLaX';
+const escapeHtml = (value) => String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
 
-// Generates a Firebase password-reset link server-side and emails it via
-// EmailJS (through the project's own connected Gmail account) instead of
-// letting Firebase Auth send it directly. Firebase's built-in auth emails
-// come from a shared noreply@<project-id>.firebaseapp.com address with no
-// domain reputation, which routinely lands in spam — routing through the
-// same EmailJS/Gmail pipeline already used for order confirmations fixes
-// that, since it's a real, already-warmed-up sending identity.
-exports.sendPasswordResetLink = onCall({ secrets: [emailjsPrivateKey], region: 'us-central1', timeoutSeconds: 30, maxInstances: 5 }, async (request) => {
+// Shared transactional-email shell. Keeping the structure here means every
+// fixed customer/admin notification gets the same FrameWorthy rhythm while
+// the message-specific copy stays small and easy to review.
+const renderEmailShell = ({ preheader = '', title, eyebrow = 'FRAMEWORTHY', intro = '', content = '', cta = null, footer = 'Made to order with care.' }) => `<!doctype html><html lang="en"><head><meta name="color-scheme" content="light"><meta name="supported-color-schemes" content="light"></head><body style="margin:0;background:#f5f5f4;color:#292524;font-family:Arial,Helvetica,sans-serif"><div style="display:none;max-height:0;overflow:hidden;opacity:0">${escapeHtml(preheader)}</div><table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f5f5f4"><tr><td align="center" style="padding:28px 16px"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:600px"><tr><td style="background:#171717;padding:22px 28px;border-radius:16px 16px 0 0"><span style="font-size:22px;line-height:1;font-weight:700;letter-spacing:-.04em;color:#fafaf9">F<span style="color:#d4af37">r</span>ameWorthy</span></td></tr><tr><td style="background:#ffffff;padding:34px 28px 30px;border:1px solid #e7e5e4;border-top:0;border-radius:0 0 16px 16px"><p style="margin:0 0 12px;color:#a16207;font-size:11px;line-height:1.4;font-weight:700;letter-spacing:.16em;text-transform:uppercase">${escapeHtml(eyebrow)}</p><h1 style="margin:0 0 14px;color:#1c1917;font-family:Georgia,'Times New Roman',serif;font-size:30px;line-height:1.15;font-weight:700">${escapeHtml(title)}</h1>${intro ? `<p style="margin:0 0 24px;color:#57534e;font-size:16px;line-height:1.6">${intro}</p>` : ''}<div style="color:#44403c;font-size:15px;line-height:1.65">${content}</div>${cta ? `<p style="margin:28px 0 4px"><a href="${escapeHtml(cta.href)}" style="display:inline-block;background:#d4af37;color:#171717;padding:13px 20px;border-radius:999px;text-decoration:none;font-size:14px;font-weight:700">${escapeHtml(cta.label)}</a></p>` : ''}<p style="margin:30px 0 0;padding-top:18px;border-top:1px solid #e7e5e4;color:#78716c;font-size:12px;line-height:1.6">${footer}</p></td></tr></table><p style="margin:16px 0 0;color:#a8a29e;font-size:11px;line-height:1.5;text-align:center">FrameWorthy · Made-to-order framing</p></td></tr></table></body></html>`;
+
+const resendRequest = async ({ to, subject, html, text, replyTo }) => {
+    const response = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+            Authorization: `Bearer ${resendApiKey.value()}`,
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            from: RESEND_FROM_EMAIL,
+            to: Array.isArray(to) ? to : [to],
+            subject,
+            html,
+            text,
+            ...(replyTo ? { reply_to: replyTo } : {}),
+        }),
+        signal: AbortSignal.timeout(10_000),
+    });
+    if (!response.ok) {
+        const body = await response.text().catch(() => '<unreadable body>');
+        throw new Error(`Resend request failed (${response.status}): ${body}`);
+    }
+    return typeof response.json === 'function' ? response.json().catch(() => ({})) : {};
+};
+
+const orderItemsSummary = (order) => (Array.isArray(order?.items) ? order.items : []).map((item) => {
+    const label = item.title || item.name || item.frame?.name || item.productName || item.prodigi?.sku || 'Custom framed artwork';
+    const quantity = Number(item.quantity) || 1;
+    const price = Number(item.totalPrice);
+    return `${quantity}x ${label}${Number.isFinite(price) ? ` — ${order.currency || 'GBP'} ${price.toFixed(2)}` : ''}`;
+});
+
+const sendOrderConfirmationForOrder = async ({ orderId, order }) => {
+    const email = order?.userEmail;
+    if (!email || email.startsWith('guest@')) return { sent: false, skipped: true };
+    const orderRef = admin.firestore().collection('orders').doc(orderId);
+    const claim = await admin.firestore().runTransaction(async (tx) => {
+        const snap = await tx.get(orderRef);
+        if (snap.data()?.email?.orderConfirmationSentAt || snap.data()?.email?.orderConfirmationSendingAt) return false;
+        tx.update(orderRef, { 'email.orderConfirmationSendingAt': admin.firestore.FieldValue.serverTimestamp() });
+        return true;
+    });
+    if (!claim) return { sent: false, skipped: true };
+
+    const lines = orderItemsSummary(order);
+    const address = order.shippingAddress || {};
+    const shippingAddress = [address.address, address.line2, [address.city, address.stateOrCounty, address.postalOrZipCode || address.zip].filter(Boolean).join(', '), address.phone].filter(Boolean).join('\n');
+    const total = Number(order.totalPrice);
+    const subject = `FrameWorthy order ${orderId} confirmed`;
+    const text = [
+        `Thank you for your FrameWorthy order, ${order.customerName || email.split('@')[0]}.`,
+        '',
+        `Order: ${orderId}`,
+        ...(lines.length ? ['', ...lines] : []),
+        ...(Number.isFinite(total) ? ['', `Total: ${order.currency || 'GBP'} ${total.toFixed(2)}`] : []),
+        ...(shippingAddress ? ['', 'Delivery address:', shippingAddress] : []),
+        '',
+        'We will email you again when your order is dispatched.',
+    ].join('\n');
+    const html = renderEmailShell({
+        preheader: `Order ${orderId} is confirmed`,
+        title: 'Order confirmed',
+        intro: `Thank you for your FrameWorthy order, ${escapeHtml(order.customerName || email.split('@')[0])}.`,
+        content: `<p style="margin:0 0 16px"><strong>Order:</strong> ${escapeHtml(orderId)}</p>${lines.length ? `<div style="padding:16px 18px;background:#fafaf9;border:1px solid #e7e5e4;border-radius:12px"><ul style="margin:0;padding-left:20px">${lines.map((line) => `<li style="margin:0 0 6px">${escapeHtml(line)}</li>`).join('')}</ul></div>` : ''}${Number.isFinite(total) ? `<p style="margin:18px 0 0;font-size:17px"><strong>Total:</strong> ${escapeHtml(order.currency || 'GBP')} ${total.toFixed(2)}</p>` : ''}${shippingAddress ? `<p style="margin:18px 0 0"><strong>Delivery address</strong><br>${escapeHtml(shippingAddress).replace(/\n/g, '<br>')}</p>` : ''}`,
+        footer: 'We will email you again when your order is dispatched.',
+    });
+    try {
+        await resendRequest({ to: email, subject, html, text });
+        await orderRef.update({ 'email.orderConfirmationSentAt': admin.firestore.FieldValue.serverTimestamp(), 'email.orderConfirmationSendingAt': admin.firestore.FieldValue.delete() });
+        return { sent: true };
+    } catch (error) {
+        await orderRef.update({ 'email.orderConfirmationSendingAt': admin.firestore.FieldValue.delete() }).catch(() => {});
+        throw error;
+    }
+};
+
+const sendProdigiShippingEmail = async ({ email, customerName, orderId, shipments }) => {
+    if (!email || !Array.isArray(shipments) || shipments.length === 0) {
+        return { sent: false, skipped: true };
+    }
+
+    const primaryShipment = shipments.find((shipment) => shipment.trackingUrl || shipment.trackingNumber) || shipments[0];
+    const trackingUrl = primaryShipment.trackingUrl || '';
+    const trackingNumber = primaryShipment.trackingNumber || '';
+    const courier = primaryShipment.carrier || 'Courier';
+    const subject = `Your FrameWorthy order ${orderId} is on its way`;
+    const text = `Your order has been dispatched.\n\nCourier: ${courier}\nTracking number: ${trackingNumber}\nTrack delivery: ${trackingUrl || 'The courier link will appear in your order status.'}`;
+    const html = renderEmailShell({
+        preheader: `Order ${orderId} has been dispatched`,
+        title: 'Your order is on its way',
+        intro: `Hi ${escapeHtml(customerName || email.split('@')[0])}, your FrameWorthy order has been dispatched.`,
+        content: `<p style="margin:0"><strong>Courier:</strong> ${escapeHtml(courier)}<br><strong>Tracking number:</strong> ${escapeHtml(trackingNumber)}</p>`,
+        cta: trackingUrl ? { href: trackingUrl, label: 'Track your delivery' } : null,
+        footer: trackingUrl ? 'You can follow the latest delivery updates using the button above.' : 'The courier tracking link will appear in your order status.',
+    });
+    await resendRequest({ to: email, subject, html, text });
+    return { sent: true };
+};
+
+// Generates a Firebase password-reset link server-side and sends it through
+// the same verified Resend domain used by order and shipping notifications.
+exports.sendPasswordResetLink = onCall({ secrets: [resendApiKey], region: 'us-central1', timeoutSeconds: 30, maxInstances: 5 }, async (request) => {
     const { email } = request.data || {};
     if (!email || typeof email !== 'string') {
         throw new HttpsError('invalid-argument', 'email is required');
@@ -644,7 +764,7 @@ exports.sendPasswordResetLink = onCall({ secrets: [emailjsPrivateKey], region: '
 
     // Abuse guard: without this, anyone can script this endpoint to email-bomb
     // a victim's inbox — every call sends a real message through our connected
-    // Gmail/EmailJS identity, which floods the target AND torches that
+    // Resend identity, which floods the target AND torches that
     // identity's sending reputation (spam complaints -> future order emails
     // land in spam). Throttle to one reset email per address per 60s using a
     // short-lived Firestore marker keyed by the lowercased email. We always
@@ -689,42 +809,29 @@ exports.sendPasswordResetLink = onCall({ secrets: [emailjsPrivateKey], region: '
         return { success: true };
     }
 
-    const emailResponse = await fetch('https://api.emailjs.com/api/v1.0/email/send', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            service_id: EMAILJS_SERVICE_ID,
-            template_id: EMAILJS_RESET_TEMPLATE_ID,
-            user_id: EMAILJS_PUBLIC_KEY,
-            accessToken: emailjsPrivateKey.value(),
-            template_params: { to_email: email, reset_link: resetLink }
+    await resendRequest({
+        to: email,
+        subject: 'Reset your FrameWorthy password',
+        text: `Reset your FrameWorthy password using this link:\n${resetLink}\n\nIf you did not request this, you can ignore this email.`,
+        html: renderEmailShell({
+            preheader: 'Choose a new FrameWorthy password',
+            title: 'Reset your password',
+            intro: 'Use the button below to choose a new FrameWorthy password.',
+            content: '<p style="margin:0">If you did not request this, you can ignore this email.</p>',
+            cta: { href: resetLink, label: 'Reset password' },
+            footer: 'For your security, this link can only be used once.',
         }),
-        signal: AbortSignal.timeout(10_000)
     }).catch((err) => {
-        logger.error('EmailJS request failed', err);
+        logger.error('Resend request failed', err);
         throw new HttpsError('unavailable', 'Could not reach email service');
     });
-
-    if (!emailResponse.ok) {
-        const body = await emailResponse.text().catch(() => '<unreadable body>');
-        logger.error('EmailJS send failed', { status: emailResponse.status, body });
-        throw new HttpsError('internal', 'Could not send reset email');
-    }
 
     return { success: true };
 });
 
-// Sends the "new chat message" / "human requested" admin notification email.
-// Previously the client called emailjs.send() directly, throttled by an
-// in-memory Map keyed by uid — reset on every page reload, independent per
-// browser tab, so a refresh (or a second tab) bypassed the "1 email per 2
-// minutes" limit entirely. It also meant a determined caller could skip the
-// throttle altogether by calling emailjs.send() directly with the public
-// key/service/template ids, which ship in the client bundle by EmailJS's own
-// design. Moving the send itself here (using the private key, only usable
-// server-side) closes both: the throttle now lives in Firestore, and the
-// public keys alone can no longer trigger a send at all.
-exports.notifyAdminOfChatMessage = onCall({ secrets: [emailjsPrivateKey], region: 'us-central1', timeoutSeconds: 30, maxInstances: 5 }, async (request) => {
+// Sends the "new chat message" / "human requested" admin notification email
+// through the same server-side Resend identity as the customer messages.
+exports.notifyAdminOfChatMessage = onCall({ secrets: [resendApiKey], region: 'us-central1', timeoutSeconds: 30, maxInstances: 5 }, async (request) => {
     if (!request.auth) {
         throw new HttpsError('unauthenticated', 'Sign in to use chat support');
     }
@@ -771,36 +878,50 @@ exports.notifyAdminOfChatMessage = onCall({ secrets: [emailjsPrivateKey], region
     const chatLink = `https://frameworthyco-9c78c.web.app/admin/messages?chat=${uid}`;
 
     try {
-        const emailResponse = await fetch('https://api.emailjs.com/api/v1.0/email/send', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                service_id: EMAILJS_SERVICE_ID,
-                template_id: EMAILJS_STUDIO_TEMPLATE_ID,
-                user_id: EMAILJS_PUBLIC_KEY,
-                accessToken: emailjsPrivateKey.value(),
-                template_params: {
-                    to_email: 'admin@frameworthyco.com',
-                    to_name: 'FrameWorthy Admin',
-                    user_name: userName,
-                    user_email: userEmail,
-                    subject: isHandoff ? `URGENT: Human Assistance Requested by ${userName}` : `New Customer Message from ${userName}`,
-                    message: `Customer Message: "${text.slice(0, 2000)}"\n\nDirect Chat Link: ${chatLink}`,
-                },
+        const subject = isHandoff ? `URGENT: Human Assistance Requested by ${userName}` : `New Customer Message from ${userName}`;
+        const message = `Customer Message: "${text.slice(0, 2000)}"\n\nDirect Chat Link: ${chatLink}`;
+        await resendRequest({
+            to: 'admin@frameworthyco.com',
+            subject,
+            text: `${message}\n\nFrom: ${userName} (${userEmail})`,
+            html: renderEmailShell({
+                preheader: 'A FrameWorthy customer needs attention',
+                eyebrow: 'SUPPORT',
+                title: subject,
+                intro: `<strong>From:</strong> ${escapeHtml(userName)} (${escapeHtml(userEmail)})`,
+                content: `<p style="margin:0">${escapeHtml(text.slice(0, 2000)).replace(/\n/g, '<br>')}</p>`,
+                cta: { href: chatLink, label: 'Open chat in admin' },
+                footer: 'This is an internal FrameWorthy support notification.',
             }),
-            signal: AbortSignal.timeout(10_000),
         });
-        if (!emailResponse.ok) {
-            const body = await emailResponse.text().catch(() => '<unreadable body>');
-            logger.error('notifyAdminOfChatMessage: EmailJS send failed', { status: emailResponse.status, body });
-            return { sent: false };
-        }
     } catch (err) {
-        logger.error('notifyAdminOfChatMessage: EmailJS request failed', err);
+        logger.error('notifyAdminOfChatMessage: Resend request failed', err);
         return { sent: false };
     }
 
     return { sent: true };
+});
+
+// Admin-only order sharing. The browser keeps the copy/WhatsApp options, but
+// email delivery now uses the same verified Resend sender as every other
+// FrameWorthy transactional message.
+exports.sendOrderShareEmail = onCall({ secrets: [resendApiKey], region: 'us-central1', timeoutSeconds: 30, maxInstances: 5 }, async (request) => {
+    if (!request.auth) throw new HttpsError('unauthenticated', 'Sign in to share orders');
+    const requesterEmail = String(request.auth.token.email || '').toLowerCase();
+    if (!['admin@frameworthyco.com', 'info@frameworthyco.com'].includes(requesterEmail)) {
+        throw new HttpsError('permission-denied', 'Only FrameWorthy administrators can share orders');
+    }
+    const { recipients, subject, text, html } = request.data || {};
+    const to = Array.from(new Set((Array.isArray(recipients) ? recipients : []).filter((value) => typeof value === 'string' && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim())).map((value) => value.trim().toLowerCase())));
+    if (to.length === 0 || to.length > 20) throw new HttpsError('invalid-argument', 'Provide between 1 and 20 valid recipients');
+    if (!text || typeof text !== 'string' || text.length > 50_000) throw new HttpsError('invalid-argument', 'Message is required');
+    await resendRequest({
+        to,
+        subject: typeof subject === 'string' && subject.trim() ? subject.trim().slice(0, 200) : `FrameWorthy Orders (${to.length})`,
+        text,
+        html: typeof html === 'string' && html.length <= 100_000 ? html : `<pre style="font-family:Arial,sans-serif;white-space:pre-wrap">${escapeHtml(text)}</pre>`,
+    });
+    return { sent: true, recipients: to.length };
 });
 
 // One-time-use PINs gating access to the private tester build. Docs live in
@@ -990,6 +1111,7 @@ exports.lookupGuestOrder = onCall({ region: 'us-central1', timeoutSeconds: 30, m
         totalPrice: order.totalPrice ?? null,
         currency: order.currency || 'GHS',
         createdAt: order.createdAt ? order.createdAt.toMillis() : null,
+        prodigi: publicProdigiTracking(order.prodigi),
         itemCount: Array.isArray(order.items)
             ? order.items.reduce((n, item) => n + (Number(item.quantity) || 1), 0)
             : null,
@@ -1568,6 +1690,25 @@ exports.pruneArRelayObjects = onSchedule({ schedule: 'every 60 minutes', region:
     }));
 });
 
+// Send the order confirmation independently of the fulfilment trigger so both
+// Prodigi and non-Prodigi paid orders get the same confirmation email.
+exports.sendOrderConfirmationOnPayment = onDocumentUpdated({
+    document: 'orders/{orderId}',
+    region: 'us-central1',
+    timeoutSeconds: 30,
+    maxInstances: 10,
+    secrets: [resendApiKey],
+}, async (event) => {
+    const before = event.data?.before?.data();
+    const after = event.data?.after?.data();
+    if (!after || after.paymentStatus !== 'paid' || before?.paymentStatus === 'paid') return;
+    try {
+        await sendOrderConfirmationForOrder({ orderId: event.params.orderId, order: after });
+    } catch (error) {
+        logger.error('Order confirmation email failed', { orderId: event.params.orderId, message: error.message });
+    }
+});
+
 // Paid Prodigi items are submitted from a Firestore trigger rather than the
 // browser. This keeps the API key private and means both Paystack completion
 // paths (client verification and webhook verification) reach the same
@@ -1577,7 +1718,7 @@ exports.submitPaidProdigiOrder = onDocumentUpdated({
     region: 'us-central1',
     timeoutSeconds: 120,
     maxInstances: 10,
-    secrets: [prodigiApiKey, replicateApiToken],
+    secrets: [prodigiApiKey, prodigiCallbackToken, replicateApiToken],
 }, async (event) => {
     const before = event.data?.before?.data();
     const after = event.data?.after?.data();
@@ -1678,7 +1819,7 @@ exports.submitPaidProdigiOrder = onDocumentUpdated({
             input: {
                 merchantReference: orderId,
                 shippingMethod: items[0]?.prodigi?.shippingMethod || 'Standard',
-                callbackUrl: process.env.PRODIGI_CALLBACK_URL || undefined,
+                callbackUrl: prodigiCallbackUrl(),
                 recipient: {
                     name: after.customerName,
                     email: after.userEmail,
@@ -1703,8 +1844,10 @@ exports.submitPaidProdigiOrder = onDocumentUpdated({
         });
         await event.data.after.ref.update({
             'prodigi.status': String(result.order?.status?.stage || result.outcome || 'submitted'),
+            'prodigi.stage': String(result.order?.status?.stage || result.outcome || 'submitted'),
             'prodigi.orderId': result.order?.id || null,
             'prodigi.outcome': result.outcome || null,
+            'prodigi.shipments': (result.order?.shipments || []).map(publicProdigiShipment),
             'prodigi.environment': prodigiEnvironment(),
             'prodigi.error': admin.firestore.FieldValue.delete(),
             'prodigi.updatedAt': admin.firestore.FieldValue.serverTimestamp(),
@@ -1724,7 +1867,7 @@ exports.submitPaidProdigiOrder = onDocumentUpdated({
 // writing any state supplied by the callback.
 exports.prodigiCallback = onRequest({
     region: 'us-central1', timeoutSeconds: 30, maxInstances: 10,
-    invoker: 'public', secrets: [prodigiApiKey, prodigiCallbackToken],
+    invoker: 'public', secrets: [prodigiApiKey, prodigiCallbackToken, resendApiKey],
 }, async (req, res) => {
     if (req.method !== 'POST') { res.status(405).send('Method not allowed'); return; }
     const supplied = Buffer.from(String(req.query.token || ''));
@@ -1742,12 +1885,43 @@ exports.prodigiCallback = onRequest({
         const order = verified.order;
         const matches = await admin.firestore().collection('orders').where('prodigi.orderId', '==', prodigiOrderId).limit(1).get();
         if (!matches.empty) {
-            await matches.docs[0].ref.update({
+            const orderRef = matches.docs[0].ref;
+            const storedOrder = matches.docs[0].data() || {};
+            const shipments = (order?.shipments || []).map(publicProdigiShipment);
+            await orderRef.update({
                 'prodigi.status': order?.status?.stage || 'unknown',
-                'prodigi.shipments': order?.shipments || [],
+                'prodigi.stage': order?.status?.stage || 'unknown',
+                'prodigi.shipments': shipments,
                 'prodigi.issues': order?.status?.issues || [],
                 'prodigi.updatedAt': admin.firestore.FieldValue.serverTimestamp(),
             });
+
+            const trackableShipments = shipments.filter((shipment) => shipment.trackingUrl || shipment.trackingNumber);
+            const shippingEmailKey = trackableShipments
+                .map((shipment) => `${shipment.id || ''}:${shipment.trackingNumber || shipment.trackingUrl || ''}`)
+                .sort()
+                .join('|');
+            if (shippingEmailKey) {
+                const claim = await admin.firestore().runTransaction(async (tx) => {
+                    const latest = await tx.get(orderRef);
+                    if (latest.data()?.prodigi?.shippingEmailSentKey === shippingEmailKey) return false;
+                    tx.update(orderRef, { 'prodigi.shippingEmailSentKey': shippingEmailKey });
+                    return true;
+                });
+                if (claim) {
+                    try {
+                        await sendProdigiShippingEmail({
+                            email: storedOrder.userEmail,
+                            customerName: storedOrder.customerName,
+                            orderId: matches.docs[0].id,
+                            shipments: trackableShipments,
+                        });
+                    } catch (emailError) {
+                        logger.error('Prodigi shipping email failed', { prodigiOrderId, message: emailError.message });
+                        await orderRef.update({ 'prodigi.shippingEmailSentKey': admin.firestore.FieldValue.delete() });
+                    }
+                }
+            }
         }
         res.status(200).json({ received: true });
     } catch (error) {

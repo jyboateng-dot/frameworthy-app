@@ -4,9 +4,9 @@ import { clearFirestore } from './helpers.js';
 
 const originalFetch = global.fetch;
 
-const mockEmailjsFetch = (respond) => {
+const mockResendFetch = (respond) => {
     vi.spyOn(global, 'fetch').mockImplementation(async (url, opts) => {
-        if (String(url).includes('api.emailjs.com')) return respond(url, opts);
+        if (String(url).includes('api.resend.com')) return respond(url, opts);
         return originalFetch(url, opts);
     });
 };
@@ -32,9 +32,9 @@ describe('notifyAdminOfChatMessage', () => {
             .rejects.toMatchObject({ code: 'invalid-argument' });
     });
 
-    it('sends the email via EmailJS using the caller\'s own auth token for name/email', async () => {
+    it('sends the email via Resend using the caller\'s own auth token for name/email', async () => {
         const fetchSpy = vi.fn(async () => ({ ok: true, text: async () => 'ok' }));
-        mockEmailjsFetch(fetchSpy);
+        mockResendFetch(fetchSpy);
 
         const result = await notifyAdminOfChatMessage.run(authedRequest({ text: 'do you deliver to Kumasi?' }));
         expect(result).toEqual({ sent: true });
@@ -42,28 +42,29 @@ describe('notifyAdminOfChatMessage', () => {
 
         const [, opts] = fetchSpy.mock.calls[0];
         const body = JSON.parse(opts.body);
-        expect(body.template_params.user_name).toBe('Alice');
-        expect(body.template_params.user_email).toBe('alice@example.com');
-        expect(body.template_params.message).toContain('do you deliver to Kumasi?');
-        expect(body.accessToken).toBe('test-emailjs-private-key');
+        expect(body.to).toEqual(['admin@frameworthyco.com']);
+        expect(body.text).toContain('Alice');
+        expect(body.text).toContain('alice@example.com');
+        expect(body.text).toContain('do you deliver to Kumasi?');
+        expect(opts.headers.Authorization).toBe('Bearer test-resend-api-key');
     });
 
     it('ignores client-supplied name/email — uses only the auth token', async () => {
         const fetchSpy = vi.fn(async () => ({ ok: true, text: async () => 'ok' }));
-        mockEmailjsFetch(fetchSpy);
+        mockResendFetch(fetchSpy);
 
         await notifyAdminOfChatMessage.run(authedRequest({
             text: 'hi', userMeta: { displayName: 'Attacker', email: 'fake@evil.com' },
         }));
         const [, opts] = fetchSpy.mock.calls[0];
         const body = JSON.parse(opts.body);
-        expect(body.template_params.user_name).toBe('Alice');
-        expect(body.template_params.user_email).toBe('alice@example.com');
+        expect(body.text).toContain('Alice');
+        expect(body.text).toContain('alice@example.com');
     });
 
     it('throttles a second call from the same user within the cooldown window', async () => {
         const fetchSpy = vi.fn(async () => ({ ok: true, text: async () => 'ok' }));
-        mockEmailjsFetch(fetchSpy);
+        mockResendFetch(fetchSpy);
 
         await notifyAdminOfChatMessage.run(authedRequest({ text: 'first message' }));
         const second = await notifyAdminOfChatMessage.run(authedRequest({ text: 'second message right after' }));
@@ -73,7 +74,7 @@ describe('notifyAdminOfChatMessage', () => {
 
     it('does not throttle a different user calling immediately after', async () => {
         const fetchSpy = vi.fn(async () => ({ ok: true, text: async () => 'ok' }));
-        mockEmailjsFetch(fetchSpy);
+        mockResendFetch(fetchSpy);
 
         await notifyAdminOfChatMessage.run(authedRequest({ text: 'alice message' }, 'alice'));
         const result = await notifyAdminOfChatMessage.run(authedRequest({ text: 'bob message' }, 'bob', { name: 'Bob', email: 'bob@example.com' }));
@@ -83,7 +84,7 @@ describe('notifyAdminOfChatMessage', () => {
 
     it('bypasses the cooldown for an explicit human-handoff request', async () => {
         const fetchSpy = vi.fn(async () => ({ ok: true, text: async () => 'ok' }));
-        mockEmailjsFetch(fetchSpy);
+        mockResendFetch(fetchSpy);
 
         await notifyAdminOfChatMessage.run(authedRequest({ text: 'first message' }));
         const result = await notifyAdminOfChatMessage.run(authedRequest({ text: 'need a human now', isHandoff: true }));
@@ -91,8 +92,8 @@ describe('notifyAdminOfChatMessage', () => {
         expect(fetchSpy).toHaveBeenCalledTimes(2);
     });
 
-    it('does not throw when EmailJS fails — returns sent: false instead', async () => {
-        mockEmailjsFetch(async () => ({ ok: false, status: 500, text: async () => 'boom' }));
+    it('does not throw when Resend fails — returns sent: false instead', async () => {
+        mockResendFetch(async () => ({ ok: false, status: 500, text: async () => 'boom' }));
         const result = await notifyAdminOfChatMessage.run(authedRequest({ text: 'hi' }));
         expect(result).toEqual({ sent: false });
     });

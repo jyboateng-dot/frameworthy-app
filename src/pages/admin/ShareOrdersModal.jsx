@@ -1,11 +1,13 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { X, Copy, Mail, MessageCircle, Check, Send, Lock, User } from 'lucide-react';
-import emailjs from '@emailjs/browser';
+import { httpsCallable } from 'firebase/functions';
 import { formatOrdersForSharing, formatOrderForClient, generateItemDescription, GLASS_LABELS, HARDWARE_LABELS, matWidthLabel } from '../../utils/itemFormatters';
 import { getPrintQualityJpegUrl, getThumbnailUrl } from '../../services/storage';
 import { openExternalLink } from '../../utils/nativeLinks';
+import { functions } from '../../services/firebase';
 
 const ADMIN_EMAIL = 'admin@frameworthyco.com';
+const sendOrderShareEmail = httpsCallable(functions, 'sendOrderShareEmail');
 const RECIPIENTS_STORAGE_KEY = 'fw_share_recipients_history';
 const isValidEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
@@ -138,32 +140,18 @@ const ShareOrdersModal = ({ orders, onClose }) => {
     };
 
     const handleDirectSend = async () => {
-        const serviceId = import.meta.env.VITE_EMAILJS_SERVICE_ID;
-        const templateId = import.meta.env.VITE_EMAILJS_STUDIO_TEMPLATE_ID;
-        const publicKey = import.meta.env.VITE_EMAILJS_PUBLIC_KEY;
-
-        if (!serviceId || !templateId || !publicKey) {
-            setSendError("EmailJS Studio Template is not configured. Add VITE_EMAILJS_STUDIO_TEMPLATE_ID to your .env.local file — the service ID and public key are already detected.");
-            return;
-        }
-
         setSendError('');
         setSending(true);
         const htmlContent = htmlRef.current ? htmlRef.current.innerHTML : '';
-        const toEmail = [ADMIN_EMAIL, ...recipients].join(', ');
+        const toEmail = Array.from(new Set([ADMIN_EMAIL, ...recipients]));
 
         try {
-            await emailjs.send(
-                serviceId,
-                templateId,
-                {
-                    to_email: toEmail, // Requires EmailJS template's To Email field to use {{to_email}}
-                    subject: `FrameWorthy Orders (${orders.length})`,
-                    message_html: htmlContent, // Requires EmailJS template to use {{{message_html}}}
-                    plain_text: shareText
-                },
-                publicKey
-            );
+            await sendOrderShareEmail({
+                recipients: toEmail,
+                subject: `FrameWorthy Orders (${orders.length})`,
+                text: shareText,
+                html: htmlContent,
+            });
             setSendSuccess(true);
             setTimeout(() => setSendSuccess(false), 3000);
 
@@ -174,7 +162,7 @@ const ShareOrdersModal = ({ orders, onClose }) => {
             }
         } catch (error) {
             console.error("Failed to send email:", error);
-            setSendError("Failed to send email directly. Check your EmailJS configuration or use the manual copy/email buttons below.");
+            setSendError("Failed to send email directly. Check the Resend setup or use the manual copy/email buttons below.");
         } finally {
             setSending(false);
         }

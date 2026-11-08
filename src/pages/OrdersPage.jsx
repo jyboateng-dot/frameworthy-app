@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { getUserOrders } from '../services/db';
-import { Package, Loader, ArrowLeft, Image as ImageIcon } from 'lucide-react';
+import { Package, Loader, ArrowLeft, Image as ImageIcon, ExternalLink } from 'lucide-react';
 import { generateItemDescription, formatDimensionWithOrientation } from '../utils/itemFormatters';
 import { useUnit } from '../context/UnitContext';
 import { useNavigate } from 'react-router-dom';
 import Price from '../components/common/Price';
 import { getThumbnailUrl } from '../services/storage';
+import { getCustomerFulfilmentStatus, getProdigiTrackingLinks } from '../utils/prodigiTracking';
 
 const OrdersPage = () => {
     const { user, isLoading: authLoading } = useAuth();
@@ -162,19 +163,33 @@ const OrdersPage = () => {
                                                 paymentStatus value and never appears in `status`.
                                                 'pending' here means paid but not yet started. */}
                                             <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold ${
-                                                order.status === 'delivered' ? 'bg-green-100 text-green-800' :
-                                                order.status === 'shipped' ? 'bg-blue-100 text-blue-800' :
-                                                order.status === 'processing' ? 'bg-[#c9a84c]/20 text-yellow-900' :
+                                                getCustomerFulfilmentStatus(order) === 'delivered' ? 'bg-green-100 text-green-800' :
+                                                getCustomerFulfilmentStatus(order) === 'shipped' ? 'bg-blue-100 text-blue-800' :
+                                                getCustomerFulfilmentStatus(order) === 'processing' ? 'bg-[#c9a84c]/20 text-yellow-900' :
                                                 'bg-stone-100 text-stone-600'
                                             }`}>
-                                                {order.status === 'pending' || !order.status
+                                                {getCustomerFulfilmentStatus(order) === 'pending'
                                                     ? 'ORDER RECEIVED'
-                                                    : order.status.toUpperCase()}
+                                                    : getCustomerFulfilmentStatus(order).toUpperCase()}
                                             </span>
                                         </div>
                                     </div>
                                 </div>
                             </div>
+
+                            {getProdigiTrackingLinks(order).length > 0 && (
+                                <div className="border-b border-stone-100 bg-blue-50/60 px-6 py-3 text-xs text-blue-900">
+                                    <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+                                        <span className="font-bold uppercase tracking-wider">Delivery tracking</span>
+                                        {getProdigiTrackingLinks(order).map((shipment, shipmentIdx) => (
+                                            <a key={shipment.id || shipment.trackingNumber || shipmentIdx} href={shipment.trackingUrl || '#'} target={shipment.trackingUrl ? '_blank' : undefined} rel={shipment.trackingUrl ? 'noreferrer' : undefined} className="inline-flex items-center gap-1 font-semibold underline underline-offset-2">
+                                                {shipment.carrier || 'Courier'}{shipment.trackingNumber ? ` · ${shipment.trackingNumber}` : ''}
+                                                {shipment.trackingUrl && <ExternalLink size={12} aria-hidden="true" />}
+                                            </a>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
                             
                             {/* Items */}
                             <div className="p-6">
