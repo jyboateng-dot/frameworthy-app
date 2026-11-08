@@ -71,10 +71,14 @@ const CheckoutPage = () => {
     const checkoutCurrency = checkoutCurrencies[0] || 'GHS';
     const hasMixedCurrencies = checkoutCurrencies.length > 1;
     const isGbpProdigiCheckout = hasProdigiItems && checkoutCurrency === 'GBP';
+    // Payment completion clears the selected cart items before the success
+    // route mounts. Keep the empty-checkout redirect from racing that
+    // transition and sending a paid customer back to /cart.
+    const paymentCompletedRef = useRef(false);
     
     // Redirect if nothing selected
     useEffect(() => {
-        if (checkoutItems.length === 0) {
+        if (checkoutItems.length === 0 && !paymentCompletedRef.current) {
             navigate('/cart');
         }
     }, [checkoutItems, navigate]);
@@ -508,6 +512,7 @@ const CheckoutPage = () => {
                             });
                             // Only the items just paid for — anything the
                             // customer deselected stays in the cart.
+                            paymentCompletedRef.current = true;
                             removeItems(checkoutItems.map(item => item.id));
                             // Carry the order reference through so the success
                             // page can show it. This is the only record a
@@ -515,7 +520,7 @@ const CheckoutPage = () => {
                             // so they can't be listed on /orders and aren't
                             // readable back under firestore.rules.
                             navigate('/success', {
-                                state: { orderId, reference, email, total: finalTotal, isGuest: !user }
+                                state: { orderId, reference, email, total: finalTotal, currency: checkoutCurrency, isGuest: !user }
                             });
                         } else {
                             // Paystack also confirms successful charges directly to our
@@ -565,9 +570,10 @@ const CheckoutPage = () => {
                 unit,
                 currency: checkoutCurrency,
             });
+            paymentCompletedRef.current = true;
             removeItems(checkoutItems.map(item => item.id));
             navigate('/success', {
-                state: { orderId: paypalCheckout.orderId, reference: paypalOrderId, email, total: finalTotal, isGuest: !user },
+                state: { orderId: paypalCheckout.orderId, reference: paypalOrderId, email, total: finalTotal, currency: checkoutCurrency, isGuest: !user },
             });
         } catch (err) {
             console.error('PayPal payment capture failed:', err);

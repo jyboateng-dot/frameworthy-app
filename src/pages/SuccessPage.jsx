@@ -8,7 +8,7 @@ const SuccessPage = ({ productMode, setProductMode, navigate }) => {
     // Passed by CheckoutPage on a verified payment. Absent if someone lands
     // here directly (or refreshes, since router state doesn't survive that),
     // so every use below is optional.
-    const { orderId, reference, email, total, isGuest } = location.state || {};
+    const { orderId, reference, email, total, currency = 'GHS', isGuest } = location.state || {};
     const [copied, setCopied] = useState(false);
 
     const handleCopy = async () => {
@@ -68,7 +68,7 @@ const SuccessPage = ({ productMode, setProductMode, navigate }) => {
                     {typeof total === 'number' && (
                         <div className="flex justify-between items-baseline mt-3 pt-3 border-t border-stone-100">
                             <span className="text-xs text-stone-500">Total paid</span>
-                            <Price amount={total} className="text-sm font-bold text-stone-900" />
+                            <Price amount={total} currency={currency} className="text-sm font-bold text-stone-900" />
                         </div>
                     )}
                     {isGuest && (
