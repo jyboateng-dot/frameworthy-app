@@ -54,8 +54,8 @@ const MOBILE_HERO_SLIDES = CAROUSEL_SLIDES
 const BENEFITS = [
     { icon: Eye, label: 'Live preview as you design' },
     { icon: Smartphone, label: 'See it on your wall in AR' },
-    { icon: CheckCircle2, label: 'Handcrafted, ready to hang' },
     { icon: ShieldCheck, label: 'Secure checkout' },
+    { icon: CheckCircle2, label: 'Delivered, ready to hang' },
 ];
 
 const SOCIAL_LINKS = [
