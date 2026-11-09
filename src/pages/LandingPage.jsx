@@ -539,7 +539,7 @@ export default function LandingPage({ onStartFraming, navigate, setSelectedFrame
             </section>
 
             {/* Step Three: See it on your wall before you buy */}
-            <section className="max-w-[2560px] mx-auto px-4 sm:px-6 lg:px-12 py-6 lg:py-8">
+            <section className="max-w-[2560px] mx-auto px-4 sm:px-6 lg:px-12 py-7 lg:py-9">
                 <div className="overflow-hidden rounded-3xl bg-stone-900 text-white shadow-2xl">
                     <div className="grid grid-cols-1 lg:grid-cols-12 items-center">
                         <div className="lg:col-span-7 relative h-[360px] sm:h-[440px] lg:h-[540px]">
@@ -594,7 +594,7 @@ export default function LandingPage({ onStartFraming, navigate, setSelectedFrame
             </section>
 
             {/* Step Four: Delivered to your door, ready to hang */}
-            <section className="max-w-[2560px] mx-auto px-4 sm:px-6 lg:px-12 py-6 lg:py-8">
+            <section className="max-w-[2560px] mx-auto px-4 sm:px-6 lg:px-12 py-7 lg:py-9">
                 <div className="overflow-hidden rounded-3xl bg-white border border-stone-200/90 shadow-sm">
                     <div className="grid grid-cols-1 lg:grid-cols-12 items-center">
                         <div className="lg:col-span-5 order-2 lg:order-1 p-6 sm:p-10 lg:p-12 xl:p-16 flex flex-col justify-center">
