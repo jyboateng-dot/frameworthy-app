@@ -445,7 +445,7 @@ export default function LandingPage({ onStartFraming, navigate, setSelectedFrame
             </section>
 
             {/* Step Two: Pick your frame */}
-            <section id="curated-frames" className="pt-7 lg:pt-9 pb-3 lg:pb-4 bg-white relative overflow-hidden scroll-mt-14">
+            <section id="curated-frames" className="pt-7 lg:pt-9 pb-0 lg:pb-1 bg-white relative overflow-hidden scroll-mt-14">
                 <div className="max-w-[2560px] mx-auto px-4 sm:px-6 lg:px-12">
                     <div className="mb-4 lg:mb-5">
                         <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#a8892f] mb-1">Step two</p>
@@ -513,7 +513,7 @@ export default function LandingPage({ onStartFraming, navigate, setSelectedFrame
 
                     {/* Pagination Controls */}
                     {totalPages > 1 && (
-                        <div className="flex items-center justify-center gap-4 mt-8">
+                        <div className="flex items-center justify-center gap-4 mt-6">
                             <button 
                                 onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                                 aria-label="Previous page"
