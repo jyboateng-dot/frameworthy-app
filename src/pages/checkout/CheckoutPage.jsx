@@ -581,10 +581,7 @@ const CheckoutPage = () => {
                                     <p className="mt-0.5 text-xs text-stone-600">Fast, secure checkout by <span className="font-bold text-[#0070ba]">PayPal</span></p>
                                 </div>
                             </div>
-                            <div className="flex shrink-0 flex-col items-end gap-1">
-                                <Price amount={finalTotal} currency={checkoutCurrency} className="text-sm font-bold text-stone-900" />
-                                <span className="inline-flex items-center gap-1 rounded-full bg-white px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-[#27658b] ring-1 ring-inset ring-[#c9dff0]"><ShieldCheck size={12} aria-hidden="true" /> Secure</span>
-                            </div>
+                            <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-white px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-[#27658b] ring-1 ring-inset ring-[#c9dff0]"><ShieldCheck size={12} aria-hidden="true" /> Secure</span>
                         </div>
                         <div className="bg-white px-4 py-3">
                             {!PAYPAL_CLIENT_ID ? (
