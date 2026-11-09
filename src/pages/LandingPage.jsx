@@ -38,7 +38,7 @@ const BENEFITS = [
     { icon: Eye, title: 'Live preview as you design', desc: 'Watch frames, mounts, and glazing update live.' },
     { icon: Smartphone, title: 'See it on your wall in AR', desc: 'Project your piece onto your wall at true physical scale.' },
     { icon: ShieldCheck, title: 'Secure checkout', desc: 'Guest checkout available with protected payments.' },
-    { icon: CheckCircle2, title: 'Delivered, ready to hang', desc: 'Locally built with premium wood, glass, and hardware.' },
+    { icon: CheckCircle2, title: 'Delivered, ready to hang', desc: 'Framed to order and delivered with hanging hardware attached.' },
 ];
 
 export default function LandingPage({ onStartFraming, navigate, setSelectedFrame }) {
