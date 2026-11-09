@@ -118,6 +118,9 @@ const CEILING_MARGIN_CM = 12;
 // the sofa, table, bed, console, or desk. Tall pieces retain the top-wall
 // margin; their scene foreground is intentionally drawn over them where a
 // reference object intersects.
+// Pixels per centimetre of the desktop canvas the reference gaps were tuned at.
+const REFERENCE_PX_PER_CM = 3;
+
 export const computeReferenceAnchoredTop = (scene, layout, frameHeightPx, sizeId, orientation, frameHeightCm) => {
     if (!scene || !layout || !Number.isFinite(frameHeightPx) || frameHeightPx <= 0) return null;
     const topMargin = layout.top + 12;
@@ -125,9 +128,15 @@ export const computeReferenceAnchoredTop = (scene, layout, frameHeightPx, sizeId
     // change the surrounding reference artefacts — never move or resize the
     // selected frame itself.
     const referenceTop = layout.top + 0.65 * layout.height;
-    const referenceGap = sizeId === '100x150cm' && orientation === 'portrait'
+    // The gap is a real-world distance, not a fixed pixel count: a constant
+    // 112px is ~37cm on a desktop canvas but balloons to a far larger physical
+    // distance on narrow screens where the room is drawn at a smaller scale,
+    // leaving the frame floating away from its reference furniture. Authored
+    // at the desktop reference scale of 3 px/cm, then scaled with the layout.
+    const gapScale = (Number.isFinite(layout.scale) && layout.scale > 0 ? layout.scale : REFERENCE_PX_PER_CM) / REFERENCE_PX_PER_CM;
+    const referenceGap = (sizeId === '100x150cm' && orientation === 'portrait'
         ? 16
-        : 112;
+        : 112) * gapScale;
     const targetTop = referenceTop - frameHeightPx - referenceGap;
     // A 180cm-tall piece uses the full visualizer height. Keep its ceiling
     // clearance identical to Studio Loft in every scene rather than adding

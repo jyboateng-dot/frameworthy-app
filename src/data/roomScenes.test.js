@@ -179,6 +179,18 @@ describe('ROOM_SCENES data', () => {
         }
     });
 
+    it('keeps the frame-to-reference gap physically constant on narrow screens', () => {
+        const room = ROOM_SCENES.find((scene) => scene.id === 'bedroom');
+        const gapCm = (viewportWidth, viewportHeight) => {
+            const layout = computeRoomLayout(room, viewportWidth, viewportHeight);
+            const frameHeightPx = 60 * layout.scale;
+            const top = computeReferenceAnchoredTop(room, layout, frameHeightPx, '60x90cm', 'portrait', 60);
+            const referenceTop = layout.top + 0.65 * layout.height;
+            return (referenceTop - (top + frameHeightPx)) / layout.scale;
+        };
+        expect(gapCm(390, 260)).toBeCloseTo(gapCm(1380, 920), 6);
+    });
+
     it('scene ids are unique', () => {
         const ids = ROOM_SCENES.map((s) => s.id);
         expect(new Set(ids).size).toBe(ids.length);

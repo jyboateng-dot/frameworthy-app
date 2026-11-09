@@ -51,7 +51,7 @@ describe('complete catalogue against room scenes', () => {
                                 : Math.max(
                                     layout.top + 12,
                                     layout.top + 0.65 * layout.height - frameHeight
-                                        - (size.id === '100x150cm' && orientation === 'portrait' ? 16 : 112),
+                                        - (size.id === '100x150cm' && orientation === 'portrait' ? 16 : 112) * layout.scale / 3,
                                 );
                             expect(visualTop, label).toBeCloseTo(expectedTop, 8);
                         }
