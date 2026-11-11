@@ -108,7 +108,7 @@ async function getPayPalAccessToken() {
 
     const body = await readJson(response);
     if (!response.ok || !body?.access_token) {
-        logger.error('PayPal token request was rejected', { status: response.status, body });
+        logger.error('PayPal token request was rejected', { status: response.status, error: body?.error });
         throw new HttpsError('failed-precondition', 'PayPal is not configured correctly');
     }
     return body.access_token;
@@ -467,7 +467,10 @@ exports.createPayPalOrder = onCall({
 
     const { response, body } = await callPayPal('/v2/checkout/orders', {
         method: 'POST',
-        requestId: `fw-create-${orderId}`,
+        // Unique per attempt: PayPal replays the original response for a
+        // repeated request id, which would hand back an expired or already
+        // used PayPal order on a retry.
+        requestId: `fw-create-${orderId}-${crypto.randomUUID()}`,
         body: {
             intent: 'CAPTURE',
             purchase_units: [{
@@ -485,7 +488,7 @@ exports.createPayPalOrder = onCall({
     });
 
     if (!response.ok || !body?.id) {
-        logger.error('PayPal order creation failed', { orderId, status: response.status, body });
+        logger.error('PayPal order creation failed', { orderId, status: response.status, name: body?.name, debugId: body?.debug_id });
         throw new HttpsError('unavailable', 'Could not start PayPal checkout');
     }
     return { id: body.id };
@@ -530,7 +533,13 @@ async function capturePayPalOrderForOrder(orderId, paypalOrderId) {
     if (captured.body?.status !== 'COMPLETED' || capture?.status !== 'COMPLETED'
         || capture.amount?.currency_code !== 'GBP'
         || Math.round(Number(capture.amount?.value) * 100) !== Math.round(recomputed.total * 100)) {
-        logger.warn('PayPal capture did not complete', { orderId, paypalOrderId, status: captured.response.status, body: captured.body });
+        // error level: the buyer may have been charged without the order being
+        // marked paid, so this must be alertable.
+        logger.error('PayPal capture did not complete — possible charge without paid order', {
+            orderId, paypalOrderId, httpStatus: captured.response.status,
+            orderStatus: captured.body?.status, captureStatus: capture?.status,
+            captureAmount: capture?.amount, debugId: captured.body?.debug_id,
+        });
         throw new HttpsError('failed-precondition', 'PayPal could not confirm this payment');
     }
 
